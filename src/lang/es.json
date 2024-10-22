@@ -1,0 +1,193 @@
+{
+    "group": {
+        "name": "Nombre",
+        "expenses": "Gastos",
+        "incomes": "Ingresos",
+        "goal": "Objetivo",
+        "balance": "Balance",
+        "year": "Año",
+        "month": "Mes",
+        "cancel": "Cancelar",
+        "save": "Guardar",
+        "add": "Crear grupo",
+        "edit": "Editar grupo",
+        "error": "Debes rellenar todos los campos",
+        "select-group": "Selecciona un grupo",
+        "added": "Grupo agregado",
+        "edited": "Grupo editado",
+        "deleted": "Grupo eliminado"
+    },
+    "settings": {
+        "header": "Configuraciones",
+        "selectLanguage": "Idioma",
+        "languages": {
+            "english": "Inglés",
+            "spanish": "Español"
+        }
+    },
+    "paymentMethods": {
+        "header": "Administrar Métodos de Pago",
+        "methodName": "Nombre",
+        "addMethod": "Agregar Método de Pago",
+        "updateMethod": "Actualizar Método de Pago",
+        "delete": "Eliminar",
+        "edit": "Editar",
+        "error": {
+            "emptyFields": "Por favor, completa todos los campos."
+        },
+        "type": {
+            "label":"Tipo",
+            "credit": "Crédito",
+            "debit": "Débito"
+        }
+    },
+    "categories": {
+        "header": "Administrar Categorías",
+        "categoryName": "Nombre",
+        "addCategory": "Agregar Categoría",
+        "updateCategory": "Actualizar Categoría",
+        "delete": "Eliminar",
+        "edit": "Editar",
+        "error": {
+            "emptyFields": "Por favor, completa todos los campos."
+        }
+    },
+    "records": {
+        "header": "Gestionar Registros",
+        "amount": "Monto",
+        "date": "Fecha (YYYY-MM-DD)",
+        "selectGroup": "Seleccionar Grupo:",
+        "selectCategory": "Seleccionar Categoría:",
+        "selectPaymentMethod": "Seleccionar Método de Pago:",
+        "addRecord": "Añadir Registro",
+        "updateRecord": "Actualizar Registro",
+        "delete": "Eliminar",
+        "edit": "Editar",
+        "error": {
+            "emptyFields": "Por favor, ingresa todos los campos y selecciona las opciones necesarias."
+        }
+    },
+    "months": {
+        "0": "Enero",
+        "1": "Febrero",
+        "2": "Marzo",
+        "3": "Abril",
+        "4": "Mayo",
+        "5": "Junio",
+        "6": "Julio",
+        "7": "Agosto",
+        "8": "Septiembre",
+        "9": "Octubre",
+        "10": "Noviembre",
+        "11": "Diciembre"
+    },
+    "daysShort": {
+        "0": "Dom",
+        "1": "Lun",
+        "2": "Mar",
+        "3": "Mié",
+        "4": "Jue",
+        "5": "Vie",
+        "6": "Sáb"
+    },
+    "daysLong": {
+        "0": "Domingo",
+        "1": "Lunes",
+        "2": "Martes",
+        "3": "Miércoles",
+        "4": "Jueves",
+        "5": "Viernes",
+        "6": "Sábado"
+    },
+    "datePicker": {
+        "today": "Hoy",
+        "cancel": "Cancelar"
+    },
+    "confirm": "Aceptar",
+    "cancel": "Cancelar",
+    "confirmDelete": "¿Estás seguro de que quieres eliminar esto?",
+    "delete": "Eliminar",
+    "year-error": "Año no válido",
+    "pickers": {
+        "month": "Selecciona un mes"
+    },
+    "item": {
+        "name": "Nombre",
+        "value": "Monto",
+        "date": "Fecha",
+        "type": "Tipo",
+        "error": "Debes rellenar todos los campos",
+        "cancel": "Cancelar",
+        "save": "Guardar",
+        "add": "Crear item",
+        "edit": "Editar item",
+        "added": "Item creado",
+        "edited": "Item editado",
+        "deleted": "Item eliminado",
+        "income": "Ingreso",
+        "expense": "Gasto",
+        "payment": "Método de pago",
+        "category": "Categoria",
+        "selectCategory": "Seleccione una categoria",
+        "selectPayment": "Seleccione un método de pago"
+    },
+    "credit": "Crédito",
+    "debit": "Débito",
+    "totals": {
+        "incomeCredit": "Total de Ingresos (Crédito)",
+        "incomeDebit": "Total de Ingresos (Débito)",
+        "income": "Total de Ingresos",
+        "expense": "Total de Gastos",
+        "balance": "Balance",
+        "expenseCredit": "Total de Gastos (Crédito)",
+        "expenseDebit": "Total de Gastos (Débito)",
+        "byCategory": "Total por Categoría",
+        "noData": "Sin datos disponibles",
+        "byPaymentMethod": "Total por método de pago",
+        "balanceNet": "Balance sin crédito"
+    },
+    "headers":{
+        "financialsIndex": "Resumen",
+        "records": "Registros",
+        "categories": "Categorías",
+        "payments": "Métodos de pago"
+    },
+    "colors": {
+        "set": "Establecer un color",
+        "reset": "Restablecer colores",
+        "confirmMessage": "¿Confirmas restablecer los colores?",
+        "invalid": "Color inválido",
+        "copied": "Color copiado al portapapeles",
+        "IconsColor": "Color de íconos",
+        "InputStroke": "Color del borde de entrada",
+        "BGPicker": "Color de fondo del selector",
+        "ModalHeaderColor": "Color del encabezado del modal",
+        "ConfirmColor": "Color de confirmación",
+        "BGSimple": "Fondo simple",
+        "ExpenseColor": "Color de gasto",
+        "IncomeColor": "Color de ingreso",
+        "GoalColor": "Color de objetivo",
+        "Credit": "Color de crédito",
+        "Debit": "Color de débito",
+        "expenseColor": "Color de gasto",
+        "incomeColor": "Color de ingreso",
+        "goalColor": "Color de meta",
+        "creditColor": "Color de crédito",
+        "debitColor": "Color de débito"
+    },
+    "resume": {
+        "incomes": "Ingresos",
+        "expenses": "Gastos",
+        "goal": "Meta",
+        "incomesDebit": "Ingresos débito",
+        "expensesDebit": "Gastos débito",
+        "incomesCredit": "Ingresos crédito",
+        "expensesCredit": "Gastos crédito",
+        "balance": "Balance",
+        "credit": "Credito",
+        "balanceWithout": "Balance sin crédito",
+        "summaryByCategories": "Resumen por categorias",
+        "summaryByPayments": "Resumen por método de pago",
+        "today": "Hoy"
+    }
+}
