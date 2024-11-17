@@ -32,7 +32,6 @@ const TapBlock: React.FC<TapBlockProps> = ({
     useEffect(() => {
         const value = (parseInt(baseHex, 16) / 255) * (isHorizontal ? baseWidth : baseHeight);
         selectValue.value = withTiming(Math.min(value, isHorizontal ? baseWidth : baseHeight));
-        console.log("base", baseHex)
         setColorValue(parseInt(baseHex, 16)); // Establecer el valor inicial del color
     }, [baseHex]);
 

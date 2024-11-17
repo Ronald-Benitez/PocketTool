@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons'
 
 import styles from '@/src/styles/styles'
 import BaseModal from './base-modal'
+import BaseSelect from './base-select'
 
 interface MonthSelectorProps {
     month: string
@@ -30,24 +31,20 @@ const MonthSelector = ({ month, setMonth }: MonthSelectorProps) => {
         { name: t('months.11'), value: '11' }
     ]
 
+    const onChange = (index: number) => {
+        setMonth(months[index].value)
+
+    }
+
     return (
         <>
-            <TouchableOpacity onPress={showModal} style={[styles.button, { justifyContent: "space-between" }]}>
-                <Text style={styles.text}>{t('months.' + (Number(month)))}</Text>
-                <Ionicons name="chevron-down" size={24} color={"#000"} />
-            </TouchableOpacity>
-            <CustomModal title={t("pickers.month")}>
-                <ScrollView style={[{ maxHeight: 400, minWidth: 300 }]}>
-                    {months.map(({ name, value }) => (
-                        <TouchableOpacity
-                            key={value}
-                            onPress={() => { setMonth(value); hideModal() }}
-                            style={[value === month ? styles.enfasizedButton : styles.button, { marginTop: 10, elevation: 0 }]}>
-                            <Text style={value === month ? styles.enfasizedText : styles.text}>{name}</Text>
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>
-            </CustomModal>
+            <BaseSelect
+                onChange={onChange}
+                title={t("pickers.month")}
+                label={t("pickers.month")}
+                options={months.map(m => m.name)}
+                selected={months.find(m => m.value == month)?.name}
+            />
         </>
     )
 }

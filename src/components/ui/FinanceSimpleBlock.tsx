@@ -1,5 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 
+import ColorText from "./color-text";
+
 interface props {
     text: string
     value: string
@@ -11,9 +13,11 @@ const FinanceSimpleBlock = ({ text, color, value, blockwidth = 175 }: props) => 
     return (
         <>
             <View style={[localStyles.container, { width: blockwidth }]}>
-                <Text style={[localStyles.block, { borderColor: color, width: blockwidth }]}>
-                    ${value}
-                </Text>
+                <View style={[localStyles.block, { backgroundColor: color, width: blockwidth }]}>
+                    <ColorText backgroundColor={color || "#fff"} textAlign="center">
+                        ${value}
+                    </ColorText>
+                </View>
                 <Text style={localStyles.footerText}>{text}</Text>
             </View>
         </>
@@ -23,12 +27,12 @@ const FinanceSimpleBlock = ({ text, color, value, blockwidth = 175 }: props) => 
 const localStyles = StyleSheet.create({
     block: {
         marginVertical: 5,
-        borderBottomWidth: 1,
-        borderRadius: 5,
+        borderRadius: 100,
         fontSize: 14,
         fontWeight: "300",
         textAlign: "center",
-        paddingBottom: 5
+        justifyContent:"center",
+        alignItems:"center",
     },
     footerText: {
         fontWeight: "200",

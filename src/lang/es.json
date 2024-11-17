@@ -126,6 +126,7 @@
         "deleted": "Item eliminado",
         "income": "Ingreso",
         "expense": "Gasto",
+        "transfer": "Transferencia",
         "payment": "Método de pago",
         "category": "Categoria",
         "selectCategory": "Seleccione una categoria",
@@ -150,7 +151,11 @@
         "financialsIndex": "Resumen",
         "records": "Registros",
         "categories": "Categorías",
-        "payments": "Métodos de pago"
+        "payments": "Métodos de pago",
+        "savings": "Ahorros",
+        "home":"Home",
+        "financials": "Finanzas",
+        "settings":"Configuraciones"
     },
     "colors": {
         "set": "Establecer un color",
@@ -166,6 +171,7 @@
         "BGSimple": "Fondo simple",
         "ExpenseColor": "Color de gasto",
         "IncomeColor": "Color de ingreso",
+        "TransferColor": "Color de tranferencia",
         "GoalColor": "Color de objetivo",
         "Credit": "Color de crédito",
         "Debit": "Color de débito",
@@ -188,6 +194,19 @@
         "balanceWithout": "Balance sin crédito",
         "summaryByCategories": "Resumen por categorias",
         "summaryByPayments": "Resumen por método de pago",
-        "today": "Hoy"
+        "today": "Hoy",
+        "transfers": "Tranferencias"
+    },
+    "savings":{
+        "select": "Selecciona un ahorro",
+        "add": "Agrega un ahorro",
+        "edit": "Edita un ahorro"
+    },
+    "db":{
+        "importCancel":"¡Importación cancelada!",
+        "importSuccess":"¡Importación éxitosa, por favor recarga la app!",
+        "noSharing":"La función de compartir no está disponible en esta plataforma",
+        "exportSucces":"Exportación completada con éxito",
+        "exportError":"Error al exportar la base de datos"
     }
 }

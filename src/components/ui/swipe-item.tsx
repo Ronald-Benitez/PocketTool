@@ -60,12 +60,12 @@ const SwipeItem = ({ children, handleDelete, handleUpdate, deleteContent, style,
                     {children}
                 </Animated.View>
             </GestureDetector>
-            <Animated.View style={[styles.backgroundButton, styles.fixedBackground, animatedOpacity, { right: 0, top:0 }]}>
+            <Animated.View style={[styles.backgroundButton, styles.fixedBackground, animatedOpacity, { right: 0, top:8 }]}>
                 <Feather name="trash" size={24} color={deleteColor} />
             </Animated.View>
             {
                 handleUpdate && (
-                    <Animated.View style={[styles.backgroundButton, styles.fixedBackground, animatedOpacity, { left: 0, top:0 }]}>
+                    <Animated.View style={[styles.backgroundButton, styles.fixedBackground, animatedOpacity, { left: 0, top:8 }]}>
                         <Feather name="edit-2" size={24} color={editColor} />
                     </Animated.View>
                 )

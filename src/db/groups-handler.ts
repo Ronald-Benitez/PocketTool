@@ -1,6 +1,6 @@
 // src/database.ts
 import { Group, CreateGroupRequest } from "@/src/interfaces";
-import { useSQLiteContext } from "expo-sqlite/next";
+import { useSQLiteContext } from "expo-sqlite";
 
 export const useGroups = () => {
   const db = useSQLiteContext();

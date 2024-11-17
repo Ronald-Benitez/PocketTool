@@ -60,7 +60,7 @@ const Index = () => {
             <View style={localStyles.container}>
                 <View style={[styles.row, { justifyContent: 'center', alignItems: "flex-end", marginBottom: 10, gap: 10 }]}>
                     <GroupSelector />
-                    {
+                    {/* {
                         group && (
                             <AddGroup
                                 openUpdate={openUpdate}
@@ -72,14 +72,14 @@ const Index = () => {
                                 </IconButton>
                             </AddGroup>
                         )
-                    }
+                    } */}
 
                 </View>
 
                 <BalanceBlock
                     bottom={false}
                     text={t('resume.balance')}
-                    value={String(Math.abs(resumes?.balance || 0))}
+                    value={Math.abs(resumes?.balance || 0).toFixed(2)}
                     color={resumes ? (resumes?.balance < 0 ? colors?.ExpenseColor : colors?.IncomeColor) : colors?.Debit}
                 />
             </View >
@@ -98,6 +98,11 @@ const Index = () => {
                         />
                     </View>
                     <View style={localStyles.simpleContainer}>
+                        <FinanceSimpleBlock
+                            text={t("resume.transfers")}
+                            color={colors?.TransferColor}
+                            value={String(resumes?.transferTotal || 0)}
+                        />
                         <FinanceSimpleBlock
                             text={t("resume.goal")}
                             color={colors?.GoalColor}
@@ -136,7 +141,7 @@ const Index = () => {
                     <BalanceBlock
                         bottom={true}
                         text={t('resume.balanceWithout')}
-                        value={String(Math.abs(resumes?.totalWithoutDebts || 0))}
+                        value={String(Math.abs(resumes?.totalWithoutDebts || 0).toFixed(2))}
                         color={resumes ? (resumes?.totalWithoutDebts < 0 ? colors?.ExpenseColor : colors?.IncomeColor) : colors?.Debit}
                     />
                     <FinnanceTableBlock render='payments' />

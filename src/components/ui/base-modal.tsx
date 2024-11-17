@@ -21,9 +21,6 @@ const useBaseModal = (hideOnBackdropPress: BaseModalProps["hideOnBackdropPress"]
         if (hideOnBackdropPress) hideModal();
     }
 
-    useEffect(()=>{
-        console.log(modalVisible)
-    },[modalVisible])
 
     const CustomModal = ({ children, title, button, maxHeight }: BaseModalProps) => (
         <>

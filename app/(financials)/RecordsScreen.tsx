@@ -28,6 +28,7 @@ const Index = () => {
         if (!group) return
         fetchRecords(group.id).then(e => {
             setRecordsState(e as RecordI[])
+            console.log(e)
         })
     }, [group?.id])
 
@@ -65,7 +66,7 @@ const Index = () => {
     return (
         <View style={styles.container}>
             <View style={[styles.row, { justifyContent: "space-around", alignItems: "flex-end" }]}>
-                <View style={{ width: "70%" }}>
+                <View style={{ paddingBottom: 5 }}>
                     <GroupSelector />
                 </View>
                 <AddGroup>

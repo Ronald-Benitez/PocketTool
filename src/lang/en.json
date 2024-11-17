@@ -126,6 +126,7 @@
         "deleted": "Deleted item",
         "income": "Income",
         "expense": "Expense",
+        "transfer": "Transfer",
         "payment": "Payment Method",
         "category": "Category",
         "selectCategory": "Select a category",
@@ -150,7 +151,11 @@
         "financialsIndex": "Summary",
         "records": "Records",
         "categories": "Categories",
-        "payments": "Payment Methods"
+        "payments": "Payment Methods",
+        "savings": "Savings",
+        "home":"Home",
+        "financials": "Financials",
+        "settings":"Settings"
     },
     "colors":{
         "set": "Set a color",
@@ -166,6 +171,7 @@
         "BGSimple": "Background simple",
         "ExpenseColor": "Expense color",
         "IncomeColor": "Income color",
+        "TransferColor":"Transfer color",
         "GoalColor": "Goal color",
         "Credit": "Credit color",
         "Debit": "Debit color"
@@ -183,7 +189,20 @@
         "balanceWithout": "Balance without credit",
         "summaryByCategories": "Summary by categories",
         "summaryByPayments": "Summary by payment methods",
-        "today": "Today"
+        "today": "Today",
+        "transfers": "Tranfers"
+    },
+    "savings":{
+        "select": "Select a saving",
+        "add": "Add a saving",
+        "edit": "Edit a saving"
+    },
+    "db": {
+        "importCancel": "Import canceled!",
+        "importSuccess": "Import successful, please reload the app!",
+        "noSharing": "Sharing feature is not available on this platform",
+        "exportSucces": "Export completed successfully",
+        "exportError": "Error exporting the database"
     }
       
 }

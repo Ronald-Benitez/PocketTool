@@ -53,28 +53,6 @@ export default function Layout() {
                         backgroundColor: '#fff'
                     }
                 }} />
-            {/* <Tabs.Screen
-                name="expense-adder"
-                options={{
-                    title: t('pages.expense-adder'),
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="trending-down" size={size} color={color} />
-                    ),
-                    headerStyle: {
-                        backgroundColor: colors?.headers.financials || '#fff'
-                    }
-                }} /> */}
-            {/* <Tabs.Screen
-                name="savings"
-                options={{
-                    title: t('pages.savings'),
-                    tabBarIcon: ({ color, size }) => (
-                        <MaterialCommunityIcons name="piggy-bank-outline" size={size} color={color} />
-                    ),
-                    headerStyle: {
-                        backgroundColor: colors?.headers.financials || '#fff'
-                    }
-                }} /> */}
         </StackBase>
     );
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Modal, ScrollView, Pressable, Text, TextInput, TouchableOpacity, StyleProp, TextStyle, StyleSheet } from "react-native";
 import { Picker } from "@react-native-picker/picker";
+import { DateTimePickerAndroid, DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 import { useLanguage } from "@/src/lang/LanguageContext";
 import styles from "@/src/styles/styles";
@@ -31,11 +32,11 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
     const dateH = useDate()
     const { t } = useLanguage()
     const [name, setName] = useState<string>("")
-    const [date, setDate] = useState<string>(dateH.create())
-    const [type, setType] = useState<"income" | "expense">("expense")
+    const [date, setDate] = useState(new Date())
+    const [type, setType] = useState<"income" | "expense" | "transfer">("expense")
     const [payment_method, setPaymentMethod] = useState<PaymentMethod>()
     const [category, setCategory] = useState<Category>()
-    const [value, setValue] = useState<string>("0")
+    const [value, setValue] = useState<string>("")
     const [group_id, setGroupId] = useState<number>(group?.id || 0)
     const records = useRecords()
     const paymentMethods = usePaymentMethods()
@@ -61,7 +62,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
         if (!item) return
         setName(item.record_name)
         setValue(String(item.amount))
-        setDate(item.date)
+        setDate(new Date(item.date))
         if (item.record_type != type) {
             onTypeChange()
         }
@@ -70,13 +71,13 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
         setPaymentMethod(payments?.find(pay => pay.id == item.payment_method_id))
     }, [item])
 
-
-
     const onTypeChange = () => {
-        if (type === "expense") {
-            setType("income")
-        } else {
+        if (type === "income") {
             setType("expense")
+        } else if (type === "expense") {
+            setType("transfer")
+        } else {
+            setType("income")
         }
     }
 
@@ -87,9 +88,10 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
             showToast({ message: t("item.error"), type: "ERROR" })
             return
         }
+        console.log("a")
 
         const newItem: CreateRecordRequest = {
-            date,
+            date: date.toISOString().split("T")[0],
             group_id,
             record_name: name,
             record_type: type,
@@ -107,7 +109,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
             await records.addRecord(newItem)
             showToast({ message: t("item.added"), type: "SUCCESS" })
             setName("")
-            setValue("0")
+            setValue("")
         }
         try {
             setRecords(await records.fetchRecords(group_id) as RecordI[])
@@ -125,6 +127,32 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
     const onPaymentChange = (index: number) => {
         if (!payments) return
         setPaymentMethod(payments[index])
+    }
+    const onChange = (event: DateTimePickerEvent, selectedDate: Date | undefined) => {
+        const currentDate = selectedDate;
+        if (currentDate) {
+            setDate(currentDate);
+        }
+    };
+
+    const openDatePicker = () => {
+        DateTimePickerAndroid.open({
+            value: date,
+            onChange,
+            mode: "date",
+            is24Hour: true,
+        });
+    }
+
+    const typeColor = () => {
+        switch (type) {
+            case "income":
+                return colors?.IncomeColor
+            case "expense":
+                return colors?.ExpenseColor;
+            case "transfer":
+                return colors?.TransferColor
+        }
     }
 
     return (
@@ -151,7 +179,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
                                 onClick={onTypeChange}
                                 text={t(`item.${type}`)}
                                 label={t('item.type')}
-                                textColor={colors ? (type == "expense" ? colors["ExpenseColor"] : colors["IncomeColor"]) : "#000"}
+                                textColor={colors ? typeColor() : "#000"}
                             />
                         </View>
 
@@ -185,7 +213,10 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
                         </View>
                         <View style={localStyles.inputContainer}>
                             <LabelBlock label={t('item.date')}>
-                                <DatePicker buttonText={dateH.getStringDate(date)} onChange={setDate} value={date} />
+                                <Pressable onPress={openDatePicker} style={{ width: 300, height: 50, alignItems: "center", justifyContent: "center" }}>
+                                    {/* <DatePicker buttonText={dateH.getStringDate(date)} onChange={setDate} value={date} /> */}
+                                    <Text>{date.toLocaleDateString()}</Text>
+                                </Pressable>
                             </LabelBlock>
                         </View>
                     </View>

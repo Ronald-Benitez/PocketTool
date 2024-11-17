@@ -1,4 +1,4 @@
-import { useSQLiteContext } from "expo-sqlite/next";
+import { useSQLiteContext } from "expo-sqlite";
 import {
   RecordI,
   CreateRecordRequest,
@@ -12,14 +12,21 @@ export interface ResumeTotals {
   incomeDebit: number | null;
   expenseCredit: number | null;
   expenseDebit: number | null;
+  transferTotal: number | null;
   categoryTotals:
-    | { category_name: string; totalIncome: number; totalExpense: number }[]
+    | {
+        category_name: string;
+        totalIncome: number;
+        totalExpense: number;
+        totalTransfer: number;
+      }[]
     | null;
   paymentMethodTotals:
     | {
         method_name: string;
         totalIncome: number;
         totalExpense: number;
+        totalTransfer: number;
         type: string;
       }[]
     | null;
@@ -28,6 +35,8 @@ export interface ResumeTotals {
   balance: number;
   totalWithoutDebts: number;
   todayTotal: TodayTotals | null;
+  transferDebit: number | null;
+  transferCredit: number | null;
 }
 
 interface TodayTotals {
@@ -50,7 +59,8 @@ export const useRecords = () => {
     group_id: number | undefined
   ): Promise<TodayTotals | null> => {
     if (!group_id) return null;
-    const currentDate = getCurrentDate();
+    const currentDate = new Date().toISOString().split("T")[0];
+    console.log(currentDate);
 
     try {
       const result = (await db.getAllAsync(
@@ -59,7 +69,7 @@ export const useRecords = () => {
           SUM(CASE WHEN record_type = 'income' THEN amount ELSE 0 END) as totalIncomeToday, 
           SUM(CASE WHEN record_type = 'expense' THEN amount ELSE 0 END) as totalExpenseToday
         FROM Records
-        WHERE group_id = ? AND REPLACE(Records.date, '/', '-') = ?
+        WHERE group_id = ? AND date = ?
       `,
         [group_id, currentDate]
       )) as TodayTotals[];
@@ -89,7 +99,7 @@ export const useRecords = () => {
         JOIN Categories ON Records.category_id = Categories.id
         JOIN PaymentMethods ON Records.payment_method_id = PaymentMethods.id
         WHERE Records.group_id = ?
-        ORDER BY REPLACE(Records.date, '/', '-') ASC
+        ORDER BY date ASC
       `,
       [group_id]
     )) as RecordI[];
@@ -137,6 +147,27 @@ export const useRecords = () => {
     }
   };
 
+  const fetchTotalTransfers = async (
+    group_id: number | null
+  ): Promise<number | null> => {
+    if (!group_id) return null;
+    try {
+      const result = await db.getAllAsync(
+        `
+          SELECT SUM(amount) as totalTransfer 
+          FROM Records
+          WHERE group_id = ? AND record_type = 'transfer'
+          `,
+        [group_id]
+      );
+      //@ts-ignore
+      return result[0]?.totalTransfer ?? 0; // Si no hay resultado, devuelve 0
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  };
+
   const fetchTotalExpensesByPaymentType = async (
     group_id: number | undefined,
     payment_type: "credit" | "debit"
@@ -156,6 +187,31 @@ export const useRecords = () => {
       );
       //@ts-ignore
       return result[0]?.totalExpense ?? 0; // Si no hay resultado, devuelve 0
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  };
+
+  const fetchTotalTrasnfersByPaymentType = async (
+    group_id: number | undefined,
+    payment_type: "credit" | "debit"
+  ): Promise<number | null> => {
+    if (!group_id) return null;
+    try {
+      const result = await db.getAllAsync(
+        `
+          SELECT SUM(amount) as totalTransfer 
+          FROM Records
+          JOIN PaymentMethods ON Records.payment_method_id = PaymentMethods.id
+          WHERE group_id = ? 
+          AND record_type = 'transfer' 
+          AND PaymentMethods.payment_type = ?
+        `,
+        [group_id, payment_type]
+      );
+      //@ts-ignore
+      return result[0]?.totalTransfer ?? 0; // Si no hay resultado, devuelve 0
     } catch (error) {
       console.error(error);
       return null;
@@ -190,7 +246,12 @@ export const useRecords = () => {
   const fetchTotalByCategoryWithIncomeExpense = async (
     group_id: number | undefined
   ): Promise<
-    | { category_name: string; totalIncome: number; totalExpense: number }[]
+    | {
+        category_name: string;
+        totalIncome: number;
+        totalExpense: number;
+        totalTransfer: number;
+      }[]
     | null
   > => {
     if (!group_id) return null;
@@ -200,7 +261,8 @@ export const useRecords = () => {
           SELECT 
             Categories.category_name, 
             SUM(CASE WHEN Records.record_type = 'income' THEN Records.amount ELSE 0 END) as totalIncome, 
-            SUM(CASE WHEN Records.record_type = 'expense' THEN Records.amount ELSE 0 END) as totalExpense
+            SUM(CASE WHEN Records.record_type = 'expense' THEN Records.amount ELSE 0 END) as totalExpense,
+            SUM(CASE WHEN Records.record_type = 'transfer' THEN Records.amount ELSE 0 END) as totalTransfer
           FROM Records
           JOIN Categories ON Records.category_id = Categories.id
           WHERE group_id = ?
@@ -213,6 +275,7 @@ export const useRecords = () => {
         category_name: row.category_name,
         totalIncome: row.totalIncome ?? 0,
         totalExpense: row.totalExpense ?? 0,
+        totalTransfer: row.totalTransfer ?? 0,
       }));
     } catch (error) {
       console.error(error);
@@ -227,6 +290,7 @@ export const useRecords = () => {
         method_name: string;
         totalIncome: number;
         totalExpense: number;
+        totalTransfer: number;
         type: string;
       }[]
     | null
@@ -239,7 +303,8 @@ export const useRecords = () => {
           PaymentMethods.method_name, 
           PaymentMethods.payment_type,
           SUM(CASE WHEN Records.record_type = 'income' THEN Records.amount ELSE 0 END) as totalIncome,
-          SUM(CASE WHEN Records.record_type = 'expense' THEN Records.amount ELSE 0 END) as totalExpense
+          SUM(CASE WHEN Records.record_type = 'expense' THEN Records.amount ELSE 0 END) as totalExpense,
+          SUM(CASE WHEN Records.record_type = 'transfer' THEN Records.amount ELSE 0 END) as totalTransfer
         FROM Records
         JOIN PaymentMethods ON Records.payment_method_id = PaymentMethods.id
         WHERE Records.group_id = ?
@@ -253,6 +318,7 @@ export const useRecords = () => {
         method_name: row.method_name,
         totalIncome: row.totalIncome ?? 0,
         totalExpense: row.totalExpense ?? 0,
+        totalTransfer: row.totalTransfer ?? 0,
         type: row.payment_type ?? "debit",
       }));
     } catch (error) {
@@ -262,7 +328,6 @@ export const useRecords = () => {
   };
 
   const addRecord = async (record: CreateRecordRequest) => {
-    console.log(addRecord);
     return await db.runAsync(
       `
             INSERT INTO Records (amount, record_type, group_id, category_id, payment_method_id, date, record_name) 
@@ -297,7 +362,7 @@ export const useRecords = () => {
     return await db.runAsync("DELETE FROM Records WHERE id = ?", id);
   };
   const deleteRecordByGroup = async (id: number) => {
-    return await db.runAsync("DELETE FROM Records WHERE id_group = ?", id);
+    return await db.runAsync("DELETE FROM Records WHERE group_id = ?", id);
   };
 
   const getAllResume = async (group_id: number) => {
@@ -317,9 +382,19 @@ export const useRecords = () => {
     const categoryTotals = await fetchTotalByCategoryWithIncomeExpense(
       group_id
     );
+    const transferCredit = await fetchTotalTrasnfersByPaymentType(
+      group_id,
+      "credit"
+    );
+    const transferDebit = await fetchTotalTrasnfersByPaymentType(
+      group_id,
+      "debit"
+    );
+
     const paymentMethodTotals = await fetchTotalByPaymentMethod(group_id);
     const expensesTotal = await fetchTotalExpenses(group_id);
     const incomesTotal = await fetchTotalIncomes(group_id);
+    const transferTotal = await fetchTotalTransfers(group_id);
 
     const todayTotal = await fetchTotalForToday(group_id);
 
@@ -332,6 +407,9 @@ export const useRecords = () => {
       paymentMethodTotals,
       expensesTotal,
       incomesTotal,
+      transferTotal,
+      transferCredit,
+      transferDebit,
       balance: (incomesTotal || 0) - (expensesTotal || 0),
       totalWithoutDebts:
         (incomesTotal || 0) - ((expensesTotal || 0) - (expenseCredit || 0)),
@@ -351,6 +429,8 @@ export const useRecords = () => {
     fetchTotalIncomesByPaymentType,
     fetchTotalByCategoryWithIncomeExpense,
     fetchTotalByPaymentMethod,
+    fetchTotalTransfers,
+    fetchTotalTrasnfersByPaymentType,
     getAllResume,
   };
 };

@@ -1,4 +1,4 @@
-import { useSQLiteContext } from "expo-sqlite/next";
+import { useSQLiteContext } from "expo-sqlite";
 
 import { Category, CreateCategoryRequest } from "@/src/interfaces";
 

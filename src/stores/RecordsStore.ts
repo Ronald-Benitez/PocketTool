@@ -4,6 +4,7 @@ import { ResumeTotals } from "../db";
 
 interface RecordsState {
   group: Group | null;
+  groups: Group[] | [];
   records: RecordI[] | [];
   balance: number;
   resumes: ResumeTotals | null;
@@ -11,6 +12,7 @@ interface RecordsState {
   setGroup: (group: Group) => void;
   setRecords: (records: RecordI[]) => void;
   setResumes: (resumes: ResumeTotals) => void;
+  setGroups: (groups: Group[]) => void;
 }
 
 const useRecordsStore = create<RecordsState>()((set, get) => ({
@@ -18,6 +20,7 @@ const useRecordsStore = create<RecordsState>()((set, get) => ({
   records: [],
   balance: 0,
   resumes: null,
+  groups: [],
 
   setBalance: () =>
     set((state) => ({
@@ -46,6 +49,11 @@ const useRecordsStore = create<RecordsState>()((set, get) => ({
   setResumes: (resumes: ResumeTotals) => {
     set(() => ({
       resumes,
+    }));
+  },
+  setGroups: (groups: Group[]) => {
+    set(() => ({
+      groups,
     }));
   },
 }));

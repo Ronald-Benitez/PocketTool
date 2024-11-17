@@ -40,15 +40,28 @@ const ItemsTable = () => {
         setOpenUpdate(!openUpdate)
     }
 
-    const color = (type: "income" | "expense"): StyleProp<TextStyle> => {
+    const color = (type: "income" | "expense" | "transfer"): StyleProp<TextStyle> => {
         const c: StyleProp<TextStyle> = {
         }
         if (type === "expense") {
             c.borderColor = colors?.ExpenseColor
-        } else {
+        } else if (type === "income") {
             c.borderColor = colors?.IncomeColor
+        } else {
+            c.borderColor = colors?.TransferColor
         }
         return c
+    }
+
+    const typeColor = (color: string) => {
+        switch (color) {
+            case "income":
+                return colors?.IncomeColor
+            case "expense":
+                return colors?.ExpenseColor;
+            case "transfer":
+                return colors?.TransferColor
+        }
     }
 
 
@@ -83,7 +96,7 @@ const ItemsTable = () => {
                                 key={index}
                             >
                                 <BorderLeftBottomBlock
-                                    bottomColor={colors ? colors[item.record_type == "expense" ? "ExpenseColor" : "IncomeColor"] : ""}
+                                    bottomColor={colors ? typeColor(item.record_type) : ""}
                                     letfColor={colors ? colors[item.payment_type == "credit" ? "Credit" : "Debit"] : ""}
                                 >
                                     <View style={localStyles.rowContainer}>
@@ -125,7 +138,7 @@ const localStyles = StyleSheet.create({
         alignItems: "center"
     },
     dateContainer: {
-        width: 30
+        width: 40
     },
     dateText: {
         fontWeight: "100",
@@ -134,7 +147,7 @@ const localStyles = StyleSheet.create({
     },
     nameText: {
         fontSize: 12,
-        textAlign: "center"
+        textAlign: "left"
     },
     valueText: {
         fontSize: 12,

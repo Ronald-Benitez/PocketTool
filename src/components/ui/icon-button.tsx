@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 
 interface props {
     children: ReactNode,
-    onClick?: () => {},
+    onClick?: (() => unknown) | (() => void),
     isButton?: boolean
 }
 

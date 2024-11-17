@@ -1,8 +1,8 @@
-import { Pressable, StyleSheet, TextInput, TextInputProps, Text, View, ScrollView } from "react-native";
+import { Pressable, StyleSheet, TextInput, TextInputProps, Text, View, ScrollView, DimensionValue } from "react-native";
 
 import useColorStore from '@/src/stores/ColorsStore';
 import ModalContainer from "./modal-container";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import BGSelectBlock from "./BGSelectBlock";
 
 interface Props {
@@ -10,10 +10,12 @@ interface Props {
     onChange: (index: number) => void,
     options: string[] | undefined
     selected: string | undefined,
-    title: string
+    title: string,
+    blockWith?: DimensionValue,
+    children?: ReactNode
 }
 
-const BaseSelect = ({ label, onChange, options, selected, title }: Props) => {
+const BaseSelect = ({ label, onChange, options, selected, title, blockWith, children }: Props) => {
     const { colors } = useColorStore()
     const [closeModal, setCloseModal] = useState(false)
 
@@ -32,10 +34,10 @@ const BaseSelect = ({ label, onChange, options, selected, title }: Props) => {
 
     return (
         <>
-            <View style={localStyles.colContainer}>
+            <View style={[localStyles.colContainer, { width: blockWith ? blockWith : "80%" }]}>
                 <Text style={localStyles.label}>{label}</Text>
                 <ModalContainer
-                    buttonOpen={buttonOpen}
+                    buttonOpen={children ? children : buttonOpen}
                     close={closeModal}
                     title={title}
 
@@ -68,7 +70,8 @@ const localStyles = StyleSheet.create({
         borderWidth: 1,
         paddingHorizontal: 5,
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
+        backgroundColor: "#fff"
     },
     text: {
         fontWeight: "200",
@@ -82,7 +85,6 @@ const localStyles = StyleSheet.create({
         paddingLeft: 5
     },
     colContainer: {
-        width: "80%",
         flexDirection: "column"
     },
     optionsContainer: {

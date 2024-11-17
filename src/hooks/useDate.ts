@@ -61,10 +61,7 @@ export default function useDate() {
   ];
 
   const verify = (d: string) => {
-    const value = d.replaceAll("/", "-");
-    const values = value.split("-");
-    const parsed = values.map((v: string) => parseInt(v));
-    const base = new Date(parsed[0], parsed[1] - 1, parsed[2]);
+    const base = new Date(d);
     return base;
   };
 

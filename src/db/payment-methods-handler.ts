@@ -1,4 +1,4 @@
-import { useSQLiteContext } from "expo-sqlite/next";
+import { useSQLiteContext } from "expo-sqlite";
 
 import { PaymentMethod, CreatePaymentMethodRequest } from "@/src/interfaces";
 

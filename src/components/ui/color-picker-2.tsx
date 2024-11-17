@@ -82,7 +82,6 @@ const ColorPicker2 = ({ color, onChange }: props) => {
     };
 
     useEffect(() => {
-        console.log(inputColor)
         if (verifyValidHex(inputColor)) {
             onChange(inputColor);
         }
