@@ -52,7 +52,7 @@ const ModalContainer = ({ children, buttonOpen, title, type, onAccept, closeOnAc
                 visible={modalVisible}
                 onRequestClose={() => setModalVisible(false)}
                 transparent={true}
-                animationType="slide"
+                animationType="fade"
             >
                 <Pressable onPress={() => setModalVisible(false)} style={localStyles.modalBackdrop}>
                     <Pressable onPress={() => { }} >

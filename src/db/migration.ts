@@ -3,6 +3,7 @@ import createTables from './migrations/CreateTablesBase';
 import insertDefault from './migrations/InsertDefaults';
 import alterRecordTypeToAddTransfer from './migrations/alterRecordTypeToAddTransfer';
 import createSavingsTable from './migrations/CreateSavingsTable';
+import createBudgetsTable from './migrations/CreateTableBudgets';
 
 export interface Migration {
   id: number;
@@ -56,6 +57,11 @@ async function migrateDb(db: SQLiteDatabase) {
   if(!migrations.find(val => val.migration_name == "createSavingsTables")){
     await createSavingsTable(db)
     await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'createSavingsTables');
+  }
+
+  if(!migrations.find(val => val.migration_name == "createBudgetsTable")){
+    await createBudgetsTable(db)
+    await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'createBudgetsTable');
   }
 
   // await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'Prueba');

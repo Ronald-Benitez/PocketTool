@@ -1,0 +1,14 @@
+{
+    "InputStroke": "#4D4D4D",
+    "GoalColor": "#73D6E4",
+    "BGPicker": "#2A2A2A",
+    "ModalHeaderColor": "#1B4A4D",
+    "ConfirmColor": "#5FA3A5",
+    "IncomeColor": "#1E995E",
+    "ExpenseColor": "#A91D1D",
+    "TransferColor": "#007A9E",
+    "Credit": "#B55B15",
+    "Debit": "#0E2D2F",
+    "BGSimple": "#1F1F1F",
+    "BGColor": "#121212"
+}

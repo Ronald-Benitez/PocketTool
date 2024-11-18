@@ -45,7 +45,7 @@ const FinnanceTableBlock = ({ render }: props) => {
             </Text>
             {
                 resumes?.categoryTotals?.map((val, index) => (
-                    <>
+                    <View key={index}>
                         <View style={[localStyles.headerRow, getBorderColor(val)]}>
                             <ColorText fontSize={12} fontWeight={200}>{val.category_name}</ColorText>
                             <ColorText fontSize={12} fontWeight={200}>${Math.abs(getBalance(val)).toFixed(2)}</ColorText>
@@ -53,26 +53,26 @@ const FinnanceTableBlock = ({ render }: props) => {
                         <View style={[localStyles.colContainer]} key={index}>
                             <View style={localStyles.rowContainer} key={index}>
                                 <FinanceSimpleBlock
-                                    text=""
+                                    text={t("resume.incomes")}
                                     value={String(val.totalIncome)}
                                     blockwidth={125}
                                     color={colors?.IncomeColor}
                                 />
                                 <FinanceSimpleBlock
-                                    text=""
+                                    text={t("resume.expenses")}
                                     value={String(val.totalExpense)}
                                     blockwidth={125}
                                     color={colors?.ExpenseColor}
                                 />
                                 <FinanceSimpleBlock
-                                    text=""
+                                    text={t("resume.transfers")}
                                     value={String(val.totalTransfer)}
                                     blockwidth={125}
                                     color={colors?.TransferColor}
                                 />
                             </View>
                         </View>
-                    </>
+                    </View>
                 ))
             }
         </View>
@@ -85,7 +85,7 @@ const FinnanceTableBlock = ({ render }: props) => {
             </Text>
             {
                 resumes?.paymentMethodTotals?.map((val, index) => (
-                    <>
+                    <View key={index}>
                         <View style={[localStyles.headerRow, getBorderColor(val)]}>
                             <View style={localStyles.nameCircleBlock}>
                                 <View style={[localStyles.circle, { backgroundColor: val.type == "debit" ? colors?.Debit : colors?.Credit }]}></View>
@@ -96,26 +96,26 @@ const FinnanceTableBlock = ({ render }: props) => {
                         <View style={localStyles.colContainer} key={index}>
                             <View style={localStyles.rowContainer} key={index}>
                                 <FinanceSimpleBlock
-                                    text=""
+                                    text={t("resume.incomes")}
                                     value={String(val.totalIncome)}
                                     blockwidth={125}
                                     color={colors?.IncomeColor}
                                 />
                                 <FinanceSimpleBlock
-                                    text=""
+                                    text={t("resume.expenses")}
                                     value={String(val.totalExpense)}
                                     blockwidth={125}
                                     color={colors?.ExpenseColor}
                                 />
                                 <FinanceSimpleBlock
-                                    text=""
+                                    text={t("resume.transfers")}
                                     value={String(val.totalTransfer)}
                                     blockwidth={125}
                                     color={colors?.TransferColor}
                                 />
                             </View>
                         </View>
-                    </>
+                    </View>
                 ))
             }
         </View>

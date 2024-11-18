@@ -11,6 +11,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import BaseSelect from '../ui/base-select'
 import SwipeItem from '../ui/swipe-item'
 import AddGroup from './add-group'
+import useBudgetStore from '@/src/stores/BudgetStore'
+import { useBudget } from '@/src/db'
 
 const GroupSelector = () => {
     const { t } = useLanguage()
@@ -20,6 +22,8 @@ const GroupSelector = () => {
     const { fetchGroupsByYear, fetchGroupsById, fetchLastGroup, deleteGroup } = useGroups()
     const { fetchRecords, getAllResume, deleteRecordByGroup } = useRecords()
     const [openUpdate, setOpenUpdate] = useState(false)
+    const budget = useBudget()
+    const { budgets, resumes, setBudgets, setResumes: setBudgetResume } = useBudgetStore()
 
     useEffect(() => {
         getPinned()
@@ -43,6 +47,15 @@ const GroupSelector = () => {
         await getAllResume(group.id).then(res => {
             setResumes(res)
         })
+
+        await budget.fetchBudget(group.id).then(res => {
+            setBudgets(res || [])
+        })
+
+        await budget.getAllResume(group.id).then(res => {
+            setBudgetResume(res)
+        })
+
         setModalVisible(false)
     }
 
@@ -76,7 +89,7 @@ const GroupSelector = () => {
     }
 
     const handleDelete = async () => {
-        if(!group) return
+        if (!group) return
         await deleteRecordByGroup(group.id)
         await deleteGroup(group.id)
         const pinned = await AsyncStorage.getItem('group');

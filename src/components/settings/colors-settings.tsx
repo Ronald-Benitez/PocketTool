@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ScrollView } from 'react-native-gesture-handler';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import colorsJson from "@/src/colors/colors.json";
 import { useLanguage } from '@/src/lang/LanguageContext';
@@ -10,6 +11,7 @@ import ColorPicker2 from '../ui/color-picker-2';
 import ModalButton from '../ui/modal-button';
 import Confirm from '../ui/confirm';
 import ConfirmModal from '../ui/confirm-modal';
+import IconButton from '../ui/icon-button';
 
 interface ColorsInterface {
   expenseColor: string,
@@ -23,7 +25,7 @@ const ColorSettings = () => {
   const [colors, setColors] = useState(colorsJson);
 
   const { t } = useLanguage()
-  const { saveColors, resetColors } = useColorStore()
+  const { saveColors, resetColors, mode, setMode } = useColorStore()
 
   useEffect(() => {
     // Cargar colores desde AsyncStorage
@@ -69,13 +71,16 @@ const ColorSettings = () => {
             </View>
           ))}
         </View>
-        <View style={{ justifyContent: "center", flexDirection: "row", padding: 10 }}>
+        <View style={{ justifyContent: "space-around", flexDirection: "row", padding: 10 }}>
           {/* <Confirm message='' onConfirm={reset} title=''>
             <ModalButton onClick={() => {}} text={t("colors.reset")} type='bg' />
           </Confirm> */}
           <ConfirmModal message={t("colors.confirmMessage")} title={t("colors.reset")} onConfirm={reset}>
             <ModalButton isButton={false} text={t("colors.reset")} type='bg' />
           </ConfirmModal>
+          <IconButton onClick={setMode}>
+            <MaterialIcons name={mode == "1" ? "mode-night" : "light-mode"} size={20} />
+          </IconButton>
         </View>
       </ScrollView >
     </View >

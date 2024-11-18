@@ -9,12 +9,12 @@ interface props {
     blockwidth?: number
 }
 
-const FinanceSimpleBlock = ({ text, color, value, blockwidth = 175 }: props) => {
+const FinanceSmallBlock = ({ text, color, value, blockwidth = 115 }: props) => {
     return (
         <>
             <View style={[localStyles.container, { width: blockwidth }]}>
                 <View style={[localStyles.block, { backgroundColor: color, width: blockwidth }]}>
-                    <ColorText backgroundColor={color || "#fff"} textAlign="center">
+                    <ColorText backgroundColor={color || "#fff"} textAlign="center" fontSize={12}>
                         ${value}
                     </ColorText>
                 </View>
@@ -47,4 +47,4 @@ const localStyles = StyleSheet.create({
     }
 })
 
-export default FinanceSimpleBlock
+export default FinanceSmallBlock

@@ -96,3 +96,14 @@ export interface SavingsHistory {
 }
 
 export type AddSaving = Omit<Savings, "id">;
+
+export interface Budget {
+  id_budget: number,
+  category_id: number,
+  budget_type: "income" | "expense" | "transfer",
+  group_id: number,
+  amount: number,
+  category_name: string
+}
+
+export type BudgetInsert = Omit<Budget, "id_budget" | "category_name" >

@@ -153,6 +153,7 @@
         "categories": "Categories",
         "payments": "Payment Methods",
         "savings": "Savings",
+        "budget":"Budgets",
         "home":"Home",
         "financials": "Financials",
         "settings":"Settings"
@@ -203,6 +204,10 @@
         "noSharing": "Sharing feature is not available on this platform",
         "exportSucces": "Export completed successfully",
         "exportError": "Error exporting the database"
+    },
+    "budget":{
+        "budget": "Budget",
+        "current": "Current"
     }
       
 }

@@ -153,6 +153,7 @@
         "categories": "Categorías",
         "payments": "Métodos de pago",
         "savings": "Ahorros",
+        "budget": "Presupuestos",
         "home":"Home",
         "financials": "Finanzas",
         "settings":"Configuraciones"
@@ -208,5 +209,9 @@
         "noSharing":"La función de compartir no está disponible en esta plataforma",
         "exportSucces":"Exportación completada con éxito",
         "exportError":"Error al exportar la base de datos"
+    },
+    "budget":{
+        "budget": "Prespuesto",
+        "current": "Actual"
     }
 }

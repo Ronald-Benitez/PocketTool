@@ -19,6 +19,7 @@ export interface ResumeTotals {
         totalIncome: number;
         totalExpense: number;
         totalTransfer: number;
+        category_id: number;
       }[]
     | null;
   paymentMethodTotals:
@@ -251,6 +252,7 @@ export const useRecords = () => {
         totalIncome: number;
         totalExpense: number;
         totalTransfer: number;
+        category_id: number;
       }[]
     | null
   > => {
@@ -262,7 +264,8 @@ export const useRecords = () => {
             Categories.category_name, 
             SUM(CASE WHEN Records.record_type = 'income' THEN Records.amount ELSE 0 END) as totalIncome, 
             SUM(CASE WHEN Records.record_type = 'expense' THEN Records.amount ELSE 0 END) as totalExpense,
-            SUM(CASE WHEN Records.record_type = 'transfer' THEN Records.amount ELSE 0 END) as totalTransfer
+            SUM(CASE WHEN Records.record_type = 'transfer' THEN Records.amount ELSE 0 END) as totalTransfer,
+            Records.category_id
           FROM Records
           JOIN Categories ON Records.category_id = Categories.id
           WHERE group_id = ?

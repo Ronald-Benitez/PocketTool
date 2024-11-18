@@ -9,5 +9,6 @@
     "TransferColor":"#005C78",
     "Credit":"#CF6F1A",
     "Debit":"#134045",
-    "BGSimple":"#F9F9F9"
+    "BGSimple":"#F9F9F9",
+    "BGColor":"#fff"
 }

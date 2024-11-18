@@ -83,6 +83,16 @@ const AppDrawer = () => {
           }}
         />
         <Drawer.Screen
+          name="(budget)/index"
+          options={{
+            title: t("headers.budget"),
+            headerShown: true,
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="wallet-outline" size={size} color={color} />
+            )
+          }}
+        />
+        <Drawer.Screen
           name="(settings)/index"
           options={{
             title: t("headers.settings"),
