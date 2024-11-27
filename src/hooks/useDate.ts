@@ -61,7 +61,10 @@ export default function useDate() {
   ];
 
   const verify = (d: string) => {
-    const base = new Date(d);
+    let base = new Date(d);
+    let offset = base.getTimezoneOffset() * 60 * 1000; // Convertir minutos a milisegundos
+    console.log(offset, base)
+    base = new Date(base.getTime() - offset);
     return base;
   };
 
@@ -113,7 +116,6 @@ export default function useDate() {
     const day = base.getDate();
     const month = base.getMonth();
     const year = base.getFullYear();
-    console.log(dateValue, year, month, day, days, days + day);
     const newDate = new Date(year, month, day + days);
     return create(newDate.toISOString());
   };
@@ -198,5 +200,6 @@ export default function useDate() {
     changeDay,
     firtsDayOfMonth,
     lastDayOfMonth,
+    verify
   };
 }

@@ -48,34 +48,36 @@ const ModalContainer = ({ children, buttonOpen, title, type, onAccept, closeOnAc
             <Pressable onPress={() => setModalVisible(true)}>
                 {buttonOpen}
             </Pressable>
-            <Modal
-                visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
-                transparent={true}
-                animationType="fade"
-            >
-                <Pressable onPress={() => setModalVisible(false)} style={localStyles.modalBackdrop}>
-                    <Pressable onPress={() => { }} >
-                        <View style={[localStyles.modalContainer]}>
-                            <View style={localStyles.modalHeader}>
-                                <Text style={localStyles.modalHeaderText}>{title}</Text>
+            <View style={[{ position: "absolute", right: 0, top: 0 }]}>
+                <Modal
+                    visible={modalVisible}
+                    onRequestClose={() => setModalVisible(false)}
+                    transparent={true}
+                    animationType="fade"
+                >
+                    <Pressable onPress={() => setModalVisible(false)} style={localStyles.modalBackdrop}>
+                        <Pressable onPress={() => { }} >
+                            <View style={[localStyles.modalContainer]}>
+                                <View style={localStyles.modalHeader}>
+                                    <Text style={localStyles.modalHeaderText}>{title}</Text>
+                                </View>
+                                <View style={localStyles.modalContent}>
+                                    {children}
+                                </View>
+                                <View style={localStyles.modalFooter}>
+                                    <ModalButton onClick={() => setModalVisible(false)} text={t("cancel")} type='base' />
+                                    {
+                                        type == "complete" && onAccept && (
+                                            <ModalButton onClick={handleAccept} text={t("confirm")} type='bg' />
+                                        )
+                                    }
+                                </View>
                             </View>
-                            <View style={localStyles.modalContent}>
-                                {children}
-                            </View>
-                            <View style={localStyles.modalFooter}>
-                                <ModalButton onClick={() => setModalVisible(false)} text={t("cancel")} type='base' />
-                                {
-                                    type == "complete" && onAccept && (
-                                        <ModalButton onClick={handleAccept} text={t("confirm")} type='bg' />
-                                    )
-                                }
-                            </View>
-                        </View>
+                        </Pressable>
                     </Pressable>
-                </Pressable>
-                <ToastContainer />
-            </Modal>
+                    <ToastContainer />
+                </Modal>
+            </View>
         </>
     )
 }

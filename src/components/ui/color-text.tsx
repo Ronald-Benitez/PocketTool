@@ -7,6 +7,7 @@ interface ColorTextProps {
   fontSize?: number;
   fontWeight?: TextStyle['fontWeight'];
   textAlign?: TextStyle['textAlign'];
+  padding?: TextStyle['padding']
 }
 
 const ColorText: React.FC<ColorTextProps> = ({
@@ -15,6 +16,7 @@ const ColorText: React.FC<ColorTextProps> = ({
   fontSize = 14,
   fontWeight = 'normal',
   textAlign = 'left',
+  padding = 8
 }) => {
   // Convertir hex a RGB
   const hexToRgb = (hex: string) => {
@@ -38,7 +40,7 @@ const ColorText: React.FC<ColorTextProps> = ({
   // Calcular si el texto debe ser claro u oscuro
   const { r, g, b } = hexToRgb(backgroundColor || "#fff");
   const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-  const textColor = brightness > 128 ? '#000000' : '#FFFFFF';
+  const textColor = brightness > 150 ? '#000000' : '#FFFFFF';
 
   return (
     <Text
@@ -47,7 +49,7 @@ const ColorText: React.FC<ColorTextProps> = ({
         fontSize,
         fontWeight,
         textAlign,
-        padding: 8,
+        padding,
         borderRadius: 4,
       }}
     >

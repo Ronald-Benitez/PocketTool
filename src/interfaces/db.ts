@@ -12,6 +12,7 @@ export interface PaymentMethod {
   id: number; // Identificador del método de pago
   method_name: string; // Nombre del método de pago
   payment_type: "credit" | "debit";
+  closing_date: number
 }
 export interface Category {
   id: number; // Identificador de la categoría
@@ -48,6 +49,8 @@ export interface GetPaymentMethodsResponse {
 export interface CreatePaymentMethodRequest {
   method_name: string; // Nombre del método de pago
   payment_type: "credit" | "debit";
+  closing_date: number
+  
 }
 export interface GetCategoriesResponse {
   categories: Category[]; // Array de categorías obtenidas

@@ -61,7 +61,6 @@ const AddSaving = ({ isEditing = false, children, openUpdate, open }: AddItemPro
             showToast({ message: t("item.error"), type: "ERROR" })
             return
         }
-        console.log(isEditing, saving)
         if (isEditing && saving) {
             await updateSavings(saving?.id, name, Number(value))
             setSaving({

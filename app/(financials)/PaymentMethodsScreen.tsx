@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, FlatList, Alert, Pressable, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, FlatList, Alert, Pressable, StyleSheet, ScrollView, ToastAndroid } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
@@ -24,6 +24,7 @@ const PaymentMethodsScreen = () => {
     const [methodName, setMethodName] = useState('');
     const [editingId, setEditingId] = useState<number | null>(null);
     const [type, setType] = useState<'credit' | 'debit'>('credit');
+    const [closingDate, setClosingDate] = useState(0)
     const { addPaymentMethod, deletePaymentMethod, fetchPaymentMethods, updatePaymentMethod } = usePaymentMethods();
     const { payments, setPayments } = usePaymentsStore();
     const [openModal, setOpenModal] = useState(false)
@@ -40,13 +41,13 @@ const PaymentMethodsScreen = () => {
 
     const handleAddPaymentMethod = async () => {
         if (!methodName) {
-            Alert.alert(t('paymentMethods.error.emptyFields'));
+            ToastAndroid.show(t('paymentMethods.error.emptyFields'), ToastAndroid.SHORT);
             return;
         }
-        const newPaymentMethod: CreatePaymentMethodRequest = { method_name: methodName, payment_type: type };
+        const newPaymentMethod: CreatePaymentMethodRequest = { method_name: methodName, payment_type: type, closing_date: closingDate };
         try {
             if (editingId) {
-                await updatePaymentMethod(editingId, methodName, type);
+                await updatePaymentMethod(editingId, methodName, type, closingDate);
             } else {
                 await addPaymentMethod(newPaymentMethod);
             }
@@ -54,6 +55,7 @@ const PaymentMethodsScreen = () => {
             setPayments(methods);
             setMethodName('');
             setType('credit'); // Resetear al agregar o editar
+            setClosingDate(0)
             setEditingId(null);
         } catch (error) {
             console.error(error);
@@ -74,8 +76,17 @@ const PaymentMethodsScreen = () => {
         setMethodName(method.method_name);
         setType(method.payment_type); // Establecer el tipo al editar
         setEditingId(method.id);
+        setClosingDate(method.closing_date | 0)
         setOpenModal(!openModal)
     };
+
+    const handleCutOffDay = (value: string) => {
+        const val = Number(value)
+        if (val < 0 || val > 31 || isNaN(val)) {
+            return
+        }
+        setClosingDate(val)
+    }
 
     const handleType = () => {
         if (type == 'credit') setType("debit")
@@ -111,6 +122,16 @@ const PaymentMethodsScreen = () => {
                         label={t('paymentMethods.type.label')}
                         textColor={type == "credit" ? colors?.Credit : colors?.Debit}
                     />
+                    {
+                        type == "credit" && (
+                            <InputLabel
+                                placeholder={t('paymentMethods.closingDate')}
+                                value={String(closingDate)}
+                                onChangeText={handleCutOffDay}
+                                keyboardType='numeric'
+                            />
+                        )
+                    }
                 </View>
             </ModalContainer>
             <ScrollView style={{ flex: 1, paddingRight: 40 }}>
@@ -133,7 +154,7 @@ const PaymentMethodsScreen = () => {
 
 const localStyles = StyleSheet.create({
     buttonOpenContainer: {
-        flexDirection: "row",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center"
     },

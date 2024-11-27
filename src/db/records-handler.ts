@@ -6,6 +6,7 @@ import {
   Category,
   PaymentMethod,
 } from "@/src/interfaces";
+import { getToday } from "../utils";
 
 export interface ResumeTotals {
   incomeCredit: number | null;
@@ -40,6 +41,13 @@ export interface ResumeTotals {
   transferCredit: number | null;
 }
 
+export interface ResumeByCreditCards {
+  creditCardName: string;
+  closingDate: number;
+  current: number;
+  previous: number;
+}
+
 interface TodayTotals {
   totalIncomeToday: number;
   totalExpenseToday: number;
@@ -60,8 +68,7 @@ export const useRecords = () => {
     group_id: number | undefined
   ): Promise<TodayTotals | null> => {
     if (!group_id) return null;
-    const currentDate = new Date().toISOString().split("T")[0];
-    console.log(currentDate);
+    const currentDate = getToday().toISOString().split("T")[0];
 
     try {
       const result = (await db.getAllAsync(
@@ -279,6 +286,7 @@ export const useRecords = () => {
         totalIncome: row.totalIncome ?? 0,
         totalExpense: row.totalExpense ?? 0,
         totalTransfer: row.totalTransfer ?? 0,
+        category_id: row.category_id,
       }));
     } catch (error) {
       console.error(error);
@@ -420,6 +428,93 @@ export const useRecords = () => {
     };
   };
 
+  const fetchResumeByCreditCards = async (): Promise<ResumeByCreditCards[]> => {
+    try {
+      const creditCards = await db.getAllAsync<PaymentMethod>(
+        `
+        SELECT *
+        FROM PaymentMethods
+        WHERE payment_type = 'credit' 
+        `
+      );
+
+      if (!creditCards || creditCards.length === 0) return [];
+
+      let today = getToday()
+      const currentMonth = today.getMonth() + 1; // Mes actual (1-12)
+      const currentYear = today.getFullYear();
+
+      const getPeriods = (card: PaymentMethod, month: number, year: number) => {
+        const periodStart = new Date(
+          year,
+          month - 1,
+          Number(card.closing_date + 1)
+        )
+          .toISOString()
+          .split("T")[0]; // Día siguiente al cierre
+        const periodEnd = new Date(year, month, Number(card.closing_date))
+          .toISOString()
+          .split("T")[0]; // Día del cierre en el mes siguiente
+        return [periodStart, periodEnd];
+      };
+
+      const results = await Promise.all(
+        creditCards?.map(async (card) => {
+          if (card?.closing_date) {
+            // Calcular las fechas de inicio y fin para los períodos actual y anterior
+            const [currentPeriodStart, currentPeriodEnd] = getPeriods(
+              card,
+              currentMonth,
+              currentYear
+            );
+            const [previousPeriodStart, previousPeriodEnd] = getPeriods(
+              card,
+              currentMonth === 1 ? 12 : currentMonth - 1,
+              currentMonth === 1 ? currentYear - 1 : currentYear
+            );
+            const currentResult = await db.getAllAsync(
+              `
+            SELECT
+              SUM(CASE WHEN record_type = 'expense' THEN amount ELSE 0 END) +
+              SUM(CASE WHEN record_type = 'transfer' THEN amount ELSE 0 END) AS total
+            FROM Records
+            WHERE payment_method_id = ? AND date BETWEEN ? AND ?
+            `,
+              [card.id, currentPeriodStart, currentPeriodEnd]
+            );
+
+            // Consultar las sumas para el período anterior
+            const previousResult = await db.getAllAsync(
+              `
+            SELECT
+              SUM(CASE WHEN record_type = 'expense' THEN amount ELSE 0 END) +
+              SUM(CASE WHEN record_type = 'transfer' THEN amount ELSE 0 END) AS total
+            FROM Records
+            WHERE payment_method_id = ? AND date BETWEEN ? AND ?
+            `,
+              [card.id, previousPeriodStart, previousPeriodEnd]
+            );
+
+            return {
+              creditCardName: card.method_name,
+              closingDate: card.closing_date,
+              //@ts-ignore
+              current: currentResult[0]?.total || 0,
+              //@ts-ignore
+              previous: previousResult[0]?.total || 0,
+            };
+          }
+        })
+      );
+
+      //@ts-ignore
+      return results;
+    } catch (error) {
+      console.error("Error fetching resume by credit cards:", error);
+      return [];
+    }
+  };
+
   return {
     fetchRecords,
     addRecord,
@@ -435,5 +530,6 @@ export const useRecords = () => {
     fetchTotalTransfers,
     fetchTotalTrasnfersByPaymentType,
     getAllResume,
+    fetchResumeByCreditCards,
   };
 };

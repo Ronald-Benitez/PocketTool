@@ -167,7 +167,7 @@ const Index = () => {
                                     <Text style={localStyles.dateText}>
                                         {
                                             useDate().getStringDate(e.change_date) + "     " +
-                                            e.change_date.split(" ")[1]
+                                            new Date(e.change_date).toISOString().split("T")[1]
                                         }
                                     </Text>
                                     <Text style={localStyles.amountText}>${e.new_amount}</Text>

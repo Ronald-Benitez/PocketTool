@@ -25,7 +25,7 @@ const ColorSettings = () => {
   const [colors, setColors] = useState(colorsJson);
 
   const { t } = useLanguage()
-  const { saveColors, resetColors, mode, setMode } = useColorStore()
+  const { saveColors, resetColors } = useColorStore()
 
   useEffect(() => {
     // Cargar colores desde AsyncStorage
@@ -72,15 +72,9 @@ const ColorSettings = () => {
           ))}
         </View>
         <View style={{ justifyContent: "space-around", flexDirection: "row", padding: 10 }}>
-          {/* <Confirm message='' onConfirm={reset} title=''>
-            <ModalButton onClick={() => {}} text={t("colors.reset")} type='bg' />
-          </Confirm> */}
           <ConfirmModal message={t("colors.confirmMessage")} title={t("colors.reset")} onConfirm={reset}>
             <ModalButton isButton={false} text={t("colors.reset")} type='bg' />
           </ConfirmModal>
-          <IconButton onClick={setMode}>
-            <MaterialIcons name={mode == "1" ? "mode-night" : "light-mode"} size={20} />
-          </IconButton>
         </View>
       </ScrollView >
     </View >

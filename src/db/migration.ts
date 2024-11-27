@@ -4,6 +4,7 @@ import insertDefault from './migrations/InsertDefaults';
 import alterRecordTypeToAddTransfer from './migrations/alterRecordTypeToAddTransfer';
 import createSavingsTable from './migrations/CreateSavingsTable';
 import createBudgetsTable from './migrations/CreateTableBudgets';
+import alterPaymentMethodsAddClosingDate from './migrations/alterPaymentMethodToAddClosingDate';
 
 export interface Migration {
   id: number;
@@ -28,7 +29,7 @@ async function migrateDb(db: SQLiteDatabase) {
   //   DROP TABLE IF EXISTS Savings;
   //   DROP TABLE IF EXISTS SavingsHistory;
   // `);
- 
+
   // if (currentDbVersion === 0) {
 
   await db.execAsync(`
@@ -42,26 +43,34 @@ async function migrateDb(db: SQLiteDatabase) {
   `);
 
   const migrations = await db.getAllAsync('SELECT * FROM Migrations') as Migration[]
-  console.log(migrations)
+  console.log("Migrations", migrations)
+  try{
+    if(!migrations.find(val => val.migration_name == "base")){
+      await createTables(db)
+      await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'base');
+    }
 
-  if(!migrations.find(val => val.migration_name == "base")){
-    await createTables(db)
-    await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'base');
-  }
+    if(!migrations.find(val => val.migration_name == "alterRecordTypeToAddTransfer")){
+      await alterRecordTypeToAddTransfer(db)
+      await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'alterRecordTypeToAddTransfer');
+    }
 
-  if(!migrations.find(val => val.migration_name == "alterRecordTypeToAddTransfer")){
-    await alterRecordTypeToAddTransfer(db)
-    await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'alterRecordTypeToAddTransfer');
-  }
+    if(!migrations.find(val => val.migration_name == "createSavingsTables")){
+      await createSavingsTable(db)
+      await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'createSavingsTables');
+    }
 
-  if(!migrations.find(val => val.migration_name == "createSavingsTables")){
-    await createSavingsTable(db)
-    await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'createSavingsTables');
-  }
+    if(!migrations.find(val => val.migration_name == "createBudgetsTable")){
+      await createBudgetsTable(db)
+      await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'createBudgetsTable');
+    }
 
-  if(!migrations.find(val => val.migration_name == "createBudgetsTable")){
-    await createBudgetsTable(db)
-    await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'createBudgetsTable');
+    if(!migrations.find(val => val.migration_name == "alterPaymentMethodsAddClosingDate")){
+      await alterPaymentMethodsAddClosingDate(db)
+      await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'alterPaymentMethodsAddClosingDate');
+    }
+  }catch(e){
+    console.log(e)
   }
 
   // await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'Prueba');

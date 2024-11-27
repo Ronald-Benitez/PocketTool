@@ -10,8 +10,8 @@ import useCategoriesStore from '@/src/stores/CategoriesStore';
 import BGSimpleBlock from '@/src/components/ui/BGSimpleBlock';
 import IconButton from '@/src/components/ui/icon-button';
 import { MaterialIcons } from '@expo/vector-icons';
-import Input from '@/src/components/ui/Input';
 import InputLabel from '@/src/components/ui/InputLabel';
+import useAndroidToast from '@/src/hooks/useAndroidToast';
 
 const CategoriesScreen = () => {
     const { t } = useLanguage();
@@ -20,6 +20,7 @@ const CategoriesScreen = () => {
     const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
     const { addCategory, deleteCategory, fetchCategories, updateCategory } = useCategories()
     const { categories, setCategories } = useCategoriesStore()
+    const toast = useAndroidToast()
 
     useEffect(() => {
         const loadCategories = async () => {
@@ -31,7 +32,7 @@ const CategoriesScreen = () => {
 
     const handleAddOrUpdateCategory = async () => {
         if (!categoryName) {
-            Alert.alert(t('categories.error.emptyFields'));
+            toast.emptyMessage()
             return;
         }
         const category: CreateCategoryRequest = { category_name: categoryName };
@@ -39,8 +40,10 @@ const CategoriesScreen = () => {
         try {
             if (editingCategoryId) {
                 await updateCategory(editingCategoryId, category);
+                toast.editedMessage()
             } else {
                 await addCategory(category);
+                toast.addedMessage()
             }
 
             const result = await fetchCategories();
@@ -49,6 +52,7 @@ const CategoriesScreen = () => {
             setEditingCategoryId(null);
         } catch (error) {
             console.error(error);
+            toast.errorMessage()
         }
     };
 
@@ -72,7 +76,7 @@ const CategoriesScreen = () => {
             {/* <Text style={styles.header}>{t('categories.header')}</Text> */}
             <View style={localStyles.rowContainer}>
                 <InputLabel
-                    placeholder={t('categories.categoryName')}
+                    placeholder={t('categories.categoryName') + '*'}
                     value={categoryName}
                     onChangeText={setCategoryName}
                 />

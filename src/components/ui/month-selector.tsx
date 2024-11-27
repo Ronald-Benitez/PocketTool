@@ -41,7 +41,7 @@ const MonthSelector = ({ month, setMonth }: MonthSelectorProps) => {
             <BaseSelect
                 onChange={onChange}
                 title={t("pickers.month")}
-                label={t("pickers.month")}
+                label={t("pickers.month") + '*'}
                 options={months.map(m => m.name)}
                 selected={months.find(m => m.value == month)?.name}
             />

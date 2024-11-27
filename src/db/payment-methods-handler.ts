@@ -23,9 +23,10 @@ export const usePaymentMethods = () => {
     try {
       await db.runAsync(
         `
-          INSERT INTO PaymentMethods (method_name, payment_type) VALUES (?, ?)`,
+          INSERT INTO PaymentMethods (method_name, payment_type) VALUES (?, ?, ?)`,
         paymentMethod.method_name,
-        paymentMethod.payment_type
+        paymentMethod.payment_type,
+        paymentMethod.closing_date
       );
     } catch (error) {
       console.error(error);
@@ -36,16 +37,18 @@ export const usePaymentMethods = () => {
   const updatePaymentMethod = async (
     id: number,
     methodName: string,
-    type: "credit" | "debit"
+    type: "credit" | "debit",
+    closingDate: number
   ) => {
     try {
       await db.runAsync(
         `
           UPDATE PaymentMethods 
-          SET method_name = ?, payment_type = ? 
+          SET method_name = ?, payment_type = ?, closing_date = ?
           WHERE id = ?`,
         methodName,
         type,
+        closingDate,
         id
       );
     } catch (error) {

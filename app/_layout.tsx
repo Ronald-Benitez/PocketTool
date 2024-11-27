@@ -73,6 +73,16 @@ const AppDrawer = () => {
           }}
         />
         <Drawer.Screen
+          name="(credits)/index"
+          options={{
+            title: t("headers.credits"),
+            headerShown: true,
+            drawerIcon: ({ color, size }) => (
+              <MaterialCommunityIcons name="bank-off-outline" size={size} color={color} />
+            )
+          }}
+        />
+        <Drawer.Screen
           name="(savings)/index"
           options={{
             title: t("headers.savings"),

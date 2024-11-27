@@ -19,6 +19,7 @@ import InputLabel from "../ui/InputLabel";
 import PressableSwitch from "../ui/pressable-switch";
 import BaseSelect from "../ui/base-select";
 import LabelBlock from "../ui/LabelBlock";
+import useAndroidToast from "@/src/hooks/useAndroidToast";
 
 interface AddItemProps {
     item?: RecordI
@@ -45,6 +46,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
     const { ToastContainer, showToast } = useToast()
     const { payments, setPayments } = usePaymentsStore()
     const { categories, setCategories } = useCategoriesStore()
+    const toast = useAndroidToast()
 
     useEffect(() => {
         if (!group) return
@@ -84,16 +86,15 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
     const onSave = async () => {
         if (!group) return
 
-        if (value === "" || name === "" || !payment_method?.id || !category?.id) {
-            showToast({ message: t("item.error"), type: "ERROR" })
+        if (value === "" || !payment_method?.id || !category?.id) {
+            toast.emptyMessage()
             return
         }
-        console.log("a")
 
         const newItem: CreateRecordRequest = {
             date: date.toISOString().split("T")[0],
             group_id,
-            record_name: name,
+            record_name: name.length < 1 ? category?.category_name : name,
             record_type: type,
             amount: Number(value),
             category_id: category?.id as number,
@@ -104,10 +105,10 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
             await records.updateRecord(item.record_id, {
                 ...newItem,
             })
-            showToast({ message: t("item.edited"), type: "SUCCESS" })
+            toast.editedMessage()
         } else {
             await records.addRecord(newItem)
-            showToast({ message: t("item.added"), type: "SUCCESS" })
+            toast.addedMessage()
             setName("")
             setValue("")
         }
@@ -115,6 +116,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
             setRecords(await records.fetchRecords(group_id) as RecordI[])
             setResumes(await records.getAllResume(group_id))
         } catch (e) {
+            toast.errorMessage()
             console.log(e)
         }
     }
@@ -131,7 +133,9 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
     const onChange = (event: DateTimePickerEvent, selectedDate: Date | undefined) => {
         const currentDate = selectedDate;
         if (currentDate) {
-            setDate(currentDate);
+            let offset = currentDate?.getTimezoneOffset() * 60 * 1000;
+            const newDate = new Date(date.getTime() - offset);
+            setDate(newDate);
         }
     };
 
@@ -178,14 +182,14 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
                             <PressableSwitch
                                 onClick={onTypeChange}
                                 text={t(`item.${type}`)}
-                                label={t('item.type')}
+                                label={t('item.type') + '*'}
                                 textColor={colors ? typeColor() : "#000"}
                             />
                         </View>
 
                         <View style={localStyles.inputContainer}>
                             <BaseSelect
-                                label={t('item.category')}
+                                label={t('item.category') + '*'}
                                 selected={category?.category_name}
                                 onChange={onChangeCategory}
                                 options={categories?.map(cat => cat.category_name)}
@@ -195,7 +199,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
 
                         <View style={localStyles.inputContainer}>
                             <BaseSelect
-                                label={t('item.payment')}
+                                label={t('item.payment') + '*'}
                                 selected={payment_method?.method_name}
                                 onChange={onPaymentChange}
                                 options={payments?.map(pay => pay.method_name)}
@@ -207,7 +211,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
                             <InputLabel
                                 value={value}
                                 onChangeText={setValue}
-                                placeholder={t('item.value')}
+                                placeholder={t('item.value') + '*'}
                                 keyboardType="numeric"
                             />
                         </View>

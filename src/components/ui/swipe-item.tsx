@@ -7,7 +7,7 @@ import { Feather } from '@expo/vector-icons';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import BaseModal from './base-modal';
 import styles from '@/src/styles/styles'
-
+import useAndroidToast from '@/src/hooks/useAndroidToast';
 
 export interface SwipeItemProps {
     children: React.ReactNode;
@@ -24,6 +24,7 @@ const SwipeItem = ({ children, handleDelete, handleUpdate, deleteContent, style,
     const editColor = '#edaf02'
     const { CustomModal, showModal, hideModal } = BaseModal(true)
     const { t } = useLanguage()
+    const toast = useAndroidToast()
 
     const pan = Gesture.Pan().onUpdate(e => {
         const val = e.translationX
@@ -51,6 +52,7 @@ const SwipeItem = ({ children, handleDelete, handleUpdate, deleteContent, style,
     const onConfirmDelete = () => {
         handleDelete()
         hideModal()
+        toast.deletedMessage()
     }
 
     return (
@@ -70,6 +72,7 @@ const SwipeItem = ({ children, handleDelete, handleUpdate, deleteContent, style,
                     </Animated.View>
                 )
             }
+            <View style={{position: "absolute"}}>
             <CustomModal title={t("delete")}>
                 {deleteContent || (
                     <View style={styles.col}>
@@ -85,6 +88,7 @@ const SwipeItem = ({ children, handleDelete, handleUpdate, deleteContent, style,
                     </View>
                 )}
             </CustomModal>
+            </View>
 
         </View>
     )

@@ -32,6 +32,7 @@
         "updateMethod": "Update a payment method",
         "delete": "Delete",
         "edit": "Edit",
+        "closingDate": "Closing date",
         "error": {
             "emptyFields": "Please enter all fields."
         },
@@ -156,7 +157,8 @@
         "budget":"Budgets",
         "home":"Home",
         "financials": "Financials",
-        "settings":"Settings"
+        "settings":"Settings",
+        "credits": "Credits"
     },
     "colors":{
         "set": "Set a color",
@@ -208,6 +210,27 @@
     "budget":{
         "budget": "Budget",
         "current": "Current"
+    },
+
+    "credits":{
+        "closingDate": "Closing date",
+        "current": "Current",
+        "previous": "Previous"
+    },
+
+   "greeting": {
+        "morning": "Good morning!",
+        "afternoon": "Good afternoon!",
+        "night": "Good night!"
+    },
+
+    "toast": {
+        "empty": "Please fill in all the inputs.",
+        "added": "Successfully added!",
+        "edited": "Changes saved!",
+        "deleted": "Successfully removed!",
+        "error": "The action could not be completed"
     }
+
       
 }

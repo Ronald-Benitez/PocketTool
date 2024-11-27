@@ -1,17 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, Modal, ScrollView, Pressable, Text, TextInput, TouchableOpacity, StyleProp, TextStyle, StyleSheet } from "react-native";
-import { Picker } from "@react-native-picker/picker";
-import { DateTimePickerAndroid, DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { View, ScrollView, StyleSheet } from "react-native";
 
 import { useLanguage } from "@/src/lang/LanguageContext";
-import styles from "@/src/styles/styles";
-import { usePaymentMethods, useRecords, useCategories } from "@/src/db";
-import { RecordI, Group, CreateRecordRequest, Category, PaymentMethod, BudgetInsert, Budget } from "@/src/interfaces";
-import useDate from "@/src/hooks/useDate";
+import { useRecords, useCategories } from "@/src/db";
+import { Category, BudgetInsert, Budget } from "@/src/interfaces";
 import useToast from "@/src/hooks/useToast";
-import DatePicker from "../ui/date-picker";
 import useRecordsStore from '@/src/stores/RecordsStore';
-import usePaymentsStore from "@/src/stores/PaymentMethodsStore";
 import useCategoriesStore from "@/src/stores/CategoriesStore";
 import { useBudget } from "@/src/db/budget-handler";
 import useColorStore from "@/src/stores/ColorsStore";
@@ -19,8 +13,8 @@ import ModalContainer from "../ui/modal-container";
 import InputLabel from "../ui/InputLabel";
 import PressableSwitch from "../ui/pressable-switch";
 import BaseSelect from "../ui/base-select";
-import LabelBlock from "../ui/LabelBlock";
 import useBudgetStore from "@/src/stores/BudgetStore";
+import useAndroidToast from "@/src/hooks/useAndroidToast";
 
 interface AddItemProps {
     item?: Budget
@@ -43,7 +37,8 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
     const { ToastContainer, showToast } = useToast()
     const { categories, setCategories } = useCategoriesStore()
     const budget = useBudget()
-    const { budgets, resumes, setBudgets, setResumes } = useBudgetStore()
+    const { setBudgets, setResumes } = useBudgetStore()
+    const toast = useAndroidToast()
 
     useEffect(() => {
         if (!group) return
@@ -79,7 +74,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
         if (!group) return
 
         if (value === "" || !category?.id) {
-            showToast({ message: t("item.error"), type: "ERROR" })
+            toast.emptyMessage()
             return
         }
 
@@ -89,17 +84,16 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
             amount: Number(value),
             category_id: category?.id as number,
         }
-        console.log(newItem)
 
         try {
             if (item) {
                 await budget.updateBudget(item.id_budget, {
                     ...newItem,
                 })
-                showToast({ message: t("item.edited"), type: "SUCCESS" })
+                toast.editedMessage()
             } else {
                 await budget.addBudget(newItem)
-                showToast({ message: t("item.added"), type: "SUCCESS" })
+                toast.addedMessage()
                 setName("")
                 setValue("")
             }
@@ -107,6 +101,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
             setResumes(await budget.getAllResume(group_id))
         } catch (e) {
             console.log(e)
+            toast.errorMessage()
         }
     }
 
@@ -143,7 +138,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
                             <PressableSwitch
                                 onClick={onTypeChange}
                                 text={t(`item.${type}`)}
-                                label={t('item.type')}
+                                label={t('item.type') + '*'}
                                 textColor={colors ? typeColor() : "#000"}
                             />
                         </View>
@@ -154,7 +149,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
                                 selected={category?.category_name}
                                 onChange={onChangeCategory}
                                 options={categories?.map(cat => cat.category_name)}
-                                title={t('item.selectCategory')}
+                                title={t('item.selectCategory') + '*'}
                             />
                         </View>
 
@@ -162,11 +157,10 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
                             <InputLabel
                                 value={value}
                                 onChangeText={setValue}
-                                placeholder={t('item.value')}
+                                placeholder={t('item.value') + '*'}
                                 keyboardType="numeric"
                             />
                         </View>
-
                     </View>
                 </ScrollView>
                 <ToastContainer />

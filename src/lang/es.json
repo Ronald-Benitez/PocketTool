@@ -32,6 +32,7 @@
         "updateMethod": "Actualizar Método de Pago",
         "delete": "Eliminar",
         "edit": "Editar",
+        "closingDate": "Día de corte",
         "error": {
             "emptyFields": "Por favor, completa todos los campos."
         },
@@ -156,7 +157,8 @@
         "budget": "Presupuestos",
         "home":"Home",
         "financials": "Finanzas",
-        "settings":"Configuraciones"
+        "settings":"Configuraciones",
+        "credits": "Créditos"
     },
     "colors": {
         "set": "Establecer un color",
@@ -213,5 +215,26 @@
     "budget":{
         "budget": "Prespuesto",
         "current": "Actual"
+    },
+
+    "credits":{
+        "closingDate": "Fecha de corte",
+        "current": "Actual",
+        "previous": "Previo"
+    },
+
+    "greeting": {
+        "morning": "¡Buenos días!",
+        "afternoon": "¡Buenas tardes!",
+        "night": "¡Buenas noches!"
+    },
+
+    "toast": {
+        "empty": "Por favor, completa todos los campos.",
+        "added": "¡Agregado con éxito!",
+        "edited": "¡Cambios guardados!",
+        "deleted": "¡Eliminado con éxito!",
+        "error": "No se pudo completar la acción"
     }
+
 }

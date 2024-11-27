@@ -18,6 +18,7 @@ import { useBudget } from '@/src/db'
 import useBudgetStore from '@/src/stores/BudgetStore'
 import FinanceSimpleBlock from '../ui/FinanceSimpleBlock'
 import FinanceSmallBlock from '../ui/FinanceSmallBlock'
+import BalanceBlock from '../ui/BalanceBlock'
 
 
 const ItemsTable = () => {
@@ -74,7 +75,7 @@ const ItemsTable = () => {
 
     const findInResume = (item: Budget) => {
         const categories = recordsResume?.categoryTotals
-        const cat = categories?.find(c => c.category_id = item.category_id)
+        const cat = categories?.find(c => c.category_id == item.category_id)
         if (cat) {
             switch (item.budget_type) {
                 case "expense":
@@ -91,7 +92,7 @@ const ItemsTable = () => {
 
     const getPercentage = (item: Budget) => {
         const categories = recordsResume?.categoryTotals
-        const cat = categories?.find(c => c.category_id = item.category_id)
+        const cat = categories?.find(c => c.category_id == item.category_id)
         let percentage = 0
         if (cat) {
             switch (item.budget_type) {
@@ -122,10 +123,28 @@ const ItemsTable = () => {
     return (
         <>
             <View style={localStyles.rowContainer}>
-                <Text style={[localStyles.balanceText, { borderColor: resumes ? (resumes?.balance < 0 ? colors?.ExpenseColor : colors?.GoalColor) : "" }]}>
+                {/* <Text style={[localStyles.balanceText, { borderColor: resumes ? (resumes?.balance < 0 ? colors?.ExpenseColor : colors?.GoalColor) : "" }]}>
                     $ {Math.abs(resumes?.balance || 0).toFixed(2)}
-                </Text>
-                <View style={[{ position: "absolute", right: 0, top: 0 }]}>
+                </Text> */}
+                <View style={[localStyles.rowContainer, { gap: 20 }]}>
+                    <View style={{ flex: 1 }}>
+                        <BalanceBlock
+                            bottom={true}
+                            text={t("budget.budget")}
+                            value={Math.abs(resumes?.balance || 0).toFixed(2)}
+                            color={resumes ? (resumes?.balance < 0 ? colors?.ExpenseColor : colors?.GoalColor) : ""}
+                        />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <BalanceBlock
+                            bottom={true}
+                            text={t("budget.current")}
+                            value={Math.abs(recordsResume?.balance || 0).toFixed(2)}
+                            color={recordsResume ? (recordsResume?.balance < 0 ? colors?.ExpenseColor : colors?.IncomeColor) : colors?.GoalColor}
+                        />
+                    </View>
+                </View>
+                <View style={[{ position: "absolute", right: 0, top: -61 }]}>
                     {
                         group && (
                             <AddItem>
@@ -155,7 +174,7 @@ const ItemsTable = () => {
                 />
             </View>
             <ScrollView style={{ flex: 1 }}>
-                <View style={{ gap: 15, paddingHorizontal: 30, }}>
+                <View style={{ gap: 5, paddingHorizontal: 30, }}>
                     {budgets?.map((item, index) => {
                         return (
                             <SwipeItem

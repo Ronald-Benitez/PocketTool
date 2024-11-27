@@ -87,7 +87,7 @@ const ItemsTable = () => {
             </View>
 
             <ScrollView style={{ flex: 1 }}>
-                <View style={{ gap: 15, paddingHorizontal: 30, }}>
+                <View style={{ gap: 5, paddingHorizontal: 30, }}>
                     {records?.map((item, index) => {
                         return (
                             <SwipeItem

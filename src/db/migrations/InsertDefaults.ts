@@ -3,7 +3,7 @@ import { type SQLiteDatabase } from 'expo-sqlite';
 // Asume que `db` es tu instancia de SQLiteDatabase.
 async function insertDefault(db: SQLiteDatabase) {
   // Insertar valores predeterminados en PaymentMethods y Categories
-  await db.runAsync('INSERT INTO PaymentMethods (method_name, payment_type) VALUES (?, ?)', 'Método de Pago Predeterminado', 'credit');
+  await db.runAsync('INSERT INTO PaymentMethods (method_name, payment_type) VALUES (?, ?, ?)', 'Método de Pago Predeterminado', 'credit', 1);
   await db.runAsync('INSERT INTO PaymentMethods (method_name, payment_type) VALUES (?, ?)', 'Método de Pago en Efectivo', 'debit');
   await db.runAsync('INSERT INTO Categories (category_name) VALUES (?)', 'Categoría Predeterminada');
 

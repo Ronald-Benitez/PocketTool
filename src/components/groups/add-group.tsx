@@ -1,7 +1,6 @@
-import { View, Text, Modal, TouchableOpacity, Pressable, TextInput, StyleSheet } from 'react-native'
-import React, { SetStateAction, useEffect, useState } from 'react'
+import { View, StyleSheet } from 'react-native'
+import React, { useEffect, useState } from 'react'
 
-import styles from '@/src/styles/styles'
 import { useLanguage } from '@/src/lang/LanguageContext'
 import useDate from '@/src/hooks/useDate'
 import useToast from '@/src/hooks/useToast'
@@ -11,8 +10,8 @@ import MonthSelector from '../ui/month-selector'
 import { ScrollView } from 'react-native-gesture-handler'
 import ModalContainer from '../ui/modal-container'
 import InputLabel from '../ui/InputLabel'
-import LabelBlock from '../ui/LabelBlock'
 import useRecordsStore from '@/src/stores/RecordsStore'
+import useAndroidToast from '@/src/hooks/useAndroidToast'
 
 interface AddGroupProps {
     children?: React.ReactNode
@@ -33,6 +32,7 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
     const [year, setYear] = useState<string>(String(new Date().getFullYear()))
     const { addGroup, editGroup, fetchGroupsByYear } = useGroups()
     const { group, setGroup, setGroups, groups } = useRecordsStore()
+    const toast = useAndroidToast()
 
     useEffect(() => {
         if (!group) return
@@ -58,12 +58,14 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
     }
 
     const onSave = async () => {
-        if (!name || !month || !year) {
-            return showToast({ message: t('group.error'), type: 'ERROR' })
+        if (!name || !month || !year || !goal) {
+            toast.emptyMessage()
+            return
         }
 
         if (String(year).length !== 4) {
-            return showToast({ message: t('year-error'), type: 'ERROR' })
+            toast.withMessage(t('year-error'))
+            return
         }
 
         const newGroup: CreateGroupRequest = {
@@ -76,10 +78,10 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
             const updateGroup = { ...group, ...newGroup }
             await editGroup(group.id, updateGroup)
             setGroup && setGroup(updateGroup)
-            showToast({ message: t("group.edited"), type: "SUCCESS" })
+            toast.editedMessage()
         } else {
             await addGroup(newGroup)
-            showToast({ message: t("group.added"), type: "SUCCESS" })
+            toast.addedMessage()
         }
         getGroups()
         cleanData()
@@ -102,7 +104,7 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
                             <InputLabel
                                 value={name}
                                 onChangeText={setName}
-                                placeholder={t('group.name')}
+                                placeholder={t('group.name') + '*'}
                             />
                         </View>
                         <View style={localStyles.inputContainer}>
@@ -110,7 +112,7 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
                                 value={String(goal)}
                                 onChangeText={(e) => setGoal(Number(e))}
                                 keyboardType="numeric"
-                                placeholder={t('group.goal')}
+                                placeholder={t('group.goal') + '*'}
                             />
                         </View>
                         <View style={localStyles.inputContainer}>
@@ -121,7 +123,7 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
                                 value={year}
                                 onChangeText={setYear}
                                 keyboardType="numeric"
-                                placeholder={t('group.year')}
+                                placeholder={t('group.year') + '*'}
                             />
                         </View>
                     </View>
