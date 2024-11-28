@@ -18,6 +18,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import Input from '@/src/components/ui/Input';
 import InputLabel from '@/src/components/ui/InputLabel';
 import PressableSwitch from '@/src/components/ui/pressable-switch';
+import useAndroidToast from '@/src/hooks/useAndroidToast';
 
 const PaymentMethodsScreen = () => {
     const { t } = useLanguage();
@@ -29,6 +30,7 @@ const PaymentMethodsScreen = () => {
     const { payments, setPayments } = usePaymentsStore();
     const [openModal, setOpenModal] = useState(false)
     const { colors } = useColorStore();
+    const toast = useAndroidToast()
 
     useEffect(() => {
         const loadPaymentMethods = async () => {
@@ -41,15 +43,17 @@ const PaymentMethodsScreen = () => {
 
     const handleAddPaymentMethod = async () => {
         if (!methodName) {
-            ToastAndroid.show(t('paymentMethods.error.emptyFields'), ToastAndroid.SHORT);
+            toast.emptyMessage()
             return;
         }
         const newPaymentMethod: CreatePaymentMethodRequest = { method_name: methodName, payment_type: type, closing_date: closingDate };
         try {
             if (editingId) {
                 await updatePaymentMethod(editingId, methodName, type, closingDate);
+                toast.editedMessage()
             } else {
                 await addPaymentMethod(newPaymentMethod);
+                toast.addedMessage()
             }
             const methods = await fetchPaymentMethods();
             setPayments(methods);
@@ -58,6 +62,7 @@ const PaymentMethodsScreen = () => {
             setClosingDate(0)
             setEditingId(null);
         } catch (error) {
+            toast.errorMessage()
             console.error(error);
         }
     };
@@ -66,9 +71,11 @@ const PaymentMethodsScreen = () => {
         try {
             await deletePaymentMethod(id);
             const methods = await fetchPaymentMethods();
+            toast.deletedMessage()
             setPayments(methods);
         } catch (error) {
             console.error(error);
+            toast.errorMessage()
         }
     };
 
@@ -112,20 +119,20 @@ const PaymentMethodsScreen = () => {
                 open={openModal}>
                 <View style={localStyles.modalContent}>
                     <InputLabel
-                        placeholder={t('paymentMethods.methodName')}
+                        placeholder={t('paymentMethods.methodName') + "*"}
                         value={methodName}
                         onChangeText={setMethodName}
                     />
                     <PressableSwitch
                         onClick={handleType}
                         text={t(`paymentMethods.type.${type}`)}
-                        label={t('paymentMethods.type.label')}
+                        label={t('paymentMethods.type.label') + "*"}
                         textColor={type == "credit" ? colors?.Credit : colors?.Debit}
                     />
                     {
                         type == "credit" && (
                             <InputLabel
-                                placeholder={t('paymentMethods.closingDate')}
+                                placeholder={t('paymentMethods.closingDate') + "*"}
                                 value={String(closingDate)}
                                 onChangeText={handleCutOffDay}
                                 keyboardType='numeric'

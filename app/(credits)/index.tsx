@@ -1,9 +1,8 @@
-import { View, Text, StyleSheet } from 'react-native'
+import { View, StyleSheet } from 'react-native'
 import React, { useState, useEffect } from 'react'
 
 import { useRecords } from '@/src/db'
 import styles from '@/src/styles/styles'
-import BGSimpleBlock from '@/src/components/ui/BGSimpleBlock';
 import ColorText from '@/src/components/ui/color-text';
 import useCreditCardStore from '@/src/stores/CreditCardsStore';
 import useColorStore from '@/src/stores/ColorsStore';
@@ -21,10 +20,13 @@ const Index = () => {
     const { records } = useRecordsStore()
 
     const fetch = async () => {
-        const res = await fetchResumeByCreditCards()
-        console.log(res)
-        setCreditCards(res)
+        try {
+            const res = await fetchResumeByCreditCards()
+            console.log(res)
+            setCreditCards(res)
+        } catch (e) {
 
+        }
     }
 
     useEffect(() => {
@@ -32,19 +34,21 @@ const Index = () => {
     }, [records])
 
     useEffect(() => {
-        if (creditCards?.length && creditCards.length > 0) {
-            let newCurrent = 0
-            let newPrevious = 0
-            creditCards.map(e => {
-                newCurrent += e.current
-                newPrevious += e.previous
-            })
-            setTotalCurrent(newCurrent)
-            setTotalPrevious(newPrevious)
+        try {
+            if (creditCards?.length && creditCards.length > 0) {
+                let newCurrent = 0
+                let newPrevious = 0
+                creditCards.map(e => {
+                    newCurrent += e.current
+                    newPrevious += e.previous
+                })
+                setTotalCurrent(newCurrent)
+                setTotalPrevious(newPrevious)
+            }
+        } catch (e) {
         }
+
     }, [creditCards])
-
-
 
     return (
         <View style={styles.container}>

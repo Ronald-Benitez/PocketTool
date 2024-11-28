@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/images/icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#cdd7d9"
+      "backgroundColor": "#c5d8de"
     },
     "ios": {
       "supportsTablet": true
@@ -18,7 +18,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
-        "backgroundColor": "#cdd7d9"
+        "backgroundColor": "#c5d8de"
       },
       "package": "com.empanada.PoketTool"
     },

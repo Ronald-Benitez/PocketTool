@@ -23,7 +23,7 @@ export const usePaymentMethods = () => {
     try {
       await db.runAsync(
         `
-          INSERT INTO PaymentMethods (method_name, payment_type) VALUES (?, ?, ?)`,
+          INSERT INTO PaymentMethods (method_name, payment_type, closing_date) VALUES (?, ?, ?)`,
         paymentMethod.method_name,
         paymentMethod.payment_type,
         paymentMethod.closing_date
