@@ -73,6 +73,16 @@ const AppDrawer = () => {
           }}
         />
         <Drawer.Screen
+          name="(resumes)"
+          options={{
+            title: t("headers.financialsIndex"),
+            headerShown: false,
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="stats-chart-outline" size={size} color={color} />
+            )
+          }}
+        />
+        <Drawer.Screen
           name="(credits)/index"
           options={{
             title: t("headers.credits"),

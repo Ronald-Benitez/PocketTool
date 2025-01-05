@@ -1,22 +1,19 @@
-import { View, Text, ScrollView, TextStyle, TurboModuleRegistry, ViewStyle, StyleSheet } from 'react-native';
+import { View, ScrollView,  StyleSheet } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AntDesign, Feather } from '@expo/vector-icons';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { useGroups, useRecords } from '@/src/db';
-import { ResumeTotals } from '@/src/db';
 import { Group } from '@/src/interfaces';
 import GroupSelector from '@/src/components/groups/group-selector';
 import styles from '@/src/styles/styles';
 import useRecordsStore from '@/src/stores/RecordsStore';
-import AddGroup from '@/src/components/groups/add-group';
 import useColorStore from '@/src/stores/ColorsStore';
 import FinanceSimpleBlock from '@/src/components/ui/FinanceSimpleBlock';
 import DetailedFinanceBlock from '@/src/components/ui/DetailedFinanceBlock';
 import BalanceBlock from '@/src/components/ui/BalanceBlock';
 import FinnanceTableBlock from '@/src/components/ui/FinnanceTableBlock';
-import IconButton from '@/src/components/ui/icon-button';
 
 const Index = () => {
     const { t } = useLanguage();

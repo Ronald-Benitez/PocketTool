@@ -130,7 +130,7 @@ const ColorPicker2 = ({ color, onChange }: props) => {
     )
     return (
         <>
-            <ModalContainer buttonOpen={pickButton()} title={t("colors.set")}>
+            <ModalContainer buttonOpen={pickButton()} title={t("colors.set")} >
                 <>
                     <View style={localStyles.headBlock}>
                         <IconButton onClick={handleCopy}>
@@ -244,7 +244,7 @@ const localStyles = StyleSheet.create({
     },
     rgbInput: {
         width: 50,
-        height: 30,
+        height: 40,
         borderWidth: 1,
         borderColor: "#B6B6B6",
         textAlign: "center"

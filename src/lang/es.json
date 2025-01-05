@@ -106,6 +106,7 @@
     },
     "confirm": "Aceptar",
     "cancel": "Cancelar",
+    "close": "Cerrar",
     "confirmDelete": "¿Estás seguro de que quieres eliminar esto?",
     "delete": "Eliminar",
     "year-error": "Año no válido",

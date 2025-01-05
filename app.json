@@ -4,21 +4,21 @@
     "slug": "PoketTool",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/icon3.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#c5d8de"
+      "backgroundColor": "#fff"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.png",
-        "backgroundColor": "#c5d8de"
+        "foregroundImage": "./assets/images/icon3.png",
+        "backgroundColor": "#fff"
       },
       "package": "com.empanada.PoketTool"
     },

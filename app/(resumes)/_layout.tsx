@@ -10,6 +10,17 @@ export default function Layout() {
     return (
         <StackBase>
             <Tabs.Screen
+                name="index"
+                options={{
+                    title: t("headers.financialsIndex"),
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="home-outline" size={size} color={color} />
+                    ),
+                    headerStyle: {
+                        backgroundColor: '#fff'
+                    }
+                }} />
+            {/* <Tabs.Screen
                 name="RecordsScreen"
                 options={{
                     title: t("headers.records"),
@@ -41,7 +52,7 @@ export default function Layout() {
                     headerStyle: {
                         backgroundColor: '#fff'
                     }
-                }} />
+                }} /> */}
         </StackBase>
     );
 }

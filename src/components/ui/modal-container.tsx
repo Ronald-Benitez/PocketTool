@@ -1,10 +1,10 @@
 import { View, Text, Modal, TouchableOpacity, Pressable, TextInput, StyleSheet } from 'react-native'
 import { ReactNode, useEffect, useState } from 'react'
 
-import styles from '@/src/styles/styles'
-import useToast from '@/src/hooks/useToast'
 import { useLanguage } from '@/src/lang/LanguageContext'
 import ModalButton from './modal-button'
+import useColorStore from '@/src/stores/ColorsStore'
+import ColorText from './color-text'
 
 interface AddGroupProps {
     children?: React.ReactNode,
@@ -14,15 +14,14 @@ interface AddGroupProps {
     onAccept?: () => void,
     closeOnAccept?: boolean,
     open?: boolean,
-    close?: boolean
+    close?: boolean,
 }
 
-
 const ModalContainer = ({ children, buttonOpen, title, type, onAccept, closeOnAccept, open, close }: AddGroupProps) => {
-    const { ToastContainer, showToast } = useToast()
     const [modalVisible, setModalVisible] = useState(false)
     const [isFirstRender, setIsFirstRender] = useState(true);
     const { t } = useLanguage()
+    const { colors } = useColorStore()
 
     const handleAccept = () => {
         onAccept && onAccept()
@@ -58,14 +57,16 @@ const ModalContainer = ({ children, buttonOpen, title, type, onAccept, closeOnAc
                     <Pressable onPress={() => setModalVisible(false)} style={localStyles.modalBackdrop}>
                         <Pressable onPress={() => { }} >
                             <View style={[localStyles.modalContainer]}>
-                                <View style={localStyles.modalHeader}>
-                                    <Text style={localStyles.modalHeaderText}>{title}</Text>
+                                <View style={[localStyles.modalHeader, { backgroundColor: colors?.ModalHeaderColor }]}>
+                                    <ColorText backgroundColor={ colors?.ModalHeaderColor || "#fff"} textAlign="center">
+                                        {title}
+                                    </ColorText>
                                 </View>
                                 <View style={localStyles.modalContent}>
                                     {children}
                                 </View>
                                 <View style={localStyles.modalFooter}>
-                                    <ModalButton onClick={() => setModalVisible(false)} text={t("cancel")} type='base' />
+                                    <ModalButton onClick={() => setModalVisible(false)} text={t("close")} type='base' />
                                     {
                                         type == "complete" && onAccept && (
                                             <ModalButton onClick={handleAccept} text={t("confirm")} type='bg' />
@@ -75,7 +76,6 @@ const ModalContainer = ({ children, buttonOpen, title, type, onAccept, closeOnAc
                             </View>
                         </Pressable>
                     </Pressable>
-                    <ToastContainer />
                 </Modal>
             </View>
         </>
@@ -87,7 +87,6 @@ const localStyles = StyleSheet.create({
         justifyContent: "center"
     },
     modalHeader: {
-        backgroundColor: "#497679",
         justifyContent: "center",
         height: 65
     },

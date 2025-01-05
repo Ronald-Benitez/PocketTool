@@ -133,9 +133,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
     const onChange = (event: DateTimePickerEvent, selectedDate: Date | undefined) => {
         const currentDate = selectedDate;
         if (currentDate) {
-            let offset = currentDate?.getTimezoneOffset() * 60 * 1000;
-            const newDate = new Date(date.getTime() - offset);
-            setDate(newDate);
+            setDate(currentDate);
         }
     };
 

@@ -1,4 +1,7 @@
-import { StyleSheet, Pressable, Text, TextStyle, ViewStyle, View } from "react-native";
+import { StyleSheet, Pressable, Text, ViewStyle, View } from "react-native";
+
+import ColorText from "./color-text";
+import useColorStore from "@/src/stores/ColorsStore";
 
 interface props {
     text: string,
@@ -8,8 +11,9 @@ interface props {
 }
 
 const ModalButton = ({ text, onClick, type, isButton = true }: props) => {
+    const { colors } = useColorStore()
 
-    const color = "#8FC0C3"
+    const color = colors?.ConfirmColor || "#8FC0C3"
 
     const styles = type == "base" ? {
         borderWidth: 1,
@@ -22,11 +26,11 @@ const ModalButton = ({ text, onClick, type, isButton = true }: props) => {
         <>
             {isButton ? (
                 <Pressable onPress={onClick} style={[localStyles.button, styles]}>
-                    <Text style={localStyles.text}>{text}</Text>
+                    <ColorText backgroundColor={color} fontSize={14} textAlign="center">{text}</ColorText>
                 </Pressable>
             ) : (
                 <View style={[localStyles.button, styles]}>
-                    <Text style={localStyles.text}>{text}</Text>
+                    <ColorText backgroundColor="#fff" fontSize={14} textAlign="center">{text}</ColorText>
                 </View>
             )}
         </>

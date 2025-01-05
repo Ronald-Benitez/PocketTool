@@ -68,7 +68,7 @@ export const useRecords = () => {
     group_id: number | undefined
   ): Promise<TodayTotals | null> => {
     if (!group_id) return null;
-    const currentDate = getToday().toISOString().split("T")[0];
+    const currentDate = new Date().toISOString().split("T")[0];
 
     try {
       const result = (await db.getAllAsync(
@@ -440,7 +440,7 @@ export const useRecords = () => {
 
       if (!creditCards || creditCards.length === 0) return [];
 
-      let today = getToday()
+      let today = new Date()
       const currentMonth = today.getMonth() + 1; // Mes actual (1-12)
       const currentYear = today.getFullYear();
 
