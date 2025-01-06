@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 
 import StackBase from "@/src/components/navigation/stack-base";
 import { useLanguage } from "@/src/lang/LanguageContext";
@@ -15,17 +15,6 @@ export default function Layout() {
                     title: t("headers.financialsIndex"),
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons name="home-outline" size={size} color={color} />
-                    ),
-                    headerStyle: {
-                        backgroundColor: '#fff'
-                    }
-                }} />
-            {/* <Tabs.Screen
-                name="RecordsScreen"
-                options={{
-                    title: t("headers.records"),
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="wallet-outline" size={size} color={color} />
                     ),
                     headerStyle: {
                         backgroundColor: '#fff'
@@ -52,7 +41,7 @@ export default function Layout() {
                     headerStyle: {
                         backgroundColor: '#fff'
                     }
-                }} /> */}
+                }} />
         </StackBase>
     );
 }

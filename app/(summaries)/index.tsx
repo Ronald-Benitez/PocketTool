@@ -76,7 +76,7 @@ const Index = () => {
                 <BalanceBlock
                     bottom={false}
                     text={t('resume.balance')}
-                    value={Math.abs(resumes?.balance || 0).toFixed(2)}
+                    value={(resumes?.balance || 0).toFixed(2)}
                     color={resumes ? (resumes?.balance < 0 ? colors?.ExpenseColor : colors?.IncomeColor) : colors?.Debit}
                 />
             </View >
@@ -114,6 +114,8 @@ const Index = () => {
                             color2={colors?.IncomeColor}
                             value={String(resumes?.incomeDebit)}
                         />
+                    </View>
+                    <View style={localStyles.simpleContainer}>
                         <DetailedFinanceBlock
                             text={t("resume.incomesCredit")}
                             color1={colors?.Credit}
@@ -128,6 +130,8 @@ const Index = () => {
                             color2={colors?.ExpenseColor}
                             value={String(resumes?.expenseDebit)}
                         />
+                    </View>
+                    <View style={localStyles.simpleContainer}>
                         <DetailedFinanceBlock
                             text={t("resume.expensesCredit")}
                             color1={colors?.Credit}
@@ -138,11 +142,9 @@ const Index = () => {
                     <BalanceBlock
                         bottom={true}
                         text={t('resume.balanceWithout')}
-                        value={String(Math.abs(resumes?.totalWithoutDebts || 0).toFixed(2))}
+                        value={String((resumes?.totalWithoutDebts || 0).toFixed(2))}
                         color={resumes ? (resumes?.totalWithoutDebts < 0 ? colors?.ExpenseColor : colors?.IncomeColor) : colors?.Debit}
                     />
-                    <FinnanceTableBlock render='payments' />
-                    <FinnanceTableBlock render='categories' />
                 </View>
             </ScrollView>
         </>
@@ -162,7 +164,8 @@ const localStyles = StyleSheet.create({
     simpleContainer: {
         flexDirection: "row",
         justifyContent: "center",
-        gap: 20
+        gap: 30,
+        paddingVertical: 15
     },
     container: {
         padding: 10,

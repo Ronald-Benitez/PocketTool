@@ -32,7 +32,7 @@ const localStyles = StyleSheet.create({
         marginVertical: 5,
         borderBottomWidth: 2,
         borderRadius: 5,
-        width: 175,
+        width: 300,
         flexDirection: "row",
         alignItems: "center",
         paddingBottom: 2
@@ -53,7 +53,7 @@ const localStyles = StyleSheet.create({
         padding: 0
     },
     container: {
-        width: 175,
+        width: 300,
         flexDirection: "column",
         gap: 0
     },

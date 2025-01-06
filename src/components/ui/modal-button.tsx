@@ -14,6 +14,7 @@ const ModalButton = ({ text, onClick, type, isButton = true }: props) => {
     const { colors } = useColorStore()
 
     const color = colors?.ConfirmColor || "#8FC0C3"
+    const textBg =  type == "base" ? "#fff" : color
 
     const styles = type == "base" ? {
         borderWidth: 1,
@@ -26,11 +27,11 @@ const ModalButton = ({ text, onClick, type, isButton = true }: props) => {
         <>
             {isButton ? (
                 <Pressable onPress={onClick} style={[localStyles.button, styles]}>
-                    <ColorText backgroundColor={color} fontSize={14} textAlign="center">{text}</ColorText>
+                    <ColorText backgroundColor={textBg} fontSize={14} textAlign="center">{text}</ColorText>
                 </Pressable>
             ) : (
                 <View style={[localStyles.button, styles]}>
-                    <ColorText backgroundColor="#fff" fontSize={14} textAlign="center">{text}</ColorText>
+                    <ColorText backgroundColor={textBg} fontSize={14} textAlign="center">{text}</ColorText>
                 </View>
             )}
         </>

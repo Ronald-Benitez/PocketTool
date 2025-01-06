@@ -62,7 +62,7 @@ const Index = () => {
                     <IndexBlock>
                         <FinanceSimpleBlock
                             text={t("resume.balance")}
-                            value={Math.abs(resumes?.balance || 0).toFixed(2)}
+                            value={(resumes?.balance || 0).toFixed(2)}
                             color={resumes ? (resumes?.balance < 0 ? colors?.ExpenseColor : colors?.IncomeColor) : colors?.GoalColor}
                         />
                     </IndexBlock>

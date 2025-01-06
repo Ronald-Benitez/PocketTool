@@ -73,7 +73,7 @@ const AppDrawer = () => {
           }}
         />
         <Drawer.Screen
-          name="(resumes)"
+          name="(summaries)"
           options={{
             title: t("headers.financialsIndex"),
             headerShown: false,

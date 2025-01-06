@@ -71,7 +71,7 @@ const ItemsTable = () => {
                 style={localStyles.rowContainer}
             >
                 <Text style={[localStyles.balanceText, color(balance < 0 ? "expense" : "income")]}>
-                    $ {Math.abs(balance).toFixed(2)}
+                    $ {(balance).toFixed(2)}
                 </Text>
                 <View style={[{ position: "absolute", right: 0, top: 0 }]}>
                     {
