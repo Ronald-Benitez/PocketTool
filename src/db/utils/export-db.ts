@@ -19,6 +19,7 @@ export const exportDatabaseToSQLFile = async (
     exportSQL.push("DELETE FROM Categories;");
     exportSQL.push("DELETE FROM Savings;");
     exportSQL.push("DELETE FROM SavingsHistory;");
+    exportSQL.push("DELETE FROM Budgets;");
     exportSQL.push("DELETE FROM Migrations;");
 
     // Función para agregar consultas INSERT
@@ -46,6 +47,7 @@ export const exportDatabaseToSQLFile = async (
       "Savings",
       "SavingsHistory",
       "Migrations",
+      "Budgets",
     ];
     for (const table of tables) {
       const result = await db.getAllAsync(`SELECT * FROM ${table}`);

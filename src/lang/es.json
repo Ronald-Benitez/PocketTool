@@ -159,7 +159,8 @@
         "home":"Inicio",
         "financials": "Finanzas",
         "settings":"Configuraciones",
-        "credits": "Créditos"
+        "credits": "Créditos",
+        "help": "Ayuda"
     },
     "colors": {
         "set": "Establecer un color",
@@ -236,6 +237,21 @@
         "edited": "¡Cambios guardados!",
         "deleted": "¡Eliminado con éxito!",
         "error": "No se pudo completar la acción"
+    },
+    "help":{
+        "title":{
+            "financials": "Finanzas",
+            "savings":"Ahorros",
+            "budgets":"Presupuestos",
+            "credits":"Créditos",
+            "summary":"Resumen"
+        },
+        "description":{
+            "financials":"Para comenzar a registrar tus finanzas, primero debes crear un grupo. Luego, podrás agregar registros de ingresos, gastos y transferencias. También puedes crear categorías y métodos de pago para organizar tus registros.",
+            "savings":"Comienza creando un ahorro. Luego, podrás editar o eliminar el ahorro. Puedes agregar registros de ahorro para llevar un seguimiento de tus ahorros.",
+            "budgets":"Para comenzar a crear presupuestos, primero debes crear un grupo. Luego, podrás agregar presupuestos para cada categoría. Puedes ver el resumen de tus presupuestos en la sección de presupuestos, cada presupuesto pertenece al mismo grupo que las finanzas por lo cual podrás llevar un seguimiento de tus registro por categoría.",
+            "credits":"Para visualizar tus créditos primero debes crear uno o más métodos de pago de tipo crédito y asignarles una fecha de corte, luego por cada gasto que realices con un método de pago de tipo crédito se iran usando separados por mes y método de pago, pudiento ver el actual y el del mes anterior.",
+            "summary":"En la sección de resumen podrás ver un resumen de tus finanzas. Podrás ver un resumen de tus ingresos, gastos, balance, meta, ingresos débito, gastos débito, ingresos crédito, gastos crédito, balance sin crédito, resumen por categorías, resumen por método de pago y transferencias, para el grupo que se encuentre seleccionado."
+        }
     }
-
 }

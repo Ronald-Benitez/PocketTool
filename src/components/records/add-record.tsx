@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Modal, ScrollView, Pressable, Text, TextInput, TouchableOpacity, StyleProp, TextStyle, StyleSheet } from "react-native";
-import { Picker } from "@react-native-picker/picker";
+import { View, ScrollView, Pressable, Text, StyleSheet } from "react-native";
 import { DateTimePickerAndroid, DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 import { useLanguage } from "@/src/lang/LanguageContext";
-import styles from "@/src/styles/styles";
 import { usePaymentMethods, useRecords, useCategories } from "@/src/db";
-import { RecordI, Group, CreateRecordRequest, Category, PaymentMethod } from "@/src/interfaces";
+import { RecordI, CreateRecordRequest, Category, PaymentMethod } from "@/src/interfaces";
 import useDate from "@/src/hooks/useDate";
 import useToast from "@/src/hooks/useToast";
-import DatePicker from "../ui/date-picker";
 import useRecordsStore from '@/src/stores/RecordsStore';
 import usePaymentsStore from "@/src/stores/PaymentMethodsStore";
 import useCategoriesStore from "@/src/stores/CategoriesStore";

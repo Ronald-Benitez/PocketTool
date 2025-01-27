@@ -1,21 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, FlatList, Alert, Pressable, StyleSheet, ScrollView, ToastAndroid } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { PaymentMethod, CreatePaymentMethodRequest } from '@/src/interfaces';
 import { usePaymentMethods } from '@/src/db';
 import styles from '@/src/styles/styles';
 import SwipeItem from '@/src/components/ui/swipe-item';
-import Dropdown from '@/src/components/ui/dropdown';
 import usePaymentsStore from '@/src/stores/PaymentMethodsStore';
 import useColorStore from '@/src/stores/ColorsStore';
-import BGSimpleBlock from '@/src/components/ui/BGSimpleBlock';
 import BorderLeftBlock from '@/src/components/ui/BorderLeftBlock';
 import IconButton from '@/src/components/ui/icon-button';
 import ModalContainer from '@/src/components/ui/modal-container';
 import { MaterialIcons } from '@expo/vector-icons';
-import Input from '@/src/components/ui/Input';
 import InputLabel from '@/src/components/ui/InputLabel';
 import PressableSwitch from '@/src/components/ui/pressable-switch';
 import useAndroidToast from '@/src/hooks/useAndroidToast';

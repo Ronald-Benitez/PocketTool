@@ -113,6 +113,16 @@ const AppDrawer = () => {
           }}
         />
         <Drawer.Screen
+          name="(help)/index"
+          options={{
+            title: t("headers.help"),
+            headerShown: true,
+            drawerIcon: ({ color, size }) => (
+              <MaterialCommunityIcons name="help-circle-outline" size={size} color={color} />
+            )
+          }}
+        />
+        <Drawer.Screen
           name="(settings)/index"
           options={{
             title: t("headers.settings"),

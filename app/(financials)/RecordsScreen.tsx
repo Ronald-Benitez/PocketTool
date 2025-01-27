@@ -1,16 +1,14 @@
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, TouchableOpacity } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { AntDesign, Ionicons } from '@expo/vector-icons'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import AddGroup from '@/src/components/groups/add-group'
 import Table from '@/src/components/records/records-table'
-import { useLanguage } from '@/src/lang/LanguageContext'
-import { useGroups, useRecords } from '@/src/db'
-import { Group, RecordI } from '@/src/interfaces'
+import {  useRecords } from '@/src/db'
+import { RecordI } from '@/src/interfaces'
 import GroupSelector from '@/src/components/groups/group-selector'
-import AddItem from '@/src/components/records/add-record'
-import GroupViewer from '@/src/components/groups/group-viewer';
+
 import styles from '@/src/styles/styles'
 import useRecordsStore from '@/src/stores/RecordsStore';
 
@@ -28,7 +26,7 @@ const Index = () => {
         if (!group) return
         fetchRecords(group.id).then(e => {
             setRecordsState(e as RecordI[])
-            console.log(e)
+
         })
     }, [group?.id])
 

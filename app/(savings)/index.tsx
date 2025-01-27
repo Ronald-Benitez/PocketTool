@@ -1,12 +1,10 @@
-import { View, Text, ScrollView, TextStyle, TurboModuleRegistry, ViewStyle, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AntDesign, Feather, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { AntDesign, Feather, Ionicons,  MaterialIcons } from '@expo/vector-icons';
 import { LineChart, lineDataItem } from "react-native-gifted-charts";
 
 import { useLanguage } from '@/src/lang/LanguageContext';
-import useRecordsStore from '@/src/stores/RecordsStore';
-import useColorStore from '@/src/stores/ColorsStore';
 import IconButton from '@/src/components/ui/icon-button';
 import SavingsSelector from '@/src/components/savings/saving-selector';
 import AddSaving from '@/src/components/savings/add-savings';
@@ -20,15 +18,12 @@ import styles from '@/src/styles/styles';
 
 const Index = () => {
     const { t } = useLanguage();
-    const [openUpdate, setOpenUpdate] = useState(false)
-    const { colors } = useColorStore()
     const { saving, savingsHistory, setSaving, setSavingsHistory, setSavings } = useSavingsStore()
     const { fetchSavingsById, deleteSavings, fetchSavings } = useSavings()
     const { fetchSavingsHistoryBySavingId, deleteSavingsHistory } = useSavingsHistory()
     const [pinned, setPinned] = useState(saving?.id)
     const { CustomModal, showModal, hideModal } = useBaseModal(true)
     const [chartData, setChartData] = useState<lineDataItem[]>([])
-
 
     useEffect(() => {
         getPinned();
@@ -136,7 +131,7 @@ const Index = () => {
                             </AddSaving>
                         )
                     }
-                    <AddSaving>
+                    <AddSaving isEditing={false}>
                         <IconButton isButton={false}>
                             <AntDesign name='plus' size={20} color={"#000"} />
                         </IconButton>
@@ -178,9 +173,13 @@ const Index = () => {
                 </View>
             </ScrollView>
             <View style={[localStyles.rowContainer, { justifyContent: "center" }]}>
-                <IconButton onClick={showModal}>
-                    <MaterialIcons name='delete-outline' size={20} color={"#000"}></MaterialIcons>
-                </IconButton>
+                {
+                    saving && (
+                        <IconButton onClick={showModal}>
+                            <MaterialIcons name='delete-outline' size={20} color={"#000"}></MaterialIcons>
+                        </IconButton>
+                    )
+                }
             </View>
             <CustomModal title={t("delete")}>
                 <View style={styles.col}>

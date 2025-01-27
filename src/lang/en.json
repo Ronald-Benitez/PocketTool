@@ -159,7 +159,8 @@
         "home":"Home",
         "financials": "Financials",
         "settings":"Settings",
-        "credits": "Credits"
+        "credits": "Credits",
+        "help":"Help"
     },
     "colors":{
         "set": "Set a color",
@@ -231,7 +232,21 @@
         "edited": "Changes saved!",
         "deleted": "Successfully removed!",
         "error": "The action could not be completed"
-    }
-
-      
+    },
+    "help": {
+        "title": {
+            "financials": "Financials",
+            "savings": "Savings",
+            "budgets": "Budgets",
+            "credits": "Credits",
+            "summary": "Summary"
+        },
+        "description": {
+            "financials": "To start recording your finances, you must first create a group. Then, you can add records of income, expenses, and transfers. You can also create categories and payment methods to organize your records.",
+            "savings": "Start by creating a savings account. Then, you can edit or delete the savings account. You can add savings records to keep track of your savings.",
+            "budgets": "To start creating budgets, you must first create a group. Then, you can add budgets for each category. You can view a summary of your budgets in the budgets section. Each budget belongs to the same group as the finances, allowing you to track your records by category.",
+            "credits": "To view your credits, you must first create one or more credit-type payment methods and assign them a cutoff date. For each expense made with a credit-type payment method, records will be organized by month and payment method, allowing you to view the current and previous month's details.",
+            "summary": "In the summary section, you can view an overview of your finances. You'll see a summary of your income, expenses, balance, goal, debit income, debit expenses, credit income, credit expenses, balance excluding credit, category summary, payment method summary, and transfers for the selected group."
+        }
+    } 
 }

@@ -22,7 +22,6 @@ const Index = () => {
     const fetch = async () => {
         try {
             const res = await fetchResumeByCreditCards()
-            console.log(res)
             setCreditCards(res)
         } catch (e) {
 

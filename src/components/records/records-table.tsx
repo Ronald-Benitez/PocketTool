@@ -138,7 +138,7 @@ const localStyles = StyleSheet.create({
         alignItems: "center"
     },
     dateContainer: {
-        width: 40
+        width: 50
     },
     dateText: {
         fontWeight: "100",

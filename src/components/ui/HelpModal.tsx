@@ -1,9 +1,10 @@
-import { Pressable, StyleSheet, TextInput, TextInputProps, Text, View, ScrollView, DimensionValue } from "react-native";
+import { StyleSheet, Text, View, ScrollView, DimensionValue } from "react-native";
 
 import useColorStore from '@/src/stores/ColorsStore';
 import ModalContainer from "./modal-container";
 import { ReactNode, useState } from "react";
-import BGSelectBlock from "./BGSelectBlock";
+import { useLanguage } from "@/src/lang/LanguageContext";
+import ColorText from "./color-text";
 
 interface Props {
     label?: string
@@ -13,30 +14,26 @@ interface Props {
     title: string,
     blockWith?: DimensionValue,
     children?: ReactNode,
-    extra?: ReactNode
+    text: string
 }
 
-const BaseSelect = ({ label, onChange, options, selected, title, blockWith, children, extra }: Props) => {
+const HelpModal = ({ label, selected, title, blockWith, children }: Props) => {
     const { colors } = useColorStore()
     const [closeModal, setCloseModal] = useState(false)
+    const { t } = useLanguage()
 
     const buttonOpen = (
         <View style={[localStyles.block, { borderColor: colors?.InputStroke }]} >
             <Text style={[localStyles.text]}>
-                {selected || label}
+                Abrir
             </Text>
         </View>
     )
 
-    const handlePress = (index: number) => {
-        setCloseModal(!closeModal)
-        onChange(index)
-    }
-
     return (
         <>
             <View style={[localStyles.colContainer, { width: blockWith ? blockWith : "80%" }]}>
-                <Text style={localStyles.label}>{label}</Text>
+                <Text style={localStyles.label}> {t("help.title." + selected)}</Text>
                 <ModalContainer
                     buttonOpen={children ? children : buttonOpen}
                     close={closeModal}
@@ -44,19 +41,10 @@ const BaseSelect = ({ label, onChange, options, selected, title, blockWith, chil
 
                 >
                     <ScrollView>
-                        {extra}
                         <View style={localStyles.optionsContainer}>
-                            {
-                                options?.map((val, index) => (
-                                    <Pressable onPress={() => handlePress(index)} key={val + index}>
-                                        <BGSelectBlock>
-                                            <Text style={localStyles.text}>
-                                                {val}
-                                            </Text>
-                                        </BGSelectBlock>
-                                    </Pressable>
-                                ))
-                            }
+                            <ColorText >
+                                {t("help.description." + selected)}
+                            </ColorText>
                         </View>
                     </ScrollView>
                 </ModalContainer>
@@ -93,7 +81,11 @@ const localStyles = StyleSheet.create({
         flexDirection: "column",
         gap: 10,
         padding: 20
+    },
+    textContainer: {
+        flexDirection: "row",
+        justifyContent: "space-between"
     }
 })
 
-export default BaseSelect
+export default HelpModal

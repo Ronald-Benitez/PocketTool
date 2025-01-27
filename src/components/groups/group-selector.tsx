@@ -13,6 +13,7 @@ import SwipeItem from '../ui/swipe-item'
 import AddGroup from './add-group'
 import useBudgetStore from '@/src/stores/BudgetStore'
 import { useBudget } from '@/src/db'
+import Input from '../ui/Input'
 
 const GroupSelector = () => {
     const { t } = useLanguage()
@@ -42,6 +43,7 @@ const GroupSelector = () => {
     const onSelect = async (group: Group) => {
         setGroup(group)
         await fetchRecords(group.id).then((res) => {
+            console.log(res)
             setRecords(res as RecordI[])
         })
         await getAllResume(group.id).then(res => {
@@ -115,12 +117,24 @@ const GroupSelector = () => {
             >
                 <View style={localStyles.block}>
                     <View style={localStyles.bg}>
+
                         <BaseSelect
                             onChange={handleSelect}
                             options={setOptions(groups)}
                             selected={getPlaceHolder(group)}
                             title={t("group.select-group")}
                             blockWith={250}
+                            extra={
+                                <View style={localStyles.yearContainer}>
+                                    <Input
+                                        placeholder={t("year")}
+                                        value={year}
+                                        onChangeText={setYear}
+                                        maxLength={4}
+                                        keyboardType='numeric'
+                                    />
+                                </View>
+                            }
                         />
                     </View>
                 </View>
@@ -141,6 +155,12 @@ const localStyles = StyleSheet.create({
         height: 50,
         justifyContent: "center",
         alignItems: "center"
+    },
+    yearContainer: {
+        flex:1,
+        justifyContent: "center",
+        paddingHorizontal: 20,
+        paddingVertical: 10
     }
 })
 

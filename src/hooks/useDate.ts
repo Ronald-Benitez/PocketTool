@@ -63,7 +63,6 @@ export default function useDate() {
   const verify = (d: string) => {
     let base = new Date(d);
     let offset = base.getTimezoneOffset() * 60 * 1000; // Convertir minutos a milisegundos
-    console.log(offset, base)
     base = new Date(base.getTime() - offset);
     return base;
   };

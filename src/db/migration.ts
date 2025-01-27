@@ -14,11 +14,12 @@ export interface Migration {
 
 
 async function migrateDb(db: SQLiteDatabase) {
-  const DATABASE_VERSION = 1;
+  const DATABASE_VERSION = 6;
 
   const result = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
 
   const currentDbVersion = result ? result.user_version : 0;
+  console.log(currentDbVersion)
 
   // await db.execAsync(`
   //   DROP TABLE IF EXISTS Records;
@@ -28,6 +29,7 @@ async function migrateDb(db: SQLiteDatabase) {
   //   DROP TABLE IF EXISTS Migrations;
   //   DROP TABLE IF EXISTS Savings;
   //   DROP TABLE IF EXISTS SavingsHistory;
+  //   DROP TABLE IF EXISTS Budgets;
   // `);
 
   // if (currentDbVersion === 0) {

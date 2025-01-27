@@ -31,7 +31,6 @@ const Index = () => {
         const hour = new Date().getHours()
         let message = ""
         let icon = <></>
-        console.log(hour)
         if (hour >= 5 && hour < 12) {
             message = t("greeting.morning")
             icon = <MaterialCommunityIcons name="weather-partly-cloudy" size={24} color="#179BAE" />
@@ -69,7 +68,7 @@ const Index = () => {
                     <IndexBlock>
                         <FinanceSimpleBlock
                             text={t("resume.goal")}
-                            value={String(group?.goal)}
+                            value={String(group?.goal || 0)}
                             color={colors?.GoalColor}
                         />
                     </IndexBlock>

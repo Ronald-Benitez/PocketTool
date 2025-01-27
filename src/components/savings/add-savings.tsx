@@ -1,24 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Modal, ScrollView, Pressable, Text, TextInput, TouchableOpacity, StyleProp, TextStyle, StyleSheet } from "react-native";
-import { Picker } from "@react-native-picker/picker";
-import { DateTimePickerAndroid, DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { View, ScrollView, StyleSheet } from "react-native";
 
 import { useLanguage } from "@/src/lang/LanguageContext";
-import styles from "@/src/styles/styles";
 import { useSavings, useSavingsHistory } from "@/src/db";
-import { RecordI, Group, CreateRecordRequest, Category, PaymentMethod, Savings, SavingsHistory } from "@/src/interfaces";
-import useDate from "@/src/hooks/useDate";
 import useToast from "@/src/hooks/useToast";
-import DatePicker from "../ui/date-picker";
 import useRecordsStore from '@/src/stores/RecordsStore';
-import usePaymentsStore from "@/src/stores/PaymentMethodsStore";
-import useCategoriesStore from "@/src/stores/CategoriesStore";
-import useColorStore from "@/src/stores/ColorsStore";
 import ModalContainer from "../ui/modal-container";
 import InputLabel from "../ui/InputLabel";
-import PressableSwitch from "../ui/pressable-switch";
-import BaseSelect from "../ui/base-select";
-import LabelBlock from "../ui/LabelBlock";
 import useSavingsStore from "@/src/stores/SavingsStore";
 
 interface AddItemProps {
@@ -28,30 +16,26 @@ interface AddItemProps {
     open?: boolean
 }
 
-const AddSaving = ({ isEditing = false, children, openUpdate, open }: AddItemProps) => {
-    const { setRecords, group, setResumes } = useRecordsStore()
-    const dateH = useDate()
+const AddSaving = ({ isEditing = false, children, open }: AddItemProps) => {
+    const { group } = useRecordsStore()
     const { t } = useLanguage()
     const [name, setName] = useState<string>("")
-    const [date, setDate] = useState(new Date())
-    const [type, setType] = useState<"income" | "expense" | "transfer">("expense")
-    const [payment_method, setPaymentMethod] = useState<PaymentMethod>()
-    const [category, setCategory] = useState<Category>()
     const [value, setValue] = useState<string>("")
-    const [group_id, setGroupId] = useState<number>(group?.id || 0)
     const { addSavings, fetchSavings, updateSavings, } = useSavings()
     const { fetchSavingsHistoryBySavingId } = useSavingsHistory()
 
-    const { colors } = useColorStore()
     const { ToastContainer, showToast } = useToast()
-    const { saving, savingsHistory, setSaving, setSavingsHistory, setSavings } = useSavingsStore()
+    const { saving, setSaving, setSavingsHistory, setSavings } = useSavingsStore()
 
     useEffect(() => {
-        if (saving) {
+        if (saving && isEditing) {
             setValue(String(saving.amount))
             setName(saving.saving_name)
+        }else{
+            setValue("")
+            setName("")
         }
-    }, [saving])
+    }, [saving, open])
 
 
     const onSave = async () => {
@@ -79,9 +63,7 @@ const AddSaving = ({ isEditing = false, children, openUpdate, open }: AddItemPro
         }
         const savings = await fetchSavings()
         setSavings(savings)
-
     }
-
 
     return (
         <>

@@ -440,19 +440,23 @@ export const useRecords = () => {
 
       if (!creditCards || creditCards.length === 0) return [];
 
-      let today = new Date()
+      let today = new Date();
       const currentMonth = today.getMonth() + 1; // Mes actual (1-12)
       const currentYear = today.getFullYear();
+      const currentDay = today.getDate();
 
       const getPeriods = (card: PaymentMethod, month: number, year: number) => {
+        let localMonth = card.closing_date < currentDay ? month + 1 : month;
+        let localYear = year;
+
         const periodStart = new Date(
-          year,
-          month - 1,
+          localYear,
+          localMonth - 1,
           Number(card.closing_date + 1)
         )
           .toISOString()
           .split("T")[0]; // Día siguiente al cierre
-        const periodEnd = new Date(year, month, Number(card.closing_date))
+        const periodEnd = new Date(localYear, localMonth, Number(card.closing_date))
           .toISOString()
           .split("T")[0]; // Día del cierre en el mes siguiente
         return [periodStart, periodEnd];
@@ -469,8 +473,18 @@ export const useRecords = () => {
             );
             const [previousPeriodStart, previousPeriodEnd] = getPeriods(
               card,
-              currentMonth === 1 ? 12 : currentMonth - 1,
-              currentMonth === 1 ? currentYear - 1 : currentYear
+              currentMonth - 1,
+              currentYear
+            );
+            console.log(
+              "Current Period:",
+              currentPeriodStart,
+              currentPeriodEnd
+            );
+            console.log(
+              "Previous Period:",
+              previousPeriodStart,
+              previousPeriodEnd
             );
             const currentResult = await db.getAllAsync(
               `
@@ -494,6 +508,30 @@ export const useRecords = () => {
             `,
               [card.id, previousPeriodStart, previousPeriodEnd]
             );
+
+            const cur = await db.getAllAsync(
+              `
+              SELECT
+                payment_method_id, date, record_type, amount
+              FROM Records
+              WHERE payment_method_id = ? AND date BETWEEN ? AND ?
+              `,
+              [card.id, currentPeriodStart, currentPeriodEnd]
+            );
+            
+            const prev = await db.getAllAsync(
+              `
+              SELECT
+                payment_method_id, date, record_type, amount
+              FROM Records
+              WHERE payment_method_id = ? AND date BETWEEN ? AND ?
+              `,
+              [card.id, previousPeriodStart, previousPeriodEnd]
+            );
+            
+            console.log('Current Result:', cur);
+            console.log('Previous Result:', prev);
+            
 
             return {
               creditCardName: card.method_name,
