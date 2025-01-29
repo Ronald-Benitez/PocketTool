@@ -14,7 +14,7 @@ export interface Migration {
 
 
 async function migrateDb(db: SQLiteDatabase) {
-  const DATABASE_VERSION = 6;
+  const DATABASE_VERSION = 2;
 
   const result = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
 

@@ -1,15 +1,18 @@
 import { StyleSheet, Pressable, View } from "react-native";
 import { ReactNode } from "react";
 
+import ShakeAnimation from "./animations/shake-animation";
+
 interface props {
     children: ReactNode,
     onClick?: (() => unknown) | (() => void),
-    isButton?: boolean
+    isButton?: boolean,
+    shake?: boolean
 }
 
-const IconButton = ({ children, onClick, isButton = true }: props) => {
+const IconButton = ({ children, onClick, isButton = true, shake = true }: props) => {
     return (
-        <>
+        <ShakeAnimation shake={shake}>
             {isButton ? (
                 <Pressable onPress={onClick} style={[localStyles.button]}>
                     {children}
@@ -19,7 +22,7 @@ const IconButton = ({ children, onClick, isButton = true }: props) => {
                     {children}
                 </View>
             )}
-        </>
+        </ShakeAnimation>
     )
 }
 

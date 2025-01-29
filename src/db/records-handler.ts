@@ -446,19 +446,33 @@ export const useRecords = () => {
       const currentDay = today.getDate();
 
       const getPeriods = (card: PaymentMethod, month: number, year: number) => {
-        let localMonth = card.closing_date < currentDay ? month + 1 : month;
+        let localMonth =  month;
         let localYear = year;
-
         const periodStart = new Date(
           localYear,
           localMonth - 1,
           Number(card.closing_date + 1)
         )
-          .toISOString()
-          .split("T")[0]; // Día siguiente al cierre
-        const periodEnd = new Date(localYear, localMonth, Number(card.closing_date))
+        .toISOString()
+        .split("T")[0]; // Día siguiente al cierre
+        const periodEnd = new Date(
+          localYear,
+          localMonth,
+          Number(card.closing_date)
+        )
           .toISOString()
           .split("T")[0]; // Día del cierre en el mes siguiente
+        console.log(
+          card.closing_date,
+          currentDay,
+          card.closing_date > currentDay,
+          month, localMonth
+        );
+        console.log(
+          "Current Period:",
+          periodStart,
+          periodEnd
+        );
         return [periodStart, periodEnd];
       };
 
@@ -476,16 +490,8 @@ export const useRecords = () => {
               currentMonth - 1,
               currentYear
             );
-            console.log(
-              "Current Period:",
-              currentPeriodStart,
-              currentPeriodEnd
-            );
-            console.log(
-              "Previous Period:",
-              previousPeriodStart,
-              previousPeriodEnd
-            );
+           
+  
             const currentResult = await db.getAllAsync(
               `
             SELECT
@@ -518,7 +524,7 @@ export const useRecords = () => {
               `,
               [card.id, currentPeriodStart, currentPeriodEnd]
             );
-            
+
             const prev = await db.getAllAsync(
               `
               SELECT
@@ -528,10 +534,9 @@ export const useRecords = () => {
               `,
               [card.id, previousPeriodStart, previousPeriodEnd]
             );
-            
-            console.log('Current Result:', cur);
-            console.log('Previous Result:', prev);
-            
+
+            // console.log("Current Result:", cur);
+            // console.log("Previous Result:", prev);
 
             return {
               creditCardName: card.method_name,

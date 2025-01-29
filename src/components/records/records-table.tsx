@@ -14,6 +14,7 @@ import AddItem from './add-record'
 import useRecordsStore from '@/src/stores/RecordsStore';
 import useColorStore from '@/src/stores/ColorsStore'
 import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
+import IconButton from '../ui/icon-button'
 
 const ItemsTable = () => {
     const [selected, setSelected] = React.useState<RecordI | undefined>()
@@ -77,9 +78,9 @@ const ItemsTable = () => {
                     {
                         group && (
                             <AddItem>
-                                <View style={[styles.button]}>
+                                <IconButton>
                                     <AntDesign size={20} name='plus' color={"#000"} />
-                                </View>
+                                </IconButton>
                             </AddItem >
                         )
                     }

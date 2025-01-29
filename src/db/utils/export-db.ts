@@ -40,14 +40,14 @@ export const exportDatabaseToSQLFile = async (
 
     // Consultar y agregar datos de cada tabla usando execAsync
     const tables = [
-      "Records",
       "Groups",
       "PaymentMethods",
       "Categories",
+      "Records",
       "Savings",
       "SavingsHistory",
-      "Migrations",
       "Budgets",
+      "Migrations",
     ];
     for (const table of tables) {
       const result = await db.getAllAsync(`SELECT * FROM ${table}`);
