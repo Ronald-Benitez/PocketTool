@@ -15,23 +15,23 @@ export interface ResumeTotals {
   expenseDebit: number | null;
   transferTotal: number | null;
   categoryTotals:
-    | {
-        category_name: string;
-        totalIncome: number;
-        totalExpense: number;
-        totalTransfer: number;
-        category_id: number;
-      }[]
-    | null;
+  | {
+    category_name: string;
+    totalIncome: number;
+    totalExpense: number;
+    totalTransfer: number;
+    category_id: number;
+  }[]
+  | null;
   paymentMethodTotals:
-    | {
-        method_name: string;
-        totalIncome: number;
-        totalExpense: number;
-        totalTransfer: number;
-        type: string;
-      }[]
-    | null;
+  | {
+    method_name: string;
+    totalIncome: number;
+    totalExpense: number;
+    totalTransfer: number;
+    type: string;
+  }[]
+  | null;
   expensesTotal: number | null;
   incomesTotal: number | null;
   balance: number;
@@ -56,19 +56,13 @@ interface TodayTotals {
 export const useRecords = () => {
   const db = useSQLiteContext();
 
-  const getCurrentDate = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
-
   const fetchTotalForToday = async (
     group_id: number | undefined
   ): Promise<TodayTotals | null> => {
     if (!group_id) return null;
-    const currentDate = new Date().toISOString().split("T")[0];
+
+    const startOfDay = new Date().setHours(0, 0, 0, 0);
+    const endOfDay = new Date().setHours(23, 59, 59, 999);
 
     try {
       const result = (await db.getAllAsync(
@@ -77,9 +71,9 @@ export const useRecords = () => {
           SUM(CASE WHEN record_type = 'income' THEN amount ELSE 0 END) as totalIncomeToday, 
           SUM(CASE WHEN record_type = 'expense' THEN amount ELSE 0 END) as totalExpenseToday
         FROM Records
-        WHERE group_id = ? AND date = ?
-      `,
-        [group_id, currentDate]
+        WHERE group_id = ? AND date BETWEEN ? AND ?
+        `,
+        [group_id, startOfDay, endOfDay]
       )) as TodayTotals[];
 
       return {
@@ -91,6 +85,7 @@ export const useRecords = () => {
       return null;
     }
   };
+
 
   const fetchRecords = async (group_id: number | undefined) => {
     if (!group_id) return;
@@ -255,12 +250,12 @@ export const useRecords = () => {
     group_id: number | undefined
   ): Promise<
     | {
-        category_name: string;
-        totalIncome: number;
-        totalExpense: number;
-        totalTransfer: number;
-        category_id: number;
-      }[]
+      category_name: string;
+      totalIncome: number;
+      totalExpense: number;
+      totalTransfer: number;
+      category_id: number;
+    }[]
     | null
   > => {
     if (!group_id) return null;
@@ -298,12 +293,12 @@ export const useRecords = () => {
     group_id: number | undefined
   ): Promise<
     | {
-        method_name: string;
-        totalIncome: number;
-        totalExpense: number;
-        totalTransfer: number;
-        type: string;
-      }[]
+      method_name: string;
+      totalIncome: number;
+      totalExpense: number;
+      totalTransfer: number;
+      type: string;
+    }[]
     | null
   > => {
     if (!group_id) return null;
@@ -441,40 +436,29 @@ export const useRecords = () => {
       if (!creditCards || creditCards.length === 0) return [];
 
       let today = new Date();
-      const currentMonth = today.getMonth() + 1; // Mes actual (1-12)
+      const currentMonth = today.getMonth(); // Mes actual (1-12)
       const currentYear = today.getFullYear();
       const currentDay = today.getDate();
 
       const getPeriods = (card: PaymentMethod, month: number, year: number) => {
-        let localMonth =  month;
+        let localMonth = month;
         let localYear = year;
-        const periodStart = new Date(
-          localYear,
-          localMonth - 1,
-          Number(card.closing_date + 1)
-        )
-        .toISOString()
-        .split("T")[0]; // Día siguiente al cierre
-        const periodEnd = new Date(
-          localYear,
-          localMonth,
-          Number(card.closing_date)
-        )
-          .toISOString()
-          .split("T")[0]; // Día del cierre en el mes siguiente
-        console.log(
-          card.closing_date,
-          currentDay,
-          card.closing_date > currentDay,
-          month, localMonth
-        );
-        console.log(
-          "Current Period:",
-          periodStart,
-          periodEnd
-        );
+
+        // Si el día de cierre ya pasó en este mes, ajustamos el mes para el siguiente ciclo
+        if (card.closing_date < new Date().getDate()) {
+          localMonth += 1;
+          if (localMonth > 12) {
+            localMonth = 1;
+            localYear += 1;
+          }
+        }
+
+        const periodStart = new Date(localYear, localMonth - 1, card.closing_date + 1).getTime(); // Día siguiente al cierre
+        const periodEnd = new Date(localYear, localMonth, card.closing_date).getTime(); // Día del cierre en el mes siguiente
+
         return [periodStart, periodEnd];
       };
+
 
       const results = await Promise.all(
         creditCards?.map(async (card) => {
@@ -490,8 +474,7 @@ export const useRecords = () => {
               currentMonth - 1,
               currentYear
             );
-           
-  
+
             const currentResult = await db.getAllAsync(
               `
             SELECT
@@ -534,9 +517,6 @@ export const useRecords = () => {
               `,
               [card.id, previousPeriodStart, previousPeriodEnd]
             );
-
-            // console.log("Current Result:", cur);
-            // console.log("Previous Result:", prev);
 
             return {
               creditCardName: card.method_name,

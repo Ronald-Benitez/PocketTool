@@ -8,73 +8,57 @@ import styles from '@/src/styles/styles'
 import useDate from '@/src/hooks/useDate'
 
 interface DatePickerProps {
-    value: string
-    onChange: React.Dispatch<React.SetStateAction<string>>
+    value: number
+    onChange: React.Dispatch<React.SetStateAction<number>>
     buttonText: string
     extras?: boolean
 }
 
-const DatePicker: React.FC<DatePickerProps> = ({ value, buttonText, extras, onChange }) => {
+const DatePicker: React.FC<DatePickerProps> = ({ value = new Date().toISOString(), buttonText, extras, onChange }) => {
     const { t } = useLanguage()
     const { CustomModal, hideModal } = useBaseModal(true)
-    const [year, setYear] = useState<number>(0)
-    const [month, setMonth] = useState<number>(0)
-    const [day, setDay] = useState<number>(0)
     const [monthsRendered, setMonthsRendered] = useState<boolean>(false)
     const [yearsRendered, setYearsRendered] = useState<boolean>(false)
     const dateH = useDate()
-    const [date, setDate] = useState(value)
+    const newDate = dateH.verify(value)
 
-    useEffect(() => {
-        onChange(date)
-    }, [date])
 
-    useEffect(() => {
-        const split = value.split("/")
-        setYear(Number(split[0]))
-        setMonth(Number(split[1]) - 1)
-        setDay(Number(split[2]))
-        if (extras === undefined || extras === false) return
-    }, [])
-
-    const handleChangeMonth = (value: number) => {
-        setDate(dateH.changeMonth(value, date))
-        setMonth(value)
+    const handleChangeMonth = (val: number) => {
+        const date = newDate.setMonth(val)
+        onChange(new Date(date).getTime())
         setMonthsRendered(false)
         setYearsRendered(false)
     }
 
-    const handleChangeYear = (value: number) => {
-        setDate(dateH.changeYear(value, date))
-        setYear(value)
+    const handleNavigateMonths = (val: number) => {
+        const month = newDate.getMonth() + val
+        handleChangeMonth(month)
+    }
+    const handleChangeYear = (val: number) => {
+        const date = newDate.setFullYear(val)
+        onChange(new Date(date).getTime())
         setMonthsRendered(false)
         setYearsRendered(false)
     }
 
-    const handleDayChange = (value: number) => {
-        const val = dateH.changeDay(value, date)
-        setDay(value)
+    const handleDayChange = (val: number) => {
+        const date = newDate.setDate(val)
+        onChange(new Date(date).getTime())
         setMonthsRendered(false)
         setYearsRendered(false)
-        const m = dateH.getMonth(val)
-        const y = dateH.getYear(val)
-        if (m !== month || y !== year) {
-            setMonth(m)
-            setYear(y)
-        }
-        setDate(val)
     }
 
     const RenderMonths = () => {
         const months = []
+        const month = newDate.getMonth()
         for (let i = 0; i < 12; i++) {
             months.push(
                 <TouchableOpacity
                     key={i}
                     onPress={() => handleChangeMonth(i)}
-                    style={[styles.button, i === month && { backgroundColor: "white" }, { minWidth: "40%" }]}
+                    style={[styles.button, i === month && { backgroundColor: "black" }, { minWidth: "40%" }]}
                 >
-                    <Text style={[styles.middleText, i === month && { color: "#5c5c5c" }]}>{t('months.' + String(i))}</Text>
+                    <Text style={[styles.middleText, i === month && { color: "#ffffff" }]}>{t('months.' + String(i))}</Text>
                 </TouchableOpacity >
             )
         }
@@ -83,14 +67,15 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, buttonText, extras, onCh
 
     const RenderYears = () => {
         const years = []
+        const year = newDate.getFullYear()
         for (let i = year - 5; i < year + 5; i++) {
             years.push(
                 <TouchableOpacity
                     key={i}
                     onPress={() => handleChangeYear(i)}
-                    style={[styles.button, i === year && { backgroundColor: "#5c5c5c" }, { minWidth: "40%" }]}
+                    style={[styles.button, i === year && { backgroundColor: "black" }, { minWidth: "40%" }]}
                 >
-                    <Text style={[styles.middleText, i === month && { color: "#5c5c5c" }]}>{String(i)}</Text>
+                    <Text style={[styles.middleText, i === year && { color: "#ffffff" }]}>{String(i)}</Text>
                 </TouchableOpacity >
             )
         }
@@ -99,8 +84,9 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, buttonText, extras, onCh
 
     const RenderDays = () => {
         const days = []
-        const firstDay = dateH.firtsDayOfMonth(date)
-        const lastDay = dateH.lastDayOfMonth(date)
+        const firstDay = dateH.firtsDayOfMonth(value)
+        const lastDay = dateH.lastDayOfMonth(value)
+        const day = newDate.getDate()
         for (let i = 0; i < firstDay; i++) {
             days.push(
                 <View key={i + "void"} style={styles2.dayCellVoid} />
@@ -185,16 +171,12 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, buttonText, extras, onCh
     }
 
     const onTodayPress = () => {
-        const newDate = dateH.create()
-        setDate(newDate)
-        setYear(dateH.getYear(newDate))
-        setMonth(dateH.getMonth(newDate))
-        setDay(dateH.getDay(newDate))
-
+        const newDate = new Date().getTime()
+        onChange(newDate)
     }
 
     const handleArrowPress = (value: number) => {
-        const newDay = day + value
+        const newDay = newDate.getDate() + value
         handleDayChange(newDay)
     }
 
@@ -211,23 +193,23 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, buttonText, extras, onCh
                 </Pressable>
             }
             <CustomModal
-                button={<Text style={[styles.text]}>{buttonText}</Text>}
+                button={<Text style={[styles.middleText]}>{buttonText}</Text>}
             >
                 <View style={[styles.row, { justifyContent: "space-between" }]}>
-                    <TouchableOpacity onPress={() => handleChangeMonth(month - 1)} style={styles.button}>
+                    <TouchableOpacity onPress={() => handleNavigateMonths(-1)} style={styles.button}>
                         <Ionicons name="caret-back" size={24} color={"black"} />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => handleSetRender(RenderOptions.months, !monthsRendered)} style={styles.button}>
                         <Text style={styles.text}>
-                            {t('months.' + String(dateH.getMonth(date)))}
+                            {t('months.' + String(newDate.getMonth()))}
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => handleSetRender(RenderOptions.years, !yearsRendered)} style={styles.button}>
                         <Text style={styles.text}>
-                            {" " + dateH.getYear(date) + " "}
+                            {" " + newDate.getFullYear() + " "}
                         </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleChangeMonth(month + 1)} style={styles.button}>
+                    <TouchableOpacity onPress={() => handleNavigateMonths(1)} style={styles.button}>
                         <Ionicons name="caret-forward" size={24} color={"black"} />
                     </TouchableOpacity>
                 </View>

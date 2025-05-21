@@ -60,12 +60,19 @@ export default function useDate() {
     t("daysLong.6"),
   ];
 
-  const verify = (d: string) => {
-    let base = new Date(d);
-    let offset = base.getTimezoneOffset() * 60 * 1000; // Convertir minutos a milisegundos
-    base = new Date(base.getTime() - offset);
+  const verify = (d: string | number) => {
+    let base: Date;
+    const val = Number(d)
+
+    if (isNaN(val)) {
+      base = new Date(d);
+    } else {
+      base = new Date(Number(d));
+    }
+
     return base;
   };
+
 
   const getStringDay = (d: string) => {
     const day = verify(d).getDay();
@@ -83,9 +90,10 @@ export default function useDate() {
     const year = base.getFullYear();
     return `${months[month]} ${year}`;
   };
-
-  const getStringDate = (d: string) => {
+  
+  const getStringDate = (d: string | number) => {
     const base = verify(d);
+    console.log(base, d)
     const dayIndex = base.getDay();
     const day = base.getDate();
     const month = base.getMonth();
@@ -163,7 +171,7 @@ export default function useDate() {
     return create(newDate.toISOString());
   };
 
-  const firtsDayOfMonth = (d: string) => {
+  const firtsDayOfMonth = (d: string | number) => {
     const base = verify(d);
     const month = base.getMonth();
     const year = base.getFullYear();
@@ -171,7 +179,7 @@ export default function useDate() {
     return newDate.getDay();
   };
 
-  const lastDayOfMonth = (d: string) => {
+  const lastDayOfMonth = (d: string | number) => {
     const base = verify(d);
     const month = base.getMonth();
     const year = base.getFullYear();

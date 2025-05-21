@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { View, ScrollView, Pressable, Text, StyleSheet } from "react-native";
-import { DateTimePickerAndroid, DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 import { useLanguage } from "@/src/lang/LanguageContext";
 import { usePaymentMethods, useRecords, useCategories } from "@/src/db";
@@ -17,6 +16,7 @@ import PressableSwitch from "../ui/pressable-switch";
 import BaseSelect from "../ui/base-select";
 import LabelBlock from "../ui/LabelBlock";
 import useAndroidToast from "@/src/hooks/useAndroidToast";
+import DatePicker from "../ui/date-picker";
 
 interface AddItemProps {
     item?: RecordI
@@ -30,7 +30,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
     const dateH = useDate()
     const { t } = useLanguage()
     const [name, setName] = useState<string>("")
-    const [date, setDate] = useState(new Date())
+    const [date, setDate] = useState(new Date().getTime())
     const [type, setType] = useState<"income" | "expense" | "transfer">("expense")
     const [payment_method, setPaymentMethod] = useState<PaymentMethod>()
     const [category, setCategory] = useState<Category>()
@@ -61,7 +61,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
         if (!item) return
         setName(item.record_name)
         setValue(String(item.amount))
-        setDate(new Date(item.date))
+        setDate(dateH.verify(item.date).getTime())
         if (item.record_type != type) {
             onTypeChange()
         }
@@ -89,7 +89,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
         }
 
         const newItem: CreateRecordRequest = {
-            date: date.toISOString().split("T")[0],
+            date: String(date),
             group_id,
             record_name: name.length < 1 ? category?.category_name : name,
             record_type: type,
@@ -127,21 +127,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
         if (!payments) return
         setPaymentMethod(payments[index])
     }
-    const onChange = (event: DateTimePickerEvent, selectedDate: Date | undefined) => {
-        const currentDate = selectedDate;
-        if (currentDate) {
-            setDate(currentDate);
-        }
-    };
 
-    const openDatePicker = () => {
-        DateTimePickerAndroid.open({
-            value: date,
-            onChange,
-            mode: "date",
-            is24Hour: true,
-        });
-    }
 
     const typeColor = () => {
         switch (type) {
@@ -212,10 +198,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
                         </View>
                         <View style={localStyles.inputContainer}>
                             <LabelBlock label={t('item.date')}>
-                                <Pressable onPress={openDatePicker} style={{ width: 300, height: 50, alignItems: "center", justifyContent: "center" }}>
-                                    {/* <DatePicker buttonText={dateH.getStringDate(date)} onChange={setDate} value={date} /> */}
-                                    <Text>{date.toLocaleDateString()}</Text>
-                                </Pressable>
+                                <DatePicker buttonText={dateH.getStringDate(date)} value={date} onChange={setDate} />
                             </LabelBlock>
                         </View>
                     </View>

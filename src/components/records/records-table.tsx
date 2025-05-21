@@ -78,7 +78,7 @@ const ItemsTable = () => {
                     {
                         group && (
                             <AddItem>
-                                <IconButton>
+                                <IconButton isButton={false}>
                                     <AntDesign size={20} name='plus' color={"#000"} />
                                 </IconButton>
                             </AddItem >
