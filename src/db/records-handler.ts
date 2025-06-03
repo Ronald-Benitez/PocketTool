@@ -68,8 +68,8 @@ export const useRecords = () => {
       const result = (await db.getAllAsync(
         `
         SELECT 
-          SUM(CASE WHEN record_type = 'income' THEN amount ELSE 0 END) as totalIncomeToday, 
-          SUM(CASE WHEN record_type = 'expense' THEN amount ELSE 0 END) as totalExpenseToday
+          SUM(CASE WHEN record_type_id = 1 THEN amount ELSE 0 END) as totalIncomeToday, 
+          SUM(CASE WHEN record_type_id = 2 THEN amount ELSE 0 END) as totalExpenseToday
         FROM Records
         WHERE group_id = ? AND date BETWEEN ? AND ?
         `,
@@ -117,7 +117,7 @@ export const useRecords = () => {
         `
             SELECT SUM(amount) as totalExpense 
             FROM Records
-            WHERE group_id = ? AND record_type = 'expense'
+            WHERE group_id = ? AND record_type_id = 2
             `,
         [group_id]
       );
@@ -138,7 +138,7 @@ export const useRecords = () => {
         `
           SELECT SUM(amount) as totalIncome 
           FROM Records
-          WHERE group_id = ? AND record_type = 'income'
+          WHERE group_id = ? AND record_type_id = 1
           `,
         [group_id]
       );
@@ -159,7 +159,7 @@ export const useRecords = () => {
         `
           SELECT SUM(amount) as totalTransfer 
           FROM Records
-          WHERE group_id = ? AND record_type = 'transfer'
+          WHERE group_id = ? AND record_type_id = 3
           `,
         [group_id]
       );
@@ -183,7 +183,7 @@ export const useRecords = () => {
           FROM Records
           JOIN PaymentMethods ON Records.payment_method_id = PaymentMethods.id
           WHERE group_id = ? 
-          AND record_type = 'expense' 
+          AND record_type_id = 2 
           AND PaymentMethods.payment_type = ?
         `,
         [group_id, payment_type]
@@ -208,7 +208,7 @@ export const useRecords = () => {
           FROM Records
           JOIN PaymentMethods ON Records.payment_method_id = PaymentMethods.id
           WHERE group_id = ? 
-          AND record_type = 'transfer' 
+          AND record_type_id = 3
           AND PaymentMethods.payment_type = ?
         `,
         [group_id, payment_type]
@@ -233,7 +233,7 @@ export const useRecords = () => {
           FROM Records
           JOIN PaymentMethods ON Records.payment_method_id = PaymentMethods.id
           WHERE group_id = ? 
-          AND record_type = 'income' 
+          AND record_type_id = 1
           AND PaymentMethods.payment_type = ?
         `,
         [group_id, payment_type]
@@ -264,9 +264,9 @@ export const useRecords = () => {
         `
           SELECT 
             Categories.category_name, 
-            SUM(CASE WHEN Records.record_type = 'income' THEN Records.amount ELSE 0 END) as totalIncome, 
-            SUM(CASE WHEN Records.record_type = 'expense' THEN Records.amount ELSE 0 END) as totalExpense,
-            SUM(CASE WHEN Records.record_type = 'transfer' THEN Records.amount ELSE 0 END) as totalTransfer,
+            SUM(CASE WHEN Records.record_type_id = 1 THEN Records.amount ELSE 0 END) as totalIncome, 
+            SUM(CASE WHEN Records.record_type_id = 2 THEN Records.amount ELSE 0 END) as totalExpense,
+            SUM(CASE WHEN Records.record_type_id = 3 THEN Records.amount ELSE 0 END) as totalTransfer,
             Records.category_id
           FROM Records
           JOIN Categories ON Records.category_id = Categories.id
@@ -308,9 +308,9 @@ export const useRecords = () => {
         SELECT 
           PaymentMethods.method_name, 
           PaymentMethods.payment_type,
-          SUM(CASE WHEN Records.record_type = 'income' THEN Records.amount ELSE 0 END) as totalIncome,
-          SUM(CASE WHEN Records.record_type = 'expense' THEN Records.amount ELSE 0 END) as totalExpense,
-          SUM(CASE WHEN Records.record_type = 'transfer' THEN Records.amount ELSE 0 END) as totalTransfer
+          SUM(CASE WHEN Records.record_type_id = 1 THEN Records.amount ELSE 0 END) as totalIncome,
+          SUM(CASE WHEN Records.record_type_id = 2 THEN Records.amount ELSE 0 END) as totalExpense,
+          SUM(CASE WHEN Records.record_type_id = 3 THEN Records.amount ELSE 0 END) as totalTransfer
         FROM Records
         JOIN PaymentMethods ON Records.payment_method_id = PaymentMethods.id
         WHERE Records.group_id = ?
@@ -336,7 +336,7 @@ export const useRecords = () => {
   const addRecord = async (record: CreateRecordRequest) => {
     return await db.runAsync(
       `
-            INSERT INTO Records (amount, record_type, group_id, category_id, payment_method_id, date, record_name) 
+            INSERT INTO Records (amount, record_type_id, group_id, category_id, payment_method_id, date, record_name) 
             VALUES (?, ?, ?, ?, ?, ?, ?)`,
       record.amount,
       record.record_type,
@@ -351,7 +351,7 @@ export const useRecords = () => {
   const updateRecord = async (id: number, record: CreateRecordRequest) => {
     return await db.runAsync(
       `
-            UPDATE Records SET amount = ?, record_type = ?, group_id = ?, category_id = ?, payment_method_id = ?, date = ?, record_name = ?
+            UPDATE Records SET amount = ?, record_type_id = ?, group_id = ?, category_id = ?, payment_method_id = ?, date = ?, record_name = ?
             WHERE id = ?`,
       record.amount,
       record.record_type,
@@ -453,8 +453,8 @@ export const useRecords = () => {
           }
         }
 
-        const periodStart = new Date(localYear, localMonth - 1, card.closing_date + 1).getTime(); // Día siguiente al cierre
-        const periodEnd = new Date(localYear, localMonth, card.closing_date).getTime(); // Día del cierre en el mes siguiente
+        const periodStart = new Date(localYear, localMonth - 1, card.closing_date + 1, 0, 0, 0, 0).getTime(); // Día siguiente al cierre
+        const periodEnd = new Date(localYear, localMonth, card.closing_date + 1, 0, 0, 0, 0).getTime() - 1; // Día del cierre en el mes siguiente
 
         return [periodStart, periodEnd];
       };
@@ -478,8 +478,8 @@ export const useRecords = () => {
             const currentResult = await db.getAllAsync(
               `
             SELECT
-              SUM(CASE WHEN record_type = 'expense' THEN amount ELSE 0 END) +
-              SUM(CASE WHEN record_type = 'transfer' THEN amount ELSE 0 END) AS total
+              SUM(CASE WHEN record_type_id = 2 THEN amount ELSE 0 END) +
+              SUM(CASE WHEN record_type_id = 3 THEN amount ELSE 0 END) AS total
             FROM Records
             WHERE payment_method_id = ? AND date BETWEEN ? AND ?
             `,
@@ -490,8 +490,8 @@ export const useRecords = () => {
             const previousResult = await db.getAllAsync(
               `
             SELECT
-              SUM(CASE WHEN record_type = 'expense' THEN amount ELSE 0 END) +
-              SUM(CASE WHEN record_type = 'transfer' THEN amount ELSE 0 END) AS total
+              SUM(CASE WHEN record_type_id = 2 THEN amount ELSE 0 END) +
+              SUM(CASE WHEN record_type_id = 3 THEN amount ELSE 0 END) AS total
             FROM Records
             WHERE payment_method_id = ? AND date BETWEEN ? AND ?
             `,
@@ -501,7 +501,7 @@ export const useRecords = () => {
             const cur = await db.getAllAsync(
               `
               SELECT
-                payment_method_id, date, record_type, amount
+                payment_method_id, date, record_type_id, amount
               FROM Records
               WHERE payment_method_id = ? AND date BETWEEN ? AND ?
               `,
@@ -511,11 +511,10 @@ export const useRecords = () => {
             const prev = await db.getAllAsync(
               `
               SELECT
-                payment_method_id, date, record_type, amount
+                payment_method_id, date, record_type_id, amount
               FROM Records
-              WHERE payment_method_id = ? AND date BETWEEN ? AND ?
               `,
-              [card.id, previousPeriodStart, previousPeriodEnd]
+              [card.id]
             );
 
             return {

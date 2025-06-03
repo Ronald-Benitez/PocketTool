@@ -93,7 +93,6 @@ export default function useDate() {
   
   const getStringDate = (d: string | number) => {
     const base = verify(d);
-    console.log(base, d)
     const dayIndex = base.getDay();
     const day = base.getDate();
     const month = base.getMonth();

@@ -22,7 +22,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.empanada.PoketTool",
-      "version": "2"
+      "version": "3"
     },
     "web": {
       "bundler": "metro",

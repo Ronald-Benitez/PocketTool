@@ -1,10 +1,9 @@
 import { type SQLiteDatabase } from 'expo-sqlite';
 import createTables from './migrations/CreateTablesBase';
 import insertDefault from './migrations/InsertDefaults';
-import alterRecordTypeToAddTransfer from './migrations/alterRecordTypeToAddTransfer';
+import alterRecordTypeDeleteCheck from './migrations/alterRecordTypeDeleteCheck'
 import createSavingsTable from './migrations/CreateSavingsTable';
 import createBudgetsTable from './migrations/CreateTableBudgets';
-import alterPaymentMethodsAddClosingDate from './migrations/alterPaymentMethodToAddClosingDate';
 
 export interface Migration {
   id: number;
@@ -19,7 +18,6 @@ async function migrateDb(db: SQLiteDatabase) {
   const result = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
 
   const currentDbVersion = result ? result.user_version : 0;
-  console.log(currentDbVersion)
 
   // await db.execAsync(`
   //   DROP TABLE IF EXISTS Records;
@@ -45,16 +43,15 @@ async function migrateDb(db: SQLiteDatabase) {
   `);
 
   const migrations = await db.getAllAsync('SELECT * FROM Migrations') as Migration[]
-  console.log("Migrations", migrations)
   try{
     if(!migrations.find(val => val.migration_name == "base")){
       await createTables(db)
       await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'base');
     }
 
-    if(!migrations.find(val => val.migration_name == "alterRecordTypeToAddTransfer")){
-      await alterRecordTypeToAddTransfer(db)
-      await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'alterRecordTypeToAddTransfer');
+    if(!migrations.find(val => val.migration_name == "alterRecordTypeDeleteCheck")){
+      await alterRecordTypeDeleteCheck(db)
+      await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'alterRecordTypeDeleteCheck');
     }
 
     if(!migrations.find(val => val.migration_name == "createSavingsTables")){
@@ -67,10 +64,6 @@ async function migrateDb(db: SQLiteDatabase) {
       await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'createBudgetsTable');
     }
 
-    if(!migrations.find(val => val.migration_name == "alterPaymentMethodsAddClosingDate")){
-      await alterPaymentMethodsAddClosingDate(db)
-      await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'alterPaymentMethodsAddClosingDate');
-    }
   }catch(e){
     console.log(e)
   }

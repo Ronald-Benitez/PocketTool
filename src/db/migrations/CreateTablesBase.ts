@@ -25,7 +25,8 @@ async function createTables(db: SQLiteDatabase) {
     CREATE TABLE IF NOT EXISTS PaymentMethods (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       method_name TEXT NOT NULL UNIQUE,
-      payment_type TEXT NOT NULL CHECK(payment_type IN ('credit', 'debit'))
+      payment_type TEXT NOT NULL,
+      closing_date INTEGER
     );
     
     CREATE TABLE IF NOT EXISTS Categories (
@@ -36,7 +37,7 @@ async function createTables(db: SQLiteDatabase) {
     CREATE TABLE IF NOT EXISTS Records (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       amount REAL NOT NULL,
-      record_type TEXT NOT NULL CHECK(record_type IN ('income', 'expense')),
+      record_type TEXT NOT NULL CHECK(record_type IN ('income', 'expense', 'transfer')),
       group_id INTEGER NOT NULL,
       category_id INTEGER NOT NULL,
       payment_method_id INTEGER NOT NULL,

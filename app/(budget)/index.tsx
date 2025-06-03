@@ -18,7 +18,6 @@ const Index = () => {
     useEffect(() => {
         if (!group) return
         fetchRecords(group.id).then(e => {
-            console.log(e)
             setRecordsState(e as RecordI[])
         })
     }, [group?.id])

@@ -7,7 +7,7 @@ async function createBudgetsTable(db: SQLiteDatabase) {
    CREATE TABLE IF NOT EXISTS Budgets (
       id_budget INTEGER PRIMARY KEY AUTOINCREMENT,
       amount REAL NOT NULL,
-      budget_type TEXT NOT NULL CHECK(budget_type IN ('income', 'expense', 'transfer')),
+      budget_type TEXT NOT NULL,
       group_id INTEGER NOT NULL,
       category_id INTEGER NOT NULL,
       FOREIGN KEY (group_id) REFERENCES Groups(id),

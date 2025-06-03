@@ -215,11 +215,11 @@ const DatePicker: React.FC<DatePickerProps> = ({ value = new Date().toISOString(
                 </View>
                 <ConditionalRendering />
                 <View style={styles.row}>
-                    <TouchableOpacity onPress={hideModal} style={styles.button}><Text style={styles.text}>
-                        {t("datePicker.cancel")}
-                    </Text></TouchableOpacity>
                     <TouchableOpacity onPress={onTodayPress} style={styles.enfasizedButton}><Text style={styles.enfasizedText}>
                         {t("datePicker.today")}
+                    </Text></TouchableOpacity>
+                    <TouchableOpacity onPress={hideModal} style={styles.button}><Text style={styles.text}>
+                        {t("datePicker.cancel")}
                     </Text></TouchableOpacity>
                 </View>
             </CustomModal>
