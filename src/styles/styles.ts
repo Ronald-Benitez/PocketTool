@@ -5,6 +5,7 @@ export interface StylesProps {
   middleText: StyleProp<TextStyle>;
   title: StyleProp<TextStyle>;
   text: StyleProp<TextStyle>;
+  label: StyleProp<TextStyle>;
   textColor: StyleProp<TextStyle>;
   enfasizedText: StyleProp<TextStyle>;
   textCenter: StyleProp<TextStyle>;
@@ -90,6 +91,12 @@ const styles = StyleSheet.create({
     color: "black",
     marginHorizontal: 10,
     backgroundColor: "transparent",
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: "200",
+    textAlign: "left",
+    paddingLeft: 5
   },
   textColor: {
     fontWeight: "bold",
@@ -223,7 +230,7 @@ const styles = StyleSheet.create({
   },
   enfasizedButton: {
     ...baseButton,
-    backgroundColor: "white",
+    backgroundColor: "#F2F2F2",
   },
   backgroundButton: {
     flex: 1,
@@ -399,7 +406,7 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: "center",
     justifyContent: "center",
-    elevation:10
+    elevation: 10
   },
   modalBackdrops: {
     position: "absolute",

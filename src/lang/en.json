@@ -37,7 +37,7 @@
             "emptyFields": "Please enter all fields."
         },
         "type": {
-            "label":"Type",
+            "label": "Type",
             "credit": "Credit",
             "debit": "Debit"
         }
@@ -52,6 +52,15 @@
         "error": {
             "emptyFields": "Please enter all fields."
         }
+    },
+    "recordTypes": {
+        "name": "Name",
+        "effect": "Effect",
+        "color": "Color"
+    },
+    "paymentTypes": {
+        "name": "Name",
+        "color": "Color"
     },
     "records": {
         "header": "Manage Records",
@@ -149,20 +158,22 @@
         "byPaymentMethod": "Total by Payment Method",
         "balanceNet": "Balance without credit"
     },
-    "headers":{
+    "headers": {
         "financialsIndex": "Summary",
         "records": "Records",
+        "paymentTypes": "Payment Types",
+        "recordTypes": "Record Types",
         "categories": "Categories",
         "payments": "Payment Methods",
         "savings": "Savings",
-        "budget":"Budgets",
-        "home":"Home",
+        "budget": "Budgets",
+        "home": "Home",
         "financials": "Financials",
-        "settings":"Settings",
+        "settings": "Settings",
         "credits": "Credits",
-        "help":"Help"
+        "help": "Help"
     },
-    "colors":{
+    "colors": {
         "set": "Set a color",
         "reset": "Reset colors",
         "confirmMessage": "Do you confirm to reset the colors?",
@@ -176,15 +187,15 @@
         "BGSimple": "Background simple",
         "ExpenseColor": "Expense color",
         "IncomeColor": "Income color",
-        "TransferColor":"Transfer color",
+        "TransferColor": "Transfer color",
         "GoalColor": "Goal color",
         "Credit": "Credit color",
         "Debit": "Debit color"
     },
-    "resume":{
-        "incomes":"Incomes",
-        "expenses":"Expenses",
-        "goal":"Goal",
+    "resume": {
+        "incomes": "Incomes",
+        "expenses": "Expenses",
+        "goal": "Goal",
         "incomesDebit": "Incomes debit",
         "expensesDebit": "Expenses debit",
         "incomesCredit": "Incomes credit",
@@ -197,7 +208,7 @@
         "today": "Today",
         "transfers": "Tranfers"
     },
-    "savings":{
+    "savings": {
         "select": "Select a saving",
         "add": "Add a saving",
         "edit": "Edit a saving"
@@ -209,23 +220,20 @@
         "exportSucces": "Export completed successfully",
         "exportError": "Error exporting the database"
     },
-    "budget":{
+    "budget": {
         "budget": "Budget",
         "current": "Current"
     },
-
-    "credits":{
+    "credits": {
         "closingDate": "Closing date",
         "current": "Current",
         "previous": "Previous"
     },
-
-   "greeting": {
+    "greeting": {
         "morning": "Good morning!",
         "afternoon": "Good afternoon!",
         "night": "Good night!"
     },
-
     "toast": {
         "empty": "Please fill in all the inputs.",
         "added": "Successfully added!",
@@ -248,5 +256,25 @@
             "credits": "To view your credits, you must first create one or more credit-type payment methods and assign them a cutoff date. For each expense made with a credit-type payment method, records will be organized by month and payment method, allowing you to view the current and previous month's details.",
             "summary": "In the summary section, you can view an overview of your finances. You'll see a summary of your income, expenses, balance, goal, debit income, debit expenses, credit income, credit expenses, balance excluding credit, category summary, payment method summary, and transfers for the selected group."
         }
-    } 
+    },
+    "add": {
+        "group": "Add group",
+        "paymentType": "Add payment type",
+        "paymentMethod": "Add payment method",
+        "category": "Add category",
+        "recordType": "Add record type",
+        "record": "Add record",
+        "savings": "Add savings",
+        "budget": "Add budget"
+    },
+    "edit": {
+        "group": "Edit group",
+        "paymentType": "Edit payment type",
+        "category": "Edit category",
+        "recordType": "Edit record type",
+        "paymentMethod": "Edit payment method",
+        "record": "Edit record",
+        "savings": "Edit savings",
+        "budget": "Edit budget"
+    }
 }

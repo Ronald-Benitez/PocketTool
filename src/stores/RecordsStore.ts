@@ -1,18 +1,20 @@
 import { create } from "zustand";
 import { Group, RecordI } from "../interfaces";
 import { ResumeTotals } from "../db";
+import { Records, Budgets, Categories, Groups, Migrations, PaymentMethods, PaymentTypes, RecordJoined, RecordTypes, Savings, SavingsHistory } from "@/src/db/types/tables";
+
 
 interface RecordsState {
-  group: Group | null;
-  groups: Group[] | [];
-  records: RecordI[] | [];
+  group: Groups | null;
+  groups: Groups[] | [];
+  records: RecordJoined[] | [];
   balance: number;
   resumes: ResumeTotals | null;
   setBalance: () => void;
-  setGroup: (group: Group) => void;
-  setRecords: (records: RecordI[]) => void;
+  setGroup: (group: Groups) => void;
+  setRecords: (records: RecordJoined[] | undefined) => void;
   setResumes: (resumes: ResumeTotals) => void;
-  setGroups: (groups: Group[]) => void;
+  setGroups: (groups: Groups[]) => void;
 }
 
 const useRecordsStore = create<RecordsState>()((set, get) => ({
@@ -25,9 +27,9 @@ const useRecordsStore = create<RecordsState>()((set, get) => ({
   setBalance: () =>
     set((state) => ({
       balance: state.records.reduce((accumulator, record) => {
-        if (record.record_type === "income") {
+        if (record.record_type_id === 1) {
           return accumulator + record.amount;
-        } else if (record.record_type === "expense") {
+        } else if (record.record_type_id === 2) {
           return accumulator - record.amount;
         } else {
           return accumulator;
@@ -35,7 +37,7 @@ const useRecordsStore = create<RecordsState>()((set, get) => ({
       }, 0),
     })),
 
-  setGroup: async (group: Group) => {
+  setGroup: async (group) => {
     set(() => ({
       group,
     }));
@@ -46,12 +48,12 @@ const useRecordsStore = create<RecordsState>()((set, get) => ({
     }));
     get().setBalance();
   },
-  setResumes: (resumes: ResumeTotals) => {
+  setResumes: (resumes) => {
     set(() => ({
       resumes,
     }));
   },
-  setGroups: (groups: Group[]) => {
+  setGroups: (groups) => {
     set(() => ({
       groups,
     }));

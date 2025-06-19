@@ -37,7 +37,7 @@
             "emptyFields": "Por favor, completa todos los campos."
         },
         "type": {
-            "label":"Tipo",
+            "label": "Tipo",
             "credit": "Crédito",
             "debit": "Débito"
         }
@@ -52,6 +52,15 @@
         "error": {
             "emptyFields": "Por favor, completa todos los campos."
         }
+    },
+    "recordTypes": {
+        "name": "Nombre",
+        "effect": "Efecto",
+        "color": "Color"
+    },
+    "paymentTypes": {
+        "name": "Nombre",
+        "color": "Color"
     },
     "records": {
         "header": "Gestionar Registros",
@@ -149,16 +158,18 @@
         "byPaymentMethod": "Total por método de pago",
         "balanceNet": "Balance sin crédito"
     },
-    "headers":{
+    "headers": {
         "financialsIndex": "Resumen",
         "records": "Registros",
+        "paymentTypes": "Métodos de pago",
+        "recordTypes": "Tipos de registro",
         "categories": "Categorías",
         "payments": "Métodos de pago",
         "savings": "Ahorros",
         "budget": "Presupuestos",
-        "home":"Inicio",
+        "home": "Inicio",
         "financials": "Finanzas",
-        "settings":"Configuraciones",
+        "settings": "Configuraciones",
         "credits": "Créditos",
         "help": "Ayuda"
     },
@@ -202,35 +213,32 @@
         "today": "Hoy",
         "transfers": "Tranferencias"
     },
-    "savings":{
+    "savings": {
         "select": "Selecciona un ahorro",
         "add": "Agrega un ahorro",
         "edit": "Edita un ahorro"
     },
-    "db":{
-        "importCancel":"¡Importación cancelada!",
-        "importSuccess":"¡Importación éxitosa, por favor recarga la app!",
-        "noSharing":"La función de compartir no está disponible en esta plataforma",
-        "exportSucces":"Exportación completada con éxito",
-        "exportError":"Error al exportar la base de datos"
+    "db": {
+        "importCancel": "¡Importación cancelada!",
+        "importSuccess": "¡Importación éxitosa, por favor recarga la app!",
+        "noSharing": "La función de compartir no está disponible en esta plataforma",
+        "exportSucces": "Exportación completada con éxito",
+        "exportError": "Error al exportar la base de datos"
     },
-    "budget":{
+    "budget": {
         "budget": "Prespuesto",
         "current": "Actual"
     },
-
-    "credits":{
+    "credits": {
         "closingDate": "Fecha de corte",
         "current": "Actual",
         "previous": "Previo"
     },
-
     "greeting": {
         "morning": "¡Buenos días!",
         "afternoon": "¡Buenas tardes!",
         "night": "¡Buenas noches!"
     },
-
     "toast": {
         "empty": "Por favor, completa todos los campos.",
         "added": "¡Agregado con éxito!",
@@ -238,20 +246,40 @@
         "deleted": "¡Eliminado con éxito!",
         "error": "No se pudo completar la acción"
     },
-    "help":{
-        "title":{
+    "help": {
+        "title": {
             "financials": "Finanzas",
-            "savings":"Ahorros",
-            "budgets":"Presupuestos",
-            "credits":"Créditos",
-            "summary":"Resumen"
+            "savings": "Ahorros",
+            "budgets": "Presupuestos",
+            "credits": "Créditos",
+            "summary": "Resumen"
         },
-        "description":{
-            "financials":"Para comenzar a registrar tus finanzas, primero debes crear un grupo. Luego, podrás agregar registros de ingresos, gastos y transferencias. También puedes crear categorías y métodos de pago para organizar tus registros.",
-            "savings":"Comienza creando un ahorro. Luego, podrás editar o eliminar el ahorro. Puedes agregar registros de ahorro para llevar un seguimiento de tus ahorros.",
-            "budgets":"Para comenzar a crear presupuestos, primero debes crear un grupo. Luego, podrás agregar presupuestos para cada categoría. Puedes ver el resumen de tus presupuestos en la sección de presupuestos, cada presupuesto pertenece al mismo grupo que las finanzas por lo cual podrás llevar un seguimiento de tus registro por categoría.",
-            "credits":"Para visualizar tus créditos primero debes crear uno o más métodos de pago de tipo crédito y asignarles una fecha de corte, luego por cada gasto que realices con un método de pago de tipo crédito se iran usando separados por mes y método de pago, pudiento ver el actual y el del mes anterior.",
-            "summary":"En la sección de resumen podrás ver un resumen de tus finanzas. Podrás ver un resumen de tus ingresos, gastos, balance, meta, ingresos débito, gastos débito, ingresos crédito, gastos crédito, balance sin crédito, resumen por categorías, resumen por método de pago y transferencias, para el grupo que se encuentre seleccionado."
+        "description": {
+            "financials": "Para comenzar a registrar tus finanzas, primero debes crear un grupo. Luego, podrás agregar registros de ingresos, gastos y transferencias. También puedes crear categorías y métodos de pago para organizar tus registros.",
+            "savings": "Comienza creando un ahorro. Luego, podrás editar o eliminar el ahorro. Puedes agregar registros de ahorro para llevar un seguimiento de tus ahorros.",
+            "budgets": "Para comenzar a crear presupuestos, primero debes crear un grupo. Luego, podrás agregar presupuestos para cada categoría. Puedes ver el resumen de tus presupuestos en la sección de presupuestos, cada presupuesto pertenece al mismo grupo que las finanzas por lo cual podrás llevar un seguimiento de tus registro por categoría.",
+            "credits": "Para visualizar tus créditos primero debes crear uno o más métodos de pago de tipo crédito y asignarles una fecha de corte, luego por cada gasto que realices con un método de pago de tipo crédito se iran usando separados por mes y método de pago, pudiento ver el actual y el del mes anterior.",
+            "summary": "En la sección de resumen podrás ver un resumen de tus finanzas. Podrás ver un resumen de tus ingresos, gastos, balance, meta, ingresos débito, gastos débito, ingresos crédito, gastos crédito, balance sin crédito, resumen por categorías, resumen por método de pago y transferencias, para el grupo que se encuentre seleccionado."
         }
+    },
+    "add": {
+        "group": "Agregar grupo",
+        "paymentType": "Agregar tipo de pago",
+        "paymentMethod": "Agregar método de pago",
+        "category": "Agregar categoría",
+        "recordType": "Agregar tipo de registro",
+        "record": "Agregar registro",
+        "savings": "Agregar ahorro",
+        "budget": "Agregar presupuesto"
+    },
+    "edit": {
+        "group": "Editar grupo",
+        "paymentType": "Editar tipo de pago",
+        "category": "Editar categoría",
+        "recordType": "Editar tipo de registro",
+        "paymentMethod": "Editar método de pago",
+        "record": "Editar registro",
+        "savings": "Editar ahorro",
+        "budget": "Editar presupuesto"
     }
 }
