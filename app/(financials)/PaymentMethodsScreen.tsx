@@ -2,82 +2,89 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
-import { PaymentMethod, CreatePaymentMethodRequest } from '@/src/interfaces';
-import { usePaymentMethods } from '@/src/db';
+import BaseSelect from '@/src/components/ui/base-select';
 import styles from '@/src/styles/styles';
 import SwipeItem from '@/src/components/ui/swipe-item';
-import usePaymentsStore from '@/src/stores/PaymentMethodsStore';
 import useColorStore from '@/src/stores/ColorsStore';
 import BorderLeftBlock from '@/src/components/ui/BorderLeftBlock';
 import IconButton from '@/src/components/ui/icon-button';
 import ModalContainer from '@/src/components/ui/modal-container';
 import { MaterialIcons } from '@expo/vector-icons';
 import InputLabel from '@/src/components/ui/InputLabel';
-import PressableSwitch from '@/src/components/ui/pressable-switch';
 import useAndroidToast from '@/src/hooks/useAndroidToast';
+import { useHandler } from '@/src/db/handlers/handler';
+import { PaymentTypes, PaymentMethods } from '@/src/db/types/tables';
+import { useDataStore, PaymentMethodsJoined } from '@/src/stores';
 
 const PaymentMethodsScreen = () => {
     const { t } = useLanguage();
     const [methodName, setMethodName] = useState('');
-    const [editingId, setEditingId] = useState<number | null>(null);
-    const [type, setType] = useState<'credit' | 'debit'>('credit');
+    const [editingId, setEditingId] = useState<number | undefined>(undefined);
+    const [type, setType] = useState<PaymentTypes | null>(null);
     const [closingDate, setClosingDate] = useState(0)
-    const { addPaymentMethod, deletePaymentMethod, fetchPaymentMethods, updatePaymentMethod } = usePaymentMethods();
-    const { payments, setPayments } = usePaymentsStore();
     const [openModal, setOpenModal] = useState(false)
     const { colors } = useColorStore();
     const toast = useAndroidToast()
+    const handler = useHandler("PaymentMethods");
+    const { PaymentMethods, setPaymentMethods, PaymentTypes, setPaymentTypes } = useDataStore();
 
     useEffect(() => {
-        const loadPaymentMethods = async () => {
-            const methods = await fetchPaymentMethods();
-            setPayments(methods);
+        const loadData = async () => {
+            const data = await handler.fetchAllWithJoin('PaymentTypes', "payment_type_id") as PaymentMethodsJoined[];
+            setPaymentMethods(data);
+            const types = await handler.fetchAll("PaymentTypes") as PaymentTypes[];
+            setPaymentTypes(types);
         };
 
-        loadPaymentMethods();
+        loadData();
     }, []);
 
     const handleAddPaymentMethod = async () => {
-        if (!methodName) {
+        if (!methodName || !type || closingDate < 0 || closingDate > 31) {
             toast.emptyMessage()
             return;
         }
-        const newPaymentMethod: CreatePaymentMethodRequest = { method_name: methodName, payment_type: type, closing_date: closingDate };
+        const newPaymentMethod: PaymentMethods = { method_name: methodName, payment_type_id: type?.id, closing_date: closingDate };
         try {
             if (editingId) {
-                await updatePaymentMethod(editingId, methodName, type, closingDate);
+                newPaymentMethod.id = editingId;
+                await handler.edit(newPaymentMethod);
                 toast.editedMessage()
             } else {
-                await addPaymentMethod(newPaymentMethod);
+                await handler.add(newPaymentMethod);
                 toast.addedMessage()
             }
-            const methods = await fetchPaymentMethods();
-            setPayments(methods);
+            const data = await handler.fetchAllWithJoin('PaymentTypes', "payment_type_id") as PaymentMethodsJoined[];
+            setPaymentMethods(data);
             setMethodName('');
-            setType('credit'); // Resetear al agregar o editar
+            setType(null);
             setClosingDate(0)
-            setEditingId(null);
+            setEditingId(undefined);
         } catch (error) {
             toast.errorMessage()
             console.error(error);
         }
     };
 
-    const handleDeletePaymentMethod = async (id: number) => {
+    const handleDeletePaymentMethod = async (id: number | undefined) => {
+        if (!id) return;
         try {
-            await deletePaymentMethod(id);
-            const methods = await fetchPaymentMethods();
+            await handler.deleteById(id);
+            const data = await handler.fetchAllWithJoin('PaymentTypes', "payment_type_id") as PaymentMethodsJoined[];
+
             toast.deletedMessage()
-            setPayments(methods);
+            setPaymentMethods(data);
         } catch (error) {
             console.error(error);
             toast.errorMessage()
         }
     };
 
-    const handleEditPaymentMethod = (method: PaymentMethod) => {
+    const handleEditPaymentMethod = (method: PaymentMethods) => {
         setMethodName(method.method_name);
-        setType(method.payment_type); // Establecer el tipo al editar
+        setType(
+            PaymentTypes.find(pt => pt.id === method.payment_type_id) || null
+        ); // Establecer el tipo al editar
         setEditingId(method.id);
         setClosingDate(method.closing_date | 0)
         setOpenModal(!openModal)
@@ -91,11 +98,6 @@ const PaymentMethodsScreen = () => {
         setClosingDate(val)
     }
 
-    const handleType = () => {
-        if (type == 'credit') setType("debit")
-        else setType("credit")
-    }
-
     const buttonOpen = (
         <View style={localStyles.buttonOpenContainer}>
             <IconButton isButton={false}>
@@ -103,6 +105,19 @@ const PaymentMethodsScreen = () => {
             </IconButton >
         </View>
     )
+
+    const onPaymentTypeChange = (index: number) => {
+        if (!PaymentTypes) return
+        setType(PaymentTypes[index])
+    }
+
+    const SelectBlockRender = (index: number) => {
+        return (
+            <BorderLeftBlock color={PaymentTypes[index].payment_color}>
+                <Text style={[styles.text]}>{PaymentTypes[index].payment_type_name}</Text>
+            </BorderLeftBlock>
+        )
+    }
 
     return (
         <View style={[styles.container, { flex: 1 }]}>
@@ -119,34 +134,35 @@ const PaymentMethodsScreen = () => {
                         value={methodName}
                         onChangeText={setMethodName}
                     />
-                    <PressableSwitch
-                        onClick={handleType}
-                        text={t(`paymentMethods.type.${type}`)}
+                    <BaseSelect
                         label={t('paymentMethods.type.label') + "*"}
-                        textColor={type == "credit" ? colors?.Credit : colors?.Debit}
+                        selected={type?.payment_type_name}
+                        onChange={onPaymentTypeChange}
+                        options={PaymentTypes.map(pt => pt.payment_type_name)}
+                        title={t('paymentMethods.type.label')}
+                        render={SelectBlockRender}
                     />
-                    {
-                        type == "credit" && (
-                            <InputLabel
-                                placeholder={t('paymentMethods.closingDate') + "*"}
-                                value={String(closingDate)}
-                                onChangeText={handleCutOffDay}
-                                keyboardType='numeric'
-                            />
-                        )
-                    }
+
+                    <InputLabel
+                        placeholder={t('paymentMethods.closingDate') + "*"}
+                        value={String(closingDate)}
+                        onChangeText={handleCutOffDay}
+                        keyboardType='numeric'
+                    />
+                    {/* )
+                    } */}
                 </View>
             </ModalContainer>
             <ScrollView style={{ flex: 1, paddingRight: 40 }}>
-                {payments?.map((item, index) => (
+                {PaymentMethods?.map((item, index) => (
                     <SwipeItem
                         key={index}
                         handleDelete={() => handleDeletePaymentMethod(item.id)}
                         handleUpdate={() => handleEditPaymentMethod(item)}
                         style={[styles.horizontalBlock]}
                     >
-                        <BorderLeftBlock color={colors?.[item.payment_type === 'credit' ? 'Credit' : 'Debit']}>
-                            <Text>{item.method_name} ({t(item.payment_type)})</Text>
+                        <BorderLeftBlock color={item?.payment_color}>
+                            <Text style={[styles.text]}>{item.method_name}</Text>
                         </BorderLeftBlock>
                     </SwipeItem>
                 ))}

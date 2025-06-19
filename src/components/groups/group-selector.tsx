@@ -1,12 +1,9 @@
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Modal, Pressable, StyleSheet } from 'react-native'
+import { View, StyleSheet } from 'react-native'
 import React, { useState, useEffect } from 'react'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
-import { useGroups } from '@/src/db'
-import { Group, RecordI } from '@/src/interfaces'
 import styles from '@/src/styles/styles'
 import useRecordsStore from '@/src/stores/RecordsStore'
-import { useRecords } from '@/src/db'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import BaseSelect from '../ui/base-select'
 import SwipeItem from '../ui/swipe-item'
@@ -14,24 +11,27 @@ import AddGroup from './add-group'
 import useBudgetStore from '@/src/stores/BudgetStore'
 import { useBudget } from '@/src/db'
 import Input from '../ui/Input'
+import { useHandler } from '@/src/db/handlers/handler'
+import { Groups, RecordJoined } from '@/src/db/types/tables'
+import { useRecords } from '@/src/db/handlers/RecordsHandler'
 
 const GroupSelector = () => {
     const { t } = useLanguage()
     const [year, setYear] = useState<string>(new Date().getFullYear().toString())
     const [modalVisible, setModalVisible] = useState(false)
     const { group, setGroup, setRecords, setResumes, groups, setGroups } = useRecordsStore()
-    const { fetchGroupsByYear, fetchGroupsById, fetchLastGroup, deleteGroup } = useGroups()
-    const { fetchRecords, getAllResume, deleteRecordByGroup } = useRecords()
     const [openUpdate, setOpenUpdate] = useState(false)
-    const budget = useBudget()
     const { budgets, resumes, setBudgets, setResumes: setBudgetResume } = useBudgetStore()
+    const { fetchRecords, handler: recordsHandler } = useRecords()
+    const groupsHandler = useHandler("Groups")
+    const budgetsHanlder = useHandler("Budgets")
 
     useEffect(() => {
         getPinned()
     }, [])
 
     const getGroups = async () => {
-        const groups = await fetchGroupsByYear(year)
+        const groups = await recordsHandler.fetchGroupsByYear(year) as Groups[]
         setGroups(groups)
     }
 
@@ -40,23 +40,24 @@ const GroupSelector = () => {
         getGroups()
     }, [year])
 
-    const onSelect = async (group: Group) => {
+    const onSelect = async (group: Groups) => {
+        if (!group?.id) return
         setGroup(group)
         await fetchRecords(group.id).then((res) => {
             console.log(res)
-            setRecords(res as RecordI[])
+            setRecords(res as RecordJoined[])
         })
-        await getAllResume(group.id).then(res => {
-            setResumes(res)
-        })
+        // await getAllResume(group.id).then(res => {
+        //     setResumes(res)
+        // })
 
-        await budget.fetchBudget(group.id).then(res => {
-            setBudgets(res || [])
-        })
+        // await budget.fetchBudget(group.id).then(res => {
+        //     setBudgets(res || [])
+        // })
 
-        await budget.getAllResume(group.id).then(res => {
-            setBudgetResume(res)
-        })
+        // await budget.getAllResume(group.id).then(res => {
+        //     setBudgetResume(res)
+        // })
 
         setModalVisible(false)
     }
@@ -67,7 +68,7 @@ const GroupSelector = () => {
         onSelect(g)
     }
 
-    const getPlaceHolder = (group: Group | null) => {
+    const getPlaceHolder = (group: Groups | null) => {
         if (!group) return ""
         return group.group_name?.substring(0, 20) + (group.group_name?.length > 20 ? "..." : "") + " (" + t("months." + Number(group.month)) + " " + group.year + ")"
     }
@@ -76,30 +77,30 @@ const GroupSelector = () => {
         const pinned = await AsyncStorage.getItem('group');
         if (pinned) {
             const p = Number(pinned)
-            fetchGroupsById(p).then(g => {
-                onSelect(g as Group)
+            groupsHandler.fetchById(p).then(g => {
+                onSelect(g as Groups)
             })
         } else {
-            fetchLastGroup().then(g => {
-                onSelect(g as Group)
+            groupsHandler.fetchLast().then(g => {
+                onSelect(g as Groups)
             })
         }
     }
 
-    const setOptions = (gs: Group[]) => {
+    const setOptions = (gs: Groups[]) => {
         return gs?.map(val => getPlaceHolder(val))
     }
 
     const handleDelete = async () => {
-        if (!group) return
-        await deleteRecordByGroup(group.id)
-        await deleteGroup(group.id)
+        if (!group?.id) return
+        await recordsHandler.deleteWithWhere("group_id", String(group.id))
+        await groupsHandler.deleteById(group.id)
         const pinned = await AsyncStorage.getItem('group');
         if (pinned == String(group.id)) {
             await AsyncStorage.removeItem('group')
         }
-        fetchLastGroup().then(g => {
-            onSelect(g as Group)
+        groupsHandler.fetchLast().then(g => {
+            onSelect(g as Groups)
         })
         getGroups()
     }
@@ -157,7 +158,7 @@ const localStyles = StyleSheet.create({
         alignItems: "center"
     },
     yearContainer: {
-        flex:1,
+        flex: 1,
         justifyContent: "center",
         paddingHorizontal: 20,
         paddingVertical: 10

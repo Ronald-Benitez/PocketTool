@@ -12,6 +12,9 @@ import ModalContainer from '../ui/modal-container'
 import InputLabel from '../ui/InputLabel'
 import useRecordsStore from '@/src/stores/RecordsStore'
 import useAndroidToast from '@/src/hooks/useAndroidToast'
+import { useHandler } from '@/src/db/handlers/handler';
+import { Groups } from '@/src/db/types/tables';
+import { useDataStore } from '@/src/stores'
 
 interface AddGroupProps {
     children?: React.ReactNode
@@ -28,11 +31,14 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
     const [name, setName] = useState<string>('')
     const [goal, setGoal] = useState<number>(0)
     const today = date.create()
-    const [month, setMonth] = useState<string>(String(new Date().getMonth()))
-    const [year, setYear] = useState<string>(String(new Date().getFullYear()))
+    const [month, setMonth] = useState<number>(new Date().getMonth())
+    const [year, setYear] = useState<number>(new Date().getFullYear())
     const { addGroup, editGroup, fetchGroupsByYear } = useGroups()
-    const { group, setGroup, setGroups, groups } = useRecordsStore()
+    const { group, setGroup, groups } = useRecordsStore()
     const toast = useAndroidToast()
+    const handler = useHandler("Groups")
+    const { Groups, setGroups } = useDataStore()
+
 
     useEffect(() => {
         if (!group) return
@@ -40,21 +46,21 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
         if (isEditing) {
             setName(group.group_name)
             setGoal(group.goal)
-            setMonth(String(group.month))
-            setYear(String(group.year))
+            setMonth(group.month)
+            setYear(group.year)
         }
     }, [openUpdate])
 
     const getGroups = async () => {
-        const groups = await fetchGroupsByYear(year)
+        const groups = await handler.fetchWithWhere("year", String(year)) as Groups[]
         setGroups(groups)
     }
 
     const cleanData = () => {
         setName('')
         setGoal(0)
-        setMonth(String(new Date().getMonth()))
-        setYear(String(new Date().getFullYear()))
+        setMonth(new Date().getMonth())
+        setYear(new Date().getFullYear())
     }
 
     const onSave = async () => {
@@ -68,19 +74,19 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
             return
         }
 
-        const newGroup: CreateGroupRequest = {
+        const newGroup: Groups = {
             group_name: name,
             goal,
             month,
             year
         }
-        if (group && isEditing) {
+        if (group?.id && isEditing) {
             const updateGroup = { ...group, ...newGroup }
-            await editGroup(group.id, updateGroup)
+            await handler.edit(updateGroup)
             setGroup && setGroup(updateGroup)
             toast.editedMessage()
         } else {
-            await addGroup(newGroup)
+            await handler.add(newGroup)
             toast.addedMessage()
         }
         getGroups()
@@ -116,12 +122,12 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
                             />
                         </View>
                         <View style={localStyles.inputContainer}>
-                            <MonthSelector month={month} setMonth={setMonth} />
+                            <MonthSelector month={String(month)} setMonth={(e) => setMonth(Number(e))} />
                         </View>
                         <View style={localStyles.inputContainer}>
                             <InputLabel
-                                value={year}
-                                onChangeText={setYear}
+                                value={String(year)}
+                                onChangeText={(e) => setYear(Number(e))}
                                 keyboardType="numeric"
                                 placeholder={t('group.year') + '*'}
                             />

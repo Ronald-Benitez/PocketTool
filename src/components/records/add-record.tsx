@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, ScrollView, Pressable, Text, StyleSheet } from "react-native";
 
 import { useLanguage } from "@/src/lang/LanguageContext";
-import { usePaymentMethods, useRecords, useCategories } from "@/src/db";
+import { useRecords } from "@/src/db/handlers/RecordsHandler";
 import { RecordI, CreateRecordRequest, Category, PaymentMethod } from "@/src/interfaces";
 import useDate from "@/src/hooks/useDate";
 import useToast from "@/src/hooks/useToast";
@@ -17,9 +17,14 @@ import BaseSelect from "../ui/base-select";
 import LabelBlock from "../ui/LabelBlock";
 import useAndroidToast from "@/src/hooks/useAndroidToast";
 import DatePicker from "../ui/date-picker";
+import { useHandler } from "@/src/db/handlers/handler";
+import { useDataStore } from "@/src/stores";
+import { Records, Categories, PaymentMethods, PaymentTypes, RecordTypes, RecordJoined } from "@/src/db/types/tables";
+import styles from '@/src/styles/styles';
+import BorderLeftBlock from '@/src/components/ui/BorderLeftBlock';
 
 interface AddItemProps {
-    item?: RecordI
+    item?: RecordJoined
     children?: React.ReactNode
     openUpdate?: boolean
     open?: boolean
@@ -31,30 +36,22 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
     const { t } = useLanguage()
     const [name, setName] = useState<string>("")
     const [date, setDate] = useState(new Date().getTime())
-    const [type, setType] = useState<"income" | "expense" | "transfer">("expense")
-    const [payment_method, setPaymentMethod] = useState<PaymentMethod>()
-    const [category, setCategory] = useState<Category>()
+    const [type, setType] = useState<RecordTypes>()
+    const [payment_method, setPaymentMethod] = useState<PaymentMethods>()
+    const [category, setCategory] = useState<Categories>()
     const [value, setValue] = useState<string>("")
     const [group_id, setGroupId] = useState<number>(group?.id || 0)
-    const records = useRecords()
-    const paymentMethods = usePaymentMethods()
-    const categoriesDB = useCategories()
+    const { fetchRecords, handler: recordsHandler } = useRecords()
     const { colors } = useColorStore()
     const { ToastContainer, showToast } = useToast()
     const { payments, setPayments } = usePaymentsStore()
     const { categories, setCategories } = useCategoriesStore()
     const toast = useAndroidToast()
+    const { RecordTypes, PaymentMethods, Categories } = useDataStore()
 
     useEffect(() => {
-        if (!group) return
+        if (!group?.id) return
         setGroupId(group.id)
-        const loadData = async () => {
-            const pm = await paymentMethods.fetchPaymentMethods()
-            const ct = await categoriesDB.fetchCategories()
-            setPayments(pm)
-            setCategories(ct)
-        }
-        loadData()
     }, [group])
 
     useEffect(() => {
@@ -62,56 +59,43 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
         setName(item.record_name)
         setValue(String(item.amount))
         setDate(dateH.verify(item.date).getTime())
-        if (item.record_type != type) {
-            onTypeChange()
-        }
+        setType(RecordTypes?.find(val => val.id == item.record_type_id))
         setGroupId(item.group_id)
-        setCategory(categories?.find(cat => cat.id == item.category_id))
-        setPaymentMethod(payments?.find(pay => pay.id == item.payment_method_id))
+        setCategory(Categories?.find(cat => cat.id == item.category_id))
+        setPaymentMethod(PaymentMethods?.find(pay => pay.id == item.payment_method_id))
     }, [item])
-
-    const onTypeChange = () => {
-        if (type === "income") {
-            setType("expense")
-        } else if (type === "expense") {
-            setType("transfer")
-        } else {
-            setType("income")
-        }
-    }
 
     const onSave = async () => {
         if (!group) return
 
-        if (value === "" || !payment_method?.id || !category?.id) {
+        if (value === "" || !payment_method?.id || !category?.id || !type?.id) {
             toast.emptyMessage()
             return
         }
 
-        const newItem: CreateRecordRequest = {
-            date: String(date),
+        const newItem: Records = {
+            date,
             group_id,
             record_name: name.length < 1 ? category?.category_name : name,
-            record_type: type,
+            record_type_id: type.id,
             amount: Number(value),
             category_id: category?.id as number,
             payment_method_id: payment_method?.id as number
         }
 
-        if (item) {
-            await records.updateRecord(item.record_id, {
-                ...newItem,
-            })
+        if (item?.id) {
+            newItem.id = item.id
+            await recordsHandler.edit(newItem)
             toast.editedMessage()
         } else {
-            await records.addRecord(newItem)
+            await recordsHandler.add(newItem)
             toast.addedMessage()
             setName("")
             setValue("")
         }
         try {
-            setRecords(await records.fetchRecords(group_id) as RecordI[])
-            setResumes(await records.getAllResume(group_id))
+            setRecords(await fetchRecords(group_id))
+            // setResumes(await records.getAllResume(group_id))
         } catch (e) {
             toast.errorMessage()
             console.log(e)
@@ -119,25 +103,26 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
     }
 
     const onChangeCategory = (index: number) => {
-        if (!categories) return
-        setCategory(categories[index])
+        if (!Categories) return
+        setCategory(Categories[index])
     }
 
     const onPaymentChange = (index: number) => {
-        if (!payments) return
-        setPaymentMethod(payments[index])
+        if (!PaymentMethods) return
+        setPaymentMethod(PaymentMethods[index])
     }
 
+    const onTypeChange = (index: number) => {
+        if (!RecordTypes) return
+        setType(RecordTypes[index])
+    }
 
-    const typeColor = () => {
-        switch (type) {
-            case "income":
-                return colors?.IncomeColor
-            case "expense":
-                return colors?.ExpenseColor;
-            case "transfer":
-                return colors?.TransferColor
-        }
+    const SelectTypeBlockRender = (index: number) => {
+        return (
+            <BorderLeftBlock color={RecordTypes[index].record_color}>
+                <Text style={[styles.text]}>{RecordTypes[index].type_name}</Text>
+            </BorderLeftBlock>
+        )
     }
 
     return (
@@ -160,11 +145,13 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
                             />
                         </View>
                         <View style={localStyles.inputContainer}>
-                            <PressableSwitch
-                                onClick={onTypeChange}
-                                text={t(`item.${type}`)}
+                            <BaseSelect
                                 label={t('item.type') + '*'}
-                                textColor={colors ? typeColor() : "#000"}
+                                selected={type?.type_name}
+                                onChange={onTypeChange}
+                                options={RecordTypes?.map(val => val.type_name)}
+                                title={t('item.type')}
+                                render={SelectTypeBlockRender}
                             />
                         </View>
 
@@ -173,7 +160,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
                                 label={t('item.category') + '*'}
                                 selected={category?.category_name}
                                 onChange={onChangeCategory}
-                                options={categories?.map(cat => cat.category_name)}
+                                options={Categories?.map(cat => cat.category_name)}
                                 title={t('item.selectCategory')}
                             />
                         </View>
@@ -183,11 +170,10 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
                                 label={t('item.payment') + '*'}
                                 selected={payment_method?.method_name}
                                 onChange={onPaymentChange}
-                                options={payments?.map(pay => pay.method_name)}
+                                options={PaymentMethods?.map(pay => pay.method_name)}
                                 title={t('item.selectPayment')}
                             />
                         </View>
-
                         <View style={localStyles.inputContainer}>
                             <InputLabel
                                 value={value}

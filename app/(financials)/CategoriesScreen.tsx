@@ -3,93 +3,93 @@ import { View, Text, Alert, StyleSheet, ScrollView } from 'react-native';
 
 import styles from '@/src/styles/styles';
 import { useLanguage } from '@/src/lang/LanguageContext';
-import { Category, CreateCategoryRequest } from '@/src/interfaces';
-import { useCategories } from '@/src/db';
 import SwipeItem from '@/src/components/ui/swipe-item';
-import useCategoriesStore from '@/src/stores/CategoriesStore';
 import BGSimpleBlock from '@/src/components/ui/BGSimpleBlock';
 import IconButton from '@/src/components/ui/icon-button';
 import { MaterialIcons } from '@expo/vector-icons';
 import InputLabel from '@/src/components/ui/InputLabel';
 import useAndroidToast from '@/src/hooks/useAndroidToast';
+import { useHandler } from '@/src/db/handlers/handler';
+import { Categories } from '@/src/db/types/tables';
+import { useDataStore } from '@/src/stores';
 
-const CategoriesScreen = () => {
+const PaymentTypesScreen = () => {
     const { t } = useLanguage();
-    const [categoryName, setCategoryName] = useState('');
-    // const [categories, setCategories] = useState<Category[]>([]);
-    const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
-    const { addCategory, deleteCategory, fetchCategories, updateCategory } = useCategories()
-    const { categories, setCategories } = useCategoriesStore()
+    const [category_name, setCategoryName ] = useState('');
+    const [editingId, setEditingId] = useState<number | undefined>(undefined);
+    const handler = useHandler("Categories");
+    const {Categories, setCategories} = useDataStore()
     const toast = useAndroidToast()
 
     useEffect(() => {
-        const loadCategories = async () => {
-            const result = await fetchCategories();
+        const loadData = async () => {
+            const result = await handler.fetchAll() as Categories[];
             setCategories(result);
         };
-        loadCategories();
+        loadData();
     }, []);
 
-    const handleAddOrUpdateCategory = async () => {
-        if (!categoryName) {
+    const handleAddOrUpdate = async () => {
+        if (!category_name) {
             toast.emptyMessage()
             return;
         }
-        const category: CreateCategoryRequest = { category_name: categoryName };
+        const newData: Categories = { category_name }; 
 
         try {
-            if (editingCategoryId) {
-                await updateCategory(editingCategoryId, category);
+            if (editingId) {
+                newData.id = editingId
+                await handler.edit(newData);
                 toast.editedMessage()
             } else {
-                await addCategory(category);
+                await handler.add(newData);
                 toast.addedMessage()
             }
 
-            const result = await fetchCategories();
-            setCategories(result);
+            const result = await handler.fetchAll();
+            setCategories(result as Categories[]);
             setCategoryName('');
-            setEditingCategoryId(null);
+            setEditingId(undefined);
         } catch (error) {
             console.error(error);
             toast.errorMessage()
         }
     };
 
-    const handleEditCategory = (category: Category) => {
-        setCategoryName(category.category_name);
-        setEditingCategoryId(category.id);
+    const handleEdit = (data: Categories) => {
+        setCategoryName(data.category_name);
+        setEditingId(data.id);
     };
 
-    const handleDeleteCategory = async (id: number) => {
+    const handleDelete = async (id: number | undefined) => {
+        if(!id) return;
         try {
-            await deleteCategory(id);
-            const result = await fetchCategories();
+            await handler.deleteById(id);
+            const result = await handler.fetchAll() as Categories[];
             setCategories(result);
+            toast.deletedMessage();
         } catch (error) {
             console.error(error);
         }
     };
-
     return (
         <View style={styles.container}>
-            {/* <Text style={styles.header}>{t('categories.header')}</Text> */}
             <View style={localStyles.rowContainer}>
                 <InputLabel
                     placeholder={t('categories.categoryName') + '*'}
-                    value={categoryName}
+                    value={category_name}
                     onChangeText={setCategoryName}
                 />
-                <IconButton onClick={handleAddOrUpdateCategory}>
-                    <MaterialIcons name={editingCategoryId ? 'edit' : 'add'} size={20}></MaterialIcons>
+                <IconButton onClick={handleAddOrUpdate}>
+                    <MaterialIcons name={editingId ? 'edit' : 'add'} size={20}></MaterialIcons>
                 </IconButton>
             </View>
             <ScrollView style={{ flex: 1, paddingRight: 40 }}>
-                {categories?.map((item, index) => (
+                {Categories?.map((item, index) => (
                     <View key={index} style={{ marginVertical: 5 }}>
                         <SwipeItem
-                            handleDelete={() => handleDeleteCategory(item.id)}
-                            handleUpdate={() => handleEditCategory(item)}
+                            handleDelete={() => handleDelete(item.id)}
+                            handleUpdate={() => handleEdit(item)}
                             style={[styles.horizontalBlock]}
                         >
                             <BGSimpleBlock>
@@ -120,4 +120,4 @@ const localStyles = StyleSheet.create({
     },
 })
 
-export default CategoriesScreen;
+export default PaymentTypesScreen;

@@ -42,6 +42,29 @@ export default function Layout() {
                         backgroundColor: '#fff'
                     }
                 }} />
+            <Tabs.Screen
+                name="PaymentTypesScreen"
+                options={{
+                    title: t("headers.paymentTypes"),
+                    tabBarIcon: ({ color, size }) => (
+                        <MaterialCommunityIcons name="cash-multiple" size={size} color={color} />
+                    ),
+                    headerStyle: {
+                        backgroundColor: '#fff'
+                    }
+                }} />
+            <Tabs.Screen
+                name="RecordTypesScreen"
+                options={{
+                    title: t("headers.recordTypes"),
+                    tabBarIcon: ({ color, size }) => (
+                        <MaterialCommunityIcons name="format-list-bulleted" size={size} color={color} />
+                    ),
+                    headerStyle: {
+                        backgroundColor: '#fff'
+                    }
+                }} />
+
         </StackBase>
     );
 }
