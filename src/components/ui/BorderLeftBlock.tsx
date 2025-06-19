@@ -25,7 +25,8 @@ const localStyles = StyleSheet.create({
         marginVertical: 5,
         borderLeftWidth: 3,
         borderBottomLeftRadius: 5,
-        borderTopLeftRadius: 5
+        borderTopLeftRadius: 5,
+        width: "100%",
     }
 })
 

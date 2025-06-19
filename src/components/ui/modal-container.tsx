@@ -15,9 +15,10 @@ interface AddGroupProps {
     closeOnAccept?: boolean,
     open?: boolean,
     close?: boolean,
+    onClose?: () => void,
 }
 
-const ModalContainer = ({ children, buttonOpen, title, type, onAccept, closeOnAccept, open, close }: AddGroupProps) => {
+const ModalContainer = ({ children, buttonOpen, title, type, onAccept, closeOnAccept, open, close, onClose }: AddGroupProps) => {
     const [modalVisible, setModalVisible] = useState(false)
     const [isFirstRender, setIsFirstRender] = useState(true);
     const { t } = useLanguage()
@@ -42,6 +43,11 @@ const ModalContainer = ({ children, buttonOpen, title, type, onAccept, closeOnAc
         setModalVisible(false);
     }, [close])
 
+    const handleClose = () => {
+        setModalVisible(false);
+        onClose && onClose();
+    }
+
     return (
         <>
             <Pressable onPress={() => setModalVisible(true)}>
@@ -58,7 +64,7 @@ const ModalContainer = ({ children, buttonOpen, title, type, onAccept, closeOnAc
                         <Pressable onPress={() => { }} >
                             <View style={[localStyles.modalContainer]}>
                                 <View style={[localStyles.modalHeader, { backgroundColor: colors?.ModalHeaderColor }]}>
-                                    <ColorText backgroundColor={ colors?.ModalHeaderColor || "#fff"} textAlign="center">
+                                    <ColorText backgroundColor={colors?.ModalHeaderColor || "#fff"} textAlign="center">
                                         {title}
                                     </ColorText>
                                 </View>
@@ -66,7 +72,7 @@ const ModalContainer = ({ children, buttonOpen, title, type, onAccept, closeOnAc
                                     {children}
                                 </View>
                                 <View style={localStyles.modalFooter}>
-                                    <ModalButton onClick={() => setModalVisible(false)} text={t("close")} type='base' />
+                                    <ModalButton onClick={handleClose} text={t("close")} type='base' />
                                     {
                                         type == "complete" && onAccept && (
                                             <ModalButton onClick={handleAccept} text={t("confirm")} type='bg' />

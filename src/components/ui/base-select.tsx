@@ -13,10 +13,11 @@ interface Props {
     title: string,
     blockWith?: DimensionValue,
     children?: ReactNode,
-    extra?: ReactNode
+    extra?: ReactNode,
+    render?: (index: number) => ReactNode
 }
 
-const BaseSelect = ({ label, onChange, options, selected, title, blockWith, children, extra }: Props) => {
+const BaseSelect = ({ label, onChange, options, selected, title, blockWith, children, extra, render }: Props) => {
     const { colors } = useColorStore()
     const [closeModal, setCloseModal] = useState(false)
 
@@ -49,11 +50,14 @@ const BaseSelect = ({ label, onChange, options, selected, title, blockWith, chil
                             {
                                 options?.map((val, index) => (
                                     <Pressable onPress={() => handlePress(index)} key={val + index}>
-                                        <BGSelectBlock>
-                                            <Text style={localStyles.text}>
-                                                {val}
-                                            </Text>
-                                        </BGSelectBlock>
+                                        {
+                                            render ? render(index) :
+                                                (
+                                                    <BGSelectBlock>
+                                                        <Text style={[localStyles.text]}>{val}</Text>
+                                                    </BGSelectBlock>
+                                                )
+                                        }
                                     </Pressable>
                                 ))
                             }
