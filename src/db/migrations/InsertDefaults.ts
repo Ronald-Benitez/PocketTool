@@ -1,39 +1,48 @@
 import { type SQLiteDatabase } from 'expo-sqlite';
 
-// Asume que `db` es tu instancia de SQLiteDatabase.
 async function insertDefault(db: SQLiteDatabase) {
-  try{
+  try {
+    const date = new Date();
+    //PaymentTypes
+    await db.runAsync('INSERT INTO PaymentTypes (payment_type_name, payment_color) VALUES (?, ?)', 'Credit', '#4CAF50');
+    await db.runAsync('INSERT INTO PaymentTypes (payment_type_name, payment_color) VALUES (?, ?)', 'Debit', '#2196F3');
 
-  // Insertar valores predeterminados en PaymentMethods y Categories
-  await db.runAsync('INSERT INTO PaymentMethods (method_name, payment_type, closing_date) VALUES (?, ?, ?)','💳', 'credit', 1);
-  await db.runAsync('INSERT INTO PaymentMethods (method_name, payment_type) VALUES (?, ?)', '💵', 'debit');
-  await db.runAsync('INSERT INTO Categories (category_name) VALUES (?)', '😶‍🌫️');
 
-  // Obtener los ID de los valores insertados
-  const paymentMethodIdCredit = 1; // Método de pago crédito
-  const paymentMethodIdDebit = 2; // Método de pago débito
-  const categoryId = 1; // Categoría predeterminada
+    //RecordTypes
+    await db.runAsync('INSERT INTO RecordTypes (type_name, effect, record_color) VALUES (?, ?, ?)', 'Income', '+', '#4CAF50');
+    await db.runAsync('INSERT INTO RecordTypes (type_name, effect, record_color) VALUES (?, ?, ?)', 'Expense', '-', '#F44336');
+    await db.runAsync('INSERT INTO RecordTypes (type_name, effect, record_color) VALUES (?, ?, ?)', 'Transfer', '=', '#FF9800');
+    await db.runAsync('INSERT INTO RecordTypes (type_name, effect, record_color) VALUES (?, ?, ?)', 'Credit', '=', '#9C27B0');
 
-  // Insertar un grupo predeterminado
-  await db.runAsync('INSERT INTO Groups (group_name, goal, year, month) VALUES (?, ?, ?, ?)','🐽 Default', 1000, 2024, 1);
+    //Categories
+    await db.runAsync('INSERT INTO Categories (category_name) VALUES (?)', 'Groceries');
+    await db.runAsync('INSERT INTO Categories (category_name) VALUES (?)', 'Gas');
+    await db.runAsync('INSERT INTO Categories (category_name) VALUES (?)', 'Entertainment');
+    await db.runAsync('INSERT INTO Categories (category_name) VALUES (?)', 'Utilities');
+    await db.runAsync('INSERT INTO Categories (category_name) VALUES (?)', 'Rent');
+    await db.runAsync('INSERT INTO Categories (category_name) VALUES (?)', 'Salary');
 
-  // Obtener el ID del grupo insertado
-  const groupId = 1; // Grupo predeterminado
+    //PaymentMethods
+    await db.runAsync('INSERT INTO PaymentMethods (method_name, closing_date, payment_type_id) VALUES (?, ?, ?)', 'Visa', 15, 1);
+    await db.runAsync('INSERT INTO PaymentMethods (method_name, closing_date, payment_type_id) VALUES (?, ?, ?)', 'MasterCard', 20, 1);
+    await db.runAsync('INSERT INTO PaymentMethods (method_name, closing_date, payment_type_id) VALUES (?, ?, ?)', 'Cash', 0, 2);
+    await db.runAsync('INSERT INTO PaymentMethods (method_name, closing_date, payment_type_id) VALUES (?, ?, ?)', 'Bank Transfer', 0, 2);
 
-  // Insertar registros predeterminados usando los valores de ID
-  await db.runAsync(`
-    INSERT INTO Records (amount, record_type, group_id, category_id, payment_method_id, date, record_name)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `, [100.0, 'income', groupId, categoryId, paymentMethodIdCredit, '2024-01-01','🥕']);
+    //Groups
+    await db.runAsync('INSERT INTO Groups (group_name, goal, year, month) VALUES (?, ?, ?, ?)', 'Default Group', 5000, 2025, 1);
 
-  await db.runAsync(`
-    INSERT INTO Records (amount, record_type, group_id, category_id, payment_method_id, date, record_name)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `, [50.0, 'expense', groupId, categoryId, paymentMethodIdDebit, '2024-01-02','⛽']);
-  }catch(e){
+    //Records
+    await db.runAsync('INSERT INTO Records (amount, record_name, date, record_type_id, group_id, category_id, payment_method_id) VALUES (?, ?, ?, ?, ?, ?, ?)', 1000, 'Salary for January', date.getTime(), 1, 1, 6, 1);
+    await db.runAsync('INSERT INTO Records (amount, record_name, date, record_type_id, group_id, category_id, payment_method_id) VALUES (?, ?, ?, ?, ?, ?, ?)', 200, 'Groceries', date.getTime(), 2, 1, 1, 3);
+    await db.runAsync('INSERT INTO Records (amount, record_name, date, record_type_id, group_id, category_id, payment_method_id) VALUES (?, ?, ?, ?, ?, ?, ?)', 150, 'Gas', date.getTime(), 2, 1, 2, 3);
+    await db.runAsync('INSERT INTO Records (amount, record_name, date, record_type_id, group_id, category_id, payment_method_id) VALUES (?, ?, ?, ?, ?, ?, ?)', 100, 'Entertainment', date.getTime(), 2, 1, 3, 4);
+    await db.runAsync('INSERT INTO Records (amount, record_name, date, record_type_id, group_id, category_id, payment_method_id) VALUES (?, ?, ?, ?, ?, ?, ?)', 1200, 'Rent for January', date.getTime(), 2, 1, 5, 4);
+
+
+  } catch (e) {
     console.log(e)
   }
-  
+
 }
 
 export default insertDefault;

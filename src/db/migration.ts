@@ -1,81 +1,68 @@
 import { type SQLiteDatabase } from 'expo-sqlite';
-import createTables from './migrations/CreateTablesBase';
-import insertDefault from './migrations/InsertDefaults';
-import alterRecordTypeDeleteCheck from './migrations/alterRecordTypeDeleteCheck'
-import createSavingsTable from './migrations/CreateSavingsTable';
-import createBudgetsTable from './migrations/CreateTableBudgets';
-
-export interface Migration {
-  id: number;
-  migration_name: string;
-  applied_at: string;
-}
-
+import { APP_SCHEMA } from './schema';
+import { Migrations } from './types/tables';
+import { migrations } from './migrations';
 
 async function migrateDb(db: SQLiteDatabase) {
-  const DATABASE_VERSION = 2;
+  const DATABASE_VERSION = 1;
 
   const result = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
 
   const currentDbVersion = result ? result.user_version : 0;
+  // await down(db);
+  await up(db)
+  await runMigrations(db)
+}
 
-  // await db.execAsync(`
-  //   DROP TABLE IF EXISTS Records;
-  //   DROP TABLE IF EXISTS Groups;
-  //   DROP TABLE IF EXISTS PaymentMethods;
-  //   DROP TABLE IF EXISTS Categories;
-  //   DROP TABLE IF EXISTS Migrations;
-  //   DROP TABLE IF EXISTS Savings;
-  //   DROP TABLE IF EXISTS SavingsHistory;
-  //   DROP TABLE IF EXISTS Budgets;
-  // `);
-
-  // if (currentDbVersion === 0) {
-
-  await db.execAsync(`
-    PRAGMA journal_mode = 'wal';
-
-    CREATE TABLE IF NOT EXISTS Migrations (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      migration_name TEXT NOT NULL UNIQUE,
-      applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
-
-  const migrations = await db.getAllAsync('SELECT * FROM Migrations') as Migration[]
-  try{
-    if(!migrations.find(val => val.migration_name == "base")){
-      await createTables(db)
-      await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'base');
-    }
-
-    if(!migrations.find(val => val.migration_name == "alterRecordTypeDeleteCheck")){
-      await alterRecordTypeDeleteCheck(db)
-      await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'alterRecordTypeDeleteCheck');
-    }
-
-    if(!migrations.find(val => val.migration_name == "createSavingsTables")){
-      await createSavingsTable(db)
-      await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'createSavingsTables');
-    }
-
-    if(!migrations.find(val => val.migration_name == "createBudgetsTable")){
-      await createBudgetsTable(db)
-      await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'createBudgetsTable');
-    }
-
-  }catch(e){
-    console.log(e)
+export const up = async (db: SQLiteDatabase) => {
+  const tables = Object.keys(APP_SCHEMA)
+  for (const table of tables) {
+    const data = APP_SCHEMA[table]
+    const columnsSql = data.columns.map(col => {
+      let def = `${col.name} ${col.type}`;
+      if (col.primaryKey) def += ' PRIMARY KEY';
+      if (col.autoIncrement) def += ' AUTOINCREMENT'; // Only for INTEGER PRIMARY KEY
+      if (col.notNull) def += ' NOT NULL';
+      if (col.unique) def += ' UNIQUE';
+      if (col.defaultValue !== undefined) {
+        if (typeof col.defaultValue === 'string') def += ` DEFAULT '${col.defaultValue}'`;
+        else def += ` DEFAULT ${col.defaultValue}`;
+      }
+      if (col.references) {
+        def += ` REFERENCES ${col.references.table}(${col.references.column})`;
+      }
+      return def;
+    }).join(', ');
+    const createTableSql = `CREATE TABLE IF NOT EXISTS ${data.name} (${columnsSql});`;
+    await db.execAsync(createTableSql);
+    console.log(`Table '${data.name}' created or already exists.`);
   }
+};
 
-  // await db.runAsync('INSERT INTO Migrations (migration_name) VALUES (?)', 'Prueba');
-
-  if (currentDbVersion >= DATABASE_VERSION) {
-    return;
+export const down = async (db: SQLiteDatabase) => {
+  const tables = Object.keys(APP_SCHEMA)
+  for (const table of tables) {
+    await db.execAsync(`DROP TABLE IF EXISTS ${APP_SCHEMA[table].name};`);
   }
+};
 
-  await insertDefault(db)
-  await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
+export const runMigrations = async (db: SQLiteDatabase) => {
+  const migrationsList = await db.getAllAsync<Migrations>('SELECT * FROM Migrations');
+  const names = Object.keys(migrations);
+  for (const name of names) {
+    if (!migrationsList.find(m => m.migration_name === name)) {
+      try {
+        await migrations[name as keyof typeof migrations](db);
+        await db.runAsync('INSERT INTO Migrations (migration_name, applied_at) VALUES (?, ?)', name, new Date().getTime());
+        console.log(`Migration '${name}' applied successfully.`);
+      } catch (error) {
+        console.error(`Error applying migration '${name}':`, error);
+      }
+    } else {
+      console.log(`Migration '${name}' already applied.`);
+    }
+  }
+  
 }
 
 export default migrateDb;
