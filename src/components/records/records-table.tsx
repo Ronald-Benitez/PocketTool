@@ -7,7 +7,6 @@ import { RecordI } from '@/src/interfaces'
 import styles from '@/src/styles/styles'
 import SwipeItem from '../ui/swipe-item'
 import useDate from '@/src/hooks/useDate'
-import { useRecords } from '@/src/db'
 import { ScrollView } from 'react-native-gesture-handler'
 import useToast from '@/src/hooks/useToast'
 import AddItem from './add-record'
@@ -15,11 +14,14 @@ import useRecordsStore from '@/src/stores/RecordsStore';
 import useColorStore from '@/src/stores/ColorsStore'
 import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
 import IconButton from '../ui/icon-button'
+import { RecordJoined } from '@/src/db/types/tables'
+import { useRecords } from "@/src/db/handlers/RecordsHandler";
+
 
 const ItemsTable = () => {
-    const [selected, setSelected] = React.useState<RecordI | undefined>()
+    const [selected, setSelected] = React.useState<RecordJoined | undefined>()
     const [openUpdate, setOpenUpdate] = React.useState<boolean>(false)
-    const idb = useRecords()
+    const {fetchRecords, handler: recordsHandler} = useRecords()
     const dateh = useDate()
     const { ToastContainer, showToast } = useToast()
     const { t } = useLanguage()
@@ -29,9 +31,9 @@ const ItemsTable = () => {
     const handleDelete = async (index: number) => {
         if (!group) return
         const toDelete = records[index]
-        await idb.deleteRecord(toDelete.record_id)
-        const i = await idb.fetchRecords(group.id) as RecordI[]
-        setRecords(i as RecordI[])
+        await recordsHandler.deleteById(toDelete.record_id)
+        const data = await fetchRecords(group.id)
+        setRecords(data)
         showToast({ message: t("item.deleted"), type: "SUCCESS" })
     }
 
@@ -97,19 +99,19 @@ const ItemsTable = () => {
                                 key={index}
                             >
                                 <BorderLeftBottomBlock
-                                    bottomColor={colors ? typeColor(item.record_type) : ""}
-                                    letfColor={colors ? colors[item.payment_type == "credit" ? "Credit" : "Debit"] : ""}
+                                    bottomColor={item.record_color}
+                                    letfColor={item.payment_color}
                                 >
                                     <View style={localStyles.rowContainer}>
                                         <View style={localStyles.dateContainer}>
                                             <Text style={localStyles.dateText}>
-                                                {dateh.getStringDay(item.date)}
+                                                {dateh.getStringDay(String(item.date))}
                                             </Text>
                                             <Text style={localStyles.dateText}>
-                                                {dateh.getDay(item.date)}
+                                                {dateh.getDay(String(item.date))}
                                             </Text>
                                             <Text style={localStyles.dateText}>
-                                                {dateh.getStringMonth(item.date)}
+                                                {dateh.getStringMonth(String(item.date))}
                                             </Text>
                                         </View>
                                         <Text style={localStyles.nameText}>{item.record_name}</Text>

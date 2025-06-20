@@ -8,6 +8,8 @@ import useRecordsStore from '@/src/stores/RecordsStore';
 import ModalContainer from "../ui/modal-container";
 import InputLabel from "../ui/InputLabel";
 import useSavingsStore from "@/src/stores/SavingsStore";
+import { useHandler } from "@/src/db/handlers/handler";
+import { Savings, SavingsHistory } from "@/src/db/types/tables";
 
 interface AddItemProps {
     isEditing?: boolean
@@ -23,6 +25,8 @@ const AddSaving = ({ isEditing = false, children, open }: AddItemProps) => {
     const [value, setValue] = useState<string>("")
     const { addSavings, fetchSavings, updateSavings, } = useSavings()
     const { fetchSavingsHistoryBySavingId } = useSavingsHistory()
+    const savingsHandler = useHandler("Savings")
+    const historyHandler = useHandler("SavingsHistory")
 
     const { ToastContainer, showToast } = useToast()
     const { saving, setSaving, setSavingsHistory, setSavings } = useSavingsStore()
@@ -45,23 +49,36 @@ const AddSaving = ({ isEditing = false, children, open }: AddItemProps) => {
             showToast({ message: t("item.error"), type: "ERROR" })
             return
         }
-        if (isEditing && saving) {
-            await updateSavings(saving?.id, name, Number(value))
+        const newData: Savings = {
+            amount: Number(value),
+            saving_name: name,
+        }
+
+        if (isEditing && saving?.id) {
+            newData.id = saving.id
+            await savingsHandler.edit(newData)
+            showToast({ message: t("item.edited"), type: "SUCCESS" })
+            const newHistory: SavingsHistory = {
+                savings_id: saving.id,
+                new_amount: Number(value),
+                change_date: new Date().getTime(),
+                previous_amount: saving.amount,
+            }
+            await historyHandler.add(newHistory)
+            const history = await historyHandler.fetchWithWhere("savings_id", String(saving.id)) as SavingsHistory[]
             setSaving({
                 ...saving,
                 amount: Number(value),
                 saving_name: name
             })
-            showToast({ message: t("item.edited"), type: "SUCCESS" })
-            const history = await fetchSavingsHistoryBySavingId(saving.id)
-            setSavingsHistory(history)
+            setSavingsHistory(history.reverse())
         } else {
-            await addSavings(name, Number(value))
+            await savingsHandler.add(newData)
             showToast({ message: t("item.added"), type: "SUCCESS" })
             setName("")
             setValue("")
         }
-        const savings = await fetchSavings()
+        const savings = await savingsHandler.fetchAll() as Savings[]
         setSavings(savings)
     }
 

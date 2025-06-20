@@ -18,7 +18,7 @@ import LabelBlock from "../ui/LabelBlock";
 import useAndroidToast from "@/src/hooks/useAndroidToast";
 import DatePicker from "../ui/date-picker";
 import { useHandler } from "@/src/db/handlers/handler";
-import { useDataStore } from "@/src/stores";
+import { PaymentMethodsJoined, useDataStore } from "@/src/stores";
 import { Records, Categories, PaymentMethods, PaymentTypes, RecordTypes, RecordJoined } from "@/src/db/types/tables";
 import styles from '@/src/styles/styles';
 import BorderLeftBlock from '@/src/components/ui/BorderLeftBlock';
@@ -37,7 +37,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
     const [name, setName] = useState<string>("")
     const [date, setDate] = useState(new Date().getTime())
     const [type, setType] = useState<RecordTypes>()
-    const [payment_method, setPaymentMethod] = useState<PaymentMethods>()
+    const [payment_method, setPaymentMethod] = useState<PaymentMethodsJoined>()
     const [category, setCategory] = useState<Categories>()
     const [value, setValue] = useState<string>("")
     const [group_id, setGroupId] = useState<number>(group?.id || 0)
@@ -83,18 +83,19 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
             payment_method_id: payment_method?.id as number
         }
 
-        if (item?.id) {
-            newItem.id = item.id
-            await recordsHandler.edit(newItem)
-            toast.editedMessage()
-        } else {
-            await recordsHandler.add(newItem)
-            toast.addedMessage()
-            setName("")
-            setValue("")
-        }
         try {
-            setRecords(await fetchRecords(group_id))
+            if (item?.id) {
+                newItem.id = item.id
+                await recordsHandler.edit(newItem)
+                toast.editedMessage()
+            } else {
+                await recordsHandler.add(newItem)
+                toast.addedMessage()
+                setName("")
+                setValue("")
+            }
+            const records = await fetchRecords(group_id)
+            setRecords(records)
             // setResumes(await records.getAllResume(group_id))
         } catch (e) {
             toast.errorMessage()
@@ -121,6 +122,30 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
         return (
             <BorderLeftBlock color={RecordTypes[index].record_color}>
                 <Text style={[styles.text]}>{RecordTypes[index].type_name}</Text>
+            </BorderLeftBlock>
+        )
+    }
+
+    const SelectedTypeBlockRender = () => {
+        return (
+            <BorderLeftBlock color={type?.record_color || "#000"}>
+                <Text style={[styles.text]}>{type?.type_name || t('item.type')}</Text>
+            </BorderLeftBlock>
+        )
+    }
+
+    const SelectPaymentBlockRender = (index: number) => {
+        return (
+            <BorderLeftBlock color={PaymentMethods[index].payment_color}>
+                <Text style={[styles.text]}>{PaymentMethods[index].method_name}</Text>
+            </BorderLeftBlock>
+        )
+    }
+
+    const SelectedPaymentBlockRender = () => {
+        return (
+            <BorderLeftBlock color={payment_method?.payment_color || "#000"}>
+                <Text style={[styles.text]}>{payment_method?.method_name || t('item.selectPayment')}</Text>
             </BorderLeftBlock>
         )
     }
@@ -152,7 +177,10 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
                                 options={RecordTypes?.map(val => val.type_name)}
                                 title={t('item.type')}
                                 render={SelectTypeBlockRender}
-                            />
+
+                            >
+                                <SelectedTypeBlockRender />
+                            </BaseSelect>
                         </View>
 
                         <View style={localStyles.inputContainer}>
@@ -172,7 +200,10 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
                                 onChange={onPaymentChange}
                                 options={PaymentMethods?.map(pay => pay.method_name)}
                                 title={t('item.selectPayment')}
-                            />
+                                render={SelectPaymentBlockRender}
+                            >
+                                <SelectedPaymentBlockRender />
+                            </BaseSelect>
                         </View>
                         <View style={localStyles.inputContainer}>
                             <InputLabel
