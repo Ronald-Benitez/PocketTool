@@ -67,7 +67,7 @@ export interface Savings {
 
 export interface SavingsHistory {
     id?: number,
-    saving_id: number,
+    savings_id: number,
     previous_amount: number,
     new_amount: number,
     change_date: number

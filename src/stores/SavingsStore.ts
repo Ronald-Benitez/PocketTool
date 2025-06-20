@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Savings, SavingsHistory } from "../interfaces";
+import { Savings, SavingsHistory } from "@/src/db/types/tables";
 
 interface SavingsState {
   saving: Savings | null;

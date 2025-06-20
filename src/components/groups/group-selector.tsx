@@ -14,6 +14,9 @@ import Input from '../ui/Input'
 import { useHandler } from '@/src/db/handlers/handler'
 import { Groups, RecordJoined } from '@/src/db/types/tables'
 import { useRecords } from '@/src/db/handlers/RecordsHandler'
+import { useDataStore } from '@/src/stores'
+import { Categories, RecordTypes } from '@/src/db/types/tables'
+import { PaymentMethodsJoined } from '@/src/stores'
 
 const GroupSelector = () => {
     const { t } = useLanguage()
@@ -24,11 +27,27 @@ const GroupSelector = () => {
     const { budgets, resumes, setBudgets, setResumes: setBudgetResume } = useBudgetStore()
     const { fetchRecords, handler: recordsHandler } = useRecords()
     const groupsHandler = useHandler("Groups")
+    const paymentsHandler = useHandler("PaymentMethods")
     const budgetsHanlder = useHandler("Budgets")
+    const { setCategories, setPaymentMethods, setRecordTypes } = useDataStore()
 
     useEffect(() => {
         getPinned()
+        loadData()
     }, [])
+
+    const loadData = async () => {
+        try {
+            const categories = await groupsHandler.fetchAll('Categories') as Categories[]
+            const payments = await paymentsHandler.fetchAllWithJoin('PaymentTypes', "payment_type_id") as PaymentMethodsJoined[];
+            const recordTypes = await groupsHandler.fetchAll('RecordTypes') as RecordTypes[]
+            setCategories(categories)
+            setPaymentMethods(payments)
+            setRecordTypes(recordTypes)
+        } catch (error) {
+            console.error("Error loading data for group selector:", error)
+        }
+    }
 
     const getGroups = async () => {
         const groups = await recordsHandler.fetchGroupsByYear(year) as Groups[]
@@ -44,7 +63,6 @@ const GroupSelector = () => {
         if (!group?.id) return
         setGroup(group)
         await fetchRecords(group.id).then((res) => {
-            console.log(res)
             setRecords(res as RecordJoined[])
         })
         // await getAllResume(group.id).then(res => {
