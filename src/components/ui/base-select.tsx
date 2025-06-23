@@ -9,12 +9,12 @@ interface Props {
     label?: string
     onChange: (index: number) => void,
     options: string[] | undefined
-    selected: string | undefined,
+    selected: string | undefined | string[] | number | number[],
     title: string,
     blockWith?: DimensionValue,
     children?: ReactNode,
     extra?: ReactNode,
-    render?: (index: number) => ReactNode
+    render?: (index: number) => ReactNode,
 }
 
 const BaseSelect = ({ label, onChange, options, selected, title, blockWith, children, extra, render }: Props) => {
@@ -24,7 +24,9 @@ const BaseSelect = ({ label, onChange, options, selected, title, blockWith, chil
     const buttonOpen = (
         <View style={[localStyles.block, { borderColor: colors?.InputStroke }]} >
             <Text style={[localStyles.text]}>
-                {selected || label}
+                {
+                    Array.isArray(selected) ? selected.join(", ") : selected
+                        || label}
             </Text>
         </View>
     )
@@ -53,7 +55,10 @@ const BaseSelect = ({ label, onChange, options, selected, title, blockWith, chil
                                         {
                                             render ? render(index) :
                                                 (
-                                                    <BGSelectBlock>
+                                                    <BGSelectBlock style={{
+                                                        transform: Array.isArray(selected) && (selected as (string | number)[])?.includes(val) ? [{ scale: 0.95 }] :
+                                                            selected === val ? [{ scale: 0.95 }] : [{ scale: 1 }]
+                                                    }}>
                                                         <Text style={[localStyles.text]}>{val}</Text>
                                                     </BGSelectBlock>
                                                 )

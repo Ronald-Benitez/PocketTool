@@ -31,13 +31,23 @@ export const useHandler = (table: Table) => {
 
     const fetchAllWithJoin = async (joinTable: Table, joinColumn: string): Promise<any[]> => {
         try {
-            return (await db.getAllAsync(`
-                SELECT 
+            const result = await db.getAllAsync(`
+                SELECT
                 ${joinTable}.id AS ${joinColumn}_id,
-                *
-                FROM ${table} 
+                ${table}.id AS ${table}_id,
+                ${table}.*,
+                ${joinTable}.*
+                FROM ${table}
                 INNER JOIN ${joinTable} ON ${table}.${joinColumn} = ${joinTable}.id
-                `)) as any[];
+            `);
+            return result.map((row: any) => {
+                return {
+                    ...row,
+                    id: row[`${table}_id`],
+                }
+            }
+            ) as any[];
+
         } catch (error) {
             console.error(error);
             return [];
@@ -149,7 +159,7 @@ export const useHandler = (table: Table) => {
     };
 
     const deleteWithWhere = async (column: string, value: string) => {
-         try {
+        try {
             await db.runAsync(`DELETE FROM ${table} WHERE ${column} = ?`, value);
         } catch (error) {
             console.error(error);

@@ -20,6 +20,7 @@
     "settings": {
         "header": "Configuraciones",
         "selectLanguage": "Idioma",
+        "selectRecordType": "Tipos de registro del resumen",
         "languages": {
             "english": "Inglés",
             "spanish": "Español"

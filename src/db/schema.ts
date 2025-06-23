@@ -45,6 +45,18 @@ export const APP_SCHEMA: TableSchema = {
             { name: 'record_color', type: 'TEXT', defaultValue: '#000000' }
         ]
     },
+    Fixed: {
+        name: 'Fixed',
+        columns: [
+            { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+            { name: 'fixed_amount', type: 'REAL', notNull: true },
+            { name: 'fixed_name', type: 'TEXT', notNull: true },
+            { name: 'fixed_day', type: 'INTEGER', notNull: true },
+            { name: 'record_type_id', type: 'INTEGER', references: { table: 'RecordTypes', column: 'id' } },
+            { name: 'category_id', type: 'INTEGER', references: { table: 'Categories', column: 'id' } },
+            { name: 'payment_method_id', type: 'INTEGER', references: { table: 'PaymentMethods', column: 'id' } },
+        ]
+    },
     Records: {
         name: 'Records',
         columns: [
@@ -56,8 +68,10 @@ export const APP_SCHEMA: TableSchema = {
             { name: 'group_id', type: 'INTEGER', references: { table: 'Groups', column: 'id' } },
             { name: 'category_id', type: 'INTEGER', references: { table: 'Categories', column: 'id' } },
             { name: 'payment_method_id', type: 'INTEGER', references: { table: 'PaymentMethods', column: 'id' } },
+            { name: 'fixed_id', type: 'INTEGER', references: { table: 'Fixed', column: 'id' } },
         ]
     },
+
     Budgets: {
         name: 'Budgets',
         columns: [

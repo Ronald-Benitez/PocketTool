@@ -20,6 +20,7 @@
     "settings": {
         "header": "Settings",
         "selectLanguage": "Language",
+        "selectRecordType": "Resume record types",
         "languages": {
             "english": "English",
             "spanish": "Español"

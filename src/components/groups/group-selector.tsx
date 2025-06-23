@@ -63,7 +63,7 @@ const GroupSelector = () => {
         if (!group?.id) return
         setGroup(group)
         await fetchRecords(group.id).then((res) => {
-            setRecords(res as RecordJoined[])
+            setRecords(res)
         })
         // await getAllResume(group.id).then(res => {
         //     setResumes(res)

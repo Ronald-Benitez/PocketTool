@@ -56,16 +56,7 @@ const ItemsTable = () => {
         return c
     }
 
-    const typeColor = (color: string) => {
-        switch (color) {
-            case "income":
-                return colors?.IncomeColor
-            case "expense":
-                return colors?.ExpenseColor;
-            case "transfer":
-                return colors?.TransferColor
-        }
-    }
+    // console.log(records)
 
 
     return (
@@ -96,7 +87,7 @@ const ItemsTable = () => {
                             <SwipeItem
                                 handleDelete={() => handleDelete(index)}
                                 handleUpdate={() => handleUpdate(index)}
-                                key={index}
+                                key={item.id}
                             >
                                 <BorderLeftBottomBlock
                                     bottomColor={item.record_color}

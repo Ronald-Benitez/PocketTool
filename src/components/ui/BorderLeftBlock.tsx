@@ -1,17 +1,18 @@
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, ViewStyle } from "react-native";
 import { ReactNode } from "react";
 
 import BGSimpleBlock from "./BGSimpleBlock";
 
 interface props {
     children: ReactNode,
-    color: string | undefined
+    color: string | undefined,
+    style?: ViewStyle
 }
 
-const BorderLeftBlock = ({ children, color }: props) => {
+const BorderLeftBlock = ({ children, color, style }: props) => {
     return (
         <>
-            <View style={[localStyles.block, { borderColor: color }]}>
+            <View style={[localStyles.block, { borderColor: color }, style]}>
                 <BGSimpleBlock>
                     {children}
                 </BGSimpleBlock>
