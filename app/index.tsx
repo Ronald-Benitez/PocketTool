@@ -11,12 +11,14 @@ import FinanceSimpleBlock from '@/src/components/ui/FinanceSimpleBlock';
 import useRecordsStore from '@/src/stores/RecordsStore';
 import AddItem from '@/src/components/records/add-record';
 import ColorText from '@/src/components/ui/color-text';
+import useResumesStore from '@/src/stores/ResumesStore';
 
 const Index = () => {
     const { t } = useLanguage();
     const { initializeColors, colors } = useColorStore()
-    const { resumes, group } = useRecordsStore()
+    const { group } = useRecordsStore()
     const [today, setToday] = useState(new Date())
+    const { balance, balanceByRecordType } = useResumesStore()
 
     useEffect(() => {
         initializeColors()
@@ -61,8 +63,8 @@ const Index = () => {
                     <IndexBlock>
                         <FinanceSimpleBlock
                             text={t("resume.balance")}
-                            value={(resumes?.balance || 0).toFixed(2)}
-                            color={resumes ? (resumes?.balance < 0 ? colors?.ExpenseColor : colors?.IncomeColor) : colors?.GoalColor}
+                            value={(balance || 0).toFixed(2)}
+                            color={balance < 0 ? colors?.ExpenseColor : colors?.IncomeColor}
                         />
                     </IndexBlock>
                     <IndexBlock>
@@ -72,41 +74,51 @@ const Index = () => {
                             color={colors?.GoalColor}
                         />
                     </IndexBlock>
-                    <IndexBlock>
+                    {/* <IndexBlock>
                         <FinanceSimpleBlock
                             text={t("resume.credit")}
                             value={String((resumes?.expenseCredit || 0) + (resumes?.transferCredit || 0))}
                             color={colors?.Credit}
                         />
-                    </IndexBlock>
-                    <IndexBlock>
-                        <Text style={localStyles.blockText}>{t("resume.today")}</Text>
-                        <View style={localStyles.rowContainer}>
-                            <FinanceSimpleBlock
-                                text={t("resume.incomes")}
-                                value={String(resumes?.todayTotal?.totalIncomeToday || 0)}
-                                color={colors?.IncomeColor}
-                                blockwidth={150}
-                            />
-                            <FinanceSimpleBlock
-                                text={t("resume.expenses")}
-                                value={String(resumes?.todayTotal?.totalExpenseToday || 0)}
-                                color={colors?.ExpenseColor}
-                                blockwidth={150}
-                            />
-                            <View style={[{ position: "absolute", right: -10, top: -40 }]}>
+                    </IndexBlock> */}
+                    <View style={[localStyles.rowContainer, { margin: 10, position: "relative", backgroundColor: colors?.BGSimple, paddingVertical: 10 }]}>
+                        <ScrollView>
+                            {/* <Text style={localStyles.blockText}>{t("resume.today")}</Text> */}
+                            <View style={localStyles.colContainer}>
+                                {/* <FinanceSimpleBlock
+                                    text={t("resume.incomes")}
+                                    value={String(resumes?.todayTotal?.totalIncomeToday || 0)}
+                                    color={colors?.IncomeColor}
+                                />
+                                <FinanceSimpleBlock
+                                    text={t("resume.expenses")}
+                                    value={String(resumes?.todayTotal?.totalExpenseToday || 0)}
+                                    color={colors?.ExpenseColor}
+                                /> */}
                                 {
-                                    group && (
-                                        <AddItem>
-                                            <View style={[localStyles.button]}>
-                                                <AntDesign size={20} name='plus' color={"#000"} />
-                                            </View>
-                                        </AddItem >
-                                    )
+                                    balanceByRecordType?.map((item) => (
+                                        <FinanceSimpleBlock
+                                            key={item.id}
+                                            text={item.type_name}
+                                            value={String(item.total)}
+                                            color={item.record_color}
+                                        />
+                                    ))
                                 }
+                                <View style={[{ position: "absolute", right: -10, top: -40 }]}>
+                                    {
+                                        group && (
+                                            <AddItem>
+                                                <View style={[localStyles.button]}>
+                                                    <AntDesign size={20} name='plus' color={"#000"} />
+                                                </View>
+                                            </AddItem >
+                                        )
+                                    }
+                                </View>
                             </View>
-                        </View>
-                    </IndexBlock>
+                        </ScrollView>
+                    </View>
                 </View>
             </View>
         </View>
@@ -124,10 +136,17 @@ const localStyles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center"
     },
+    colContainer: {
+        flexDirection: "column",
+        gap: 5,
+        alignItems: "center",
+        justifyContent: "center"
+    },
     blockText: {
         fontWeight: "200",
         fontSize: 12,
-        marginBottom: 10
+        marginBottom: 10,
+        textAlign: "center",
     },
     button: {
         width: 50,

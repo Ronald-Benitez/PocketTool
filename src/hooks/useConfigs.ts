@@ -1,38 +1,38 @@
-import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { create } from 'zustand';
 
 export interface Configs {
     recordTypes: number[];
 }
 
-export const useConfigs = () => {
-    const [configs, setConfigs] = useState<Configs>({ recordTypes: [1, 2] });
+interface ConfigsStore {
+    configs: Configs;
+    loadConfigs: () => Promise<void>;
+    saveConfigs: (newConfigs: Configs) => Promise<void>;
+}
 
-    useEffect(() => {
-        loadConfigs();
-    }, []);
+export const useConfigs = create<ConfigsStore>((set, get) => ({
+    configs: { recordTypes: [1, 2] },
 
-    const loadConfigs = async () => {
+    loadConfigs: async () => {
         try {
             const storedConfigs = await AsyncStorage.getItem('configs');
             if (storedConfigs) {
-                setConfigs(JSON.parse(storedConfigs));
+                set({ configs: JSON.parse(storedConfigs) });
             }
         } catch (error) {
-            console.error("Error loading configs:", error);
+            console.error("Error loading configs from AsyncStorage:", error);
         }
-    };
+    },
 
-    const saveConfigs = async (newConfigs: Configs) => {
+    saveConfigs: async (newConfigs: Configs) => {
         try {
             await AsyncStorage.setItem('configs', JSON.stringify(newConfigs));
-            setConfigs(newConfigs);
+            set({ configs: newConfigs });
         } catch (error) {
-            console.error("Error saving configs:", error);
+            console.error("Error saving configs to AsyncStorage:", error);
         }
-    };
-
-    return { configs, saveConfigs };
-};
+    },
+}));
 
 export default useConfigs;

@@ -1,17 +1,18 @@
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, ViewStyle } from "react-native";
 import { ReactNode } from "react";
 
 import useColorStore from '@/src/stores/ColorsStore';
 
 interface props {
     children: ReactNode,
+    style?: ViewStyle
 }
 
-const IndexBlock = ({ children }: props) => {
+const IndexBlock = ({ children, style }: props) => {
     const { colors } = useColorStore()
     return (
         <>
-            <View style={[localStyles.block, { backgroundColor: colors?.BGSimple }]}>
+            <View style={[localStyles.block, { backgroundColor: colors?.BGSimple }, style ? style : { maxHeight: 100 }]}>
                 {children}
             </View>
         </>
@@ -21,7 +22,6 @@ const IndexBlock = ({ children }: props) => {
 const localStyles = StyleSheet.create({
     block: {
         flex: 1,
-        maxHeight: 100,
         width: 325,
         flexDirection: "column",
         alignItems: "center",

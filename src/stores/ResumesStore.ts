@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { create } from "zustand";
 
 import useConfigs from "../hooks/useConfigs";
 import useRecordsStore from "./RecordsStore";
@@ -7,18 +8,24 @@ import { useDataStore } from ".";
 
 interface Resumes {
     balance: number;
-    balanceByRecordType: RecordTypes & {
+    balanceByRecordType: (RecordTypes & {
         total: number;
-    }[];
-    balanceByPaymentType: PaymentTypes & {
-        total: number;
-    }[];
-    balanceByPaymentMethod: PaymentMethods & {
-        total: number;
-    }[]
-    balanceByCategory: Categories & {
-        total: number;
-    }[]
+    })[];
+    balanceByPaymentType: (PaymentTypes & {
+        totalPerRecordType: (RecordTypes & {
+            total: number;
+        })[];
+    })[];
+    balanceByPaymentMethod: (PaymentMethods & {
+        totalPerRecordType: (RecordTypes & {
+            total: number;
+        })[];
+    })[];
+    balanceByCategory: (Categories & {
+        totalPerRecordType: (RecordTypes & {
+            total: number;
+        })[];
+    })[];
 }
 
 export const useResumesStore = () => {
@@ -30,10 +37,10 @@ export const useResumesStore = () => {
         calculeteResumes();
     }, [records, recordTypes]);
 
-    const calculateBalance = (filterByConfig = false): number => {
+    const calculateBalance = (): number => {
         return records.reduce((acc, record) => {
             // effect =, -, +
-            if (filterByConfig && !recordTypes.includes(record.record_type_id)) {
+            if (!recordTypes.includes(record.record_type_id)) {
                 return acc;
             }
             if (record.effect === '+') {
@@ -50,23 +57,31 @@ export const useResumesStore = () => {
     }
 
     // all the resumes exluding balance
-    const calculeteResumes = (filterByConfig = false): Omit<Resumes, "balance"> => {
+    const calculeteResumes = (): Omit<Resumes, "balance"> => {
         const recordTypeResume = RecordTypes.map(rt => ({
             ...rt,
-            total: 0
+            total: 0,
         }));
         const paymentTypeResume = PaymentTypes.map(pt => ({
             ...pt,
-            total: 0
+            totalPerRecordType: RecordTypes.map(r => ({
+                ...r,
+                total: 0
+            })),
         }));
         const paymentMethodResume = PaymentMethods.map(pm => ({
             ...pm,
-            total: 0
-
+            totalPerRecordType: RecordTypes.map(r => ({
+                ...r,
+                total: 0
+            })),
         }));
         const categoryResume = Categories.map(cat => ({
             ...cat,
-            total: 0
+            totalPerRecordType: RecordTypes.map(r => ({
+                ...r,
+                total: 0
+            })),
         }));
 
 
@@ -78,17 +93,29 @@ export const useResumesStore = () => {
 
             const paymentType = paymentTypeResume.find(pt => pt.id === record.payment_type_id);
             if (paymentType) {
-                paymentType.total += record.amount;
+                paymentType.totalPerRecordType.forEach(r => {
+                    if (r.id === record.record_type_id) {
+                        r.total += record.amount;
+                    }
+                });
             }
 
             const paymentMethod = paymentMethodResume.find(pm => pm.id === record.payment_method_id);
             if (paymentMethod) {
-                paymentMethod.total += record.amount;
+                paymentMethod.totalPerRecordType.forEach(r => {
+                    if (r.id === record.record_type_id) {
+                        r.total += record.amount;
+                    }
+                });
             }
 
             const category = categoryResume.find(cat => cat.id === record.category_id);
             if (category) {
-                category.total += record.amount;
+                category.totalPerRecordType.forEach(r => {
+                    if (r.id === record.record_type_id) {
+                        r.total += record.amount;
+                    }
+                });
             }
         })
 
@@ -100,12 +127,10 @@ export const useResumesStore = () => {
         }
     }
 
-    const calculeteResumes = (): Resumes => {
-        return {
-            balance: calculateBalance()
-        }
-    }
-
+    return create<Resumes>((set, get) => ({
+        balance: calculateBalance(),
+        ...calculeteResumes(),
+    }))();
 }
 
 export default useResumesStore;

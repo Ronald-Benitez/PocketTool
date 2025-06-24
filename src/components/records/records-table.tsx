@@ -3,8 +3,6 @@ import React, { useState } from 'react'
 import { AntDesign } from '@expo/vector-icons'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
-import { RecordI } from '@/src/interfaces'
-import styles from '@/src/styles/styles'
 import SwipeItem from '../ui/swipe-item'
 import useDate from '@/src/hooks/useDate'
 import { ScrollView } from 'react-native-gesture-handler'
@@ -16,17 +14,19 @@ import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
 import IconButton from '../ui/icon-button'
 import { RecordJoined } from '@/src/db/types/tables'
 import { useRecords } from "@/src/db/handlers/RecordsHandler";
+import useResumesStore from '@/src/stores/ResumesStore'
 
 
 const ItemsTable = () => {
     const [selected, setSelected] = React.useState<RecordJoined | undefined>()
     const [openUpdate, setOpenUpdate] = React.useState<boolean>(false)
-    const {fetchRecords, handler: recordsHandler} = useRecords()
+    const { fetchRecords, handler: recordsHandler } = useRecords()
     const dateh = useDate()
     const { ToastContainer, showToast } = useToast()
     const { t } = useLanguage()
-    const { balance, records, group, setRecords } = useRecordsStore()
+    const { records, group, setRecords } = useRecordsStore()
     const { colors } = useColorStore()
+    const { balance } = useResumesStore()
 
     const handleDelete = async (index: number) => {
         if (!group) return
@@ -55,9 +55,6 @@ const ItemsTable = () => {
         }
         return c
     }
-
-    // console.log(records)
-
 
     return (
         <>
