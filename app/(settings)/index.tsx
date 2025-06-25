@@ -28,28 +28,37 @@ const SettingsScreen = () => {
     }
 
     useEffect(() => {
+        const defaultConfig = { ...configs }
         if (configs?.recordTypes?.length <= 0) {
-            saveConfigs({
-                recordTypes: [1, 2] // 1: income, 2: expense
-            })
+            defaultConfig.recordTypes = [1, 2]
         }
+        if (!configs.recordTypes) {
+            defaultConfig.creditType = 4
+        }
+
+        saveConfigs(defaultConfig)
     }, [])
 
     const onTypesChange = (value: number) => {
         const type = RecordTypes[value];
         const set = new Set(configs?.recordTypes || []);
-        console.log("Selected Type: ", type, value, configs?.recordTypes);
+        const newConfig = { ...configs }
         if (!type?.id) return;
         if (configs?.recordTypes?.includes(type.id)) {
-            saveConfigs({
-                recordTypes: configs.recordTypes.filter(rt => rt !== type.id)
-            });
+            newConfig.recordTypes = configs.recordTypes.filter(rt => rt !== type.id)
         }
         else {
-            saveConfigs({
-                recordTypes: [...(configs?.recordTypes || []), type.id]
-            });
+            newConfig.recordTypes = [...(configs?.recordTypes || []), type.id]
         }
+        saveConfigs(newConfig);
+    }
+
+    const onCreditTypeChange = (value: number) => {
+        const type = RecordTypes[value]
+        if (!type.id) return
+        const newConfig = { ...configs }
+        newConfig.creditType = type.id
+        saveConfigs(newConfig)
     }
 
     const SelectTypeBlockRender = (index: number) => {
@@ -66,7 +75,37 @@ const SettingsScreen = () => {
 
     const SelectedTypeBlockRender = () => {
         const selected = RecordTypes.filter(rt => configs?.recordTypes?.includes(rt?.id || 0));
-        
+
+        if (selected.length <= 0) {
+            return (
+                <View style={[styles.borderedContainer, { borderColor: "#B6B6B6" }]}>
+                    <Text style={[styles.text]}>{t('settings.selectRecordType')}</Text>
+                </View>
+            )
+        }
+
+        return (
+            <View style={[localStyles.block, { borderColor: selected[0].record_color }]}>
+                <Text style={[styles.text]}>{selected.map(rt => rt.type_name).join(", ")}</Text>
+            </View>
+        )
+    }
+
+    const SelectCreditBlockRender = (index: number) => {
+
+        const transformStyle = {
+            transform: configs.creditType == RecordTypes[index]?.id ? [{ scale: 0.95 }] : [{ scale: 1 }]
+        };
+        return (
+            <BorderLeftBlock color={RecordTypes[index].record_color} style={transformStyle}>
+                <Text style={[styles.text]}>{RecordTypes[index].type_name}</Text>
+            </BorderLeftBlock>
+        )
+    }
+
+    const SelectedCreditBlockRender = () => {
+        const selected = RecordTypes.filter(rt => configs?.creditType == rt?.id);
+
         if (selected.length <= 0) {
             return (
                 <View style={[styles.borderedContainer, { borderColor: "#B6B6B6" }]}>
@@ -102,6 +141,18 @@ const SettingsScreen = () => {
                     render={SelectTypeBlockRender}
                 >
                     <SelectedTypeBlockRender />
+                </BaseSelect>
+            </View>
+            <View style={localStyles.container}>
+                <BaseSelect
+                    options={RecordTypes.map(rt => rt.type_name)}
+                    selected={configs?.creditType || 0}
+                    onChange={onCreditTypeChange}
+                    title={t('settings.selectCreditType')}
+                    label={t('settings.selectCreditType')}
+                    render={SelectCreditBlockRender}
+                >
+                    <SelectedCreditBlockRender />
                 </BaseSelect>
             </View>
             <View style={localStyles.dbContainer}>

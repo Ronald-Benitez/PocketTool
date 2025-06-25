@@ -3,6 +3,7 @@ import { create } from 'zustand';
 
 export interface Configs {
     recordTypes: number[];
+    creditType: number;
 }
 
 interface ConfigsStore {
@@ -12,7 +13,7 @@ interface ConfigsStore {
 }
 
 export const useConfigs = create<ConfigsStore>((set, get) => ({
-    configs: { recordTypes: [1, 2] },
+    configs: { recordTypes: [1, 2], creditType: 4 },
 
     loadConfigs: async () => {
         try {

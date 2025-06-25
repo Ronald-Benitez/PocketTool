@@ -9,6 +9,7 @@ import useColorStore from '@/src/stores/ColorsStore';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import BalanceBlock from '@/src/components/ui/BalanceBlock';
 import useRecordsStore from '@/src/stores/RecordsStore';
+import { useCreditStore } from '@/src/stores/CreditsStore';
 
 const Index = () => {
     const { fetchResumeByCreditCards } = useRecords()
@@ -18,28 +19,29 @@ const Index = () => {
     const [totalCurrent, setTotalCurrent] = useState(0)
     const [totalPrevious, setTotalPrevious] = useState(0)
     const { records } = useRecordsStore()
+    const { credits } = useCreditStore()
 
-    const fetch = async () => {
-        try {
-            const res = await fetchResumeByCreditCards()
-            setCreditCards(res)
-        } catch (e) {
+    // const fetch = async () => {
+    //     try {
+    //         const res = await fetchResumeByCreditCards()
+    //         setCreditCards(res)
+    //     } catch (e) {
 
-        }
-    }
+    //     }
+    // }
+
+    // useEffect(() => {
+    //     fetch()
+    // }, [records])
 
     useEffect(() => {
-        fetch()
-    }, [records])
-
-    useEffect(() => {
         try {
-            if (creditCards?.length && creditCards.length > 0) {
+            if (credits?.length && credits.length > 0) {
                 let newCurrent = 0
                 let newPrevious = 0
-                creditCards.map(e => {
-                    newCurrent += e.current
-                    newPrevious += e.previous
+                credits.map(e => {
+                    newCurrent += e?.totalCurrent || 0
+                    newPrevious += e?.totalPrevious || 0
                 })
                 setTotalCurrent(newCurrent)
                 setTotalPrevious(newPrevious)
@@ -47,7 +49,9 @@ const Index = () => {
         } catch (e) {
         }
 
-    }, [creditCards])
+    }, [credits])
+
+
 
     return (
         <View style={styles.container}>
@@ -70,23 +74,23 @@ const Index = () => {
                 </View>
             </View>
             <View style={[localStyles.container]}>
-                {creditCards?.map((e, index) => (
+                {credits?.map((e, index) => (
                     <View key={index} style={[{ backgroundColor: colors?.BGSimple }, localStyles.block]}>
                         <View style={{ flex: 1 }}>
-                            <ColorText backgroundColor={colors?.BGSimple} padding={0}>{e?.creditCardName}</ColorText>
+                            <ColorText backgroundColor={colors?.BGSimple} padding={0}>{e?.method_name}</ColorText>
                         </View>
                         <View style={[{ flex: 1 }, localStyles.row]}>
                             <View style={[localStyles.col]}>
                                 <ColorText backgroundColor={colors?.BGSimple} padding={0} fontSize={10} fontWeight={200}>{t("credits.closingDate")}</ColorText>
-                                <ColorText backgroundColor={colors?.BGSimple} padding={0}>{e?.closingDate}</ColorText>
+                                <ColorText backgroundColor={colors?.BGSimple} padding={0}>{e?.closing_date}</ColorText>
                             </View>
                             <View style={[localStyles.col]}>
                                 <ColorText backgroundColor={colors?.BGSimple} padding={0} fontSize={10} fontWeight={200}>{t("credits.previous")}</ColorText>
-                                <ColorText backgroundColor={colors?.BGSimple} padding={0}>${e?.previous}</ColorText>
+                                <ColorText backgroundColor={colors?.BGSimple} padding={0}>${e?.totalPrevious}</ColorText>
                             </View>
                             <View style={[localStyles.col]}>
                                 <ColorText backgroundColor={colors?.BGSimple} padding={0} fontSize={10} fontWeight={200}>{t("credits.current")}</ColorText>
-                                <ColorText backgroundColor={colors?.BGSimple} padding={0}>${e?.current}</ColorText>
+                                <ColorText backgroundColor={colors?.BGSimple} padding={0}>${e?.totalCurrent}</ColorText>
                             </View>
                         </View>
                     </View>

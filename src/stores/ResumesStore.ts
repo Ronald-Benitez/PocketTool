@@ -1,13 +1,17 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { create } from "zustand";
 
 import useConfigs from "../hooks/useConfigs";
 import useRecordsStore from "./RecordsStore";
 import { RecordTypes, PaymentTypes, PaymentMethods, Categories } from "../db/types/tables";
 import { useDataStore } from ".";
+import { useCreditStore } from "./CreditsStore";
 
 interface Resumes {
     balance: number;
+    todayBalanceByRecordType: (RecordTypes & {
+        total: number;
+    })[];
     balanceByRecordType: (RecordTypes & {
         total: number;
     })[];
@@ -33,13 +37,8 @@ export const useResumesStore = () => {
     const { records } = useRecordsStore();
     const { PaymentMethods, Categories, RecordTypes, PaymentTypes } = useDataStore()
 
-    useEffect(() => {
-        calculeteResumes();
-    }, [records, recordTypes]);
-
     const calculateBalance = (): number => {
         return records.reduce((acc, record) => {
-            // effect =, -, +
             if (!recordTypes.includes(record.record_type_id)) {
                 return acc;
             }
@@ -49,15 +48,17 @@ export const useResumesStore = () => {
             else if (record.effect === '-') {
                 acc -= record.amount;
             }
-            else if (record.effect === '=') {
-                // Do nothing for '=' effect
-            }
             return acc;
         }, 0);
     }
 
-    // all the resumes exluding balance
     const calculeteResumes = (): Omit<Resumes, "balance"> => {
+
+        const todayBalanceByRecordType = RecordTypes.map(rt => ({
+            ...rt,
+            total: 0,
+        }));
+
         const recordTypeResume = RecordTypes.map(rt => ({
             ...rt,
             total: 0,
@@ -84,11 +85,22 @@ export const useResumesStore = () => {
             })),
         }));
 
+        const today = new Date()
+
+        const endLimit = today.getTime()
+        today.setHours(0, 0, 0)
+        const startLimit = today.getTime()
+
 
         records.map(record => {
             const recordType = recordTypeResume.find(rt => rt.id === record.record_type_id);
+            const todayRecordType = todayBalanceByRecordType.find(rt => rt.id === record.record_type_id)
             if (recordType) {
                 recordType.total += record.amount;
+            }
+
+            if (todayRecordType && (record.date >= startLimit && record.date <= endLimit)) {
+                todayRecordType.total += record.amount
             }
 
             const paymentType = paymentTypeResume.find(pt => pt.id === record.payment_type_id);
@@ -120,6 +132,7 @@ export const useResumesStore = () => {
         })
 
         return {
+            todayBalanceByRecordType,
             balanceByRecordType: recordTypeResume,
             balanceByPaymentType: paymentTypeResume,
             balanceByPaymentMethod: paymentMethodResume,

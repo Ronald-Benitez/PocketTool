@@ -18,7 +18,7 @@ const Index = () => {
     const { initializeColors, colors } = useColorStore()
     const { group } = useRecordsStore()
     const [today, setToday] = useState(new Date())
-    const { balance, balanceByRecordType } = useResumesStore()
+    const { balance, todayBalanceByRecordType } = useResumesStore()
 
     useEffect(() => {
         initializeColors()
@@ -96,7 +96,7 @@ const Index = () => {
                                     color={colors?.ExpenseColor}
                                 /> */}
                                 {
-                                    balanceByRecordType?.map((item) => (
+                                    todayBalanceByRecordType?.map((item) => (
                                         <FinanceSimpleBlock
                                             key={item.id}
                                             text={item.type_name}
