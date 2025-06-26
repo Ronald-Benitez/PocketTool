@@ -34,10 +34,10 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
     const [month, setMonth] = useState<number>(new Date().getMonth())
     const [year, setYear] = useState<number>(new Date().getFullYear())
     const { addGroup, editGroup, fetchGroupsByYear } = useGroups()
-    const { group, setGroup, groups } = useRecordsStore()
+    const { group, setGroup, groups, setGroups } = useRecordsStore()
     const toast = useAndroidToast()
     const handler = useHandler("Groups")
-    const { Groups, setGroups } = useDataStore()
+    
 
 
     useEffect(() => {

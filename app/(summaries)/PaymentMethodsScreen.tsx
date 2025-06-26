@@ -1,7 +1,7 @@
 import { View, ScrollView, StyleSheet } from 'react-native';
 import GroupSelector from '@/src/components/groups/group-selector';
 import styles from '@/src/styles/styles';
-import FinnanceTableBlock from '@/src/components/ui/FinnanceTableBlock';
+import FinnanceTableBlock from '@/src/components/ui/FinanceTableBlock';
 
 const PaymentMethodsScreen = () => {
 

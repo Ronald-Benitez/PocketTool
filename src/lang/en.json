@@ -208,6 +208,7 @@
         "balanceWithout": "Balance without credit",
         "summaryByCategories": "Summary by categories",
         "summaryByPayments": "Summary by payment methods",
+        "summaryByTypes": "Summary by payment types",
         "today": "Today",
         "transfers": "Tranfers"
     },

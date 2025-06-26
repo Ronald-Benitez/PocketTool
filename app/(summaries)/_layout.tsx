@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 import StackBase from "@/src/components/navigation/stack-base";
 import { useLanguage } from "@/src/lang/LanguageContext";
@@ -37,6 +37,17 @@ export default function Layout() {
                     title: t("headers.categories"),
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons name="options" size={size} color={color} />
+                    ),
+                    headerStyle: {
+                        backgroundColor: '#fff'
+                    }
+                }} />
+            <Tabs.Screen
+                name="PaymentTypesScreen"
+                options={{
+                    title: t("headers.paymentTypes"),
+                    tabBarIcon: ({ color, size }) => (
+                        <MaterialCommunityIcons name="cash-multiple" size={size} color={color} />
                     ),
                     headerStyle: {
                         backgroundColor: '#fff'

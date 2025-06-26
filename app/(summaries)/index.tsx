@@ -13,7 +13,7 @@ import useColorStore from '@/src/stores/ColorsStore';
 import FinanceSimpleBlock from '@/src/components/ui/FinanceSimpleBlock';
 import DetailedFinanceBlock from '@/src/components/ui/DetailedFinanceBlock';
 import BalanceBlock from '@/src/components/ui/BalanceBlock';
-import FinnanceTableBlock from '@/src/components/ui/FinnanceTableBlock';
+import FinnanceTableBlock from '@/src/components/ui/FinanceTableBlock';
 import useResumesStore from '@/src/stores/ResumesStore';
 
 const Index = () => {

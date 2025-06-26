@@ -7,6 +7,10 @@ import { RecordTypes, PaymentTypes, PaymentMethods, Categories } from "../db/typ
 import { useDataStore } from ".";
 import { useCreditStore } from "./CreditsStore";
 
+interface totalPerRecordType extends RecordTypes {
+    total: number;
+}
+
 export interface Resumes {
     balance: number;
     todayBalanceByRecordType: (RecordTypes & {
@@ -16,19 +20,16 @@ export interface Resumes {
         total: number;
     })[];
     balanceByPaymentType: (PaymentTypes & {
-        totalPerRecordType: (RecordTypes & {
-            total: number;
-        })[];
+        balance: number,
+        totalPerRecordType: totalPerRecordType[];
     })[];
     balanceByPaymentMethod: (PaymentMethods & {
-        totalPerRecordType: (RecordTypes & {
-            total: number;
-        })[];
+        balance: number,
+        totalPerRecordType: totalPerRecordType[];
     })[];
     balanceByCategory: (Categories & {
-        totalPerRecordType: (RecordTypes & {
-            total: number;
-        })[];
+        balance: number,
+        totalPerRecordType: totalPerRecordType[];
     })[];
 }
 
@@ -65,6 +66,7 @@ export const useResumesStore = () => {
         }));
         const paymentTypeResume = PaymentTypes.map(pt => ({
             ...pt,
+            balance: 0,
             totalPerRecordType: RecordTypes.map(r => ({
                 ...r,
                 total: 0
@@ -72,6 +74,7 @@ export const useResumesStore = () => {
         }));
         const paymentMethodResume = PaymentMethods.map(pm => ({
             ...pm,
+            balance: 0,
             totalPerRecordType: RecordTypes.map(r => ({
                 ...r,
                 total: 0
@@ -79,6 +82,7 @@ export const useResumesStore = () => {
         }));
         const categoryResume = Categories.map(cat => ({
             ...cat,
+            balance: 0,
             totalPerRecordType: RecordTypes.map(r => ({
                 ...r,
                 total: 0
@@ -91,7 +95,7 @@ export const useResumesStore = () => {
         today.setHours(0, 0, 0)
         const startLimit = today.getTime()
 
-
+        console.log(records, paymentTypeResume)
         records.map(record => {
             const recordType = recordTypeResume.find(rt => rt.id === record.record_type_id);
             const todayRecordType = todayBalanceByRecordType.find(rt => rt.id === record.record_type_id)
@@ -110,7 +114,9 @@ export const useResumesStore = () => {
                         r.total += record.amount;
                     }
                 });
+                paymentType.balance = paymentType?.totalPerRecordType?.reduce(typeReducer, 0) || 0
             }
+
 
             const paymentMethod = paymentMethodResume.find(pm => pm.id === record.payment_method_id);
             if (paymentMethod) {
@@ -119,7 +125,10 @@ export const useResumesStore = () => {
                         r.total += record.amount;
                     }
                 });
+                paymentMethod.balance = paymentMethod?.totalPerRecordType?.reduce(typeReducer, 0) || 0;
             }
+
+
 
             const category = categoryResume.find(cat => cat.id === record.category_id);
             if (category) {
@@ -128,6 +137,7 @@ export const useResumesStore = () => {
                         r.total += record.amount;
                     }
                 });
+                category.balance = category?.totalPerRecordType?.reduce(typeReducer, 0) || 0;
             }
         })
 
@@ -144,6 +154,16 @@ export const useResumesStore = () => {
         balance: calculateBalance(),
         ...calculeteResumes(),
     }))();
+}
+
+const typeReducer = (acc: number, type: totalPerRecordType) => {
+    if (type.effect == "-") {
+        return acc - type.total;
+    }
+    if (type.effect == "+") {
+        return acc + type.total;
+    }
+    return acc;
 }
 
 export default useResumesStore;

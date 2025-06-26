@@ -3,7 +3,7 @@ import GroupSelector from '@/src/components/groups/group-selector';
 import styles from '@/src/styles/styles';
 import FinnanceTableBlock from '@/src/components/ui/FinanceTableBlock';
 
-const CategoriesScreen = () => {
+const PaymentTypesScreen = () => {
 
     return (
         <>
@@ -14,7 +14,7 @@ const CategoriesScreen = () => {
             </View >
             <ScrollView>
                 <View style={localStyles.container}>
-                    <FinnanceTableBlock render='categories' />
+                    <FinnanceTableBlock render='types' />
                 </View>
             </ScrollView>
         </>
@@ -42,4 +42,4 @@ const localStyles = StyleSheet.create({
     }
 })
 
-export default CategoriesScreen;
+export default PaymentTypesScreen;
