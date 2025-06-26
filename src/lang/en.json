@@ -21,7 +21,8 @@
         "header": "Settings",
         "selectLanguage": "Language",
         "selectRecordType": "Resume record types",
-        "selectCreditType": "Credit payments type",
+        "selectCreditExpenseType": "Credit expenses type",
+        "selectCreditPaymentType": "Credit payments type",
         "languages": {
             "english": "English",
             "spanish": "Español"

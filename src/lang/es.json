@@ -21,7 +21,8 @@
         "header": "Configuraciones",
         "selectLanguage": "Idioma",
         "selectRecordType": "Tipos de registro del resumen",
-        "selectCreditType": "Tipo de pagos a crédito",
+        "selectCreditExpenseType": "Tipo de gastos a crédito",
+        "selectCreditPaymentType": "Tipo de pagos a crédito",
         "languages": {
             "english": "Inglés",
             "spanish": "Español"

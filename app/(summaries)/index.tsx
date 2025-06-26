@@ -1,4 +1,4 @@
-import { View, ScrollView,  StyleSheet } from 'react-native';
+import { View, ScrollView, StyleSheet } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AntDesign, Feather } from '@expo/vector-icons';
@@ -14,6 +14,7 @@ import FinanceSimpleBlock from '@/src/components/ui/FinanceSimpleBlock';
 import DetailedFinanceBlock from '@/src/components/ui/DetailedFinanceBlock';
 import BalanceBlock from '@/src/components/ui/BalanceBlock';
 import FinnanceTableBlock from '@/src/components/ui/FinnanceTableBlock';
+import useResumesStore from '@/src/stores/ResumesStore';
 
 const Index = () => {
     const { t } = useLanguage();
@@ -22,35 +23,35 @@ const Index = () => {
     const { fetchGroupsById, fetchLastGroup } = useGroups();
     const [openUpdate, setOpenUpdate] = useState(false)
     const { colors } = useColorStore()
+    const { balance, balanceByRecordType } = useResumesStore()
 
+    // useEffect(() => {
+    //     getPinned();
+    // }, []);
 
-    useEffect(() => {
-        getPinned();
-    }, []);
+    // useEffect(() => {
+    //     if (!group) return;
+    //     loadTotals(group.id);
+    // }, [group?.id]);
 
-    useEffect(() => {
-        if (!group) return;
-        loadTotals(group.id);
-    }, [group?.id]);
+    // const getPinned = async () => {
+    //     const pinned = await AsyncStorage.getItem('group');
+    //     if (pinned) {
+    //         const p = Number(pinned);
+    //         fetchGroupsById(p).then(g => {
+    //             setGroup(g as Group);
+    //         });
+    //     } else {
+    //         fetchLastGroup().then(g => {
+    //             setGroup(g as Group);
+    //         });
+    //     }
+    // };
 
-    const getPinned = async () => {
-        const pinned = await AsyncStorage.getItem('group');
-        if (pinned) {
-            const p = Number(pinned);
-            fetchGroupsById(p).then(g => {
-                setGroup(g as Group);
-            });
-        } else {
-            fetchLastGroup().then(g => {
-                setGroup(g as Group);
-            });
-        }
-    };
-
-    const loadTotals = async (groupId: number) => {
-        const res = await records.getAllResume(groupId)
-        setResumes(res)
-    };
+    // const loadTotals = async (groupId: number) => {
+    //     const res = await records.getAllResume(groupId)
+    //     setResumes(res)
+    // };
 
     return (
         <>
@@ -76,13 +77,13 @@ const Index = () => {
                 <BalanceBlock
                     bottom={false}
                     text={t('resume.balance')}
-                    value={(resumes?.balance || 0).toFixed(2)}
-                    color={resumes ? (resumes?.balance < 0 ? colors?.ExpenseColor : colors?.IncomeColor) : colors?.Debit}
+                    value={(balance || 0).toFixed(2)}
+                    color={balance < 0 ? colors?.ExpenseColor : colors?.IncomeColor}
                 />
             </View >
-            <ScrollView>
+            <ScrollView style={{ flex: 1 }}>
                 <View style={localStyles.container}>
-                    <View style={localStyles.simpleContainer}>
+                    {/* <View style={localStyles.simpleContainer}>
                         <FinanceSimpleBlock
                             text={t("resume.incomes")}
                             color={colors?.IncomeColor}
@@ -144,7 +145,18 @@ const Index = () => {
                         text={t('resume.balanceWithout')}
                         value={String((resumes?.totalWithoutDebts || 0).toFixed(2))}
                         color={resumes ? (resumes?.totalWithoutDebts < 0 ? colors?.ExpenseColor : colors?.IncomeColor) : colors?.Debit}
-                    />
+                    /> */}
+                    {
+                        balanceByRecordType?.map((item) => (
+                            <View style={localStyles.simpleContainer} key={item?.id}>
+                                <FinanceSimpleBlock
+                                    text={item.type_name}
+                                    value={String(item.total)}
+                                    color={item.record_color}
+                                />
+                            </View>
+                        ))
+                    }
                 </View>
             </ScrollView>
         </>
@@ -169,7 +181,9 @@ const localStyles = StyleSheet.create({
     },
     container: {
         padding: 10,
-        paddingHorizontal: 20
+        paddingHorizontal: 20,
+        justifyContent: 'center',
+        width: '100%',
     }
 })
 

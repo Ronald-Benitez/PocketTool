@@ -2,9 +2,10 @@ import { StyleSheet, Text, View, TextStyle, ViewStyle, StyleProp } from "react-n
 
 import useColorStore from '@/src/stores/ColorsStore';
 import { useLanguage } from "@/src/lang/LanguageContext";
-import useRecordsStore from '@/src/stores/RecordsStore';
+import useRecordsStore, { ResumeTotals } from '@/src/stores/RecordsStore';
 import FinanceSimpleBlock from "./FinanceSimpleBlock";
 import ColorText from "./color-text";
+import useResumesStore, { Resumes } from "@/src/stores/ResumesStore";
 
 interface props {
     render: "categories" | "payments"
@@ -20,23 +21,24 @@ const FinnanceTableBlock = ({ render }: props) => {
     const { colors } = useColorStore()
     const { resumes } = useRecordsStore()
     const { t } = useLanguage()
+    const { balanceByCategory, balanceByPaymentMethod } = useResumesStore()
 
-    const getBorderColor = (val: resumeItemBase): StyleProp<ViewStyle> => {
-        const totalExpense = val.totalExpense + val.totalTransfer
-        if (val.totalIncome < totalExpense) {
-            return {
-                borderColor: colors?.ExpenseColor
-            }
-        } else {
-            return {
-                borderColor: colors?.IncomeColor
-            }
-        }
-    }
+    // const getBorderColor = (val: resumeItemBase): StyleProp<ViewStyle> => {
+    //     const totalExpense = val.totalExpense + val.totalTransfer
+    //     if (val.totalIncome < totalExpense) {
+    //         return {
+    //             borderColor: colors?.ExpenseColor
+    //         }
+    //     } else {
+    //         return {
+    //             borderColor: colors?.IncomeColor
+    //         }
+    //     }
+    // }
 
-    const getBalance = (val: resumeItemBase) => {
-        return val.totalIncome - val.totalExpense - val.totalTransfer
-    }
+    // const getBalance = (val: Resumes['balanceByCategory']) => {
+    //     return val.totalIncome - val.totalExpense - val.totalTransfer
+    // }
 
     const renderCategories = (
         <View style={localStyles.container}>
@@ -44,32 +46,27 @@ const FinnanceTableBlock = ({ render }: props) => {
                 {t("resume.summaryByCategories")}
             </Text>
             {
-                resumes?.categoryTotals?.map((val, index) => (
+                balanceByCategory?.map((val, index) => (
                     <View key={index}>
-                        <View style={[localStyles.headerRow, getBorderColor(val)]}>
+                        <View style={[localStyles.headerRow]}>
                             <ColorText fontSize={12} fontWeight={200}>{val.category_name}</ColorText>
-                            <ColorText fontSize={12} fontWeight={200}>${Math.abs(getBalance(val)).toFixed(2)}</ColorText>
+                            {/* <ColorText fontSize={12} fontWeight={200}>${Math.abs(getBalance(val)).toFixed(2)}</ColorText> */}
                         </View>
                         <View style={[localStyles.colContainer]} key={index}>
                             <View style={localStyles.rowContainer} key={index}>
-                                <FinanceSimpleBlock
-                                    text={t("resume.incomes")}
-                                    value={String(val.totalIncome)}
-                                    blockwidth={125}
-                                    color={colors?.IncomeColor}
-                                />
-                                <FinanceSimpleBlock
-                                    text={t("resume.expenses")}
-                                    value={String(val.totalExpense)}
-                                    blockwidth={125}
-                                    color={colors?.ExpenseColor}
-                                />
-                                <FinanceSimpleBlock
-                                    text={t("resume.transfers")}
-                                    value={String(val.totalTransfer)}
-                                    blockwidth={125}
-                                    color={colors?.TransferColor}
-                                />
+                                {
+                                    val?.totalPerRecordType?.map((item) => {
+                                        if (item.total <= 0) return null
+                                        return (
+                                            <FinanceSimpleBlock
+                                                key={item.id}
+                                                text={item.type_name}
+                                                value={String(item.total)}
+                                                color={item.record_color}
+                                            />
+                                        )
+                                    })
+                                }
                             </View>
                         </View>
                     </View>
@@ -84,35 +81,31 @@ const FinnanceTableBlock = ({ render }: props) => {
                 {t("resume.summaryByPayments")}
             </Text>
             {
-                resumes?.paymentMethodTotals?.map((val, index) => (
+                balanceByPaymentMethod?.map((val, index) => (
                     <View key={index}>
-                        <View style={[localStyles.headerRow, getBorderColor(val)]}>
+                        <View style={[localStyles.headerRow]}>
                             <View style={localStyles.nameCircleBlock}>
-                                <View style={[localStyles.circle, { backgroundColor: val.type == "debit" ? colors?.Debit : colors?.Credit }]}></View>
+                                <View style={[localStyles.circle]}></View>
                                 <ColorText fontSize={12} fontWeight={200}>{val.method_name}</ColorText>
                             </View>
-                            <ColorText fontSize={12} fontWeight={200}>${Math.abs(getBalance(val)).toFixed(2)}</ColorText>
+                            {/* <ColorText fontSize={12} fontWeight={200}>${Math.abs(getBalance(val)).toFixed(2)}</ColorText> */}
                         </View>
                         <View style={localStyles.colContainer} key={index}>
-                            <View style={localStyles.rowContainer} key={index}>
-                                <FinanceSimpleBlock
-                                    text={t("resume.incomes")}
-                                    value={String(val.totalIncome)}
-                                    blockwidth={125}
-                                    color={colors?.IncomeColor}
-                                />
-                                <FinanceSimpleBlock
-                                    text={t("resume.expenses")}
-                                    value={String(val.totalExpense)}
-                                    blockwidth={125}
-                                    color={colors?.ExpenseColor}
-                                />
-                                <FinanceSimpleBlock
-                                    text={t("resume.transfers")}
-                                    value={String(val.totalTransfer)}
-                                    blockwidth={125}
-                                    color={colors?.TransferColor}
-                                />
+                            <View style={localStyles.wrapContainer} key={index}>
+                                {
+                                    val?.totalPerRecordType?.map((item) => {
+                                        if (item.total <= 0) return null
+                                        return (
+                                            <FinanceSimpleBlock
+                                                key={item.id}
+                                                text={item.type_name}
+                                                value={String(item.total)}
+                                                color={item.record_color}
+                                                blockwidth={170}
+                                            />
+                                        )
+                                    })
+                                }
                             </View>
                         </View>
                     </View>
@@ -155,6 +148,12 @@ const localStyles = StyleSheet.create({
     rowContainer: {
         flexDirection: "row",
         gap: 5,
+    },
+    wrapContainer: {
+        flexWrap: "wrap",
+        flexDirection: 'row',
+        gap: 5,
+        justifyContent: 'space-between'
     },
     headerRow: {
         flexDirection: "row",

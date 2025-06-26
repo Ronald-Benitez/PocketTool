@@ -2,7 +2,7 @@
   "expo": {
     "name": "PoketTool",
     "slug": "PoketTool",
-    "version": "1.1.0",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon3.png",
     "newArchEnabled": true,
@@ -22,7 +22,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.empanada.PoketTool",
-      "version": "3"
+      "version": "4"
     },
     "web": {
       "bundler": "metro",

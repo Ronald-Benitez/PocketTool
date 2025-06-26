@@ -35,7 +35,9 @@ const SettingsScreen = () => {
         if (!configs.recordTypes) {
             defaultConfig.creditType = 4
         }
-
+        if (!configs?.paymentCreditType) {
+            defaultConfig.paymentCreditType = 5
+        }
         saveConfigs(defaultConfig)
     }, [])
 
@@ -60,6 +62,15 @@ const SettingsScreen = () => {
         newConfig.creditType = type.id
         saveConfigs(newConfig)
     }
+
+    const onCreditPaymentChange = (value: number) => {
+        const type = RecordTypes[value]
+        if (!type.id) return
+        const newConfig = { ...configs }
+        newConfig.paymentCreditType = type.id
+        saveConfigs(newConfig)
+    }
+
 
     const SelectTypeBlockRender = (index: number) => {
 
@@ -103,8 +114,8 @@ const SettingsScreen = () => {
         )
     }
 
-    const SelectedCreditBlockRender = () => {
-        const selected = RecordTypes.filter(rt => configs?.creditType == rt?.id);
+    const SelectedCreditBlockRender = ({ payment = false }) => {
+        const selected = RecordTypes.filter(rt => payment ? configs?.paymentCreditType == rt?.id : configs?.creditType == rt?.id);
 
         if (selected.length <= 0) {
             return (
@@ -148,11 +159,23 @@ const SettingsScreen = () => {
                     options={RecordTypes.map(rt => rt.type_name)}
                     selected={configs?.creditType || 0}
                     onChange={onCreditTypeChange}
-                    title={t('settings.selectCreditType')}
-                    label={t('settings.selectCreditType')}
+                    title={t('settings.selectCreditExpenseType')}
+                    label={t('settings.selectCreditExpenseType')}
                     render={SelectCreditBlockRender}
                 >
                     <SelectedCreditBlockRender />
+                </BaseSelect>
+            </View>
+            <View style={localStyles.container}>
+                <BaseSelect
+                    options={RecordTypes.map(rt => rt.type_name)}
+                    selected={configs?.paymentCreditType || 0}
+                    onChange={onCreditPaymentChange}
+                    title={t('settings.selectCreditPaymentType')}
+                    label={t('settings.selectCreditPaymentType')}
+                    render={SelectCreditBlockRender}
+                >
+                    <SelectedCreditBlockRender payment />
                 </BaseSelect>
             </View>
             <View style={localStyles.dbContainer}>

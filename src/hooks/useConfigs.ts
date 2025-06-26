@@ -4,6 +4,7 @@ import { create } from 'zustand';
 export interface Configs {
     recordTypes: number[];
     creditType: number;
+    paymentCreditType: number;
 }
 
 interface ConfigsStore {
@@ -13,7 +14,7 @@ interface ConfigsStore {
 }
 
 export const useConfigs = create<ConfigsStore>((set, get) => ({
-    configs: { recordTypes: [1, 2], creditType: 4 },
+    configs: { recordTypes: [1, 2], creditType: 4, paymentCreditType: 5 },
 
     loadConfigs: async () => {
         try {

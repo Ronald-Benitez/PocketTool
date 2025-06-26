@@ -7,7 +7,7 @@ import { RecordTypes, PaymentTypes, PaymentMethods, Categories } from "../db/typ
 import { useDataStore } from ".";
 import { useCreditStore } from "./CreditsStore";
 
-interface Resumes {
+export interface Resumes {
     balance: number;
     todayBalanceByRecordType: (RecordTypes & {
         total: number;
