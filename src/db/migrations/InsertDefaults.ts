@@ -13,7 +13,7 @@ async function insertDefault(db: SQLiteDatabase) {
     await db.runAsync('INSERT INTO RecordTypes (type_name, effect, record_color) VALUES (?, ?, ?)', 'Expense', '-', '#F44336');
     await db.runAsync('INSERT INTO RecordTypes (type_name, effect, record_color) VALUES (?, ?, ?)', 'Transfer', '=', '#FF9800');
     await db.runAsync('INSERT INTO RecordTypes (type_name, effect, record_color) VALUES (?, ?, ?)', 'Credit expenses', '=', '#9C27B0');
-    await db.runAsync('INSERT INTO RecordTypes (type_name, effect, record_color) VALUES (?, ?, ?)', 'Credit payment', '=', '#F44376');
+    await db.runAsync('INSERT INTO RecordTypes (type_name, effect, record_color) VALUES (?, ?, ?)', 'Credit payment', '-', '#F44376');
 
     //Categories
     await db.runAsync('INSERT INTO Categories (category_name) VALUES (?)', 'Groceries');

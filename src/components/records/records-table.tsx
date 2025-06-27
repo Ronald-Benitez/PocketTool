@@ -1,5 +1,5 @@
 import { View, Text, Pressable, TextStyle, StyleProp, StyleSheet } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { AntDesign } from '@expo/vector-icons'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
@@ -12,13 +12,17 @@ import useRecordsStore from '@/src/stores/RecordsStore';
 import useColorStore from '@/src/stores/ColorsStore'
 import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
 import IconButton from '../ui/icon-button'
-import { RecordJoined } from '@/src/db/types/tables'
+import { RecordJoined, Records } from '@/src/db/types/tables'
 import { useRecords } from "@/src/db/handlers/RecordsHandler";
 import useResumesStore from '@/src/stores/ResumesStore'
+import { useCreditStore } from '@/src/stores/CreditsStore'
+import useConfigs from '@/src/hooks/useConfigs'
+import { useDataStore } from '@/src/stores'
+import styles from '@/src/styles/styles'
 
 
 const ItemsTable = () => {
-    const [selected, setSelected] = React.useState<RecordJoined | undefined>()
+    const [selected, setSelected] = React.useState<RecordJoined | Records | undefined>()
     const [openUpdate, setOpenUpdate] = React.useState<boolean>(false)
     const { fetchRecords, handler: recordsHandler } = useRecords()
     const dateh = useDate()
@@ -27,6 +31,12 @@ const ItemsTable = () => {
     const { records, group, setRecords } = useRecordsStore()
     const { colors } = useColorStore()
     const { balance } = useResumesStore()
+    const { credits } = useCreditStore()
+    const { RecordTypes } = useDataStore()
+    const [creditRecords, setCreditRecords] = useState<Records[]>()
+    const { configs: { paymentCreditType } } = useConfigs()
+
+    const selectePaymentCreditType = RecordTypes.find(e => e.id == paymentCreditType)
 
     const handleDelete = async (index: number) => {
         if (!group) return
@@ -54,6 +64,38 @@ const ItemsTable = () => {
             c.borderColor = colors?.TransferColor
         }
         return c
+    }
+
+    const generateCreditRecords = () => {
+        const list: Records[] = []
+        const today = new Date()
+        credits?.map((credit) => {
+            if (!credit.totalPrevious) return
+            const payment = records.filter(e => e.record_type_id == paymentCreditType)
+            const total = payment?.reduce((acc, val) => acc += val.amount, 0) || 0
+            if (total >= credit.totalPrevious) return
+
+            const newJoined: Records = {
+                record_type_id: paymentCreditType,
+                amount: credit?.totalPrevious - total,
+                category_id: 0,
+                date: today.getTime(),
+                group_id: group?.id || 0,
+                record_name: credit.method_name,
+                payment_method_id: 0
+
+            }
+            list.push(newJoined)
+        })
+        setCreditRecords(list)
+
+    }
+
+    useEffect(generateCreditRecords, [credits])
+
+    const onCreditPayment = (item: Records) => {
+        setSelected(item)
+        setOpenUpdate(!openUpdate)
     }
 
     return (
@@ -107,6 +149,39 @@ const ItemsTable = () => {
                                     </View>
                                 </BorderLeftBottomBlock>
                             </SwipeItem>
+                        )
+                    })}
+                </View>
+                {
+                    creditRecords?.length && creditRecords?.length > 0 ? (
+                        <Text style={[styles.smallText, { textAlign: "center", marginTop: 10 }]}>{t("records.creditPayments")}</Text>
+                    ) : null
+                }
+                <View style={{ gap: 5, paddingHorizontal: 30, }}>
+                    {creditRecords?.map((item, index) => {
+                        return (
+                            <Pressable key={index} onPress={() => onCreditPayment(item)}>
+                                <BorderLeftBottomBlock
+                                    bottomColor={selectePaymentCreditType?.record_color || "#000"}
+                                    letfColor={selectePaymentCreditType?.record_color || "#000"}
+                                >
+                                    <View style={localStyles.rowContainer}>
+                                        <View style={localStyles.dateContainer}>
+                                            <Text style={localStyles.dateText}>
+                                                {dateh.getStringDay(String(item.date))}
+                                            </Text>
+                                            <Text style={localStyles.dateText}>
+                                                {dateh.getDay(String(item.date))}
+                                            </Text>
+                                            <Text style={localStyles.dateText}>
+                                                {dateh.getStringMonth(String(item.date))}
+                                            </Text>
+                                        </View>
+                                        <Text style={localStyles.nameText}>{item.record_name}</Text>
+                                        <Text style={localStyles.valueText}>${item.amount}</Text>
+                                    </View>
+                                </BorderLeftBottomBlock>
+                            </Pressable>
                         )
                     })}
                 </View>

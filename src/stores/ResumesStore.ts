@@ -95,7 +95,6 @@ export const useResumesStore = () => {
         today.setHours(0, 0, 0)
         const startLimit = today.getTime()
 
-        console.log(records, paymentTypeResume)
         records.map(record => {
             const recordType = recordTypeResume.find(rt => rt.id === record.record_type_id);
             const todayRecordType = todayBalanceByRecordType.find(rt => rt.id === record.record_type_id)

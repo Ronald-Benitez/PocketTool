@@ -89,7 +89,6 @@ export const useHandler = (table: Table) => {
     const fetchLast = async (): Promise<TableSchema | []> => {
         try {
             const result = await db.getAllAsync(`SELECT * FROM ${table} ORDER BY id DESC LIMIT 1`);
-            console.log(`SELECT * FROM ${table} ORDER BY id DESC LIMIT 1`, result);
             return result[0] as TableSchema;
         } catch (error) {
             console.error(error);
@@ -141,7 +140,6 @@ export const useHandler = (table: Table) => {
                 columnsList += " "
             }
         })
-        console.log(`UPDATE ${table} SET ${columnsList} WHERE id = $id`, newValues);
 
         try {
             await db.runAsync(`UPDATE ${table} SET ${columnsList} WHERE id = $id`, newValues);

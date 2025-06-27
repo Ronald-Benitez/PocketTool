@@ -76,6 +76,7 @@
         "updateRecord": "Actualizar Registro",
         "delete": "Eliminar",
         "edit": "Editar",
+        "creditPayments":"Lista de pagos a crédito pendientes",
         "error": {
             "emptyFields": "Por favor, ingresa todos los campos y selecciona las opciones necesarias."
         }

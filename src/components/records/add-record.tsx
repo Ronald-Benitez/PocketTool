@@ -24,7 +24,7 @@ import styles from '@/src/styles/styles';
 import BorderLeftBlock from '@/src/components/ui/BorderLeftBlock';
 
 interface AddItemProps {
-    item?: RecordJoined
+    item?: RecordJoined | Records
     children?: React.ReactNode
     openUpdate?: boolean
     open?: boolean

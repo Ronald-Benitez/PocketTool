@@ -76,6 +76,7 @@
         "updateRecord": "Update Record",
         "delete": "Delete",
         "edit": "Edit",
+        "creditPayments":"List of pending credit payments",
         "error": {
             "emptyFields": "Please enter all fields and select the necessary options."
         }
