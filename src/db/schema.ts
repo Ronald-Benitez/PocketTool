@@ -71,7 +71,16 @@ export const APP_SCHEMA: TableSchema = {
             { name: 'fixed_id', type: 'INTEGER', references: { table: 'Fixed', column: 'id' } },
         ]
     },
-
+    PaidCredits: {
+        name: "PaidCredits",
+        columns: [
+            { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+            { name: 'amount', type: 'REAL', notNull: true },
+            { name: 'date', type: 'INTEGER', notNull: true },
+            { name: 'group_id', type: 'INTEGER', references: { table: 'Groups', column: 'id' } },
+            { name: 'payment_method_id', type: 'INTEGER', references: { table: 'PaymentMethods', column: 'id' } },
+        ]
+    },
     Budgets: {
         name: 'Budgets',
         columns: [

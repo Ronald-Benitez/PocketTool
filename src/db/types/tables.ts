@@ -39,7 +39,11 @@ export interface Records {
     record_type_id: number,
     group_id: number,
     category_id: number,
-    payment_method_id: number
+    payment_method_id: number,
+    fixed_id?: number,
+    paid_credit_id?: number,
+    paid_method_id?: number,
+    paid_method_amount?: number
 }
 
 export interface RecordJoined extends Records, RecordTypes, Categories, PaymentMethods, PaymentTypes, Groups {
@@ -48,6 +52,31 @@ export interface RecordJoined extends Records, RecordTypes, Categories, PaymentM
     category_id: number,
     payment_method_id: number,
     payment_type_id: number
+}
+
+export interface Fixed {
+    id?: number,
+    fixed_amount: number,
+    fixed_name: string,
+    fixed_day: number,
+    record_type_id: number,
+    category_id: number,
+    payment_method_id: number
+}
+
+export interface FixedJoined extends Fixed, RecordTypes, Categories, PaymentMethods, PaymentTypes {
+    record_id: number,
+    category_id: number,
+    payment_method_id: number,
+    payment_type_id: number
+}
+
+export interface PaidCredits {
+    id?: number,
+    amount: number,
+    date: number,
+    group_id: number,
+    payment_method_id: number
 }
 
 export interface Budgets {

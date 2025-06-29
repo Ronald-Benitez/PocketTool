@@ -1,5 +1,5 @@
 import { useSQLiteContext } from "expo-sqlite";
-import { Records, Budgets, Categories, Groups, Migrations, PaymentMethods, PaymentTypes, RecordJoined, RecordTypes, Savings, SavingsHistory } from "../types/tables";
+import { Records, Budgets, Categories, Groups, Migrations, PaymentMethods, PaymentTypes, RecordJoined, RecordTypes, Savings, SavingsHistory, Fixed, PaidCredits } from "../types/tables";
 
 export type TableType = {
     Groups: Groups;
@@ -12,6 +12,8 @@ export type TableType = {
     SavingsHistory: SavingsHistory;
     RecordTypes: RecordTypes;
     Migrations: Migrations;
+    Fixed: Fixed;
+    PaidCredits: PaidCredits
 };
 
 export type Table = keyof TableType;
@@ -118,7 +120,7 @@ export const useHandler = (table: Table) => {
         })
 
         try {
-            await db.runAsync(`INSERT INTO ${table} ${columnsList} VALUES ${valuesList}`, newValues);
+            return await db.runAsync(`INSERT INTO ${table} ${columnsList} VALUES ${valuesList}`, newValues);
         } catch (error) {
             console.error(error);
         }

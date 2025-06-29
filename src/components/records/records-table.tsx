@@ -19,7 +19,7 @@ import { useCreditStore } from '@/src/stores/CreditsStore'
 import useConfigs from '@/src/hooks/useConfigs'
 import { useDataStore } from '@/src/stores'
 import styles from '@/src/styles/styles'
-
+import { useHandler } from '@/src/db/handlers/handler'
 
 const ItemsTable = () => {
     const [selected, setSelected] = React.useState<RecordJoined | Records | undefined>()
@@ -28,13 +28,14 @@ const ItemsTable = () => {
     const dateh = useDate()
     const { ToastContainer, showToast } = useToast()
     const { t } = useLanguage()
-    const { records, group, setRecords } = useRecordsStore()
+    const { records, group, setRecords, paidCredits } = useRecordsStore()
     const { colors } = useColorStore()
     const { balance } = useResumesStore()
     const { credits } = useCreditStore()
     const { RecordTypes } = useDataStore()
     const [creditRecords, setCreditRecords] = useState<Records[]>()
     const { configs: { paymentCreditType } } = useConfigs()
+    const creditsHandler = useHandler('PaidCredits')
 
     const selectePaymentCreditType = RecordTypes.find(e => e.id == paymentCreditType)
 
@@ -42,6 +43,9 @@ const ItemsTable = () => {
         if (!group) return
         const toDelete = records[index]
         await recordsHandler.deleteById(toDelete.record_id)
+        if (toDelete.paid_credit_id) [
+            await creditsHandler.deleteById(toDelete.paid_credit_id)
+        ]
         const data = await fetchRecords(group.id)
         setRecords(data)
         showToast({ message: t("item.deleted"), type: "SUCCESS" })
@@ -71,7 +75,9 @@ const ItemsTable = () => {
         const today = new Date()
         credits?.map((credit) => {
             if (!credit.totalPrevious) return
-            const payment = records.filter(e => e.record_type_id == paymentCreditType)
+            const payment = records.filter(e => {
+                return e.paid_method_id == credit.id
+            })
             const total = payment?.reduce((acc, val) => acc += val.amount, 0) || 0
             if (total >= credit.totalPrevious) return
 
@@ -82,8 +88,8 @@ const ItemsTable = () => {
                 date: today.getTime(),
                 group_id: group?.id || 0,
                 record_name: credit.method_name,
-                payment_method_id: 0
-
+                payment_method_id: 0,
+                paid_method_id: credit.id
             }
             list.push(newJoined)
         })

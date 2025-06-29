@@ -12,7 +12,7 @@ import useBudgetStore from '@/src/stores/BudgetStore'
 import { useBudget } from '@/src/db'
 import Input from '../ui/Input'
 import { useHandler } from '@/src/db/handlers/handler'
-import { Groups, PaymentTypes, RecordJoined } from '@/src/db/types/tables'
+import { Groups, PaidCredits, PaymentTypes, RecordJoined } from '@/src/db/types/tables'
 import { useRecords } from '@/src/db/handlers/RecordsHandler'
 import { useDataStore } from '@/src/stores'
 import { Categories, RecordTypes } from '@/src/db/types/tables'
@@ -22,12 +22,13 @@ const GroupSelector = () => {
     const { t } = useLanguage()
     const [year, setYear] = useState<string>(new Date().getFullYear().toString())
     const [modalVisible, setModalVisible] = useState(false)
-    const { group, setGroup, setRecords, setResumes, groups, setGroups } = useRecordsStore()
+    const { group, setGroup, setRecords, groups, setGroups, setPaidCredits } = useRecordsStore()
     const [openUpdate, setOpenUpdate] = useState(false)
     const { budgets, resumes, setBudgets, setResumes: setBudgetResume } = useBudgetStore()
     const { fetchRecords, handler: recordsHandler } = useRecords()
     const groupsHandler = useHandler("Groups")
     const paymentsHandler = useHandler("PaymentMethods")
+    const creditsHandler = useHandler('PaidCredits')
     const budgetsHanlder = useHandler("Budgets")
     const { setCategories, setPaymentMethods, setRecordTypes, setPaymentTypes } = useDataStore()
 
@@ -66,6 +67,9 @@ const GroupSelector = () => {
         setGroup(group)
         await fetchRecords(group.id).then((res) => {
             setRecords(res)
+        })
+        await creditsHandler.fetchWithWhere('group_id', String(group.id)).then((res) => {
+            setPaidCredits(res as PaidCredits[])
         })
         // await getAllResume(group.id).then(res => {
         //     setResumes(res)

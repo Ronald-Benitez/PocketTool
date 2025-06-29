@@ -143,6 +143,7 @@
         "expense": "Expense",
         "transfer": "Transfer",
         "payment": "Payment Method",
+        "toPay": "Payment method (card) to pay",
         "category": "Category",
         "selectCategory": "Select a category",
         "selectPayment": "Select a payment method"

@@ -21,13 +21,16 @@ export const useRecords = () => {
           Categories.*, 
           PaymentMethods.*,
           PaymentTypes.*,
-          RecordTypes.*
+          RecordTypes.*,
+          PaidCredits.payment_method_id AS paid_method_id,
+          PaidCredits.amount AS paid_method_amount
         FROM Records
         JOIN Groups ON Records.group_id = Groups.id
         JOIN Categories ON Records.category_id = Categories.id
         JOIN PaymentMethods ON Records.payment_method_id = PaymentMethods.id
         JOIN PaymentTypes ON PaymentMethods.payment_type_id = PaymentTypes.id
         JOIN RecordTypes ON Records.record_type_id = RecordTypes.id
+        LEFT JOIN PaidCredits ON Records.paid_credit_id = PaidCredits.id
         WHERE Records.group_id = ?
         ORDER BY date ASC
       `,

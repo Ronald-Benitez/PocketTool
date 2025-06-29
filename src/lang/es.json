@@ -143,6 +143,7 @@
         "expense": "Gasto",
         "transfer": "Transferencia",
         "payment": "Método de pago",
+        "toPay":"Método de pago (tarjeta) a pagar",
         "category": "Categoria",
         "selectCategory": "Seleccione una categoria",
         "selectPayment": "Seleccione un método de pago"
