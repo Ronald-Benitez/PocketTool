@@ -14,7 +14,7 @@ import ColorText from '@/src/components/ui/color-text';
 import useResumesStore from '@/src/stores/ResumesStore';
 import { useDataStore } from '@/src/stores';
 import { Fixed, FixedJoined, RecordJoined } from '@/src/db/types/tables';
-import BorderLeftBottomBlock from '@/src/components/ui/BorderLeftButtonBlock';
+import useConfigs from '@/src/hooks/useConfigs';
 
 const Index = () => {
     const { t } = useLanguage();
@@ -24,6 +24,7 @@ const Index = () => {
     const [todayFixeds, setTodayFixeds] = useState<FixedJoined[]>()
     const { balance, todayBalanceByRecordType } = useResumesStore()
     const [fixedToSave, setFixedToSave] = useState<RecordJoined>()
+    const { loadConfigs } = useConfigs()
     const [open, setOpen] = useState(false)
     const { records } = useRecordsStore()
     const { Fixeds } = useDataStore()
@@ -34,6 +35,7 @@ const Index = () => {
         let offset = date.getTimezoneOffset() * 60 * 1000;
         let newDate = new Date(date.getTime() - offset);
         setToday(newDate)
+        loadConfigs()
 
     }, [])
 
