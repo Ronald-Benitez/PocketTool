@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { create } from "zustand";
 
 import useConfigs from "../hooks/useConfigs";
-import useRecordsStore from "./RecordsStore";
 import { RecordTypes, PaymentTypes, PaymentMethods, Categories } from "../db/types/tables";
 import { useDataStore } from ".";
 interface totalPerRecordType extends RecordTypes {
@@ -11,9 +10,6 @@ interface totalPerRecordType extends RecordTypes {
 
 export interface Resumes {
     balance: number;
-    todayBalanceByRecordType: (RecordTypes & {
-        total: number;
-    })[];
     balanceByRecordType: (RecordTypes & {
         total: number;
     })[];
@@ -31,32 +27,26 @@ export interface Resumes {
     })[];
 }
 
-export const useResumesStore = () => {
+export const useFixedsResumesStore = () => {
     const { configs: { recordTypes } } = useConfigs();
-    const { records } = useRecordsStore();
-    const { PaymentMethods, Categories, RecordTypes, PaymentTypes } = useDataStore()
+    const { PaymentMethods, Categories, RecordTypes, PaymentTypes, Fixeds } = useDataStore()
 
     const calculateBalance = (): number => {
-        return records.reduce((acc, record) => {
-            if (!recordTypes.includes(record.record_type_id)) {
+        return Fixeds.reduce((acc, fixed) => {
+            if (!recordTypes.includes(fixed.record_type_id)) {
                 return acc;
             }
-            if (record.effect === '+') {
-                acc += record.amount;
+            if (fixed.effect === '+') {
+                acc += fixed.fixed_amount;
             }
-            else if (record.effect === '-') {
-                acc -= record.amount;
+            else if (fixed.effect === '-') {
+                acc -= fixed.fixed_amount;
             }
             return acc;
         }, 0);
     }
 
     const calculeteResumes = (): Omit<Resumes, "balance"> => {
-
-        const todayBalanceByRecordType = RecordTypes.map(rt => ({
-            ...rt,
-            total: 0,
-        }));
 
         const recordTypeResume = RecordTypes.map(rt => ({
             ...rt,
@@ -87,39 +77,28 @@ export const useResumesStore = () => {
             })),
         }));
 
-        const today = new Date()
-
-        const endLimit = today.getTime()
-        today.setHours(0, 0, 0)
-        const startLimit = today.getTime()
-
-        records.map(record => {
-            const recordType = recordTypeResume.find(rt => rt.id === record.record_type_id);
-            const todayRecordType = todayBalanceByRecordType.find(rt => rt.id === record.record_type_id)
+        Fixeds.map(fixed => {
+            const recordType = recordTypeResume.find(rt => rt.id === fixed.record_type_id);
             if (recordType) {
-                recordType.total += record.amount;
+                recordType.total += fixed.fixed_amount;
             }
 
-            if (todayRecordType && (record.date >= startLimit && record.date <= endLimit)) {
-                todayRecordType.total += record.amount
-            }
-
-            const paymentType = paymentTypeResume.find(pt => pt.id === record.payment_type_id);
+            const paymentType = paymentTypeResume.find(pt => pt.id === fixed.payment_type_id);
             if (paymentType) {
                 paymentType.totalPerRecordType.forEach(r => {
-                    if (r.id === record.record_type_id) {
-                        r.total += record.amount;
+                    if (r.id === fixed.record_type_id) {
+                        r.total += fixed.fixed_amount;
                     }
                 });
                 paymentType.balance = paymentType?.totalPerRecordType?.reduce(typeReducer, 0) || 0
             }
 
 
-            const paymentMethod = paymentMethodResume.find(pm => pm.id === record.payment_method_id);
+            const paymentMethod = paymentMethodResume.find(pm => pm.id === fixed.payment_method_id);
             if (paymentMethod) {
                 paymentMethod.totalPerRecordType.forEach(r => {
-                    if (r.id === record.record_type_id) {
-                        r.total += record.amount;
+                    if (r.id === fixed.record_type_id) {
+                        r.total += fixed.fixed_amount;
                     }
                 });
                 paymentMethod.balance = paymentMethod?.totalPerRecordType?.reduce(typeReducer, 0) || 0;
@@ -127,11 +106,11 @@ export const useResumesStore = () => {
 
 
 
-            const category = categoryResume.find(cat => cat.id === record.category_id);
+            const category = categoryResume.find(cat => cat.id === fixed.category_id);
             if (category) {
                 category.totalPerRecordType.forEach(r => {
-                    if (r.id === record.record_type_id) {
-                        r.total += record.amount;
+                    if (r.id === fixed.record_type_id) {
+                        r.total += fixed.fixed_amount;
                     }
                 });
                 category.balance = category?.totalPerRecordType?.reduce(typeReducer, 0) || 0;
@@ -139,7 +118,6 @@ export const useResumesStore = () => {
         })
 
         return {
-            todayBalanceByRecordType,
             balanceByRecordType: recordTypeResume,
             balanceByPaymentType: paymentTypeResume,
             balanceByPaymentMethod: paymentMethodResume,
@@ -163,4 +141,4 @@ const typeReducer = (acc: number, type: totalPerRecordType) => {
     return acc;
 }
 
-export default useResumesStore;
+export default useFixedsResumesStore;

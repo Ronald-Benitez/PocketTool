@@ -73,6 +73,16 @@ const AppDrawer = () => {
           }}
         />
         <Drawer.Screen
+          name="(fixeds)"
+          options={{
+            title: t("headers.fixeds"),
+            headerShown: false,
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="repeat" size={size} color={color} />
+            )
+          }}
+        />
+        <Drawer.Screen
           name="(summaries)"
           options={{
             title: t("headers.financialsIndex"),

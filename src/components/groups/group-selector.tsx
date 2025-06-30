@@ -14,6 +14,7 @@ import Input from '../ui/Input'
 import { useHandler } from '@/src/db/handlers/handler'
 import { Groups, PaidCredits, PaymentTypes, RecordJoined } from '@/src/db/types/tables'
 import { useRecords } from '@/src/db/handlers/RecordsHandler'
+import { useFixeds } from '@/src/db/handlers/FixedsHandler'
 import { useDataStore } from '@/src/stores'
 import { Categories, RecordTypes } from '@/src/db/types/tables'
 import { PaymentMethodsJoined } from '@/src/stores'
@@ -26,11 +27,12 @@ const GroupSelector = () => {
     const [openUpdate, setOpenUpdate] = useState(false)
     const { budgets, resumes, setBudgets, setResumes: setBudgetResume } = useBudgetStore()
     const { fetchRecords, handler: recordsHandler } = useRecords()
+    const { fetchFixeds } = useFixeds()
     const groupsHandler = useHandler("Groups")
     const paymentsHandler = useHandler("PaymentMethods")
     const creditsHandler = useHandler('PaidCredits')
     const budgetsHanlder = useHandler("Budgets")
-    const { setCategories, setPaymentMethods, setRecordTypes, setPaymentTypes } = useDataStore()
+    const { setCategories, setPaymentMethods, setRecordTypes, setPaymentTypes, setFixeds } = useDataStore()
 
     useEffect(() => {
         getPinned()
@@ -43,10 +45,12 @@ const GroupSelector = () => {
             const payments = await paymentsHandler.fetchAllWithJoin('PaymentTypes', "payment_type_id") as PaymentMethodsJoined[];
             const recordTypes = await groupsHandler.fetchAll('RecordTypes') as RecordTypes[]
             const paymentTypes = await groupsHandler.fetchAll('PaymentTypes') as PaymentTypes[]
+            const fixeds = await fetchFixeds()
             setCategories(categories)
             setPaymentMethods(payments)
             setRecordTypes(recordTypes)
             setPaymentTypes(paymentTypes)
+            setFixeds(fixeds)
         } catch (error) {
             console.error("Error loading data for group selector:", error)
         }

@@ -1,26 +1,20 @@
 import { View, ScrollView, StyleSheet } from 'react-native';
-import React, { useState, useEffect } from 'react';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
-import GroupSelector from '@/src/components/groups/group-selector';
-import styles from '@/src/styles/styles';
 import useColorStore from '@/src/stores/ColorsStore';
 import FinanceSimpleBlock from '@/src/components/ui/FinanceSimpleBlock';
 import BalanceBlock from '@/src/components/ui/BalanceBlock';
-import useResumesStore from '@/src/stores/ResumesStore';
+import useFixedsResumesStore from '@/src/stores/FixedsResumesStore';
 
-const Index = () => {
+const RecordTypeScreen = () => {
     const { t } = useLanguage();
     const { colors } = useColorStore()
-    const { balance, balanceByRecordType } = useResumesStore()
+    const { balance, balanceByRecordType } = useFixedsResumesStore()
 
 
     return (
         <>
             <View style={localStyles.container}>
-                <View style={[styles.row, { justifyContent: 'center', alignItems: "flex-end", marginBottom: 10, gap: 10 }]}>
-                    <GroupSelector />
-                </View>
 
                 <BalanceBlock
                     bottom={false}
@@ -72,4 +66,4 @@ const localStyles = StyleSheet.create({
     }
 })
 
-export default Index;
+export default RecordTypeScreen;

@@ -12,7 +12,7 @@ import useRecordsStore from '@/src/stores/RecordsStore';
 import useColorStore from '@/src/stores/ColorsStore'
 import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
 import IconButton from '../ui/icon-button'
-import { RecordJoined, Records } from '@/src/db/types/tables'
+import { FixedJoined, RecordJoined, Records } from '@/src/db/types/tables'
 import { useRecords } from "@/src/db/handlers/RecordsHandler";
 import useResumesStore from '@/src/stores/ResumesStore'
 import { useCreditStore } from '@/src/stores/CreditsStore'
@@ -28,13 +28,14 @@ const ItemsTable = () => {
     const dateh = useDate()
     const { ToastContainer, showToast } = useToast()
     const { t } = useLanguage()
-    const { records, group, setRecords, paidCredits } = useRecordsStore()
+    const { records, group, setRecords } = useRecordsStore()
     const { colors } = useColorStore()
     const { balance } = useResumesStore()
     const { credits } = useCreditStore()
-    const { RecordTypes } = useDataStore()
+    const { RecordTypes, Fixeds } = useDataStore()
     const [creditRecords, setCreditRecords] = useState<Records[]>()
     const { configs: { paymentCreditType } } = useConfigs()
+    const [fixedsToShow, setFixedsToShow] = useState<RecordJoined[]>([])
     const creditsHandler = useHandler('PaidCredits')
 
     const selectePaymentCreditType = RecordTypes.find(e => e.id == paymentCreditType)
@@ -98,6 +99,33 @@ const ItemsTable = () => {
     }
 
     useEffect(generateCreditRecords, [credits])
+
+    const generateFixedsToShow = () => {
+        const list: RecordJoined[] = []
+        Fixeds.map((fixed) => {
+            const alreadyAdded = records.find(records => records.fixed_id == fixed.id)
+            if (!alreadyAdded) {
+                const date = new Date()
+                date.setDate(fixed.fixed_day)
+                list.push({
+                    ...fixed,
+                    fixed_id: fixed.id,
+                    amount: fixed.fixed_amount,
+                    date: date.getTime(),
+                    goal: 0,
+                    group_id: group?.id || 0,
+                    group_name: "",
+                    month: date.getMonth(),
+                    record_name: fixed.fixed_name,
+                    year: date.getFullYear(),
+                    id: undefined
+                })
+            }
+        })
+        setFixedsToShow(list)
+    }
+
+    useEffect(generateFixedsToShow, [records, Fixeds])
 
     const onCreditPayment = (item: Records) => {
         setSelected(item)
@@ -191,6 +219,39 @@ const ItemsTable = () => {
                         )
                     })}
                 </View>
+                {
+                    fixedsToShow?.length && fixedsToShow?.length > 0 ? (
+                        <Text style={[styles.smallText, { textAlign: "center", marginTop: 10 }]}>{t("records.fixeds")}</Text>
+                    ) : null
+                }
+                <View style={{ gap: 5, paddingHorizontal: 30, }}>
+                    {fixedsToShow?.map((item, index) => {
+                        return (
+                            <Pressable key={index} onPress={() => onCreditPayment(item)}>
+                                <BorderLeftBottomBlock
+                                    bottomColor={item?.record_color || "#000"}
+                                    letfColor={item?.payment_color || "#000"}
+                                >
+                                    <View style={localStyles.rowContainer}>
+                                        <View style={localStyles.dateContainer}>
+                                            <Text style={localStyles.dateText}>
+                                                {dateh.getStringDay(String(item.date))}
+                                            </Text>
+                                            <Text style={localStyles.dateText}>
+                                                {dateh.getDay(String(item.date))}
+                                            </Text>
+                                            <Text style={localStyles.dateText}>
+                                                {dateh.getStringMonth(String(item.date))}
+                                            </Text>
+                                        </View>
+                                        <Text style={localStyles.nameText}>{item.record_name}</Text>
+                                        <Text style={localStyles.valueText}>${item.amount}</Text>
+                                    </View>
+                                </BorderLeftBottomBlock>
+                            </Pressable>
+                        )
+                    })}
+                </View>
                 <ToastContainer />
                 <AddItem
                     openUpdate={openUpdate}
@@ -219,7 +280,8 @@ const localStyles = StyleSheet.create({
     },
     nameText: {
         fontSize: 12,
-        textAlign: "left"
+        textAlign: "left",
+        maxWidth: 200
     },
     valueText: {
         fontSize: 12,

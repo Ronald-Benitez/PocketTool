@@ -1,4 +1,7 @@
 {
+     "index": {
+        "fixedsMessage": "Recuerda confirmar tus transacciones fijas"
+    },
     "group": {
         "name": "Nombre",
         "expenses": "Gastos",
@@ -77,6 +80,7 @@
         "delete": "Eliminar",
         "edit": "Editar",
         "creditPayments":"Lista de pagos a crédito pendientes",
+        "fixeds": "Lista de transacciones fijas pendientes",
         "error": {
             "emptyFields": "Por favor, ingresa todos los campos y selecciona las opciones necesarias."
         }
@@ -176,7 +180,8 @@
         "financials": "Finanzas",
         "settings": "Configuraciones",
         "credits": "Créditos",
-        "help": "Ayuda"
+        "help": "Ayuda",
+        "fixeds": "Transacciones fijas"
     },
     "colors": {
         "set": "Establecer un color",

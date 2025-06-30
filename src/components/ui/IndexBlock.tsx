@@ -22,7 +22,6 @@ const IndexBlock = ({ children, style }: props) => {
 const localStyles = StyleSheet.create({
     block: {
         flex: 1,
-        width: 325,
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",

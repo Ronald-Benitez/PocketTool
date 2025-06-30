@@ -1,4 +1,7 @@
 {
+    "index": {
+        "fixedsMessage": "Remember to confirm your fixed transactions"
+    },
     "group": {
         "name": "Name",
         "expenses": "Expenses",
@@ -77,6 +80,7 @@
         "delete": "Delete",
         "edit": "Edit",
         "creditPayments":"List of pending credit payments",
+        "fixeds":"List of pending fixed transactions",
         "error": {
             "emptyFields": "Please enter all fields and select the necessary options."
         }
@@ -176,7 +180,8 @@
         "financials": "Financials",
         "settings": "Settings",
         "credits": "Credits",
-        "help": "Help"
+        "help": "Help",
+        "fixeds": "Fixed transactions"
     },
     "colors": {
         "set": "Set a color",

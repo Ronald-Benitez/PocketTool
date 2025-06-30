@@ -5,33 +5,24 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import AddGroup from '@/src/components/groups/add-group'
 import Table from '@/src/components/records/records-table'
-import {  useRecords } from '@/src/db'
 import { RecordI } from '@/src/interfaces'
 import GroupSelector from '@/src/components/groups/group-selector'
 
 import styles from '@/src/styles/styles'
 import useRecordsStore from '@/src/stores/RecordsStore';
+import { RecordJoined, Records } from '@/src/db/types/tables';
 
 const Index = () => {
     const [pinned, setPinned] = useState<number>(0)
-    const { fetchRecords } = useRecords()
     const setRecordsState = useRecordsStore((state) => state.setRecords)
-    const { group } = useRecordsStore()
+    const { group, setRecords } = useRecordsStore()
 
     useEffect(() => {
         getPinned()
     }, [])
 
-    useEffect(() => {
-        if (!group) return
-        fetchRecords(group.id).then(e => {
-            setRecordsState(e as RecordI[])
-
-        })
-    }, [group?.id])
-
     const pinUp = async () => {
-        if (!group) return
+        if (!group?.id) return
         if (pinned != 0 && pinned === group?.id) {
             await AsyncStorage.removeItem("group")
             setPinned(0)

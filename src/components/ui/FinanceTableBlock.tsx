@@ -1,25 +1,19 @@
 import { StyleSheet, Text, View, TextStyle, ViewStyle, StyleProp } from "react-native";
 
-import useColorStore from '@/src/stores/ColorsStore';
 import { useLanguage } from "@/src/lang/LanguageContext";
-import useRecordsStore, { ResumeTotals } from '@/src/stores/RecordsStore';
 import FinanceSimpleBlock from "./FinanceSimpleBlock";
 import ColorText from "./color-text";
 import useResumesStore, { Resumes } from "@/src/stores/ResumesStore";
+import useFixedsResumesStore from "@/src/stores/FixedsResumesStore";
 
 interface props {
-    render: "categories" | "payments" | "types"
+    render: "categories" | "payments" | "types",
+    fixed: boolean
 }
 
-type resumeItemBase = {
-    totalIncome: number,
-    totalExpense: number,
-    totalTransfer: number
-}
-
-const FinnanceTableBlock = ({ render }: props) => {
+const FinnanceTableBlock = ({ render, fixed }: props) => {
     const { t } = useLanguage()
-    const { balanceByCategory, balanceByPaymentMethod, balanceByPaymentType } = useResumesStore()
+    const { balanceByCategory, balanceByPaymentMethod, balanceByPaymentType } = fixed ? useFixedsResumesStore() : useResumesStore()
 
     const renderCategories = (
         <View style={localStyles.container}>
@@ -46,7 +40,7 @@ const FinnanceTableBlock = ({ render }: props) => {
             </Text>
             {
                 balanceByPaymentMethod?.map((val, index) => (
-                   <RecordTypeBlock
+                    <RecordTypeBlock
                         key={index}
                         index={index}
                         val={val}
@@ -75,13 +69,6 @@ const FinnanceTableBlock = ({ render }: props) => {
         </View>
     )
 
-    // return (
-    //     <>
-    //         {
-    //             render == "categories" ? renderCategories : renderPayments
-    //         }
-    //     </>
-    // )
     switch (render) {
         case "categories":
             return renderCategories;
@@ -109,7 +96,7 @@ const RecordTypeBlock = ({
             <View style={[localStyles.headerRow]}>
                 <View style={localStyles.nameCircleBlock}>
                     <View style={[localStyles.circle]}></View>
-                     
+
                     <ColorText fontSize={12} fontWeight={200}>{nameValue}</ColorText>
                 </View>
                 <ColorText fontSize={12} fontWeight={200}>${val?.balance?.toFixed(2)}</ColorText>

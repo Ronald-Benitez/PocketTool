@@ -49,6 +49,7 @@ export interface Records {
 export interface RecordJoined extends Records, RecordTypes, Categories, PaymentMethods, PaymentTypes, Groups {
     record_id: number,
     group_id: number,
+    fixed_id?: number,
     category_id: number,
     payment_method_id: number,
     payment_type_id: number
@@ -65,6 +66,7 @@ export interface Fixed {
 }
 
 export interface FixedJoined extends Fixed, RecordTypes, Categories, PaymentMethods, PaymentTypes {
+    fixed_id: number,
     record_id: number,
     category_id: number,
     payment_method_id: number,
