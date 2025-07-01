@@ -12,6 +12,7 @@ import useConfigs from '@/src/hooks/useConfigs';
 import { useDataStore } from '@/src/stores';
 import BaseSelect from '@/src/components/ui/base-select';
 import BorderLeftBlock from '@/src/components/ui/BorderLeftBlock';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const SettingsScreen = () => {
     const { language, changeLanguage, t } = useLanguage();
@@ -133,65 +134,68 @@ const SettingsScreen = () => {
     }
 
     return (
-        <View style={styles.container}>
-            {/* <Text style={localStyles.languageText}>{t('settings.selectLanguage')}</Text> */}
-            <View style={localStyles.container}>
-                <Pressable style={localStyles.block} onPress={onPressLanguage}>
-                    <Text style={localStyles.languageText}>
-                        {language == "en" ? t('settings.languages.english') : t('settings.languages.spanish')}
-                    </Text>
-                </Pressable>
-            </View>
-            <View style={localStyles.container}>
-                <BaseSelect
-                    options={RecordTypes.map(rt => rt.type_name)}
-                    selected={configs?.recordTypes || []}
-                    onChange={onTypesChange}
-                    title={t('settings.selectRecordType')}
-                    label={t('settings.selectRecordType')}
-                    render={SelectTypeBlockRender}
-                >
-                    <SelectedTypeBlockRender />
-                </BaseSelect>
-            </View>
-            <View style={localStyles.container}>
-                <BaseSelect
-                    options={RecordTypes.map(rt => rt.type_name)}
-                    selected={configs?.creditType || 0}
-                    onChange={onCreditTypeChange}
-                    title={t('settings.selectCreditExpenseType')}
-                    label={t('settings.selectCreditExpenseType')}
-                    render={SelectCreditBlockRender}
-                >
-                    <SelectedCreditBlockRender />
-                </BaseSelect>
-            </View>
-            <View style={localStyles.container}>
-                <BaseSelect
-                    options={RecordTypes.map(rt => rt.type_name)}
-                    selected={configs?.paymentCreditType || 0}
-                    onChange={onCreditPaymentChange}
-                    title={t('settings.selectCreditPaymentType')}
-                    label={t('settings.selectCreditPaymentType')}
-                    render={SelectCreditBlockRender}
-                >
-                    <SelectedCreditBlockRender payment />
-                </BaseSelect>
-            </View>
-            <View style={localStyles.dbContainer}>
-                <IconButton onClick={() => exportDatabaseToSQLFile(db, t)}>
-                    <MaterialCommunityIcons name="cloud-upload-outline" size={24} color="black" />
+        <ScrollView>
 
-                </IconButton>
-                <IconButton onClick={() => importDatabaseFromSQLFile(db, t)}>
-                    <MaterialCommunityIcons name="cloud-download-outline" size={24} color="black" />
-                </IconButton>
+            <View style={styles.container}>
+                {/* <Text style={localStyles.languageText}>{t('settings.selectLanguage')}</Text> */}
+                <View style={localStyles.container}>
+                    <Pressable style={localStyles.block} onPress={onPressLanguage}>
+                        <Text style={localStyles.languageText}>
+                            {language == "en" ? t('settings.languages.english') : t('settings.languages.spanish')}
+                        </Text>
+                    </Pressable>
+                </View>
+                <View style={localStyles.container}>
+                    <BaseSelect
+                        options={RecordTypes.map(rt => rt.type_name)}
+                        selected={configs?.recordTypes || []}
+                        onChange={onTypesChange}
+                        title={t('settings.selectRecordType')}
+                        label={t('settings.selectRecordType')}
+                        render={SelectTypeBlockRender}
+                    >
+                        <SelectedTypeBlockRender />
+                    </BaseSelect>
+                </View>
+                <View style={localStyles.container}>
+                    <BaseSelect
+                        options={RecordTypes.map(rt => rt.type_name)}
+                        selected={configs?.creditType || 0}
+                        onChange={onCreditTypeChange}
+                        title={t('settings.selectCreditExpenseType')}
+                        label={t('settings.selectCreditExpenseType')}
+                        render={SelectCreditBlockRender}
+                    >
+                        <SelectedCreditBlockRender />
+                    </BaseSelect>
+                </View>
+                <View style={localStyles.container}>
+                    <BaseSelect
+                        options={RecordTypes.map(rt => rt.type_name)}
+                        selected={configs?.paymentCreditType || 0}
+                        onChange={onCreditPaymentChange}
+                        title={t('settings.selectCreditPaymentType')}
+                        label={t('settings.selectCreditPaymentType')}
+                        render={SelectCreditBlockRender}
+                    >
+                        <SelectedCreditBlockRender payment />
+                    </BaseSelect>
+                </View>
+                <View style={localStyles.dbContainer}>
+                    <IconButton onClick={() => exportDatabaseToSQLFile(db, t)}>
+                        <MaterialCommunityIcons name="cloud-upload-outline" size={24} color="black" />
+
+                    </IconButton>
+                    <IconButton onClick={() => importDatabaseFromSQLFile(db, t)}>
+                        <MaterialCommunityIcons name="cloud-download-outline" size={24} color="black" />
+                    </IconButton>
+                </View>
+
+                {/* Renderiza todos los colores */}
+                <ColorSettings />
+
             </View>
-
-            {/* Renderiza todos los colores */}
-            <ColorSettings />
-
-        </View>
+        </ScrollView>
     );
 };
 

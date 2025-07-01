@@ -5,9 +5,6 @@ export interface ColorScheme {
   ModalHeaderColor: string;
   ConfirmColor: string;
   IncomeColor: string;
-  TransferColor: string;
   ExpenseColor: string;
-  Credit: string;
-  Debit: string;
   BGSimple: string;
 }

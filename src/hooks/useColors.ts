@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import colorsJson from "@/src/colors/colors.json"; // Asegúrate de la ruta correcta
+import colorsJson from "@/src/colors/colors.json";
 
 const useColors = () => {
   const [colors, setColors] = useState<{ [key: string]: string } | null>(null);
@@ -11,7 +11,6 @@ const useColors = () => {
       if (storedColors) {
         setColors(JSON.parse(storedColors));
       } else {
-        // Cargar colores por defecto del archivo JSON
         setColors(colorsJson);
       }
     };

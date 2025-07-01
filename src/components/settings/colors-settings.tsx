@@ -62,21 +62,19 @@ const ColorSettings = () => {
 
   return (
     <View>
-      <ScrollView style={{ maxHeight: 600 }}>
-        <View style={{ gap: 10 }}>
-          {Object.entries(colors).map(([key, color]) => (
-            <View key={key} style={[localStyles.colorBlock]}>
-              <Text style={localStyles.colorText}>{t(`colors.${key}`)} </Text>
-              <ColorPicker2 color={color} onChange={(c) => handleColorChange(c, key)} />
-            </View>
-          ))}
-        </View>
-        <View style={{ justifyContent: "space-around", flexDirection: "row", padding: 10 }}>
-          <ConfirmModal message={t("colors.confirmMessage")} title={t("colors.reset")} onConfirm={reset}>
-            <ModalButton isButton={false} text={t("colors.reset")} type='bg' />
-          </ConfirmModal>
-        </View>
-      </ScrollView >
+      <View style={{ gap: 10 }}>
+        {Object.entries(colors).map(([key, color]) => (
+          <View key={key} style={[localStyles.colorBlock]}>
+            <Text style={localStyles.colorText}>{t(`colors.${key}`)} </Text>
+            <ColorPicker2 color={color} onChange={(c) => handleColorChange(c, key)} />
+          </View>
+        ))}
+      </View>
+      <View style={{ justifyContent: "space-around", flexDirection: "row", padding: 10 }}>
+        <ConfirmModal message={t("colors.confirmMessage")} title={t("colors.reset")} onConfirm={reset}>
+          <ModalButton isButton={false} text={t("colors.reset")} type='bg' />
+        </ConfirmModal>
+      </View>
     </View >
   );
 };
