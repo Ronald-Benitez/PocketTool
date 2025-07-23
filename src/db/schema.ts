@@ -81,6 +81,24 @@ export const APP_SCHEMA: TableSchema = {
             { name: 'payment_method_id', type: 'INTEGER', references: { table: 'PaymentMethods', column: 'id' } },
         ]
     },
+     BudgetTemplates: {
+        name: 'BudgetTemplates',
+        columns: [
+            { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+            { name: 'template_name', type: 'TEXT', notNull: true, unique: true },
+            { name: 'description', type: 'TEXT' },
+        ],
+    },
+    BudgetTemplateItems: {
+        name: 'BudgetTemplateItems',
+        columns: [
+            { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+            { name: 'budget_template_id', type: 'INTEGER', references: { table: 'BudgetTemplates', column: 'id' }, notNull: true },
+            { name: 'amount', type: 'REAL', notNull: true },
+            { name: 'record_type_id', type: 'INTEGER', references: { table: 'RecordTypes', column: 'id' }, notNull: true },
+            { name: 'category_id', type: 'INTEGER', references: { table: 'Categories', column: 'id' }, notNull: true },
+        ],
+    },
     Budgets: {
         name: 'Budgets',
         columns: [

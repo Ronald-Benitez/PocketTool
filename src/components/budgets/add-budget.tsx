@@ -15,6 +15,7 @@ import PressableSwitch from "../ui/pressable-switch";
 import BaseSelect from "../ui/base-select";
 import useBudgetStore from "@/src/stores/BudgetStore";
 import useAndroidToast from "@/src/hooks/useAndroidToast";
+import { Categories, RecordTypes } from "@/src/db/types/tables";
 
 interface AddItemProps {
     item?: Budget
@@ -27,8 +28,8 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
     const { group } = useRecordsStore()
     const { t } = useLanguage()
     const [name, setName] = useState<string>("")
-    const [type, setType] = useState<"income" | "expense" | "transfer">("expense")
-    const [category, setCategory] = useState<Category>()
+    const [type, setType] = useState<RecordTypes>()
+    const [category, setCategory] = useState<Categories>()
     const [value, setValue] = useState<string>("")
     const [group_id, setGroupId] = useState<number>(group?.id || 0)
     const records = useRecords()

@@ -1,5 +1,5 @@
 import { useSQLiteContext } from "expo-sqlite";
-import { Records, Budgets, Categories, Groups, Migrations, PaymentMethods, PaymentTypes, RecordJoined, RecordTypes, Savings, SavingsHistory, Fixed, PaidCredits } from "../types/tables";
+import { Records, Budgets, Categories, Groups, Migrations, PaymentMethods, PaymentTypes, RecordJoined, RecordTypes, Savings, SavingsHistory, Fixed, PaidCredits, BudgetTemplate, BudgetTemplateItems } from "../types/tables";
 
 export type TableType = {
     Groups: Groups;
@@ -13,7 +13,10 @@ export type TableType = {
     RecordTypes: RecordTypes;
     Migrations: Migrations;
     Fixed: Fixed;
-    PaidCredits: PaidCredits
+    PaidCredits: PaidCredits;
+    RecordJoined: RecordJoined;
+    BudgetTemplate: BudgetTemplate;
+    BudgetTemplateItems: BudgetTemplateItems;
 };
 
 export type Table = keyof TableType;

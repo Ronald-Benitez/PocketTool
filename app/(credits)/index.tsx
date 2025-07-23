@@ -21,19 +21,6 @@ const Index = () => {
     const { records } = useRecordsStore()
     const { credits } = useCreditStore()
 
-    // const fetch = async () => {
-    //     try {
-    //         const res = await fetchResumeByCreditCards()
-    //         setCreditCards(res)
-    //     } catch (e) {
-
-    //     }
-    // }
-
-    // useEffect(() => {
-    //     fetch()
-    // }, [records])
-
     useEffect(() => {
         try {
             if (credits?.length && credits.length > 0) {
@@ -50,8 +37,6 @@ const Index = () => {
         }
 
     }, [credits])
-
-
 
     return (
         <View style={styles.container}>

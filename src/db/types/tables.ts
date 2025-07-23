@@ -87,6 +87,37 @@ export interface Budgets {
     record_type_id: number,
     group_id: number,
     category_id: number,
+    payment_method_id: number,
+}
+
+export interface BudgetTemplateItems {
+    id?: number,
+    budget_template_id: number,
+    amount: number,
+    record_type_id: number,
+    category_id: number,
+}
+
+export interface BudgetTemplate {
+    id?: number,
+    template_name: string,
+    description?: string
+}
+
+export interface BudgetItemJoined extends BudgetTemplateItems, BudgetTemplate, RecordTypes, Categories {
+    budget_template_item_id: number,
+    record_type_id: number,
+    category_id: number
+    budget_item_id: number
+}
+
+export interface BudgetJoined extends Budgets, RecordTypes, Categories, Groups{
+    budget_id: number,
+    group_id: number,
+    record_type_id: number,
+    category_id: number,
+    payment_method_id: number,
+    payment_type_id: number
 }
 
 export interface Savings {

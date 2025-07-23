@@ -7,7 +7,7 @@ import SwipeItem from '../ui/swipe-item'
 import useDate from '@/src/hooks/useDate'
 import { ScrollView } from 'react-native-gesture-handler'
 import useToast from '@/src/hooks/useToast'
-import AddItem from './add-record'
+import AddItem from './AddTemplateItem'
 import useRecordsStore from '@/src/stores/RecordsStore';
 import useColorStore from '@/src/stores/ColorsStore'
 import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
@@ -21,7 +21,7 @@ import { useDataStore } from '@/src/stores'
 import styles from '@/src/styles/styles'
 import { useHandler } from '@/src/db/handlers/handler'
 
-const ItemsTable = () => {
+const TemplateTable = () => {
     const [selected, setSelected] = React.useState<RecordJoined | Records | undefined>()
     const [openUpdate, setOpenUpdate] = React.useState<boolean>(false)
     const { fetchRecords, handler: recordsHandler } = useRecords()
@@ -294,4 +294,4 @@ const localStyles = StyleSheet.create({
     }
 })
 
-export default ItemsTable
+export default TemplateTable

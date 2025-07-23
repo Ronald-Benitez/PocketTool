@@ -27,12 +27,13 @@ const getPeriods = (card: PaymentMethods, month: number, year: number) => {
 export interface Credit extends PaymentMethods {
     totalCurrent?: number
     totalPrevious?: number
+    totalCurrentPayments?: number
 }
 
 export const useCreditStore = () => {
     const { records } = useRecordsStore()
     const { PaymentMethods } = useDataStore()
-    const { configs: { creditType } } = useConfigs()
+    const { configs: { creditType, paymentCreditType } } = useConfigs()
     const { fetchCredits } = useRecords()
     const [credits, setCredits] = useState<Credit[] | undefined>()
 
@@ -66,12 +67,15 @@ export const useCreditStore = () => {
                 year
             );
             const currentCredits = await fetchCredits(payment.id, creditType, currentPeriodStart, currentPeriodEnd)
+            const currentPayments = await fetchCredits(payment.id, paymentCreditType, currentPeriodStart, currentPeriodEnd)
+            const totalCurrentPayments = currentPayments?.reduce((acc, current) => acc + current.amount, 0) || 0
             const previousCredits = await fetchCredits(payment.id, creditType, previousPeriodStart, previousPeriodEnd)
             const totalCurrent = currentCredits?.reduce((acc, current) => acc + current.amount, 0)
             const totalPrevious = previousCredits?.reduce((acc, current) => acc + current.amount, 0)
             const newPayment = {
                 ...payment,
                 totalCurrent,
+                totalCurrentPayments,
                 totalPrevious
             }
             return newPayment as Credit
