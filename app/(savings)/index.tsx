@@ -1,7 +1,7 @@
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AntDesign, Feather, Ionicons,  MaterialIcons } from '@expo/vector-icons';
+import { AntDesign, Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { LineChart, lineDataItem } from "react-native-gifted-charts";
 
 import { useLanguage } from '@/src/lang/LanguageContext';
@@ -9,55 +9,39 @@ import IconButton from '@/src/components/ui/icon-button';
 import SavingsSelector from '@/src/components/savings/saving-selector';
 import AddSaving from '@/src/components/savings/add-savings';
 import useSavingsStore from '@/src/stores/SavingsStore';
-import { useSavings, useSavingsHistory } from '@/src/db';
-import { Savings, SavingsHistory } from '@/src/interfaces';
 import BGSimpleBlock from '@/src/components/ui/BGSimpleBlock';
 import useDate from '@/src/hooks/useDate';
 import useBaseModal from '@/src/components/ui/base-modal';
 import styles from '@/src/styles/styles';
+import { SavingsHistory, Savings } from '@/src/db/types/tables';
+import { useHandler } from '@/src/db/handlers/handler';
+import useColorStore from '@/src/stores/ColorsStore';
 
 const Index = () => {
     const { t } = useLanguage();
     const { saving, savingsHistory, setSaving, setSavingsHistory, setSavings } = useSavingsStore()
-    const { fetchSavingsById, deleteSavings, fetchSavings } = useSavings()
-    const { fetchSavingsHistoryBySavingId, deleteSavingsHistory } = useSavingsHistory()
     const [pinned, setPinned] = useState(saving?.id)
     const { CustomModal, showModal, hideModal } = useBaseModal(true)
     const [chartData, setChartData] = useState<lineDataItem[]>([])
-
-    useEffect(() => {
-        getPinned();
-    }, []);
+    const savingsHandler = useHandler("Savings")
+    const historyHandler = useHandler("SavingsHistory")
+    const date = useDate()
+    const { colors } = useColorStore()
 
     useEffect(() => {
         if (savingsHistory) {
-            const historyCopy = [...savingsHistory]
-            const data = historyCopy.reverse().map(e => {
+            const data = savingsHistory.map(e => {
                 return {
                     value: e.new_amount
                 }
             })
+            if (savingsHistory.length > 0) {
+                data.push({ value: savingsHistory[savingsHistory.length - 1].previous_amount })
+            }
+            data.reverse()
             setChartData(data)
         }
     }, [savingsHistory])
-
-
-    const getPinned = async () => {
-        const pinned = await AsyncStorage.getItem('savings');
-        if (pinned) {
-            const p = Number(pinned)
-            fetchSavingsById(p).then(g => {
-                onSelect(g as Savings)
-            })
-        }
-    };
-
-    const onSelect = async (saving: Savings) => {
-        setSaving(saving)
-        await fetchSavingsHistoryBySavingId(saving.id).then((res) => {
-            setSavingsHistory(res as SavingsHistory[])
-        })
-    }
 
     const pinUp = async () => {
         if (!saving) return
@@ -86,11 +70,11 @@ const Index = () => {
     }
 
     const onConfirmDelete = async () => {
-        if (!saving) return
-        await deleteSavings(saving.id)
-        await deleteSavingsHistory(saving.id)
+        if (!saving?.id) return
+        await savingsHandler.deleteById(saving.id)
+        await historyHandler.deleteWithWhere("savings_id", String(saving.id))
         setSaving(null)
-        const newSavings = await fetchSavings()
+        const newSavings = await savingsHandler.fetchAll() as Savings[]
         setSavings(newSavings)
         setSavingsHistory([])
         hideModal()
@@ -156,19 +140,26 @@ const Index = () => {
             <ScrollView>
                 <View style={{ gap: 5, marginHorizontal: 10 }}>
                     {
-                        savingsHistory?.map(e => (
-                            <BGSimpleBlock key={e.id}>
-                                <View style={[localStyles.rowContainer, { justifyContent: "space-between", flex: 1 }]}>
-                                    <Text style={localStyles.dateText}>
-                                        {
-                                            useDate().getStringDate(e.change_date) + "     " +
-                                            new Date(e.change_date).toISOString().split("T")[1]
-                                        }
-                                    </Text>
-                                    <Text style={localStyles.amountText}>${e.new_amount}</Text>
-                                </View>
-                            </BGSimpleBlock>
-                        ))
+                        savingsHistory?.map(e => {
+                            const minus = (e.new_amount - e.previous_amount) < 0
+                            return (
+                                <BGSimpleBlock key={e.id}>
+                                    <View style={[localStyles.rowContainer, { justifyContent: "space-between", flex: 1 }]}>
+                                        <Text style={localStyles.dateText}>
+                                            {
+                                                date.getStringDate(e.change_date) + "     " +
+                                                new Date(e.change_date).toISOString().split("T")[1]
+                                            }
+                                        </Text>
+                                        <Text style={localStyles.amountText}>${e.new_amount}</Text>
+                                        <View style={[{ alignItems: "center", flexDirection: "row", gap: 5, justifyContent: "center" }]}>
+                                            <Text style={localStyles.differenceText}>${(e.new_amount - e.previous_amount).toFixed(2)}</Text>
+                                            <Feather name={minus ? "arrow-down" : "arrow-up"} size={20} color={minus ? colors?.ExpenseColor : colors?.IncomeColor} />
+                                        </View>
+                                    </View>
+                                </BGSimpleBlock>
+                            )
+                        })
                     }
                 </View>
             </ScrollView>
@@ -222,7 +213,6 @@ const localStyles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center",
         padding: 10,
-        paddingHorizontal: 30,
     },
     colContainer: {
         flexDirection: "column",
@@ -248,6 +238,11 @@ const localStyles = StyleSheet.create({
         fontSize: 12,
         textAlign: "left",
         fontWeight: "300",
+    },
+    differenceText: {
+        fontSize: 10,
+        textAlign: "left",
+        fontWeight: "200"
     },
     chartContainer: {
         marginHorizontal: 40,

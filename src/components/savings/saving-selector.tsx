@@ -5,8 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useLanguage } from '@/src/lang/LanguageContext'
 import { useSavings, useSavingsHistory } from '@/src/db'
 import useSavingsStore from '@/src/stores/SavingsStore'
-import { Savings, SavingsHistory } from '@/src/interfaces'
+import { SavingsHistory, Savings } from '@/src/db/types/tables';
 import BaseSelect from '../ui/base-select'
+import { useHandler } from '@/src/db/handlers/handler'
 
 interface Props {
     children: ReactNode
@@ -20,6 +21,8 @@ const SavingsSelector = ({ children }: Props) => {
     const { fetchSavings, fetchSavingsById } = useSavings()
     const { fetchSavingsHistoryBySavingId } = useSavingsHistory()
     const [openUpdate, setOpenUpdate] = useState(false)
+    const savingsHandler = useHandler("Savings")
+    const historyHandler = useHandler("SavingsHistory")
 
     useEffect(() => {
         getPinned()
@@ -36,8 +39,8 @@ const SavingsSelector = ({ children }: Props) => {
 
     const onSelect = async (saving: Savings) => {
         setSaving(saving)
-        await fetchSavingsHistoryBySavingId(saving.id).then((res) => {
-            setSavingsHistory(res as SavingsHistory[])
+        await historyHandler.fetchWithWhere("savings_id", String(saving.id)).then((res) => {
+            setSavingsHistory(res.reverse() as SavingsHistory[])
         })
         setModalVisible(false)
     }

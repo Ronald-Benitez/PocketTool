@@ -10,7 +10,7 @@ export const useSavingsHistory = () => {
       const result = (await db.getAllAsync(
         `
         SELECT * FROM SavingsHistory 
-        WHERE saving_id = ? 
+        WHERE savings_id = ? 
         ORDER BY change_date DESC 
         LIMIT 5
         `,
@@ -25,7 +25,7 @@ export const useSavingsHistory = () => {
 
   const deleteSavingsHistory = async (id: number) => {
     try {
-      await db.runAsync("DELETE FROM SavingsHistory WHERE saving_id = ?", id);
+      await db.runAsync("DELETE FROM SavingsHistory WHERE savings_id = ?", id);
     } catch (error) {
       console.error(error);
       throw error;
