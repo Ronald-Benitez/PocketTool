@@ -79,8 +79,8 @@
         "updateRecord": "Update Record",
         "delete": "Delete",
         "edit": "Edit",
-        "creditPayments":"List of pending credit payments",
-        "fixeds":"List of pending fixed transactions",
+        "creditPayments": "List of pending credit payments",
+        "fixeds": "List of pending fixed transactions",
         "error": {
             "emptyFields": "Please enter all fields and select the necessary options."
         }
@@ -236,9 +236,14 @@
         "current": "Current"
     },
     "credits": {
-        "closingDate": "Closing date",
+        "previous": "Previous",
         "current": "Current",
-        "previous": "Previous"
+        "closingDate": "Closing Date",
+        "paid": "Paid",
+        "pending": "Pending",
+        "previousTotal": "Previous Total",
+        "currentTotal": "Current Total",
+        "nextPaymentDate": "Next closing Date"
     },
     "greeting": {
         "morning": "Good morning!",

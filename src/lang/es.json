@@ -1,5 +1,5 @@
 {
-     "index": {
+    "index": {
         "fixedsMessage": "Recuerda confirmar tus transacciones fijas"
     },
     "group": {
@@ -79,7 +79,7 @@
         "updateRecord": "Actualizar Registro",
         "delete": "Eliminar",
         "edit": "Editar",
-        "creditPayments":"Lista de pagos a crédito pendientes",
+        "creditPayments": "Lista de pagos a crédito pendientes",
         "fixeds": "Lista de transacciones fijas pendientes",
         "error": {
             "emptyFields": "Por favor, ingresa todos los campos y selecciona las opciones necesarias."
@@ -147,7 +147,7 @@
         "expense": "Gasto",
         "transfer": "Transferencia",
         "payment": "Método de pago",
-        "toPay":"Método de pago (tarjeta) a pagar",
+        "toPay": "Método de pago (tarjeta) a pagar",
         "category": "Categoria",
         "selectCategory": "Seleccione una categoria",
         "selectPayment": "Seleccione un método de pago"
@@ -241,9 +241,14 @@
         "current": "Actual"
     },
     "credits": {
-        "closingDate": "Fecha de corte",
+        "previous": "Previo",
         "current": "Actual",
-        "previous": "Previo"
+        "closingDate": "Fecha de corte",
+        "paid": "Pagado",
+        "pending": "Pendiente",
+        "previousTotal": "Total Anterior",
+        "currentTotal": "Total Actual",
+        "nextPaymentDate": "Fecha del próximo corte"
     },
     "greeting": {
         "morning": "¡Buenos días!",
