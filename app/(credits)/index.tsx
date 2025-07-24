@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import React, { useState, useEffect } from 'react';
 
 import { useRecords } from '@/src/db';
@@ -43,11 +43,20 @@ const Index = () => {
         }
     }, [credits, PaymentMethods]);
 
-    const closingDateToShow = (day: number, add = 1) => {
+    const closingDateToShow = (day: number) => {
         const today = new Date();
         const closingDate = new Date(today.getFullYear(), today.getMonth(), day);
         if (closingDate > today) {
-            closingDate.setMonth(closingDate.getMonth() + add);
+            closingDate.setMonth(closingDate.getMonth() - 1);
+        }
+        return getStringDate(closingDate.getTime());
+    }
+
+    const nextClosingDateToShow = (day: number) => {
+        const today = new Date();
+        const closingDate = new Date(today.getFullYear(), today.getMonth(), day);
+        if (closingDate < today) {
+            closingDate.setMonth(closingDate.getMonth() + 1);
         }
         return getStringDate(closingDate.getTime());
     }
@@ -73,64 +82,63 @@ const Index = () => {
                 </View>
             </View>
 
-            <View style={localStyles.individualCreditsContainer}>
-                {credits?.map((credit, index) => {
-                    const amountPaid = credit?.totalCurrentPayments || 0;
-                    const previousBalance = credit?.totalPrevious || 0;
-                    const pendingAmount = (previousBalance - amountPaid).toFixed(2);
-                    const isPendingNegative = parseFloat(pendingAmount) < 0;
+            <ScrollView style={{ flex: 1 }}>
+                <View style={localStyles.individualCreditsContainer}>
+                    {credits?.map((credit, index) => {
+                        const amountPaid = credit?.totalCurrentPayments || 0;
+                        const previousBalance = credit?.totalPrevious || 0;
+                        const pendingAmount = (previousBalance - amountPaid).toFixed(2);
+                        const isPendingNegative = parseFloat(pendingAmount) < 0;
 
-                    return (
-                        <View key={index} style={[localStyles.creditBlock, { backgroundColor: colors?.BGSimple }]}>
-                            <View style={localStyles.headerRow}>
-                                <Text style={[localStyles.creditName]}>
-                                    {credit?.method_name}
-                                </Text>
-                                <Text style={[localStyles.currentValue]}>
-                                    {t("credits.current")}: <Text style={localStyles.amountValue}>${(credit?.totalCurrent || 0).toFixed(2)}</Text>
-                                </Text>
-                            </View>
+                        return (
+                            <View key={index} style={[localStyles.creditBlock, { backgroundColor: colors?.BGSimple }]}>
+                                <View style={localStyles.headerRow}>
+                                    <Text style={[localStyles.creditName]}>
+                                        {credit?.method_name}
+                                    </Text>
+                                    <Text style={[localStyles.currentValue]}>
+                                        {t("credits.current")}: <Text style={localStyles.amountValue}>${(credit?.totalCurrent || 0).toFixed(2)}</Text>
+                                    </Text>
+                                </View>
 
-                            {/* Details Row */}
-                            <View style={localStyles.detailRow}>
-                                <View style={localStyles.paymentSummary}>
-                                    <View style={localStyles.detailItem}>
-                                        <Text style={localStyles.detailLabel}>{t("credits.previous")}:</Text>
-                                        <Text style={localStyles.amountValue}>${previousBalance.toFixed(2)}</Text>
+                                <View style={localStyles.detailRow}>
+                                    <View style={localStyles.paymentSummary}>
+                                        <View style={localStyles.detailItem}>
+                                            <Text style={localStyles.detailLabel}>{t("credits.previous")}:</Text>
+                                            <Text style={localStyles.amountValue}>${previousBalance.toFixed(2)}</Text>
+                                        </View>
+                                        <View style={localStyles.detailItem}>
+                                            <Text style={localStyles.detailLabel}>{t("credits.paid")}:</Text>
+                                            <Text style={[localStyles.amountValue, { color: colors?.IncomeColor }]}>${amountPaid.toFixed(2)}</Text>
+                                        </View>
+                                        <View style={localStyles.detailItem}>
+                                            <Text style={localStyles.detailLabel}>{t("credits.pending")}:</Text>
+                                            <Text style={[localStyles.amountValue, { color: isPendingNegative ? colors?.IncomeColor : colors?.ExpenseColor }]}>
+                                                ${pendingAmount}
+                                            </Text>
+                                        </View>
                                     </View>
-                                    <View style={localStyles.detailItem}>
-                                        <Text style={localStyles.detailLabel}>{t("credits.paid")}:</Text>
-                                        <Text style={[localStyles.amountValue, { color: colors?.IncomeColor }]}>${amountPaid.toFixed(2)}</Text>
-                                    </View>
-                                    <View style={localStyles.detailItem}>
-                                        <Text style={localStyles.detailLabel}>{t("credits.pending")}:</Text>
-                                        <Text style={[localStyles.amountValue, { color: isPendingNegative ? colors?.IncomeColor : colors?.ExpenseColor }]}>
-                                            ${pendingAmount}
+
+                                    <View style={localStyles.closingDateContainer}>
+                                        <Text style={localStyles.detailLabel}>{t("credits.closingDate")}:</Text>
+                                        <Text style={localStyles.amountValue}>
+                                            {credit?.closing_date ? closingDateToShow(credit.closing_date) : 'N/A'}
                                         </Text>
                                     </View>
                                 </View>
-
-                                {/* Closing Date */}
-                                <View style={localStyles.closingDateContainer}>
-                                    <Text style={localStyles.detailLabel}>{t("credits.closingDate")}:</Text>
+                                <View style={[localStyles.detailRow, { marginTop: 10, borderTopColor: '#eee', borderTopWidth: 1, paddingTop: 10 }]}>
+                                    <Text style={localStyles.detailLabel}>
+                                        {t("credits.nextPaymentDate")}:
+                                    </Text>
                                     <Text style={localStyles.amountValue}>
-                                        {credit?.closing_date ? closingDateToShow(credit.closing_date, -1) : 'N/A'}
+                                        {credit?.closing_date ? nextClosingDateToShow(credit.closing_date) : 'N/A'}
                                     </Text>
                                 </View>
                             </View>
-                            {/* Next payment date usingclosingdate to show */}
-                            <View style={[localStyles.detailRow, { marginTop: 10, borderTopColor: '#eee', borderTopWidth: 1, paddingTop: 10 }]}>
-                                <Text style={localStyles.detailLabel}>
-                                    {t("credits.nextPaymentDate")}:
-                                </Text>
-                                <Text style={localStyles.amountValue}>
-                                    {credit?.closing_date ? closingDateToShow(credit.closing_date) : 'N/A'}
-                                </Text>
-                            </View>
-                        </View>
-                    );
-                })}
-            </View>
+                        );
+                    })}
+                </View>
+            </ScrollView>
         </View>
     );
 };
