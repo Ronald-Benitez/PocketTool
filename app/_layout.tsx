@@ -113,8 +113,9 @@ const AppDrawer = () => {
           }}
         />
         <Drawer.Screen
-          name="(budget)/index"
+          name="(budget)"
           options={{
+            drawerItemStyle: { display: 'none' },
             title: t("headers.budget"),
             headerShown: true,
             drawerIcon: ({ color, size }) => (

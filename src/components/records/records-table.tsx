@@ -74,8 +74,8 @@ const ItemsTable = () => {
         const today = new Date()
         credits?.map((credit) => {
             if (!credit.totalPrevious) return
-            if (credit?.totalCurrentPayments || 0 >= credit.totalPrevious) return
-
+            if ((credit?.totalCurrentPayments || 0) >= (credit?.totalPrevious || 0)) return
+            
             const newJoined: Records = {
                 record_type_id: paymentCreditType,
                 amount: credit?.totalPrevious - (credit?.totalCurrentPayments || 0),

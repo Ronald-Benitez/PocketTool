@@ -8,7 +8,7 @@ import useFixedsResumesStore from "@/src/stores/FixedsResumesStore";
 
 interface props {
     render: "categories" | "payments" | "types",
-    fixed: boolean
+    fixed?: boolean
 }
 
 const FinnanceTableBlock = ({ render, fixed }: props) => {

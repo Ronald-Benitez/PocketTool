@@ -1,5 +1,5 @@
 import { useSQLiteContext } from "expo-sqlite";
-import { RecordJoined } from "../types/tables";
+import { PaidCredits, RecordJoined } from "../types/tables";
 import { useHandler } from "./handler";
 
 export const useRecords = () => {
@@ -68,9 +68,22 @@ export const useRecords = () => {
         )) as RecordJoined[];
     }
 
+    const fetchPaidCredits = async (payment_method_id: number, startLimit: number, endLimit: number): Promise<PaidCredits[] | undefined> => {
+        if (!payment_method_id) return;
+        return (await db.getAllAsync(
+            `
+        SELECT * FROM PaidCredits
+        WHERE payment_method_id = ? AND date BETWEEN ? AND ?
+        ORDER BY date ASC
+      `,
+            [payment_method_id, startLimit, endLimit]
+        )) as PaidCredits[];
+    }
+
     return {
         fetchRecords,
         fetchCredits,
+        fetchPaidCredits,
         handler
     };
 };

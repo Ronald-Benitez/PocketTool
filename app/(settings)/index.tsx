@@ -103,16 +103,18 @@ const SettingsScreen = () => {
         )
     }
 
-    const SelectCreditBlockRender = (index: number) => {
-
-        const transformStyle = {
-            transform: configs.creditType == RecordTypes[index]?.id ? [{ scale: 0.95 }] : [{ scale: 1 }]
-        };
-        return (
-            <BorderLeftBlock color={RecordTypes[index].record_color} style={transformStyle}>
-                <Text style={[styles.text]}>{RecordTypes[index].type_name}</Text>
-            </BorderLeftBlock>
-        )
+    const SelectCreditBlockRender = (payment = false) => {
+        const type = payment ? configs.paymentCreditType : configs.creditType;
+        return (index: number) => {
+            const transformStyle = {
+                transform: type == RecordTypes[index]?.id ? [{ scale: 0.95 }] : [{ scale: 1 }]
+            };
+            return (
+                <BorderLeftBlock color={RecordTypes[index].record_color} style={transformStyle}>
+                    <Text style={[styles.text]}>{RecordTypes[index].type_name}</Text>
+                </BorderLeftBlock>
+            )
+        }
     }
 
     const SelectedCreditBlockRender = ({ payment = false }) => {
@@ -164,7 +166,7 @@ const SettingsScreen = () => {
                         onChange={onCreditTypeChange}
                         title={t('settings.selectCreditExpenseType')}
                         label={t('settings.selectCreditExpenseType')}
-                        render={SelectCreditBlockRender}
+                        render={SelectCreditBlockRender()}
                     >
                         <SelectedCreditBlockRender />
                     </BaseSelect>
@@ -176,7 +178,7 @@ const SettingsScreen = () => {
                         onChange={onCreditPaymentChange}
                         title={t('settings.selectCreditPaymentType')}
                         label={t('settings.selectCreditPaymentType')}
-                        render={SelectCreditBlockRender}
+                        render={SelectCreditBlockRender(true)}
                     >
                         <SelectedCreditBlockRender payment />
                     </BaseSelect>

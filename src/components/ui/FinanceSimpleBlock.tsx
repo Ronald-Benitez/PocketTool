@@ -15,7 +15,7 @@ const FinanceSimpleBlock = ({ text, color, value, blockwidth = 175 }: props) => 
             <View style={[localStyles.container, { width: blockwidth }]}>
                 <View style={[localStyles.block, { backgroundColor: color, width: blockwidth }]}>
                     <ColorText backgroundColor={color || "#fff"} textAlign="center">
-                        ${value}
+                        ${Number(value).toFixed(2)}
                     </ColorText>
                 </View>
                 <Text style={localStyles.footerText}>{text}</Text>
