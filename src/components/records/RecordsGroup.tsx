@@ -24,8 +24,8 @@ const RecordsGroup = ({ handleDelete, handleUpdate }: RecordsGroupProps) => {
                             key={item.id}
                         >
                             <BorderLeftBottomBlock
-                                bottomColor={item.record_color}
-                                letfColor={item.payment_color}
+                                bottomColor={item.payment_color}
+                                letfColor={item.record_color}
                             >
                                 <View style={localStyles.rowContainer}>
                                     <View style={localStyles.dateContainer}>

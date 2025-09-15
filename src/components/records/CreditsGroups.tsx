@@ -16,7 +16,6 @@ export const CreditsGroups = ({ credits, selectedPaymentCreditType, onCreditPaym
     const dateh = useDate()
     const { t } = useLanguage()
 
-    //render an empty message with icon
      if(!credits || credits.length === 0) {
         return (
             <>

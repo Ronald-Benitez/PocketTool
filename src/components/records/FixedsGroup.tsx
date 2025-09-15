@@ -1,4 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native'
+import { MaterialIcons } from '@expo/vector-icons'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
 import useDate from '@/src/hooks/useDate'
@@ -15,12 +16,11 @@ const FixedsGroup = ({ fixeds, onCreditPayment }: FixedsGroupProps) => {
     const dateh = useDate()
     const { t } = useLanguage()
 
-    if(!fixeds || fixeds.length === 0) {
+    if (!fixeds || fixeds.length === 0) {
         return (
             <>
-                <View style={{height: 20, flex:1, justifyContent:"center", alignItems:"center"}}>
-                    <Text style={[styles.smallText, {textAlign:"center"}]}>{t("records.fixeds")}</Text>
-                    
+                <View style={{ height: 20, flex: 1, justifyContent: "center", alignItems: "center" }}>
+                    <MaterialIcons name="credit-card-off" size={20} color="gray" />
                 </View>
             </>
         )
@@ -38,8 +38,8 @@ const FixedsGroup = ({ fixeds, onCreditPayment }: FixedsGroupProps) => {
                     return (
                         <Pressable key={index} onPress={() => onCreditPayment(item)}>
                             <BorderLeftBottomBlock
-                                bottomColor={item?.record_color || "#000"}
-                                letfColor={item?.payment_color || "#000"}
+                                bottomColor={item?.payment_color || "#000"}
+                                letfColor={item?.record_color || "#000"}
                             >
                                 <View style={localStyles.rowContainer}>
                                     <View style={localStyles.dateContainer}>
