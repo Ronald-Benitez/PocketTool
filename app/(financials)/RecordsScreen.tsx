@@ -60,7 +60,7 @@ const Index = () => {
                 </View>
                 <AddGroup>
                     <View style={styles.button}>
-                        <AntDesign name="addfolder" size={20} color={"black"} />
+                        <AntDesign name="folder-add" size={20} color={"black"} />
                     </View>
                 </AddGroup>
                 <Pin />
