@@ -81,6 +81,8 @@
         "edit": "Editar",
         "creditPayments": "Lista de pagos a crédito pendientes",
         "fixeds": "Lista de transacciones fijas pendientes",
+        "all": "Todos",
+        "records": "Registros",
         "error": {
             "emptyFields": "Por favor, ingresa todos los campos y selecciona las opciones necesarias."
         }

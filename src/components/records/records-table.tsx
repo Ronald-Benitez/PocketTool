@@ -20,6 +20,16 @@ import useConfigs from '@/src/hooks/useConfigs'
 import { useDataStore } from '@/src/stores'
 import styles from '@/src/styles/styles'
 import { useHandler } from '@/src/db/handlers/handler'
+import RecordsGroup from './RecordsGroup'
+import FixedsGroup from './FixedsGroup'
+import CreditsGroups from './CreditsGroups'
+
+enum SHOW_OPTIONS {
+    ALL = 0,
+    RECORDS = 1,
+    CREDITS = 2,
+    FIXEDS = 3,
+}
 
 const ItemsTable = () => {
     const [selected, setSelected] = React.useState<RecordJoined | Records | undefined>()
@@ -36,6 +46,7 @@ const ItemsTable = () => {
     const [creditRecords, setCreditRecords] = useState<Records[]>()
     const { configs: { paymentCreditType } } = useConfigs()
     const [fixedsToShow, setFixedsToShow] = useState<RecordJoined[]>([])
+    const [showActual, setShowActual] = useState<SHOW_OPTIONS>(SHOW_OPTIONS.ALL)
     const creditsHandler = useHandler('PaidCredits')
 
     const selectePaymentCreditType = RecordTypes.find(e => e.id == paymentCreditType)
@@ -75,7 +86,7 @@ const ItemsTable = () => {
         credits?.map((credit) => {
             if (!credit.totalPrevious) return
             if ((credit?.totalCurrentPayments || 0) >= (credit?.totalPrevious || 0)) return
-            
+
             const newJoined: Records = {
                 record_type_id: paymentCreditType,
                 amount: credit?.totalPrevious - (credit?.totalCurrentPayments || 0),
@@ -128,124 +139,69 @@ const ItemsTable = () => {
 
     return (
         <>
-            <View
-                style={localStyles.rowContainer}
-            >
-                <Text style={[localStyles.balanceText, color(balance < 0 ? "expense" : "income")]}>
-                    $ {(balance).toFixed(2)}
-                </Text>
-                <View style={[{ position: "absolute", right: 0, top: 0 }]}>
-                    {
-                        group && (
-                            <AddItem>
-                                <IconButton isButton={false}>
-                                    <AntDesign size={20} name='plus' color={"#000"} />
-                                </IconButton>
-                            </AddItem >
-                        )
-                    }
+            <View>
+
+                <View
+                    style={localStyles.rowContainer}
+                >
+                    <Text style={[localStyles.balanceText, color(balance < 0 ? "expense" : "income")]}>
+                        $ {(balance).toFixed(2)}
+                    </Text>
+                    <View style={[{ position: "absolute", right: 0, top: 0 }]}>
+                        {
+                            group && (
+                                <AddItem>
+                                    <IconButton isButton={false}>
+                                        <AntDesign size={20} name='plus' color={"#000"} />
+                                    </IconButton>
+                                </AddItem >
+                            )
+                        }
+                    </View>
                 </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, height: 40 }}>
+                    <View style={{ flexDirection: "row", justifyContent: "center", gap: 20, marginVertical: 10 }}>
+                        <Pressable onPress={() => setShowActual(SHOW_OPTIONS.ALL)}>
+                            <Text style={[styles.smallText, { color: showActual === SHOW_OPTIONS.ALL ? "#000" : "#888" }]}>{t("records.all")}</Text>
+                        </Pressable>
+                        <Pressable onPress={() => setShowActual(SHOW_OPTIONS.RECORDS)}>
+                            <Text style={[styles.smallText, { color: showActual === SHOW_OPTIONS.RECORDS ? "#000" : "#888" }]}>{t("records.records")}</Text>
+                        </Pressable>
+                        <Pressable onPress={() => setShowActual(SHOW_OPTIONS.CREDITS)}>
+                            <Text style={[styles.smallText, { color: showActual === SHOW_OPTIONS.CREDITS ? "#000" : "#888" }]}>{t("records.creditPayments")}</Text>
+                        </Pressable>
+                        <Pressable onPress={() => setShowActual(SHOW_OPTIONS.FIXEDS)}>
+                            <Text style={[styles.smallText, { color: showActual === SHOW_OPTIONS.FIXEDS ? "#000" : "#888" }]}>{t("records.fixeds")}</Text>
+                        </Pressable>
+                    </View>
+                </ScrollView>
             </View>
 
             <ScrollView style={{ flex: 1 }}>
-                <View style={{ gap: 5, paddingHorizontal: 30, }}>
-                    {records?.map((item, index) => {
-                        return (
-                            <SwipeItem
-                                handleDelete={() => handleDelete(index)}
-                                handleUpdate={() => handleUpdate(index)}
-                                key={item.id}
-                            >
-                                <BorderLeftBottomBlock
-                                    bottomColor={item.record_color}
-                                    letfColor={item.payment_color}
-                                >
-                                    <View style={localStyles.rowContainer}>
-                                        <View style={localStyles.dateContainer}>
-                                            <Text style={localStyles.dateText}>
-                                                {dateh.getStringDay(String(item.date))}
-                                            </Text>
-                                            <Text style={localStyles.dateText}>
-                                                {dateh.getDay(String(item.date))}
-                                            </Text>
-                                            <Text style={localStyles.dateText}>
-                                                {dateh.getStringMonth(String(item.date))}
-                                            </Text>
-                                        </View>
-                                        <Text style={localStyles.nameText}>{item.record_name}</Text>
-                                        <Text style={localStyles.valueText}>${item.amount}</Text>
-                                    </View>
-                                </BorderLeftBottomBlock>
-                            </SwipeItem>
-                        )
-                    })}
-                </View>
                 {
-                    creditRecords?.length && creditRecords?.length > 0 ? (
-                        <Text style={[styles.smallText, { textAlign: "center", marginTop: 10 }]}>{t("records.creditPayments")}</Text>
-                    ) : null
+                    showActual === SHOW_OPTIONS.ALL && (
+                        <>
+                            <RecordsGroup handleDelete={handleDelete} handleUpdate={handleUpdate} />
+                            <FixedsGroup fixeds={fixedsToShow} onCreditPayment={onCreditPayment} />
+                            <CreditsGroups credits={creditRecords || []} selectedPaymentCreditType={selectePaymentCreditType} onCreditPayment={onCreditPayment} />
+                        </>
+                    )
                 }
-                <View style={{ gap: 5, paddingHorizontal: 30, }}>
-                    {creditRecords?.map((item, index) => {
-                        return (
-                            <Pressable key={index} onPress={() => onCreditPayment(item)}>
-                                <BorderLeftBottomBlock
-                                    bottomColor={selectePaymentCreditType?.record_color || "#000"}
-                                    letfColor={selectePaymentCreditType?.record_color || "#000"}
-                                >
-                                    <View style={localStyles.rowContainer}>
-                                        <View style={localStyles.dateContainer}>
-                                            <Text style={localStyles.dateText}>
-                                                {dateh.getStringDay(String(item.date))}
-                                            </Text>
-                                            <Text style={localStyles.dateText}>
-                                                {dateh.getDay(String(item.date))}
-                                            </Text>
-                                            <Text style={localStyles.dateText}>
-                                                {dateh.getStringMonth(String(item.date))}
-                                            </Text>
-                                        </View>
-                                        <Text style={localStyles.nameText}>{item.record_name}</Text>
-                                        <Text style={localStyles.valueText}>${item.amount}</Text>
-                                    </View>
-                                </BorderLeftBottomBlock>
-                            </Pressable>
-                        )
-                    })}
-                </View>
                 {
-                    fixedsToShow?.length && fixedsToShow?.length > 0 ? (
-                        <Text style={[styles.smallText, { textAlign: "center", marginTop: 10 }]}>{t("records.fixeds")}</Text>
-                    ) : null
+                    showActual === SHOW_OPTIONS.RECORDS && (
+                        <RecordsGroup handleDelete={handleDelete} handleUpdate={handleUpdate} />
+                    )
                 }
-                <View style={{ gap: 5, paddingHorizontal: 30, }}>
-                    {fixedsToShow?.map((item, index) => {
-                        return (
-                            <Pressable key={index} onPress={() => onCreditPayment(item)}>
-                                <BorderLeftBottomBlock
-                                    bottomColor={item?.record_color || "#000"}
-                                    letfColor={item?.payment_color || "#000"}
-                                >
-                                    <View style={localStyles.rowContainer}>
-                                        <View style={localStyles.dateContainer}>
-                                            <Text style={localStyles.dateText}>
-                                                {dateh.getStringDay(String(item.date))}
-                                            </Text>
-                                            <Text style={localStyles.dateText}>
-                                                {dateh.getDay(String(item.date))}
-                                            </Text>
-                                            <Text style={localStyles.dateText}>
-                                                {dateh.getStringMonth(String(item.date))}
-                                            </Text>
-                                        </View>
-                                        <Text style={localStyles.nameText}>{item.record_name}</Text>
-                                        <Text style={localStyles.valueText}>${item.amount}</Text>
-                                    </View>
-                                </BorderLeftBottomBlock>
-                            </Pressable>
-                        )
-                    })}
-                </View>
+                {
+                    showActual === SHOW_OPTIONS.CREDITS && (
+                        <CreditsGroups credits={creditRecords || []} selectedPaymentCreditType={selectePaymentCreditType} onCreditPayment={onCreditPayment} />
+                    )
+                }
+                {
+                    showActual === SHOW_OPTIONS.FIXEDS && (
+                        <FixedsGroup fixeds={fixedsToShow} onCreditPayment={onCreditPayment} />
+                    )
+                }
                 <ToastContainer />
                 <AddItem
                     openUpdate={openUpdate}

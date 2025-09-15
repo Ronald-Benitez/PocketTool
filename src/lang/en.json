@@ -81,6 +81,8 @@
         "edit": "Edit",
         "creditPayments": "List of pending credit payments",
         "fixeds": "List of pending fixed transactions",
+        "all": "All",
+        "records": "Records",
         "error": {
             "emptyFields": "Please enter all fields and select the necessary options."
         }
