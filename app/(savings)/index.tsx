@@ -131,10 +131,11 @@ const Index = () => {
                     yAxisTextStyle={localStyles.chartYText}
                     yAxisLabelPrefix='$'
                     yAxisOffset={10}
-                    width={250}
                     yAxisColor="#9c9c9c"
                     xAxisColor="#9c9c9c"
+                    width={300}
                     height={300}
+                    adjustToWidth={true}
                 />
             </View>
             <ScrollView>

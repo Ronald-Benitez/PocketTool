@@ -1,4 +1,4 @@
-import { View, Text, Pressable, TextStyle, StyleProp, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { AntDesign } from '@expo/vector-icons'
 
@@ -7,29 +7,25 @@ import SwipeItem from '../ui/swipe-item'
 import { ScrollView } from 'react-native-gesture-handler'
 import useToast from '@/src/hooks/useToast'
 import AddItem from './AddFixed'
-import useColorStore from '@/src/stores/ColorsStore'
 import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
 import IconButton from '../ui/icon-button'
-import { Fixed, FixedJoined, RecordJoined, Records } from '@/src/db/types/tables'
+import { Fixed, FixedJoined } from '@/src/db/types/tables'
 import { useDataStore } from '@/src/stores'
 import { useFixeds } from '@/src/db/handlers/FixedsHandler'
-import FinanceSimpleBlock from '../ui/FinanceSimpleBlock'
-import { Resumes } from '@/src/stores/ResumesStore'
 
 const FixedsTable = () => {
-    const [selected, setSelected] = React.useState<FixedJoined | Fixed | undefined>()
-    const [openUpdate, setOpenUpdate] = React.useState<boolean>(false)
+    const [selected, setSelected] = useState<FixedJoined | Fixed | undefined>()
+    const [openUpdate, setOpenUpdate] = useState<boolean>(false)
     const { ToastContainer, showToast } = useToast()
     const { t } = useLanguage()
-    const { colors } = useColorStore()
-    const { RecordTypes, Fixeds, setFixeds } = useDataStore()
+    const { Fixeds, setFixeds } = useDataStore()
     const { fetchFixeds, handler: fixedsHandler } = useFixeds()
-    const [resume, setResume] = useState<Resumes["balanceByPaymentType"]>()
 
 
     const handleDelete = async (index: number) => {
         const toDelete = Fixeds[index]
-        await fixedsHandler.deleteById(toDelete.record_id)
+        if (!toDelete.id) return
+        await fixedsHandler.deleteById(toDelete.id)
         const data = await fetchFixeds()
         setFixeds(data)
         showToast({ message: t("item.deleted"), type: "SUCCESS" })

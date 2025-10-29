@@ -197,7 +197,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
                 open={open}
             >
                 <ScrollView style={{ flex: 1 }}>
-                    <View style={[localStyles.colContainer, { width: "100%", height: "100%" }]}>
+                    <View style={[localStyles.colContainer, { width: "100%"}]}>
                         <View style={localStyles.inputContainer}>
                             <InputLabel
                                 value={name}

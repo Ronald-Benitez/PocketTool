@@ -68,6 +68,17 @@ export const useHandler = (table: Table) => {
         }
     }
 
+    const fetchWithMultipleWhere = async (conditions: Record<string, any>): Promise<TableSchema[]> => {
+        try {
+            const whereClauses = Object.keys(conditions).map(key => `${key} = ?`).join(' AND ');
+            const values = Object.values(conditions);
+            return (await db.getAllAsync(`SELECT * FROM ${table} WHERE ${whereClauses}`, values)) as TableSchema[];
+        } catch (error) {
+            console.error(error);
+            return [];
+        }
+    }
+
     const fetchGroupsByYear = async (year: string): Promise<TableSchema[]> => {
         try {
             return (await db.getAllAsync("SELECT * FROM Groups WHERE year = ?", [
@@ -177,6 +188,7 @@ export const useHandler = (table: Table) => {
         fetchLast,
         deleteById,
         deleteWithWhere,
+        fetchWithMultipleWhere,
         add,
         edit,
         fetchGroupsByYear,
