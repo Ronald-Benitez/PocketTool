@@ -1,10 +1,15 @@
 import { View, Text, Modal, TouchableOpacity, Pressable, TextInput, StyleSheet } from 'react-native'
-import { ReactNode, useEffect, useState } from 'react'
+import React, { ReactNode, useEffect, useState, useImperativeHandle } from 'react'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
 import ModalButton from './modal-button'
 import useColorStore from '@/src/stores/ColorsStore'
 import ColorText from './color-text'
+
+export interface ModalContainerRef {
+    openModal: () => void;
+    closeModal: () => void;
+}
 
 interface AddGroupProps {
     children?: React.ReactNode,
@@ -18,75 +23,85 @@ interface AddGroupProps {
     onClose?: () => void,
 }
 
-const ModalContainer = ({ children, buttonOpen, title, type, onAccept, closeOnAccept, open, close, onClose }: AddGroupProps) => {
-    const [modalVisible, setModalVisible] = useState(false)
-    const [isFirstRender, setIsFirstRender] = useState(true);
-    const { t } = useLanguage()
-    const { colors } = useColorStore()
+const ModalContainer = React.forwardRef<ModalContainerRef, AddGroupProps>(
+    ({ children, buttonOpen, title, type, onAccept, closeOnAccept, open, close, onClose }, ref) => {
+        const [modalVisible, setModalVisible] = useState(false)
+        const [isFirstRender, setIsFirstRender] = useState(true);
+        const { t } = useLanguage()
+        const { colors } = useColorStore()
 
-    const handleAccept = () => {
-        onAccept && onAccept()
-        if (closeOnAccept) {
-            setModalVisible(false)
+        useImperativeHandle(ref, () => ({
+            openModal: () => setModalVisible(true),
+            closeModal: handleClose,
+        }));
+
+        const handleClose = () => {
+            setModalVisible(false);
+            onClose && onClose();
         }
-    }
 
-    useEffect(() => {
-        if (isFirstRender) {
-            setIsFirstRender(false);
-        } else {
-            setModalVisible(true);
+        const handleAccept = () => {
+            onAccept && onAccept()
+            if (closeOnAccept) {
+                handleClose()
+            }
         }
-    }, [open])
 
-    useEffect(() => {
-        setModalVisible(false);
-    }, [close])
+        useEffect(() => {
+            if (isFirstRender) {
+                setIsFirstRender(false);
+            } else {
+                setModalVisible(true);
+            }
+        }, [open])
 
-    const handleClose = () => {
-        setModalVisible(false);
-        onClose && onClose();
-    }
+        useEffect(() => {
+            if (close) {
+                setModalVisible(false);
+            }
+        }, [close])
 
-    return (
-        <>
-            <Pressable onPress={() => setModalVisible(true)}>
-                {buttonOpen}
-            </Pressable>
-            <View style={[{ position: "absolute", right: 0, top: 0 }]}>
-                <Modal
-                    visible={modalVisible}
-                    onRequestClose={() => setModalVisible(false)}
-                    transparent={true}
-                    animationType="fade"
-                >
-                    <Pressable onPress={() => setModalVisible(false)} style={localStyles.modalBackdrop}>
-                        <Pressable onPress={() => { }} >
-                            <View style={[localStyles.modalContainer]}>
-                                <View style={[localStyles.modalHeader, { backgroundColor: colors?.ModalHeaderColor }]}>
-                                    <ColorText backgroundColor={colors?.ModalHeaderColor || "#fff"} textAlign="center">
-                                        {title}
-                                    </ColorText>
+
+        return (
+            <>
+                <Pressable onPress={() => setModalVisible(true)}>
+                    {buttonOpen}
+                </Pressable>
+                <View style={[{ position: "absolute", right: 0, top: 0 }]}>
+                    <Modal
+                        visible={modalVisible}
+                        onRequestClose={handleClose}
+                        transparent={true}
+                        animationType="fade"
+                    >
+                        <Pressable onPress={handleClose} style={localStyles.modalBackdrop}>
+                            <Pressable onPress={() => { }} >
+                                <View style={[localStyles.modalContainer]}>
+                                    <View style={[localStyles.modalHeader, { backgroundColor: colors?.ModalHeaderColor }]}>
+                                        <ColorText backgroundColor={colors?.ModalHeaderColor || "#fff"} textAlign="center">
+                                            {title}
+                                        </ColorText>
+                                    </View>
+                                    <View style={localStyles.modalContent}>
+                                        {children}
+                                    </View>
+                                    <View style={localStyles.modalFooter}>
+                                        <ModalButton onClick={handleClose} text={t("close")} type='base' />
+                                        {
+                                            type == "complete" && onAccept && (
+                                                <ModalButton onClick={handleAccept} text={t("confirm")} type='bg' />
+                                            )
+                                        }
+                                    </View>
                                 </View>
-                                <View style={localStyles.modalContent}>
-                                    {children}
-                                </View>
-                                <View style={localStyles.modalFooter}>
-                                    <ModalButton onClick={handleClose} text={t("close")} type='base' />
-                                    {
-                                        type == "complete" && onAccept && (
-                                            <ModalButton onClick={handleAccept} text={t("confirm")} type='bg' />
-                                        )
-                                    }
-                                </View>
-                            </View>
+                            </Pressable>
                         </Pressable>
-                    </Pressable>
-                </Modal>
-            </View>
-        </>
-    )
-}
+                    </Modal>
+                </View>
+            </>
+        )
+    }
+)
 
 const localStyles = StyleSheet.create({
     buttonOpen: {
@@ -114,7 +129,7 @@ const localStyles = StyleSheet.create({
         alignItems: "center",
     },
     modalContent: {
-        height: 460,
+        flex: 1
     },
     modalFooter: {
         height: 65,

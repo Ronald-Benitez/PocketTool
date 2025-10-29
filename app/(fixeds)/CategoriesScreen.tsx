@@ -1,15 +1,38 @@
 import { View, ScrollView, StyleSheet } from 'react-native';
 import FinnanceTableBlock from '@/src/components/ui/FinanceTableBlock';
+import useRecordsStore from '@/src/stores/RecordsStore';
+import { useRecords } from '@/src/db/handlers/RecordsHandler';
+import { useCallback, useRef } from 'react';
+import { RecordsModalRef, RecordsModal } from '@/src/components/records/RecordsModal';
 
 const CategoriesScreen = () => {
+
+    const { group } = useRecordsStore()
+    const { fetchRecordsWithMultipleWhere } = useRecords()
+    const recordsModalRef = useRef<RecordsModalRef | null>(null);
+
+    const onSummarySelected = async (id: number | undefined) => {
+        if (!id) return;
+        try {
+            await fetchRecordsWithMultipleWhere([{ column: "Records.category_id", value: id }, { column: "Records.group_id", value: group?.id }]).then((res) => {
+                if (res) {
+                    console.log("Filtered Records:", res, recordsModalRef.current);
+                    recordsModalRef.current?.open(res)
+                }
+            })
+        } catch (e) {
+            console.error(e)
+        }
+    }
 
     return (
         <>
             <ScrollView>
                 <View style={localStyles.container}>
-                    <FinnanceTableBlock render='categories' fixed />
+                    <FinnanceTableBlock render='categories' fixed onSummarySelected={onSummarySelected} />
                 </View>
             </ScrollView>
+            <RecordsModal ref={recordsModalRef} />
         </>
     );
 };

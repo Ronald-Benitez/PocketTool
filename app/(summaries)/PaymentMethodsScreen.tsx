@@ -2,8 +2,34 @@ import { View, ScrollView, StyleSheet } from 'react-native';
 import GroupSelector from '@/src/components/groups/group-selector';
 import styles from '@/src/styles/styles';
 import FinnanceTableBlock from '@/src/components/ui/FinanceTableBlock';
+import RecordsModal, { RecordsModalRef } from '@/src/components/records/RecordsModal';
+import { useRef } from 'react';
+import { useRecords } from '@/src/db/handlers/RecordsHandler';
+import useRecordsStore from '@/src/stores/RecordsStore';
 
-const PaymentMethodsScreen = () => {
+const PaymentMethodsSccreen = () => {
+    const { group } = useRecordsStore()
+    const { fetchRecordsWithMultipleWhere } = useRecords()
+    const recordsModalRef = useRef<RecordsModalRef | null>(null);
+
+    const onSummarySelected = async (id: number | undefined, idRecordType: number | undefined) => {
+        if (!id) return;
+        try {
+            const filters = [{ column: "Records.payment_method_id", value: id }, { column: "Records.group_id", value: group?.id }]
+            if (idRecordType) {
+                filters.push({ column: "Records.record_type_id", value: idRecordType })
+            }
+            await fetchRecordsWithMultipleWhere(filters).then((res) => {
+                if (res) {
+                    console.log("Filtered Records:", res?.length, id, idRecordType);
+                    recordsModalRef.current?.open(res)
+                }
+            })
+        } catch (e) {
+            console.error(e)
+        }
+    }
+
 
     return (
         <>
@@ -11,13 +37,13 @@ const PaymentMethodsScreen = () => {
                 <View style={[styles.row, { justifyContent: 'center', alignItems: "flex-end", marginBottom: 10, gap: 10 }]}>
                     <GroupSelector />
                 </View>
-
             </View >
             <ScrollView>
                 <View style={localStyles.container}>
-                    <FinnanceTableBlock render='payments' />
+                    <FinnanceTableBlock render='payments' onSummarySelected={onSummarySelected} />
                 </View>
             </ScrollView>
+            <RecordsModal ref={recordsModalRef} />
         </>
     );
 };
@@ -43,4 +69,4 @@ const localStyles = StyleSheet.create({
     }
 })
 
-export default PaymentMethodsScreen;
+export default PaymentMethodsSccreen;

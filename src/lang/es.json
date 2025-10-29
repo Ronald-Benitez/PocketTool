@@ -224,7 +224,8 @@
         "summaryByPayments": "Resumen por método de pago",
         "summaryByTypes": "Resumen por tipo de pago",
         "today": "Hoy",
-        "transfers": "Tranferencias"
+        "transfers": "Tranferencias",
+        "recordsDetail": "Detalle de registros"
     },
     "savings": {
         "select": "Selecciona un ahorro",

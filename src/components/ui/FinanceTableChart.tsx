@@ -6,6 +6,7 @@ import FinanceSimpleBlock from "./FinanceSimpleBlock";
 import ColorText from "./color-text";
 import useResumesStore, { Resumes } from "@/src/stores/ResumesStore";
 import useFixedsResumesStore from "@/src/stores/FixedsResumesStore";
+import { useDataStore } from "@/src/stores";
 
 interface props {
     render: "categories" | "payments" | "types",
@@ -14,9 +15,10 @@ interface props {
 }
 
 
-const FinnanceTableBlock = ({ render, fixed, onSummarySelected }: props) => {
+const FinnanceTableChart = ({ render, fixed, onSummarySelected }: props) => {
     const { t } = useLanguage()
     const { balanceByCategory, balanceByPaymentMethod, balanceByPaymentType } = fixed ? useFixedsResumesStore() : useResumesStore()
+    const { RecordTypes } = useDataStore()
 
     const renderCategories = (
         <View style={localStyles.container}>
@@ -190,4 +192,4 @@ const localStyles = StyleSheet.create({
     }
 })
 
-export default FinnanceTableBlock
+export default FinnanceTableChart

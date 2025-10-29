@@ -219,7 +219,8 @@
         "summaryByPayments": "Summary by payment methods",
         "summaryByTypes": "Summary by payment types",
         "today": "Today",
-        "transfers": "Tranfers"
+        "transfers": "Tranfers",
+        "recordsDetail": "Records Detail"
     },
     "savings": {
         "select": "Select a saving",
