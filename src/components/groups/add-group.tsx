@@ -64,7 +64,7 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
     }
 
     const onSave = async () => {
-        if (!name || !month || !year || !goal) {
+        if (!name || month == null || month == undefined  || !year || !goal) {
             toast.emptyMessage()
             return
         }

@@ -1,85 +1,102 @@
-import * as FileSystem from "expo-file-system";
-import * as Sharing from "expo-sharing";
-import * as SQLite from "expo-sqlite";
-import { useSQLiteContext } from "expo-sqlite";
-import { ToastAndroid } from "react-native";
+import * as SQLite from 'expo-sqlite';
+import { File, Paths } from 'expo-file-system';
+import * as DocumentPicker from 'expo-document-picker';
+import * as Sharing from 'expo-sharing';
 
-export const exportDatabaseToSQLFile = async (
-  db: SQLite.SQLiteDatabase,
-  t: any
-) => {
-  try {
-    // Array para almacenar las consultas de exportación
-    let exportSQL = [];
+export const useDBExport = function () {
+  const db = SQLite.useSQLiteContext();
 
-    // Agregar las instrucciones DELETE para cada tabla
-    exportSQL.push("DELETE FROM Records;");
-    exportSQL.push("DELETE FROM Groups;");
-    exportSQL.push("DELETE FROM PaymentMethods;");
-    exportSQL.push("DELETE FROM Categories;");
-    exportSQL.push("DELETE FROM Savings;");
-    exportSQL.push("DELETE FROM SavingsHistory;");
-    exportSQL.push("DELETE FROM Budgets;");
-    exportSQL.push("DELETE FROM Migrations;");
-
-    // Función para agregar consultas INSERT
-    const addInsertStatements = (tableName: string, rows: any[]) => {
-      rows.forEach((row) => {
-        const columns = Object.keys(row).join(", ");
-        const values = Object.values(row)
-          .map((value) =>
-            typeof value === "string" ? `'${value.replace(/'/g, "''")}'` : value
-          )
-          .join(", ");
-
-        exportSQL.push(
-          `INSERT INTO ${tableName} (${columns}) VALUES (${values});`
-        );
-      });
-    };
-
-    // Consultar y agregar datos de cada tabla usando execAsync
-    const tables = [
-      "Groups",
-      "PaymentMethods",
-      "Categories",
-      "Records",
-      "Savings",
-      "SavingsHistory",
-      "Budgets",
-      "Migrations",
-    ];
-    for (const table of tables) {
-      const result = await db.getAllAsync(`SELECT * FROM ${table}`);
-      if (result) {
-        addInsertStatements(table, result);
+  const exportDatabase = async () => {
+    console.log("Hola ------------------")
+    let sqlDump = "";
+  
+    try {
+      const tables = await db.getAllAsync<{ name: string; sql: string }>(
+        "SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'expo_%';"
+      );
+  
+      for (const table of tables) {
+        if (!table.sql) continue;
+  
+        sqlDump += `-- Tabla: ${table.name}\n`;
+        sqlDump += `${table.sql};\n`;
+  
+        const rows = await db.getAllAsync<any>(`SELECT * FROM "${table.name}";`);
+  
+        for (const row of rows) {
+          const columns = Object.keys(row).map(col => `"${col}"`).join(', ');
+          const values = Object.values(row).map(val => {
+            if (val === null) return 'NULL';
+            if (typeof val === 'number') return val;
+            return `'${String(val).replace(/'/g, "''")}'`;
+          }).join(', ');
+  
+          sqlDump += `INSERT INTO "${table.name}" (${columns}) VALUES (${values});\n`;
+        }
+        sqlDump += "\n";
       }
+  
+      console.log(sqlDump)
+  
+      const cacheDir = Paths.cache.uri;
+      const separator = cacheDir.endsWith('/') ? '' : '/';
+      const fullUri = `${cacheDir}${separator}backup.sql`;
+  
+      const dumpFile = new File(fullUri);
+      
+      dumpFile.write(sqlDump);
+  
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(dumpFile.uri);
+      }
+    } catch (error) {
+      console.error("Error detallado en dump:", error);
     }
+  };
 
-    // Convertir el array de consultas a una cadena de texto
-    const sqlContent = exportSQL.join("\n");
-
-    const now = new Date().toISOString();
-    // Guardar el archivo en el sistema de archivos
-    const fileUri = `${FileSystem.documentDirectory}PocketBackup(${now}).sql`;
-    const res = await FileSystem.writeAsStringAsync(fileUri, sqlContent, {
-      encoding: FileSystem.EncodingType.UTF8,
+  const importDatabase = async () => {
+  try {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: ['application/x-sql', 'text/plain'],
+      copyToCacheDirectory: true,
     });
 
-    // Compartir el archivo con el usuario
-    if (await Sharing.isAvailableAsync()) {
-      await Sharing.shareAsync(fileUri);
-    } else {
-      console.log(
-        "La función de compartir no está disponible en esta plataforma"
-      );
-      ToastAndroid.show(t('db.noSharing') , ToastAndroid.SHORT);
+    if (result.canceled || !result.assets) return;
+
+    const selectedFileUri = result.assets[0].uri;
+    const fileToImport = new File(selectedFileUri);
+    const sqlContent = await fileToImport.text();
+
+    if (!sqlContent) throw new Error("El archivo está vacío");
+
+    const tables = await db.getAllAsync<{ name: string }>(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'expo_%';"
+    );
+
+    console.log("Limpiando base de datos...");
+    
+    await db.execAsync("PRAGMA foreign_keys = OFF;");
+    for (const table of tables) {
+      await db.execAsync(`DROP TABLE IF EXISTS "${table.name}";`);
     }
 
-    console.log("Exportación completada con éxito", res);
-    ToastAndroid.show(t('db.exportSucces') , ToastAndroid.SHORT);
+    console.log("Insertando nuevos datos...");
+    await db.execAsync(sqlContent);
+    
+    await db.execAsync("PRAGMA foreign_keys = ON;");
+
+    alert("Importación exitosa. Los datos han sido restaurados.");
+    
   } catch (error) {
-    console.error("Error al exportar la base de datos:", error);
-    ToastAndroid.show(t('db.exportError') , ToastAndroid.SHORT);
+    console.error("Error detallado en importación:", error);
+    try { await db.execAsync("ROLLBACK;"); } catch (e) { /* ignore */ }
+    alert("Error al importar: " + error);
   }
+
 };
+
+  return{
+    exportDatabase,
+    importDatabase
+  }
+}

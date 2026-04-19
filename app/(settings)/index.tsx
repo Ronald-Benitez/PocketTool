@@ -6,7 +6,7 @@ import { useLanguage } from '@/src/lang/LanguageContext';
 import styles from '@/src/styles/styles';
 import ColorSettings from "@/src/components/settings/colors-settings"
 import IconButton from '@/src/components/ui/icon-button';
-import { exportDatabaseToSQLFile, importDatabaseFromSQLFile } from '@/src/db/utils';
+import { useDBExport } from '@/src/db/utils';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import useConfigs from '@/src/hooks/useConfigs';
 import { useDataStore } from '@/src/stores';
@@ -18,6 +18,7 @@ const SettingsScreen = () => {
     const { language, changeLanguage, t } = useLanguage();
     const { configs, saveConfigs } = useConfigs();
     const db = useSQLiteContext()
+    const exportHook = useDBExport()
     const { RecordTypes } = useDataStore()
 
     const onPressLanguage = () => {
@@ -184,11 +185,11 @@ const SettingsScreen = () => {
                     </BaseSelect>
                 </View>
                 <View style={localStyles.dbContainer}>
-                    <IconButton onClick={() => exportDatabaseToSQLFile(db, t)}>
+                    <IconButton onClick={() => exportHook.exportDatabase()}>
                         <MaterialCommunityIcons name="cloud-upload-outline" size={24} color="black" />
 
                     </IconButton>
-                    <IconButton onClick={() => importDatabaseFromSQLFile(db, t)}>
+                    <IconButton onClick={() => exportHook.importDatabase()}>
                         <MaterialCommunityIcons name="cloud-download-outline" size={24} color="black" />
                     </IconButton>
                 </View>
