@@ -17,13 +17,7 @@ const FixedsGroup = ({ fixeds, onCreditPayment }: FixedsGroupProps) => {
     const { t } = useLanguage()
 
     if (!fixeds || fixeds.length === 0) {
-        return (
-            <>
-                <View style={{ height: 20, flex: 1, justifyContent: "center", alignItems: "center" }}>
-                    <MaterialIcons name="credit-card-off" size={20} color="gray" />
-                </View>
-            </>
-        )
+        return
     }
 
     return (
@@ -54,7 +48,7 @@ const FixedsGroup = ({ fixeds, onCreditPayment }: FixedsGroupProps) => {
                                         </Text>
                                     </View>
                                     <Text style={localStyles.nameText}>{item.record_name}</Text>
-                                    <Text style={localStyles.valueText}>${item.amount}</Text>
+                                    <Text style={localStyles.valueText}>${item.amount?.toFixed(2)}</Text>
                                 </View>
                             </BorderLeftBottomBlock>
                         </Pressable>

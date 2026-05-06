@@ -121,6 +121,7 @@ const ItemsTable = () => {
 
   const generateFixedsToShow = () => {
     const list: RecordJoined[] = [];
+    const today = new Date()
     Fixeds.map((fixed) => {
       const alreadyAdded = records.find(
         (records) => records.fixed_id == fixed.id
@@ -128,6 +129,12 @@ const ItemsTable = () => {
       if (!alreadyAdded) {
         const date = new Date();
         date.setDate(fixed.fixed_day);
+
+
+        if(date?.getTime() < today.getTime()){
+          date.setMonth(date?.getMonth() + 1)
+        }
+
         list.push({
           ...fixed,
           fixed_id: fixed.id,

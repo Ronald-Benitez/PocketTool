@@ -13,7 +13,7 @@ async function insertDefault(db: SQLiteDatabase) {
     await db.runAsync('INSERT INTO RecordTypes (type_name, effect, record_color) VALUES (?, ?, ?)', 'Expense', '-', '#F44336');
     await db.runAsync('INSERT INTO RecordTypes (type_name, effect, record_color) VALUES (?, ?, ?)', 'Transfer', '=', '#FF9800');
     await db.runAsync('INSERT INTO RecordTypes (type_name, effect, record_color) VALUES (?, ?, ?)', 'Credit expenses', '=', '#9C27B0');
-    await db.runAsync('INSERT INTO RecordTypes (type_name, effect, record_color) VALUES (?, ?, ?)', 'Credit payment', '-', '#F44376');
+    await db.runAsync('INSERT INTO RecordTypes (type_name, effect, record_color) VALUES (?, ?, ?)', 'Payments', '-', '#F44376');
 
     //Categories
     await db.runAsync('INSERT INTO Categories (category_name) VALUES (?)', 'Groceries');
@@ -30,7 +30,7 @@ async function insertDefault(db: SQLiteDatabase) {
     await db.runAsync('INSERT INTO PaymentMethods (method_name, closing_date, payment_type_id) VALUES (?, ?, ?)', 'Bank Transfer', 0, 2);
 
     //Groups
-    await db.runAsync('INSERT INTO Groups (group_name, goal, year, month) VALUES (?, ?, ?, ?)', 'Default Group', 5000, 2025, 1);
+    await db.runAsync('INSERT INTO Groups (group_name, goal, year, month) VALUES (?, ?, ?, ?)', 'Default Group', 5000, date.getFullYear(), date.getMonth() + 1);
 
     //Records
     await db.runAsync('INSERT INTO Records (amount, record_name, date, record_type_id, group_id, category_id, payment_method_id) VALUES (?, ?, ?, ?, ?, ?, ?)', 1000, 'Salary for January', date.getTime(), 1, 1, 6, 1);
