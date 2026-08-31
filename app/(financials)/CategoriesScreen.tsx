@@ -12,6 +12,7 @@ import useAndroidToast from '@/src/hooks/useAndroidToast';
 import { useHandler } from '@/src/db/handlers/handler';
 import { Categories } from '@/src/db/types/tables';
 import { useDataStore } from '@/src/stores';
+import { useORM } from '@/src/orm';
 
 const PaymentTypesScreen = () => {
     const { t } = useLanguage();
@@ -20,10 +21,11 @@ const PaymentTypesScreen = () => {
     const handler = useHandler("Categories");
     const {Categories, setCategories} = useDataStore()
     const toast = useAndroidToast()
+    const orm = useORM("Categories");
 
     useEffect(() => {
         const loadData = async () => {
-            const result = await handler.fetchAll() as Categories[];
+            const result = await orm.getAll() as Categories[];
             setCategories(result);
         };
         loadData();
@@ -39,14 +41,14 @@ const PaymentTypesScreen = () => {
         try {
             if (editingId) {
                 newData.id = editingId
-                await handler.edit(newData);
+                await orm.update(editingId, newData);
                 toast.editedMessage()
             } else {
-                await handler.add(newData);
+                await orm.insert(newData);
                 toast.addedMessage()
             }
 
-            const result = await handler.fetchAll();
+            const result = await orm.getAll();
             setCategories(result as Categories[]);
             setCategoryName('');
             setEditingId(undefined);
@@ -64,8 +66,8 @@ const PaymentTypesScreen = () => {
     const handleDelete = async (id: number | undefined) => {
         if(!id) return;
         try {
-            await handler.deleteById(id);
-            const result = await handler.fetchAll() as Categories[];
+            await orm.delete(id);
+            const result = await orm.getAll() as Categories[];
             setCategories(result);
             toast.deletedMessage();
         } catch (error) {

@@ -10,10 +10,10 @@ import ModalContainer from '@/src/components/ui/modal-container';
 import { MaterialIcons } from '@expo/vector-icons';
 import InputLabel from '@/src/components/ui/InputLabel';
 import useAndroidToast from '@/src/hooks/useAndroidToast';
-import { useHandler } from '@/src/db/handlers/handler';
 import { PaymentTypes } from '@/src/db/types/tables';
 import { useDataStore } from '@/src/stores';
 import ColorPicker2 from '@/src/components/ui/color-picker-2';
+import { useORM } from '@/src/orm';
 
 const PaymentTypesScreen = () => {
     const { t } = useLanguage();
@@ -22,12 +22,12 @@ const PaymentTypesScreen = () => {
     const [editingId, setEditingId] = useState<number | undefined>(undefined);
     const [openModal, setOpenModal] = useState(false)
     const toast = useAndroidToast()
-    const handler = useHandler("PaymentTypes");
     const { PaymentTypes, setPaymentTypes } = useDataStore();
+    const orm = useORM("PaymentTypes");
 
     useEffect(() => {
         const loadData = async () => {
-            const data = await handler.fetchAll() as PaymentTypes[];
+            const data = await orm.getAll() as PaymentTypes[];
             setPaymentTypes(data);
         };
         loadData();
@@ -42,13 +42,13 @@ const PaymentTypesScreen = () => {
         try {
             if (editingId) {
                 newData.id = editingId;
-                await handler.edit(newData);
+                await orm.update(editingId, newData);
                 toast.editedMessage()
             } else {
-                await handler.add(newData);
+                await orm.insert(newData);
                 toast.addedMessage()
             }
-            const methods = await handler.fetchAll() as PaymentTypes[];
+            const methods = await orm.getAll() as PaymentTypes[];
             setPaymentTypes(methods);
             setName('');
             setColor('#000000');
@@ -62,8 +62,8 @@ const PaymentTypesScreen = () => {
     const handleDelete = async (id: number | undefined) => {
         if (!id) return;
         try {
-            await handler.deleteById(id);
-            const methods = await handler.fetchAll() as PaymentTypes[];
+            await orm.delete(id);
+            const methods = await orm.getAll() as PaymentTypes[];
             toast.deletedMessage()
             setPaymentTypes(methods);
         } catch (error) {

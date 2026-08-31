@@ -10,10 +10,10 @@ import ModalContainer from '@/src/components/ui/modal-container';
 import { MaterialIcons } from '@expo/vector-icons';
 import InputLabel from '@/src/components/ui/InputLabel';
 import useAndroidToast from '@/src/hooks/useAndroidToast';
-import { useHandler } from '@/src/db/handlers/handler';
 import { PaymentTypes, RecordTypes } from '@/src/db/types/tables';
 import { useDataStore } from '@/src/stores';
 import ColorPicker2 from '@/src/components/ui/color-picker-2';
+import { useORM } from '@/src/orm';
 
 type EffectType = "-" | "=" | "+";
 
@@ -25,13 +25,13 @@ const RecordTypesScreen = () => {
     const [editingId, setEditingId] = useState<number | undefined>(undefined);
     const [openModal, setOpenModal] = useState(false)
     const toast = useAndroidToast()
-    const handler = useHandler("RecordTypes");
     const { RecordTypes, setRecordTypes } = useDataStore();
+    const orm = useORM("RecordTypes");
 
     useEffect(() => {
         const loadData = async () => {
-            const data = await handler.fetchAll() as RecordTypes[];
-            setRecordTypes(data);
+            const ormData = await orm.getAll() as RecordTypes[];
+            setRecordTypes(ormData);
         };
         loadData();
     }, []);
@@ -45,13 +45,13 @@ const RecordTypesScreen = () => {
         try {
             if (editingId) {
                 newData.id = editingId;
-                await handler.edit(newData);
+                await orm.update(editingId, newData);
                 toast.editedMessage()
             } else {
-                await handler.add(newData);
+                await orm.insert(newData);
                 toast.addedMessage()
             }
-            const methods = await handler.fetchAll() as RecordTypes[];
+            const methods = await orm.getAll() as RecordTypes[];
             setRecordTypes(methods);
             setName('');
             setColor('#000000');
@@ -66,8 +66,8 @@ const RecordTypesScreen = () => {
     const handleDelete = async (id: number | undefined) => {
         if (!id) return;
         try {
-            await handler.deleteById(id);
-            const methods = await handler.fetchAll() as RecordTypes[];
+            await orm.delete(id);
+            const methods = await orm.getAll() as RecordTypes[];
             toast.deletedMessage()
             setRecordTypes(methods);
         } catch (error) {
