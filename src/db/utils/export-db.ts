@@ -7,7 +7,6 @@ export const useDBExport = function () {
   const db = SQLite.useSQLiteContext();
 
   const exportDatabase = async () => {
-    console.log("Hola ------------------")
     let sqlDump = "";
   
     try {
@@ -36,7 +35,6 @@ export const useDBExport = function () {
         sqlDump += "\n";
       }
   
-      console.log(sqlDump)
   
       const cacheDir = Paths.cache.uri;
       const separator = cacheDir.endsWith('/') ? '' : '/';
@@ -73,14 +71,12 @@ export const useDBExport = function () {
       "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'expo_%';"
     );
 
-    console.log("Limpiando base de datos...");
     
     await db.execAsync("PRAGMA foreign_keys = OFF;");
     for (const table of tables) {
       await db.execAsync(`DROP TABLE IF EXISTS "${table.name}";`);
     }
 
-    console.log("Insertando nuevos datos...");
     await db.execAsync(sqlContent);
     
     await db.execAsync("PRAGMA foreign_keys = ON;");
