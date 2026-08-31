@@ -75,7 +75,7 @@ export const useRecords = () => {
         )) as RecordJoined[];
     }
 
-    const fetchCredits = async (payment_method_id: number, record_type_id: number, startLimit: number, endLimit: number) => {
+    const fetchCredits = async (payment_method_id: number, startLimit: number, endLimit: number) => {
         if (!payment_method_id) return;
         return (await db.getAllAsync(
             `
@@ -98,10 +98,10 @@ export const useRecords = () => {
         JOIN PaymentMethods ON Records.payment_method_id = PaymentMethods.id
         JOIN PaymentTypes ON PaymentMethods.payment_type_id = PaymentTypes.id
         JOIN RecordTypes ON Records.record_type_id = RecordTypes.id
-        WHERE Records.payment_method_id = ? AND Records.record_type_id = ? AND Records.date BETWEEN ? AND ?
+        WHERE Records.payment_method_id = ? AND Records.date BETWEEN ? AND ?
         ORDER BY date ASC
       `,
-            [payment_method_id, record_type_id, startLimit, endLimit]
+            [payment_method_id, startLimit, endLimit]
         )) as RecordJoined[];
     }
 

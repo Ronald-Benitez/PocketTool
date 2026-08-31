@@ -21,7 +21,6 @@ const PaymentMethodsSccreen = () => {
             }
             await fetchRecordsWithMultipleWhere(filters).then((res) => {
                 if (res) {
-                    console.log("Filtered Records:", res?.length, id, idRecordType);
                     recordsModalRef.current?.open(res)
                 }
             })

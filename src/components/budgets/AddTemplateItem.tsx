@@ -130,7 +130,6 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
             // setResumes(await records.getAllResume(group_id))
         } catch (e) {
             toast.errorMessage()
-            console.log(e)
         }
     }
 

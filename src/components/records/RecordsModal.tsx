@@ -30,7 +30,6 @@ export const RecordsModal = forwardRef<RecordsModalRef, {}>(
         }
 
         const onOpen = (filteredRecords: RecordJoined[] | []) => {
-            console.log("Opening Modal with records:", filteredRecords);
             setRecords(filteredRecords)
             setIsVisible(true);
         }

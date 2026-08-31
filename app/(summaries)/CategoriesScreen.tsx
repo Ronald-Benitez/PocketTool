@@ -21,7 +21,6 @@ const CategoriesScreen = () => {
             }
             await fetchRecordsWithMultipleWhere(filters).then((res) => {
                 if (res) {
-                    console.log("Filtered Records:", res?.length, recordsModalRef.current);
                     recordsModalRef.current?.open(res)
                 }
             })

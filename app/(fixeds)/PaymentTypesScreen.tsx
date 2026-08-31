@@ -19,7 +19,6 @@ const PaymentMethodsScreen = () => {
         try {
             await fetchRecordsWithMultipleWhere([{ column: "record_type_id", value: id }, { column: "Records.group_id", value: group?.id }]).then((res) => {
                 if (res) {
-                    console.log("Filtered Records:", res, recordsModalRef.current);
                     recordsModalRef.current?.open(res)
                 }
             })

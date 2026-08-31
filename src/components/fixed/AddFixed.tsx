@@ -94,7 +94,6 @@ const AddFixed = ({ item, children, openUpdate, open }: AddItemProps) => {
 
         } catch (e) {
             toast.errorMessage()
-            console.log(e)
         }
     }
 

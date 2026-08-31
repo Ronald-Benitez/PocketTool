@@ -66,10 +66,10 @@ export const useCreditStore = () => {
                 month - 1,
                 year
             );
-            const currentCredits = await fetchCredits(payment.id, creditType, currentPeriodStart, currentPeriodEnd)
+            const currentCredits = await fetchCredits(payment.id, currentPeriodStart, currentPeriodEnd)
             const currentPayments = await fetchPaidCredits(payment.id, currentPeriodStart, currentPeriodEnd)
             const totalCurrentPayments = currentPayments?.reduce((acc, current) => acc + current.amount, 0) || 0
-            const previousCredits = await fetchCredits(payment.id, creditType, previousPeriodStart, previousPeriodEnd)
+            const previousCredits = await fetchCredits(payment.id, previousPeriodStart, previousPeriodEnd)
             const totalCurrent = currentCredits?.reduce((acc, current) => acc + current.amount, 0)
             const totalPrevious = previousCredits?.reduce((acc, current) => acc + current.amount, 0)
             const newPayment = {
