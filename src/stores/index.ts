@@ -1,29 +1,27 @@
-import { Records, Budgets, Categories, Groups, Migrations, PaymentMethods, PaymentTypes, RecordJoined, RecordTypes, Savings, SavingsHistory, FixedJoined } from "../db/types/tables";
+import { Budget, Category, Group, Migration, PaymentType, Saving, SavingsHistoryWithRelations, FixedRecordWithRelations, RecordType, PaymentMethodWithRelations } from "../interfaces/schema";
 import { create } from "zustand";
 
-export type PaymentMethodsJoined = PaymentMethods & PaymentTypes;
-
 interface TableState {
-    Budgets: Budgets[];
-    Categories: Categories[];
-    Groups: Groups[];
-    Migrations: Migrations[];
-    PaymentMethods: PaymentMethodsJoined[];
-    PaymentTypes: PaymentTypes[];
-    RecordTypes: RecordTypes[];
-    Savings: Savings[];
-    SavingsHistory: SavingsHistory[];
-    Fixeds: FixedJoined[],
-    setBudgets: (budgets: Budgets[]) => void;
-    setCategories: (categories: Categories[]) => void;
-    setGroups: (groups: Groups[]) => void;
-    setMigrations: (migrations: Migrations[]) => void;
-    setPaymentMethods: (paymentMethods: PaymentMethodsJoined[]) => void;
-    setPaymentTypes: (paymentTypes: PaymentTypes[]) => void;
-    setRecordTypes: (recordTypes: RecordTypes[]) => void;
-    setSavings: (savings: Savings[]) => void;
-    setSavingsHistory: (savingsHistory: SavingsHistory[]) => void;
-    setFixeds: (fixeds: FixedJoined[] | undefined) => void
+    Budgets: Budget[];
+    Categories: Category[];
+    Groups: Group[];
+    Migrations: Migration[];
+    PaymentMethods: PaymentMethodWithRelations [];
+    PaymentTypes: PaymentType[];
+    RecordTypes: RecordType[];
+    Savings: Saving[];
+    SavingsHistory: SavingsHistoryWithRelations[];
+    Fixeds: FixedRecordWithRelations[],
+    setBudgets: (budgets: Budget[]) => void;
+    setCategories: (categories: Category[]) => void;
+    setGroups: (groups: Group[]) => void;
+    setMigrations: (migrations: Migration[]) => void;
+    setPaymentMethods: (paymentMethods: PaymentMethodWithRelations[]) => void;
+    setPaymentTypes: (paymentTypes: PaymentType[]) => void;
+    setRecordTypes: (recordTypes: RecordType[]) => void;
+    setSavings: (savings: Saving[]) => void;
+    setSavingsHistory: (savingsHistory: SavingsHistoryWithRelations[]) => void;
+    setFixeds: (fixeds: FixedRecordWithRelations[] | undefined) => void
 }
 
 export const useDataStore = create<TableState>()((set) => ({
@@ -48,13 +46,7 @@ export const useDataStore = create<TableState>()((set) => ({
     setRecordTypes: (recordTypes) => set({ RecordTypes: recordTypes }),
     setSavings: (savings) => set({ Savings: savings }),
     setSavingsHistory: (savingsHistory) => set({ SavingsHistory: savingsHistory }),
-    setFixeds: (fixeds) => {
-        const mapped = fixeds?.map((fix) => ({
-            ...fix,
-            id: fix.fixed_id,
-        })) || [];
-        set({ Fixeds: mapped })
-    }
+    setFixeds: (fixeds) => set({ Fixeds: fixeds || [] })
 
 }));
 

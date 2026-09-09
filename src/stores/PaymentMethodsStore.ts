@@ -1,9 +1,9 @@
 import { create } from "zustand";
-import { PaymentMethod } from "../interfaces";
+import { PaymentMethodWithRelations } from "../interfaces/schema";
 
 interface PaymentSate {
-  payments: PaymentMethod[] | null;
-  setPayments: (payments: PaymentMethod[]) => void;
+  payments: PaymentMethodWithRelations[] | null;
+  setPayments: (payments: PaymentMethodWithRelations[]) => void;
 }
 
 const usePaymentsStore = create<PaymentSate>()((set) => ({

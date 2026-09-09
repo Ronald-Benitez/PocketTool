@@ -101,7 +101,6 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
             setBudgets(await budget.fetchBudget(group_id) as Budget[])
             setResumes(await budget.getAllResume(group_id))
         } catch (e) {
-            console.log(e)
             toast.errorMessage()
         }
     }

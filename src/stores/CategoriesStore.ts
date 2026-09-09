@@ -1,12 +1,12 @@
 import { create } from "zustand";
-import { Category } from "../interfaces";
+import { Category } from "../interfaces/schema";
 
-interface CategiesSate {
+interface CategoriesState {
   categories: Category[] | null;
   setCategories: (categories: Category[]) => void;
 }
 
-const useCategoriesStore = create<CategiesSate>()((set) => ({
+const useCategoriesStore = create<CategoriesState>()((set) => ({
   categories: null,
   setCategories: async (categories) => {
     set(() => ({
