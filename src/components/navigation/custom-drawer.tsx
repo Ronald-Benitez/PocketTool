@@ -1,6 +1,6 @@
-import { View, Text, Image, StyleSheet } from 'react-native'
+import { View, StyleSheet } from 'react-native'
 import React from 'react'
-import { DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer'
+import { DrawerContentScrollView, DrawerItemList } from 'expo-router/drawer'
 
 const CustomDrawer = (props: any) => {
     return (

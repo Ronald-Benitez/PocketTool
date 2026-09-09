@@ -1,17 +1,14 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
+import { Tabs, useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from 'expo-router';
-import { DrawerActions } from '@react-navigation/native';
 import { View } from 'react-native';
-
 
 export interface StackBaseProps {
     children: React.ReactNode;
 }
 
 const StackBase = ({ children }: StackBaseProps) => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
 
     return (
         <Tabs
@@ -22,7 +19,7 @@ const StackBase = ({ children }: StackBaseProps) => {
                             name="menu-outline"
                             size={24}
                             color="black"
-                            onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+                            onPress={() => navigation.openDrawer?.()}
                         />
                     </View>
                 ),
