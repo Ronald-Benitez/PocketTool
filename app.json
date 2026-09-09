@@ -5,14 +5,8 @@
     "version": "2.0.9",
     "orientation": "portrait",
     "icon": "./assets/images/icon3.png",
-    "newArchEnabled": true,
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/images/icon3.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
       "supportsTablet": true
     },
@@ -34,7 +28,10 @@
       "expo-font",
       "expo-sqlite",
       "expo-build-properties",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-sharing",
+      "expo-splash-screen",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true
