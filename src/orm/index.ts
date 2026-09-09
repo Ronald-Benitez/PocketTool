@@ -1,238 +1,398 @@
 import { useSQLiteContext, SQLiteDatabase } from "expo-sqlite"
+import relations from "./relations.json"
+import columns from "./columns.json"
 import { APP_SCHEMA } from "../db/schema"
 import type {
-    Groups,
-    PaymentTypes,
-    PaymentMethods,
-    Categories,
-    RecordTypes,
-    Fixed,
-    Records,
-    PaidCredits,
-    BudgetTemplates,
-    BudgetTemplateItems,
-    Budgets,
-    Savings,
-    SavingsHistory,
-    Migrations,
-} from "../db/types/schema"
+  Group,
+  PaymentType,
+  PaymentMethod,
+  PaymentMethodWithRelations,
+  Category,
+  RecordType,
+  FixedRecord,
+  FixedRecordWithRelations,
+  RecordEntry,
+  RecordWithRelations,
+  PaidCredit,
+  PaidCreditWithRelations,
+  BudgetTemplate,
+  BudgetTemplateWithRelations,
+  BudgetTemplateItem,
+  BudgetTemplateItemWithRelations,
+  Budget,
+  BudgetWithRelations,
+  Saving,
+  SavingsHistoryEntry,
+  SavingsHistoryWithRelations,
+  Migration,
+  Insertable
+} from "../interfaces/schema"
 
-type TableOption = keyof typeof APP_SCHEMA
-
-type RelationshipsMap = Partial<Record<TableOption, string[]>>
-type RelationshipsObject = Partial<Record<TableOption, Record<string, string>>>
-
-const relationships: RelationshipsMap = {}
-const relationshipsTree: RelationshipsObject = {}
-
-const TABLES = Object.keys(APP_SCHEMA) as TableOption[]
-
-for (const index in TABLES) {
-    const table = TABLES[index]
-    const columns = APP_SCHEMA[table as TableOption]?.columns
-    const references = columns?.filter((column) => column.references)
-    if (references && references.length > 0) {
-        references.forEach((column) => {
-            const referencedTable = column.references?.table
-            if (referencedTable) {
-                relationships[table] = [...(relationships[table] || []), referencedTable]
-            }
-        })
-    }
+// ----------------------------------------------------------------------
+// 1. Mapeo de Tablas a Interfaces (Simples y Con Relaciones)
+// ----------------------------------------------------------------------
+export type BaseSchemaMap = {
+  Groups: Group
+  PaymentTypes: PaymentType
+  PaymentMethods: PaymentMethod
+  Categories: Category
+  RecordTypes: RecordType
+  Fixed: FixedRecord
+  Records: RecordEntry
+  PaidCredits: PaidCredit
+  BudgetTemplates: BudgetTemplate
+  BudgetTemplateItems: BudgetTemplateItem
+  Budgets: Budget
+  Savings: Saving
+  SavingsHistory: SavingsHistoryEntry
+  Migrations: Migration
 }
 
-const recursiveRelationships = (table: string, base: string): string[] => {
-    const referencedTables = relationships[table] || []
-    return referencedTables.map((referencedTable) => {
-        return [`${base}.${referencedTable}`, ...recursiveRelationships(referencedTable, base)]
-    }).flat()
+export type TableOption = keyof BaseSchemaMap
+
+export type RelationsSchemaMap = {
+  Groups: Group
+  PaymentTypes: PaymentType
+  PaymentMethods: PaymentMethodWithRelations
+  Categories: Category
+  RecordTypes: RecordType
+  Fixed: FixedRecordWithRelations
+  Records: RecordWithRelations
+  PaidCredits: PaidCreditWithRelations
+  BudgetTemplates: BudgetTemplateWithRelations
+  BudgetTemplateItems: BudgetTemplateItemWithRelations
+  Budgets: BudgetWithRelations
+  Savings: Saving
+  SavingsHistory: SavingsHistoryWithRelations
+  Migrations: Migration
 }
 
-const relationArrayToObject = (references: string[]) => {
-    return Object.fromEntries(references.map((value) => [value, value]))
+// ----------------------------------------------------------------------
+// 2. Carga del árbol de relaciones desde relations.json
+// ----------------------------------------------------------------------
+const RELATION_TREE = relations as Record<string, Record<string, string>>
+const COLUMN_TREE = columns as Record<string, Record<string, string>>
+
+type RelationTree = typeof RELATION_TREE
+type ColumnTree = typeof COLUMN_TREE
+
+export type JoinPath<T extends TableOption> = Extract<keyof NonNullable<RelationTree[T]>, string>
+export type ColumnPath<T extends TableOption> = Extract<keyof NonNullable<ColumnTree[T]>, string>
+export type AvailableJoins<T extends TableOption> = Partial<Record<JoinPath<T>, JoinPath<T>>>
+export type AvailableColumns<T extends TableOption> = Partial<Record<ColumnPath<T>, ColumnPath<T>>>
+
+export type SqlOperator = '=' | '!=' | '>' | '>=' | '<' | '<=' | 'LIKE' | 'IN' | 'IS' | 'IS NOT' | 'BETWEEN'
+export type OrderDirection = 'ASC' | 'DESC'
+export type SqlValue = string | number | boolean | null | Array<string | number | boolean | null>
+
+export type WhereCondition<T extends TableOption> = {
+  column: ColumnPath<T>
+  value: SqlValue
+  operator?: SqlOperator
 }
 
-for (const table in relationships) {
-    const references: string[] = []
-
-    for (const referencedTable of relationships[table] ?? []) {
-        const nestedReferences = recursiveRelationships(referencedTable, referencedTable)
-        references.push(referencedTable, ...nestedReferences)
-    }
-
-    relationshipsTree[table] = relationArrayToObject(references)
+export type OrderCondition<T extends TableOption> = {
+  column: ColumnPath<T>
+  direction?: OrderDirection
 }
 
-
-
-
-type TableSchemaMap = {
-    Groups: Groups
-    PaymentTypes: PaymentTypes
-    PaymentMethods: PaymentMethods
-    Categories: Categories
-    RecordTypes: RecordTypes
-    Fixed: Fixed
-    Records: Records
-    PaidCredits: PaidCredits
-    BudgetTemplates: BudgetTemplates
-    BudgetTemplateItems: BudgetTemplateItems
-    Budgets: Budgets
-    Savings: Savings
-    SavingsHistory: SavingsHistory
-    Migrations: Migrations
+const buildAvailableJoins = <T extends TableOption>(table: T): AvailableJoins<T> => {
+  const tableRelations = RELATION_TREE[table] ?? {}
+  return Object.fromEntries(
+    Object.keys(tableRelations).map((path) => [path, path])
+  ) as AvailableJoins<T>
 }
 
-type TableSchema<T extends TableOption = TableOption> = T extends keyof TableSchemaMap
-    ? TableSchemaMap[T]
-    : never
+const buildAvailableColumns = <T extends TableOption>(table: T): AvailableColumns<T> => {
+  const tableColumns = COLUMN_TREE[table] ?? {}
+  return Object.fromEntries(
+    Object.keys(tableColumns).map((path) => [path, path])
+  ) as AvailableColumns<T>
+}
 
+const resolveColumnReference = (table: string, column: string) => {
+  if (column.includes('.')) {
+    const parts = column.split('.')
+    const alias = parts.slice(0, -1).join('.')
+    const field = parts[parts.length - 1]
+    return `"${alias}"."${field}"`
+  }
+
+  return `"${table}"."${column}"`
+}
+
+const normalizeOperator = (operator: SqlOperator): string => {
+  if (operator === 'IS') return 'IS'
+  if (operator === 'IS NOT') return 'IS NOT'
+  return operator
+}
+
+// ----------------------------------------------------------------------
+// 3. Clase ORM con Soft Delete y Tipado Anidado
+// ----------------------------------------------------------------------
 class ORM<T extends TableOption = TableOption> {
-    private db: SQLiteDatabase
+  private db: SQLiteDatabase
+  private table: T
+  private joinedTables: string[] = []
+  private joinedColumns: string[] = []
+  private whereClauses: string[] = []
+  private whereValues: SqlValue[] = []
+  private orderClauses: string[] = []
+  public availableJoins: AvailableJoins<T>
+  public availableColumns: AvailableColumns<T>
 
-    private table: T | undefined
+  constructor(db: SQLiteDatabase, table: T) {
+    this.db = db
+    this.table = table
+    this.availableJoins = buildAvailableJoins(table)
+    this.availableColumns = buildAvailableColumns(table)
+  }
 
-    private joinedTables: Array<String> = []
-
-    private joinedColumns: Array<String> = []
-
-    public availableJoins: Record<string, string>
-
-    constructor(db: SQLiteDatabase, table: T) {
-        this.db = db
-        this.table = table
-        this.availableJoins = relationshipsTree[table] || {}
+  public join<Path extends JoinPath<T>>(tablePath: Path): this {
+    if (!Object.prototype.hasOwnProperty.call(this.availableJoins, tablePath)) {
+      throw new Error(`Table path "${tablePath}" is not a valid join for "${this.table}"`)
     }
 
-    public join(table: string) {
-        if (!this.table) return this
-        if (!Object.prototype.hasOwnProperty.call(this.availableJoins, table)) {
-            throw new Error(`Table "${table}" is not a valid join for "${this.table}"`)
-        }
+    const segments = tablePath.split('.')
+    let prevAlias = this.table as string
+    let currentPath = ''
 
-        const segments = table.split('.')
-        let prevTable = this.table as string
+    for (const segment of segments) {
+      // Manejo de origen de metadatos (extrae el nombre real de la tabla anterior si era un alias)
+      const prevTableName = prevAlias.includes('.') ? prevAlias.split('.').pop()! : prevAlias
+      currentPath = currentPath ? `${currentPath}.${segment}` : segment
 
-        for (const segment of segments) {
-            const base = APP_SCHEMA[prevTable].columns?.find(e => e?.references?.table === segment)
-            if (!base) {
-                break
+      const base = APP_SCHEMA[prevTableName as TableOption]?.columns?.find(
+        (e) => e?.references?.table === segment
+      )
+
+      if (!base) break
+
+      // LEFT JOIN con Soft Delete implícito en la relación y alias entre comillas para soportar puntos
+      const joinStr = `LEFT JOIN ${segment} AS "${currentPath}" ON "${currentPath}".${base.references?.column} = "${prevAlias}".${base.name}`
+
+      if (!this.joinedTables.includes(joinStr)) {
+        this.joinedTables.push(joinStr)
+      }
+
+      const referencedColumns = APP_SCHEMA[segment as TableOption]?.columns ?? []
+      const cols = referencedColumns
+        .map((e) => `"${currentPath}".${e.name} AS "${currentPath}.${e.name}"`)
+        .join(', ')
+
+      if (cols && !this.joinedColumns.includes(cols)) {
+        this.joinedColumns.push(cols)
+      }
+
+      prevAlias = currentPath
+    }
+
+    return this
+  }
+
+  public joinMany(paths: JoinPath<T>[]) {
+    for (const path of paths) {
+      this.join(path)
+    }
+
+    return this
+  }
+
+  public where<Path extends ColumnPath<T>>(column: Path, value: SqlValue, operator: SqlOperator): this
+  public where<Path extends ColumnPath<T>>(filter: WhereCondition<T>): this
+  public where<Path extends ColumnPath<T>>(
+    columnOrFilter: Path | WhereCondition<T>,
+    value?: SqlValue,
+    operator: SqlOperator = '='
+  ) {
+    const condition = typeof columnOrFilter === 'string'
+      ? { column: columnOrFilter, value: value ?? null, operator }
+      : columnOrFilter
+
+    if (!Object.prototype.hasOwnProperty.call(this.availableColumns, condition.column)) {
+      throw new Error(`Column "${condition.column}" is not valid for table "${this.table}"`)
+    }
+
+    const columnRef = resolveColumnReference(this.table, condition.column)
+    const normalizedOperator = normalizeOperator(condition.operator ?? '=')
+
+    if (normalizedOperator === 'IN') {
+      const values = Array.isArray(condition.value) ? condition.value : [condition.value]
+      const placeholders = values.map(() => '?').join(', ')
+      this.whereClauses.push(`${columnRef} IN (${placeholders})`)
+      this.whereValues.push(...values)
+      return this
+    }
+
+    if (normalizedOperator === 'BETWEEN') {
+      const values = Array.isArray(condition.value) ? condition.value : [condition.value, null]
+      this.whereClauses.push(`${columnRef} BETWEEN ? AND ?`)
+      this.whereValues.push(values[0], values[1])
+      return this
+    }
+
+    if (normalizedOperator === 'IS' || normalizedOperator === 'IS NOT') {
+      this.whereClauses.push(`${columnRef} ${normalizedOperator} ?`)
+      this.whereValues.push(condition.value)
+      return this
+    }
+
+    this.whereClauses.push(`${columnRef} ${normalizedOperator} ?`)
+    this.whereValues.push(condition.value)
+    return this
+  }
+
+  public whereMany(filters: Array<WhereCondition<T>>) {
+    for (const filter of filters) {
+      this.where(filter)
+    }
+
+    return this
+  }
+
+  public order<Path extends ColumnPath<T>>(column: Path, direction: OrderDirection): this
+  public order<Path extends ColumnPath<T>>(filter: OrderCondition<T>): this
+  public order<Path extends ColumnPath<T>>(
+    columnOrFilter: Path | OrderCondition<T>,
+    direction: OrderDirection = 'ASC'
+  ) {
+    const condition = typeof columnOrFilter === 'string'
+      ? { column: columnOrFilter, direction }
+      : columnOrFilter
+
+    if (!Object.prototype.hasOwnProperty.call(this.availableColumns, condition.column)) {
+      throw new Error(`Column "${condition.column}" is not valid for table "${this.table}"`)
+    }
+
+    const columnRef = resolveColumnReference(this.table, condition.column)
+    this.orderClauses.push(`${columnRef} ${condition.direction ?? 'ASC'}`)
+    return this
+  }
+
+  public orderMany(filters: Array<OrderCondition<T>>) {
+    for (const filter of filters) {
+      this.order(filter)
+    }
+
+    return this
+  }
+
+  public async getAll(options?: { includeDeleted?: boolean }): Promise<RelationsSchemaMap[T][]> {
+    try {
+      const mainColumns = `${this.table}.*`
+      const joinedCols = this.joinedColumns.length > 0 ? this.joinedColumns.join(', ') : ''
+      const selectColumns = joinedCols ? `${mainColumns}, ${joinedCols}` : mainColumns
+      const joins = this.joinedTables.join(' ')
+
+      const baseFilters = options?.includeDeleted
+        ? []
+        : [`${this.table}.deleted_at IS NULL`]
+
+      const filters = [...baseFilters, ...this.whereClauses]
+      const whereClause = filters.length > 0 ? `WHERE ${filters.join(' AND ')}` : ''
+      const orderClause = this.orderClauses.length > 0 ? `ORDER BY ${this.orderClauses.join(', ')}` : ''
+
+      const query = `SELECT ${selectColumns} FROM ${this.table} ${joins} ${whereClause} ${orderClause}`.trim()
+      const rows = (await this.db.getAllAsync(query, this.whereValues as any[])) as Record<string, any>[]
+
+      const mapRow = (row: Record<string, any>) => {
+        const result: any = {}
+        for (const key of Object.keys(row)) {
+          const value = row[key]
+          if (key.includes('.')) {
+            const parts = key.split('.')
+            let cursor = result
+            for (let i = 0; i < parts.length; i++) {
+              const p = parts[i]
+              if (i === parts.length - 1) {
+                cursor[p] = value
+              } else {
+                if (cursor[p] === undefined) cursor[p] = {}
+                cursor = cursor[p]
+              }
             }
-
-            const joinStr = `inner join ${segment} on ${segment}.${base.references?.column} = ${prevTable}.${base.name}`
-
-            if (!this.joinedTables.includes(joinStr)) {
-                this.joinedTables.push(joinStr)
-            }
-
-            const referencedColumns = APP_SCHEMA[segment].columns ?? []
-            const cols = referencedColumns
-                .map((e) => `${segment}.${e.name} as "${segment}.${e.name}"`)
-                .join(', ')
-
-            if (cols && !this.joinedColumns.includes(cols)) {
-                this.joinedColumns.push(cols)
-            }
-
-            prevTable = segment
+          } else {
+            result[key] = value
+          }
         }
+        return result
+      }
 
-        return this
+      return rows.map(mapRow) as RelationsSchemaMap[T][]
+    } catch (error) {
+      console.error(`Error en getAll() para ${this.table}:`, error)
+      return []
     }
+  }
 
-    public async getAll(): Promise<TableSchema<T>[]> {
-        if (!this.table) {
-            throw new Error("Table not specified")
-        }
+  public async insert(data: Insertable<BaseSchemaMap[T]>): Promise<void> {
+    const columns = Object.keys(data).join(', ')
+    const placeholders = Object.keys(data).map(() => '?').join(', ')
+    const values = Object.values(data)
 
-        try {
-            const mainColumns = `${this.table}.*`
-            const joinedCols = this.joinedColumns.length > 0 ? this.joinedColumns.join(', ') : ''
-            const selectColumns = joinedCols ? `${mainColumns}, ${joinedCols}` : mainColumns
-            const joins = this.joinedTables.join(' ')
-
-            const rows = (await this.db.getAllAsync(`SELECT ${selectColumns} FROM ${this.table} ${joins}`)) as any[]
-
-            const mapRow = (row: any) => {
-                const result: any = {}
-                for (const key of Object.keys(row)) {
-                    const value = row[key]
-                    if (key.includes('.')) {
-                        const parts = key.split('.')
-                        let cursor = result
-                        for (let i = 0; i < parts.length; i++) {
-                            const p = parts[i]
-                            if (i === parts.length - 1) {
-                                cursor[p] = value
-                            } else {
-                                if (cursor[p] == null) cursor[p] = {}
-                                cursor = cursor[p]
-                            }
-                        }
-                    } else {
-                        result[key] = value
-                    }
-                }
-                return result
-            }
-
-            return rows.map(mapRow) as TableSchema<T>[]
-        } catch (error) {
-            console.error(error)
-            return []
-        }
+    try {
+      await this.db.runAsync(
+        `INSERT INTO ${this.table} (${columns}) VALUES (${placeholders})`,
+        values as any[]
+      )
+    } catch (error) {
+      console.error(`Error en insert() para ${this.table}:`, error)
     }
+  }
 
-    public async insert(data: TableSchema<T>): Promise<void> {
-        if (!this.table) {
-            throw new Error("Table not specified")
-        }
-        const columns = Object.keys(data).join(", ")
-        const placeholders = Object.keys(data).map(() => "?").join(", ")
-        const values = Object.values(data)
+  public async update(id: number, data: Partial<BaseSchemaMap[T]>): Promise<void> {
+    const setClause = Object.keys(data).map((key) => `${key} = ?`).join(', ')
+    const values = Object.values(data)
 
-        try {
-            await this.db.runAsync(
-                `INSERT INTO ${this.table} (${columns}) VALUES (${placeholders})`,
-                values
-            )
-        } catch (error) {
-            console.error(error)
-        }
+    try {
+      await this.db.runAsync(
+        `UPDATE ${this.table} SET ${setClause} WHERE id = ? AND deleted_at IS NULL`,
+        [...values, id] as any[]
+      )
+    } catch (error) {
+      console.error(`Error en update() para ${this.table}:`, error)
     }
+  }
 
-    public async update(id: number, data: Partial<TableSchema<T>>): Promise<void> {
-        if (!this.table) {
-            throw new Error("Table not specified")
-        }
-        const setClause = Object.keys(data).map((key) => `${key} = ?`)
-            .join(", ")
-        const values = Object.values(data)
-
-        try {
-            await this.db.runAsync(
-                `UPDATE ${this.table} SET ${setClause} WHERE id = ?`,
-                [...values, id]
-            )
-        } catch (error) {
-            console.error(error)
-        }
+  // Realiza soft delete asignando el ISO string actual en deleted_at
+  public async delete(id: number): Promise<void> {
+    try {
+      const now = new Date().toISOString()
+      await this.db.runAsync(
+        `UPDATE ${this.table} SET deleted_at = ? WHERE id = ? AND deleted_at IS NULL`,
+        [now, id]
+      )
+    } catch (error) {
+      console.error(`Error en delete() para ${this.table}:`, error)
     }
+  }
 
-    public async delete(id: number): Promise<void> {
-        if (!this.table) {
-            throw new Error("Table not specified")
-        }
-        try {
-            await this.db.runAsync(`DELETE FROM ${this.table} WHERE id = ?`, [id])
-        } catch (error) {
-            console.error(error)
-        }
+  // Restaura un registro previamente marcado como eliminado
+  public async restore(id: number): Promise<void> {
+    try {
+      await this.db.runAsync(
+        `UPDATE ${this.table} SET deleted_at = NULL WHERE id = ?`,
+        [id]
+      )
+    } catch (error) {
+      console.error(`Error en restore() para ${this.table}:`, error)
     }
+  }
+
+  // Elimina físicamente el registro de la base de datos
+  public async forceDelete(id: number): Promise<void> {
+    try {
+      await this.db.runAsync(`DELETE FROM ${this.table} WHERE id = ?`, [id])
+    } catch (error) {
+      console.error(`Error en forceDelete() para ${this.table}:`, error)
+    }
+  }
 }
 
+// ----------------------------------------------------------------------
+// 4. Hook ejecutable
+// ----------------------------------------------------------------------
 export const useORM = <T extends TableOption>(table: T) => {
-    const db = useSQLiteContext()
-
-    return new ORM<T>(db, table)
+  const db = useSQLiteContext()
+  return new ORM<T>(db, table)
 }
