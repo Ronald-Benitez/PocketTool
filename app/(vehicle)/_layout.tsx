@@ -1,0 +1,36 @@
+import { Tabs } from "expo-router";
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+
+import StackBase from "@/src/components/navigation/stack-base";
+import { useLanguage } from "@/src/lang/LanguageContext";
+
+export default function Layout() {
+    const { t } = useLanguage()
+
+    return (
+        <StackBase>
+            <Tabs.Screen
+                name="index"
+                options={{
+                    title: t("headers.financialsIndex"),
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="home-outline" size={size} color={color} />
+                    ),
+                    headerStyle: {
+                        backgroundColor: '#fff'
+                    }
+                }} />
+            <Tabs.Screen
+                name="FuelScreen"
+                options={{
+                    title: t("vehicle"),
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="cash-outline" size={size} color={color} />
+                    ),
+                    headerStyle: {
+                        backgroundColor: '#fff'
+                    }
+                }} />
+        </StackBase>
+    );
+}

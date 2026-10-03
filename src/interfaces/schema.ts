@@ -124,6 +124,29 @@ export interface Migration {
   applied_at: number;
 }
 
+// 15. FuelRefills
+export interface FuelRefill extends SoftDeletable {
+  id: number;
+  date?: string | null;
+  odometer_reading: number;
+  total_cost: number;
+  gallons: number;
+  price_per_gallon: number;
+  is_full_tank: boolean | number;
+  notes?: string | null;
+}
+
+// 16. TripLogs
+export interface TripLog extends SoftDeletable {
+  id: number;
+  date?: string | null;
+  distance_traveled: number;
+  average_consumption?: number | null;
+  is_counter_reset?: boolean | number | null;
+  trip_type?: string | null;
+  notes?: string | null;
+}
+
 // Omite 'id' y 'deleted_at' para operaciones INSERT
 export type Insertable<T> = Omit<T, 'id' | 'deleted_at'>;
 

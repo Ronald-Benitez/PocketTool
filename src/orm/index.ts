@@ -25,6 +25,8 @@ import type {
   SavingsHistoryEntry,
   SavingsHistoryWithRelations,
   Migration,
+  FuelRefill,
+  TripLog,
   Insertable
 } from "../interfaces/schema"
 
@@ -46,6 +48,8 @@ export type BaseSchemaMap = {
   Savings: Saving
   SavingsHistory: SavingsHistoryEntry
   Migrations: Migration
+  FuelRefills: FuelRefill
+  TripLogs: TripLog
 }
 
 export type TableOption = keyof BaseSchemaMap
@@ -65,6 +69,8 @@ export type RelationsSchemaMap = {
   Savings: Saving
   SavingsHistory: SavingsHistoryWithRelations
   Migrations: Migration
+  FuelRefills: FuelRefill
+  TripLogs: TripLog
 }
 
 // ----------------------------------------------------------------------
@@ -321,6 +327,15 @@ class ORM<T extends TableOption = TableOption> {
       return rows.map(mapRow) as RelationsSchemaMap[T][]
     } catch (error) {
       console.error(`Error en getAll() para ${this.table}:`, error)
+      return []
+    }
+  }
+
+  public async raw<T = Record<string, any>>(query: string, params: SqlValue[] = []): Promise<T[]> {
+    try {
+      return (await this.db.getAllAsync(query, params as any[])) as T[]
+    } catch (error) {
+      console.error(`Error en raw() para ${this.table}:`, error)
       return []
     }
   }

@@ -44,5 +44,7 @@
     "Savings": {},
     "SavingsHistory": {
         "Savings": "Savings"
-    }
+    },
+    "FuelRefills": {},
+    "TripLogs": {}
 }

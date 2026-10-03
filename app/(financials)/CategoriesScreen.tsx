@@ -25,7 +25,7 @@ const PaymentTypesScreen = () => {
 
     useEffect(() => {
         const loadData = async () => {
-            const result = await orm.getAll() as Categories[];
+            const result = await orm.getAll();
             setCategories(result);
         };
         loadData();
@@ -49,7 +49,7 @@ const PaymentTypesScreen = () => {
             }
 
             const result = await orm.getAll();
-            setCategories(result as Categories[]);
+            setCategories(result);
             setCategoryName('');
             setEditingId(undefined);
         } catch (error) {
@@ -67,7 +67,7 @@ const PaymentTypesScreen = () => {
         if(!id) return;
         try {
             await orm.delete(id);
-            const result = await orm.getAll() as Categories[];
+            const result = await orm.getAll();
             setCategories(result);
             toast.deletedMessage();
         } catch (error) {

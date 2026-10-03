@@ -178,5 +178,26 @@
     "id": "id",
     "migration_name": "migration_name",
     "applied_at": "applied_at"
+  },
+  "FuelRefills": {
+    "id": "id",
+    "date": "date",
+    "odometer_reading": "odometer_reading",
+    "total_cost": "total_cost",
+    "gallons": "gallons",
+    "price_per_gallon": "price_per_gallon",
+    "is_full_tank": "is_full_tank",
+    "notes": "notes",
+    "deleted_at": "deleted_at"
+  },
+  "TripLogs": {
+    "id": "id",
+    "date": "date",
+    "distance_traveled": "distance_traveled",
+    "average_consumption": "average_consumption",
+    "is_counter_reset": "is_counter_reset",
+    "trip_type": "trip_type",
+    "notes": "notes",
+    "deleted_at": "deleted_at"
   }
 }

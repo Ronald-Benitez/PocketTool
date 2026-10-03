@@ -1,0 +1,36 @@
+{
+  "fuel_refills_queries": [
+    {
+      "name": "get_active_refills_sorted",
+      "description": "Obtiene todas las recargas activas ordenadas cronológicamente por odómetro para procesar en memoria.",
+      "sql": "SELECT id, date, odometer_reading, total_cost, gallons, price_per_gallon, is_full_tank, notes FROM fuel_refills WHERE deleted_at IS NULL ORDER BY odometer_reading ASC;"
+    },
+    {
+      "name": "get_closed_blocks_analytics",
+      "description": "Calcula de forma automática los bloques de tanque lleno a tanque lleno, sus rendimientos acumulados y costos por km/galón.",
+      "sql": "WITH refills_with_groups AS (SELECT id, date, odometer_reading, total_cost, gallons, is_full_tank, SUM(is_full_tank) OVER (ORDER BY odometer_reading ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING) AS block_id FROM fuel_refills WHERE deleted_at IS NULL) SELECT block_id, MIN(date) AS block_start_date, MAX(date) AS block_end_date, MIN(odometer_reading) AS start_odometer, MAX(odometer_reading) AS end_odometer, (MAX(odometer_reading) - MIN(odometer_reading)) AS distance_km, SUM(total_cost) AS block_total_cost, SUM(gallons) AS block_total_gallons, (MAX(odometer_reading) - MIN(odometer_reading)) / NULLIF(SUM(gallons), 0) AS km_per_gallon, (MAX(odometer_reading) - MIN(odometer_reading)) / NULLIF(SUM(gallons) * 3.78541, 0) AS km_per_liter, SUM(total_cost) / NULLIF((MAX(odometer_reading) - MIN(odometer_reading)), 0) AS cost_per_km FROM refills_with_groups WHERE block_id IS NOT NULL GROUP BY block_id HAVING MAX(is_full_tank) = 1 AND (MAX(odometer_reading) - MIN(odometer_reading)) > 0 ORDER BY block_id DESC;"
+    },
+    {
+      "name": "get_current_block_in_progress",
+      "description": "Obtiene las recargas acumuladas después del último tanque lleno para representar el bloque activo en progreso.",
+      "sql": "WITH last_full_tank AS (SELECT MAX(odometer_reading) AS last_full_odometer FROM fuel_refills WHERE is_full_tank = 1 AND deleted_at IS NULL) SELECT f.id, f.date, f.odometer_reading, f.total_cost, f.gallons, f.is_full_tank FROM fuel_refills f, last_full_tank lft WHERE f.deleted_at IS NULL AND f.odometer_reading >= lft.last_full_odometer ORDER BY f.odometer_reading ASC;"
+    },
+    {
+      "name": "get_summary_by_date_range",
+      "description": "Resumen general de métricas acumuladas (distancia, dinero, combustible y rendimientos) dentro de un rango de fechas arbitrario.",
+      "sql": "SELECT MIN(date) AS start_date, MAX(date) AS end_date, MAX(odometer_reading) - MIN(odometer_reading) AS total_distance_km, SUM(total_cost) AS total_spent, SUM(gallons) AS total_gallons, SUM(gallons) * 3.78541 AS total_liters, AVG(price_per_gallon) AS avg_price_per_gallon, (MAX(odometer_reading) - MIN(odometer_reading)) / NULLIF(SUM(gallons), 0) AS overall_km_per_gallon, (MAX(odometer_reading) - MIN(odometer_reading)) / NULLIF(SUM(gallons) * 3.78541, 0) AS overall_km_per_liter, SUM(total_cost) / NULLIF((MAX(odometer_reading) - MIN(odometer_reading)), 0) AS overall_cost_per_km FROM fuel_refills WHERE deleted_at IS NULL AND date BETWEEN ? AND ?;"
+    }
+  ],
+  "trip_logs_queries": [
+    {
+      "name": "get_metrics_by_trip_type",
+      "description": "Calcula el rendimiento promedio, mínimo y máximo registrado en la computadora del vehículo agrupado por tipo de trayecto (ciudad, carretera, mixto).",
+      "sql": "SELECT trip_type, COUNT(*) AS total_trips, SUM(distance_traveled) AS total_distance, AVG(average_consumption) AS avg_tablero_consumption, MIN(average_consumption) AS min_tablero_consumption, MAX(average_consumption) AS max_tablero_consumption FROM trip_logs WHERE deleted_at IS NULL GROUP BY trip_type;"
+    },
+    {
+      "name": "get_dashboard_logs_for_comparison",
+      "description": "Obtiene las lecturas registradas del tablero ordenadas por fecha para comparar contra el consumo real calculado.",
+      "sql": "SELECT id, date, distance_traveled AS distance_trip_log, average_consumption AS tablero_avg_consumption, is_counter_reset, trip_type, notes FROM trip_logs WHERE deleted_at IS NULL ORDER BY date DESC;"
+    }
+  ]
+}

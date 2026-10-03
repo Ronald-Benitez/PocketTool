@@ -10,7 +10,7 @@ import ModalContainer from '@/src/components/ui/modal-container';
 import { MaterialIcons } from '@expo/vector-icons';
 import InputLabel from '@/src/components/ui/InputLabel';
 import useAndroidToast from '@/src/hooks/useAndroidToast';
-import { PaymentTypes, RecordTypes } from '@/src/db/types/tables';
+import { RecordType, Insertable } from '@/src/interfaces/schema';
 import { useDataStore } from '@/src/stores';
 import ColorPicker2 from '@/src/components/ui/color-picker-2';
 import { useORM } from '@/src/orm';
@@ -30,7 +30,7 @@ const RecordTypesScreen = () => {
 
     useEffect(() => {
         const loadData = async () => {
-            const ormData = await orm.getAll() as RecordTypes[];
+            const ormData = await orm.getAll();
             setRecordTypes(ormData);
         };
         loadData();
@@ -41,17 +41,16 @@ const RecordTypesScreen = () => {
             toast.emptyMessage()
             return;
         }
-        const newData: RecordTypes = { type_name: name, effect, record_color: color };
+        const newData: Insertable<RecordType>  = { type_name: name, effect, record_color: color };
         try {
             if (editingId) {
-                newData.id = editingId;
                 await orm.update(editingId, newData);
                 toast.editedMessage()
             } else {
                 await orm.insert(newData);
                 toast.addedMessage()
             }
-            const methods = await orm.getAll() as RecordTypes[];
+            const methods = await orm.getAll();
             setRecordTypes(methods);
             setName('');
             setColor('#000000');
@@ -67,7 +66,7 @@ const RecordTypesScreen = () => {
         if (!id) return;
         try {
             await orm.delete(id);
-            const methods = await orm.getAll() as RecordTypes[];
+            const methods = await orm.getAll();
             toast.deletedMessage()
             setRecordTypes(methods);
         } catch (error) {
@@ -76,9 +75,9 @@ const RecordTypesScreen = () => {
         }
     };
 
-    const handleEdit = (item: RecordTypes) => {
+    const handleEdit = (item: RecordType) => {
         setName(item.type_name);
-        setColor(item.record_color);
+        setColor(item.record_color || "");
         setEffect(item.effect as EffectType);
         setEditingId(item.id);
         setOpenModal(!openModal)
@@ -152,7 +151,7 @@ const RecordTypesScreen = () => {
                         handleUpdate={() => handleEdit(item)}
                         style={[styles.horizontalBlock]}
                     >
-                        <BorderLeftBlock color={item?.record_color}>
+                        <BorderLeftBlock color={item?.record_color || "#000"}>
                             <Text style={[styles.text]}>{item.type_name}</Text>
                         </BorderLeftBlock>
                     </SwipeItem>
