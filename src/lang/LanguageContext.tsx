@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import en from './en.json';
 import es from './es.json';
+import recordsFiltersEn from './records-filters.en.json';
+import recordsFiltersEs from './records-filters.es.json';
 import { LanguageContent } from '@/src/interfaces/lang';
 
 const LanguageContext = createContext<any>(null);
@@ -31,7 +33,9 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
 
     const t = (key: string) => {
         const keys = key.split('.') as Array<keyof LanguageContent['groups']>;
-        let translation = language === 'en' ? en : es;
+        let translation = language === 'en'
+            ? { ...en, recordsFilters: recordsFiltersEn }
+            : { ...es, recordsFilters: recordsFiltersEs };
 
         for (const k of keys) {
             //@ts-ignore
