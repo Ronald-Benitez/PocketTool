@@ -1,166 +1,126 @@
-import { useEffect, useState } from "react";
 import { create } from "zustand";
 
 import useConfigs from "../hooks/useConfigs";
 import useRecordsStore from "./RecordsStore";
-import { RecordTypes, PaymentTypes, PaymentMethods, Categories } from "../db/types/tables";
+import type {
+    Category,
+    PaymentMethod,
+    PaymentType,
+    RecordType,
+    RecordWithRelations
+} from "../interfaces/schema";
 import { useDataStore } from ".";
-interface totalPerRecordType extends RecordTypes {
+
+type TotalPerRecordType = RecordType & {
     total: number;
-}
+};
+
+type RecordTypeResume = RecordType & {
+    total: number;
+};
+
+type PaymentResume<T> = T & {
+    balance: number;
+    totalPerRecordType: TotalPerRecordType[];
+};
 
 export interface Resumes {
     balance: number;
-    todayBalanceByRecordType: (RecordTypes & {
-        total: number;
-    })[];
-    balanceByRecordType: (RecordTypes & {
-        total: number;
-    })[];
-    balanceByPaymentType: (PaymentTypes & {
-        balance: number,
-        totalPerRecordType: totalPerRecordType[];
-    })[];
-    balanceByPaymentMethod: (PaymentMethods & {
-        balance: number,
-        totalPerRecordType: totalPerRecordType[];
-    })[];
-    balanceByCategory: (Categories & {
-        balance: number,
-        totalPerRecordType: totalPerRecordType[];
-    })[];
+    todayBalanceByRecordType: RecordTypeResume[];
+    balanceByRecordType: RecordTypeResume[];
+    balanceByPaymentType: PaymentResume<PaymentType>[];
+    balanceByPaymentMethod: PaymentResume<PaymentMethod>[];
+    balanceByCategory: PaymentResume<Category>[];
 }
 
-export const useResumesStore = () => {
-    const { configs: { recordTypes } } = useConfigs();
-    const { records } = useRecordsStore();
-    const { PaymentMethods, Categories, RecordTypes, PaymentTypes } = useDataStore()
+export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
+    const { configs: { recordTypes: configuredRecordTypes } } = useConfigs();
+    const { records: allRecords } = useRecordsStore();
+    const { PaymentMethods, Categories, RecordTypes, PaymentTypes } = useDataStore();
+    const records = recordsToSummarize ?? allRecords;
 
-    const calculateBalance = (): number => {
-        return records.reduce((acc, record) => {
-            if (!recordTypes.includes(record.record_type_id)) {
-                return acc;
-            }
-            if (record.effect === '+') {
-                acc += record.amount;
-            }
-            else if (record.effect === '-') {
-                acc -= record.amount;
-            }
-            return acc;
-        }, 0);
-    }
+    const calculateBalance = (): number => records.reduce((balance, record) => {
+        if (!configuredRecordTypes.includes(record.record_type_id ?? -1)) return balance;
 
-    const calculeteResumes = (): Omit<Resumes, "balance"> => {
+        const effect = record.RecordTypes?.effect
+            ?? RecordTypes.find(type => type.id === record.record_type_id)?.effect;
+        if (effect === "+") return balance + record.amount;
+        if (effect === "-") return balance - record.amount;
+        return balance;
+    }, 0);
 
-        const todayBalanceByRecordType = RecordTypes.map(rt => ({
-            ...rt,
-            total: 0,
-        }));
+    const createRecordTypeTotals = (): TotalPerRecordType[] =>
+        RecordTypes.map(recordType => ({ ...recordType, total: 0 }));
 
-        const recordTypeResume = RecordTypes.map(rt => ({
-            ...rt,
-            total: 0,
-        }));
-        const paymentTypeResume = PaymentTypes.map(pt => ({
-            ...pt,
+    const calculateResumes = (): Omit<Resumes, "balance"> => {
+        const todayBalanceByRecordType = createRecordTypeTotals();
+        const balanceByRecordType = createRecordTypeTotals();
+        const balanceByPaymentType: PaymentResume<PaymentType>[] = PaymentTypes.map(paymentType => ({
+            ...paymentType,
             balance: 0,
-            totalPerRecordType: RecordTypes.map(r => ({
-                ...r,
-                total: 0
-            })),
+            totalPerRecordType: createRecordTypeTotals()
         }));
-        const paymentMethodResume = PaymentMethods.map(pm => ({
-            ...pm,
+        const balanceByPaymentMethod: PaymentResume<PaymentMethod>[] = PaymentMethods.map(paymentMethod => ({
+            ...paymentMethod,
             balance: 0,
-            totalPerRecordType: RecordTypes.map(r => ({
-                ...r,
-                total: 0
-            })),
+            totalPerRecordType: createRecordTypeTotals()
         }));
-        const categoryResume = Categories.map(cat => ({
-            ...cat,
+        const balanceByCategory: PaymentResume<Category>[] = Categories.map(category => ({
+            ...category,
             balance: 0,
-            totalPerRecordType: RecordTypes.map(r => ({
-                ...r,
-                total: 0
-            })),
+            totalPerRecordType: createRecordTypeTotals()
         }));
 
-        const today = new Date()
+        const now = new Date();
+        const endOfToday = now.getTime();
+        now.setHours(0, 0, 0, 0);
+        const startOfToday = now.getTime();
 
-        const endLimit = today.getTime()
-        today.setHours(0, 0, 0)
-        const startLimit = today.getTime()
+        records.forEach(record => {
+            const recordType = balanceByRecordType.find(item => item.id === record.record_type_id);
+            if (recordType) recordType.total += record.amount;
 
-        records.map(record => {
-            const recordType = recordTypeResume.find(rt => rt.id === record.record_type_id);
-            const todayRecordType = todayBalanceByRecordType.find(rt => rt.id === record.record_type_id)
-            if (recordType) {
-                recordType.total += record.amount;
+            const todayRecordType = todayBalanceByRecordType.find(item => item.id === record.record_type_id);
+            if (todayRecordType && record.date >= startOfToday && record.date <= endOfToday) {
+                todayRecordType.total += record.amount;
             }
 
-            if (todayRecordType && (record.date >= startLimit && record.date <= endLimit)) {
-                todayRecordType.total += record.amount
+            const paymentMethodId = record.payment_method_id;
+            const paymentTypeId = record.PaymentMethods?.payment_type_id
+                ?? record.PaymentMethods?.PaymentTypes?.id;
+            const paymentType = balanceByPaymentType.find(item => item.id === paymentTypeId);
+            const paymentMethod = balanceByPaymentMethod.find(item => item.id === paymentMethodId);
+            const category = balanceByCategory.find(item => item.id === record.category_id);
+
+            for (const resume of [paymentType, paymentMethod, category]) {
+                if (!resume) continue;
+                const typeTotal = resume.totalPerRecordType.find(
+                    item => item.id === record.record_type_id
+                );
+                if (typeTotal) typeTotal.total += record.amount;
+                resume.balance = resume.totalPerRecordType.reduce(typeReducer, 0);
             }
-
-            const paymentType = paymentTypeResume.find(pt => pt.id === record.payment_type_id);
-            if (paymentType) {
-                paymentType.totalPerRecordType.forEach(r => {
-                    if (r.id === record.record_type_id) {
-                        r.total += record.amount;
-                    }
-                });
-                paymentType.balance = paymentType?.totalPerRecordType?.reduce(typeReducer, 0) || 0
-            }
-
-
-            const paymentMethod = paymentMethodResume.find(pm => pm.id === record.payment_method_id);
-            if (paymentMethod) {
-                paymentMethod.totalPerRecordType.forEach(r => {
-                    if (r.id === record.record_type_id) {
-                        r.total += record.amount;
-                    }
-                });
-                paymentMethod.balance = paymentMethod?.totalPerRecordType?.reduce(typeReducer, 0) || 0;
-            }
-
-
-
-            const category = categoryResume.find(cat => cat.id === record.category_id);
-            if (category) {
-                category.totalPerRecordType.forEach(r => {
-                    if (r.id === record.record_type_id) {
-                        r.total += record.amount;
-                    }
-                });
-                category.balance = category?.totalPerRecordType?.reduce(typeReducer, 0) || 0;
-            }
-        })
+        });
 
         return {
             todayBalanceByRecordType,
-            balanceByRecordType: recordTypeResume,
-            balanceByPaymentType: paymentTypeResume,
-            balanceByPaymentMethod: paymentMethodResume,
-            balanceByCategory: categoryResume
-        }
-    }
+            balanceByRecordType,
+            balanceByPaymentType,
+            balanceByPaymentMethod,
+            balanceByCategory
+        };
+    };
 
-    return create<Resumes>((set, get) => ({
+    return create<Resumes>(() => ({
         balance: calculateBalance(),
-        ...calculeteResumes(),
+        ...calculateResumes()
     }))();
-}
+};
 
-const typeReducer = (acc: number, type: totalPerRecordType) => {
-    if (type.effect == "-") {
-        return acc - type.total;
-    }
-    if (type.effect == "+") {
-        return acc + type.total;
-    }
-    return acc;
-}
+const typeReducer = (balance: number, recordType: TotalPerRecordType) => {
+    if (recordType.effect === "-") return balance - recordType.total;
+    if (recordType.effect === "+") return balance + recordType.total;
+    return balance;
+};
 
 export default useResumesStore;

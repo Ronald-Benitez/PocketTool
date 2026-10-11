@@ -2,30 +2,30 @@ import { View, Text, StyleSheet } from 'react-native'
 
 import SwipeItem from '../ui/swipe-item'
 import useDate from '@/src/hooks/useDate'
-import useRecordsStore from '@/src/stores/RecordsStore';
 import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
+import type { RecordWithRelations } from '@/src/interfaces/schema'
 
 type RecordsGroupProps = {
-    handleUpdate: (index: number) => void,
-    handleDelete: (index: number) => void,
+    records: RecordWithRelations[],
+    handleUpdate: (record: RecordWithRelations) => void,
+    handleDelete: (record: RecordWithRelations) => void,
 }
 
-const RecordsGroup = ({ handleDelete, handleUpdate }: RecordsGroupProps) => {
+const RecordsGroup = ({ records, handleDelete, handleUpdate }: RecordsGroupProps) => {
     const dateh = useDate()
-    const { records } = useRecordsStore()
     return (
         <>
             <View style={{ gap: 5, paddingHorizontal: 30, }}>
-                {records?.map((item, index) => {
+                {records?.map(item => {
                     return (
                         <SwipeItem
-                            handleDelete={() => handleDelete(index)}
-                            handleUpdate={() => handleUpdate(index)}
+                            handleDelete={() => handleDelete(item)}
+                            handleUpdate={() => handleUpdate(item)}
                             key={item.id}
                         >
                             <BorderLeftBottomBlock
-                                bottomColor={item.payment_color}
-                                letfColor={item.record_color}
+                                bottomColor={item.PaymentMethods?.PaymentTypes?.payment_color ?? "#000"}
+                                letfColor={item.RecordTypes?.record_color ?? "#000"}
                             >
                                 <View style={localStyles.rowContainer}>
                                     <View style={localStyles.dateContainer}>

@@ -1,15 +1,14 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native'
-import { MaterialIcons } from '@expo/vector-icons'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
 import useDate from '@/src/hooks/useDate'
 import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
-import { RecordJoined, Records } from '@/src/db/types/tables'
+import type { RecordFormEntry } from '@/src/interfaces/schema'
 import styles from '@/src/styles/styles'
 
 type FixedsGroupProps = {
-    fixeds: RecordJoined[],
-    onCreditPayment: (item: Records) => void,
+    fixeds: RecordFormEntry[],
+    onCreditPayment: (item: RecordFormEntry) => void,
 }
 
 const FixedsGroup = ({ fixeds, onCreditPayment }: FixedsGroupProps) => {
@@ -32,8 +31,8 @@ const FixedsGroup = ({ fixeds, onCreditPayment }: FixedsGroupProps) => {
                     return (
                         <Pressable key={index} onPress={() => onCreditPayment(item)}>
                             <BorderLeftBottomBlock
-                                bottomColor={item?.payment_color || "#000"}
-                                letfColor={item?.record_color || "#000"}
+                                bottomColor={item.PaymentMethods?.PaymentTypes?.payment_color || "#000"}
+                                letfColor={item.RecordTypes?.record_color || "#000"}
                             >
                                 <View style={localStyles.rowContainer}>
                                     <View style={localStyles.dateContainer}>

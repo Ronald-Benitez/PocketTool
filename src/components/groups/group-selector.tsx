@@ -2,22 +2,15 @@ import { View, StyleSheet } from 'react-native'
 import React, { useState, useEffect } from 'react'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
-import styles from '@/src/styles/styles'
 import useRecordsStore from '@/src/stores/RecordsStore'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import BaseSelect from '../ui/base-select'
 import SwipeItem from '../ui/swipe-item'
 import AddGroup from './add-group'
-import useBudgetStore from '@/src/stores/BudgetStore'
-import { useBudget } from '@/src/db'
 import Input from '../ui/Input'
-import { useHandler } from '@/src/db/handlers/handler'
-import { Groups, PaidCredits, PaymentTypes, RecordJoined } from '@/src/db/types/tables'
-import { useRecords } from '@/src/db/handlers/RecordsHandler'
-import { useFixeds } from '@/src/db/handlers/FixedsHandler'
 import { useDataStore } from '@/src/stores'
-import { Categories, RecordTypes } from '@/src/db/types/tables'
-import { PaymentMethodsJoined } from '@/src/stores'
+import { useORM } from '@/src/orm'
+import { Group } from '@/src/interfaces/schema'
 
 const GroupSelector = () => {
     const { t } = useLanguage()
@@ -25,14 +18,15 @@ const GroupSelector = () => {
     const [modalVisible, setModalVisible] = useState(false)
     const { group, setGroup, setRecords, groups, setGroups, setPaidCredits } = useRecordsStore()
     const [openUpdate, setOpenUpdate] = useState(false)
-    const { budgets, resumes, setBudgets, setResumes: setBudgetResume } = useBudgetStore()
-    const { fetchRecords, handler: recordsHandler } = useRecords()
-    const { fetchFixeds } = useFixeds()
-    const groupsHandler = useHandler("Groups")
-    const paymentsHandler = useHandler("PaymentMethods")
-    const creditsHandler = useHandler('PaidCredits')
-    const budgetsHanlder = useHandler("Budgets")
     const { setCategories, setPaymentMethods, setRecordTypes, setPaymentTypes, setFixeds } = useDataStore()
+    
+    const groupsOrm = useORM("Groups")
+    const categoriesOrm = useORM("Categories")
+    const recordTypesOrm = useORM("RecordTypes")
+    const paymentsOrm = useORM("PaymentMethods")
+    const fixedsOrm = useORM("Fixed")
+    const creditsOrm = useORM("PaidCredits")
+    const recordsOrm = useORM("Records")
 
     useEffect(() => {
         getPinned()
@@ -41,11 +35,11 @@ const GroupSelector = () => {
 
     const loadData = async () => {
         try {
-            const categories = await groupsHandler.fetchAll('Categories') as Categories[]
-            const payments = await paymentsHandler.fetchAllWithJoin('PaymentTypes', "payment_type_id") as PaymentMethodsJoined[];
-            const recordTypes = await groupsHandler.fetchAll('RecordTypes') as RecordTypes[]
-            const paymentTypes = await groupsHandler.fetchAll('PaymentTypes') as PaymentTypes[]
-            const fixeds = await fetchFixeds()
+            const categories = await categoriesOrm.getAll()
+            const payments = await paymentsOrm.getAll()
+            const recordTypes = await recordTypesOrm.getAll()
+            const paymentTypes = await groupsOrm.getAll()
+            const fixeds = await fixedsOrm.joinMany(["PaymentMethods", "Categories", "PaymentMethods.PaymentTypes","RecordTypes"]).getAll()
             setCategories(categories)
             setPaymentMethods(payments)
             setRecordTypes(recordTypes)
@@ -57,7 +51,7 @@ const GroupSelector = () => {
     }
 
     const getGroups = async () => {
-        const groups = await recordsHandler.fetchGroupsByYear(year) as Groups[]
+        const groups = await groupsOrm.where('year', year, '=').getAll()
         setGroups(groups)
     }
 
@@ -66,27 +60,15 @@ const GroupSelector = () => {
         getGroups()
     }, [year])
 
-    const onSelect = async (group: Groups) => {
+    const onSelect = async (group: Group) => {
         if (!group?.id) return
         setGroup(group)
-        await fetchRecords(group.id).then((res) => {
+        await recordsOrm.where('group_id', String(group.id), "=").joinMany(["Categories", "PaymentMethods", "RecordTypes", "PaymentMethods.PaymentTypes"]).getAll().then((res) => {
             setRecords(res)
         })
-        await creditsHandler.fetchWithWhere('group_id', String(group.id)).then((res) => {
-            setPaidCredits(res as PaidCredits[])
+        await creditsOrm.where('group_id', String(group.id), "=").getAll().then((res) => {
+            setPaidCredits(res)
         })
-        // await getAllResume(group.id).then(res => {
-        //     setResumes(res)
-        // })
-
-        // await budget.fetchBudget(group.id).then(res => {
-        //     setBudgets(res || [])
-        // })
-
-        // await budget.getAllResume(group.id).then(res => {
-        //     setBudgetResume(res)
-        // })
-
         setModalVisible(false)
     }
 
@@ -96,7 +78,7 @@ const GroupSelector = () => {
         onSelect(g)
     }
 
-    const getPlaceHolder = (group: Groups | null) => {
+    const getPlaceHolder = (group: Group | null) => {
         if (!group) return ""
         return group.group_name?.substring(0, 20) + (group.group_name?.length > 20 ? "..." : "") + " (" + t("months." + Number(group.month)) + " " + group.year + ")"
     }
@@ -105,30 +87,30 @@ const GroupSelector = () => {
         const pinned = await AsyncStorage.getItem('group');
         if (pinned) {
             const p = Number(pinned)
-            groupsHandler.fetchById(p).then(g => {
-                onSelect(g as Groups)
+            groupsOrm.where('id', String(p), '=').getAll().then((gs) => {
+                onSelect(gs[0])
             })
         } else {
-            groupsHandler.fetchLast().then(g => {
-                onSelect(g as Groups)
+            groupsOrm.order({ column: "id", direction: "DESC" }).getAll().then((gs) => {
+                onSelect(gs[0])
             })
         }
     }
 
-    const setOptions = (gs: Groups[]) => {
+    const setOptions = (gs: Group[]) => {
         return gs?.map(val => getPlaceHolder(val))
     }
 
     const handleDelete = async () => {
         if (!group?.id) return
-        await recordsHandler.deleteWithWhere("group_id", String(group.id))
-        await groupsHandler.deleteById(group.id)
+        await recordsOrm.delete(group.id, "group_id")
+        await groupsOrm.delete(group.id)
         const pinned = await AsyncStorage.getItem('group');
         if (pinned == String(group.id)) {
             await AsyncStorage.removeItem('group')
         }
-        groupsHandler.fetchLast().then(g => {
-            onSelect(g as Groups)
+        groupsOrm.order({ column: "id", direction: "DESC" }).getAll().then((gs) => {
+            onSelect(gs[0])
         })
         getGroups()
     }
@@ -136,7 +118,6 @@ const GroupSelector = () => {
     const handleUpdate = () => {
         setOpenUpdate(!openUpdate)
     }
-
 
     return (
         <>

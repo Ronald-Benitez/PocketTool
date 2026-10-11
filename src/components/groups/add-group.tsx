@@ -2,19 +2,16 @@ import { View, StyleSheet } from 'react-native'
 import React, { useEffect, useState } from 'react'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
-import useDate from '@/src/hooks/useDate'
 import useToast from '@/src/hooks/useToast'
-import { Group, CreateGroupRequest } from '@/src/interfaces'
-import { useGroups } from '@/src/db'
 import MonthSelector from '../ui/month-selector'
 import { ScrollView } from 'react-native-gesture-handler'
 import ModalContainer from '../ui/modal-container'
 import InputLabel from '../ui/InputLabel'
 import useRecordsStore from '@/src/stores/RecordsStore'
 import useAndroidToast from '@/src/hooks/useAndroidToast'
-import { useHandler } from '@/src/db/handlers/handler';
 import { Groups } from '@/src/db/types/tables';
-import { useDataStore } from '@/src/stores'
+import { useORM } from '@/src/orm'
+import { Insertable } from '@/src/interfaces/schema'
 
 interface AddGroupProps {
     children?: React.ReactNode
@@ -22,23 +19,16 @@ interface AddGroupProps {
     isEditing?: boolean
 }
 
-
 const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) => {
     const { t } = useLanguage()
-    const date = useDate()
     const { ToastContainer, showToast } = useToast()
-    const [modalVisible, setModalVisible] = useState(false)
     const [name, setName] = useState<string>('')
     const [goal, setGoal] = useState<number>(0)
-    const today = date.create()
     const [month, setMonth] = useState<number>(new Date().getMonth())
     const [year, setYear] = useState<number>(new Date().getFullYear())
-    const { addGroup, editGroup, fetchGroupsByYear } = useGroups()
-    const { group, setGroup, groups, setGroups } = useRecordsStore()
+    const { group, setGroup, setGroups } = useRecordsStore()
     const toast = useAndroidToast()
-    const handler = useHandler("Groups")
-    
-
+    const orm = useORM("Groups")
 
     useEffect(() => {
         if (!group) return
@@ -52,7 +42,7 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
     }, [openUpdate])
 
     const getGroups = async () => {
-        const groups = await handler.fetchWithWhere("year", String(year)) as Groups[]
+        const groups = await orm.where("year", year, "=").getAll()
         setGroups(groups)
     }
 
@@ -74,7 +64,7 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
             return
         }
 
-        const newGroup: Groups = {
+        const newGroup: Insertable<Groups> = {
             group_name: name,
             goal,
             month,
@@ -82,16 +72,15 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
         }
         if (group?.id && isEditing) {
             const updateGroup = { ...group, ...newGroup }
-            await handler.edit(updateGroup)
+            await orm.update(group.id, updateGroup)
             setGroup && setGroup(updateGroup)
             toast.editedMessage()
         } else {
-            await handler.add(newGroup)
+            await orm.insert(newGroup)
             toast.addedMessage()
         }
         getGroups()
         cleanData()
-        setModalVisible(false)
     }
 
     return (

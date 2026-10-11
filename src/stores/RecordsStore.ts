@@ -1,17 +1,15 @@
 import { create } from "zustand";
-import { Group, RecordI } from "../interfaces";
-import { Records, Budgets, Categories, Groups, Migrations, PaymentMethods, PaymentTypes, RecordJoined, RecordTypes, Savings, SavingsHistory, PaidCredits } from "@/src/db/types/tables";
-import useConfigs from '@/src/hooks/useConfigs';
+import { Group, PaidCreditWithRelations, RecordWithRelations } from "../interfaces/schema";
 
 interface RecordsState {
-  group: Groups | null;
-  groups: Groups[] | [];
-  records: RecordJoined[] | [];
-  paidCredits: PaidCredits[] | [];
-  setGroup: (group: Groups) => void;
-  setRecords: (records: RecordJoined[] | undefined) => void;
-  setGroups: (groups: Groups[]) => void;
-  setPaidCredits: (paidCredits: PaidCredits[]) => void;
+  group: Group | null;
+  groups: Group[] | [];
+  records: RecordWithRelations[] | [];
+  paidCredits: PaidCreditWithRelations[] | [];
+  setGroup: (group: Group) => void;
+  setRecords: (records: RecordWithRelations[] | undefined) => void;
+  setGroups: (groups: Group[]) => void;
+  setPaidCredits: (paidCredits: PaidCreditWithRelations[]) => void;
 }
 
 const useRecordsStore = create<RecordsState>()((set, get) => ({
@@ -26,12 +24,8 @@ const useRecordsStore = create<RecordsState>()((set, get) => ({
     }));
   },
   setRecords: (records) => {
-    const mappedRecords = records?.map((record) => ({
-      ...record,
-      id: record.record_id,
-    })) || [];
     set(() => ({
-      records: mappedRecords,
+      records,
     }));
   },
   setGroups: (groups) => {

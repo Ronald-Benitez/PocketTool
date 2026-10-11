@@ -6,31 +6,31 @@ import {
   StyleProp,
   StyleSheet,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AntDesign } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { useLanguage } from "@/src/lang/LanguageContext";
-import SwipeItem from "../ui/swipe-item";
-import useDate from "@/src/hooks/useDate";
 import { ScrollView } from "react-native-gesture-handler";
 import useToast from "@/src/hooks/useToast";
 import AddItem from "./add-record";
 import useRecordsStore from "@/src/stores/RecordsStore";
 import useColorStore from "@/src/stores/ColorsStore";
-import BorderLeftBottomBlock from "../ui/BorderLeftButtonBlock";
 import IconButton from "../ui/icon-button";
-import { FixedJoined, RecordJoined, Records } from "@/src/db/types/tables";
-import { useRecords } from "@/src/db/handlers/RecordsHandler";
 import useResumesStore from "@/src/stores/ResumesStore";
 import { useCreditStore } from "@/src/stores/CreditsStore";
 import useConfigs from "@/src/hooks/useConfigs";
 import { useDataStore } from "@/src/stores";
 import styles from "@/src/styles/styles";
-import { useHandler } from "@/src/db/handlers/handler";
 import RecordsGroup from "./RecordsGroup";
 import FixedsGroup from "./FixedsGroup";
 import CreditsGroups from "./CreditsGroups";
 import ColorText from "../ui/color-text";
+import { useORM } from "@/src/orm";
+import type { JoinPath, OrderCondition } from "@/src/orm";
+import type { RecordFormEntry, RecordType, RecordWithRelations } from "@/src/interfaces/schema";
+import RecordsFilterModal, { RECORDS_ORDER_STORAGE_KEY } from "./RecordsFilterModal";
+import type { RecordFilter } from "./RecordsFilterModal";
 
 enum SHOW_OPTIONS {
   ALL = 0,
@@ -39,48 +39,207 @@ enum SHOW_OPTIONS {
   FIXEDS = 3,
 }
 
+const getRecordColumnValue = (record: RecordWithRelations, column: string): unknown => {
+  return column.split(".").reduce<unknown>((value, part) => {
+    if (!value || typeof value !== "object") return undefined
+    return (value as Record<string, unknown>)[part]
+  }, record)
+}
+
+const parseFilterValue = (value: string): string | number | boolean | null => {
+  const normalized = value.trim()
+  if (normalized.toLowerCase() === "null") return null
+  if (normalized.toLowerCase() === "true") return true
+  if (normalized.toLowerCase() === "false") return false
+  if (/^-?(?:\d+\.?\d*|\.\d+)$/.test(normalized)) return Number(normalized)
+  return normalized
+}
+
+const normalizeFilterValue = (
+  value: string | number | boolean | null,
+  actual: unknown
+): string | number | boolean | null => {
+  if (typeof actual === "number" && typeof value === "string" && value.trim() !== "") {
+    const number = Number(value)
+    return Number.isNaN(number) ? value : number
+  }
+  if (typeof actual === "boolean" && typeof value === "string") {
+    if (value.toLowerCase() === "true" || value === "1") return true
+    if (value.toLowerCase() === "false" || value === "0") return false
+  }
+  return value
+}
+
+const compareRecordValue = (left: unknown, right: unknown): number => {
+  if (left == null && right == null) return 0
+  if (left == null) return -1
+  if (right == null) return 1
+  if (typeof left === "number" && typeof right === "number") return left - right
+  return String(left).localeCompare(String(right), undefined, { numeric: true, sensitivity: "base" })
+}
+
+const matchesRecordFilter = (record: RecordWithRelations, filter: RecordFilter): boolean => {
+  const actual = getRecordColumnValue(record, filter.column)
+  const rawValues = filter.operator === "IN" || filter.operator === "BETWEEN"
+    ? filter.value.split(",").map(value => parseFilterValue(value))
+    : [parseFilterValue(filter.value)]
+  const values = rawValues.map(value => normalizeFilterValue(value, actual))
+
+  if (filter.operator === "IN") {
+    return values.some(value => compareRecordValue(actual, value) === 0)
+  }
+  if (filter.operator === "BETWEEN") {
+    return values.length === 2 &&
+      compareRecordValue(actual, values[0]) >= 0 &&
+      compareRecordValue(actual, values[1]) <= 0
+  }
+  if (filter.operator === "IS") return compareRecordValue(actual, values[0]) === 0
+  if (filter.operator === "IS NOT") return compareRecordValue(actual, values[0]) !== 0
+  if (actual == null || values[0] == null) return false
+
+  if (filter.operator === "LIKE") {
+    const pattern = `%${filter.value}%`
+      .split("")
+      .map(character => character === "%"
+        ? ".*"
+        : character === "_"
+          ? "."
+          : character.replace(/[|\\{}()[\]^$+?.]/g, "\\$&"))
+      .join("")
+    return new RegExp(`^${pattern}$`, "i").test(String(actual))
+  }
+
+  const comparison = compareRecordValue(actual, values[0])
+  switch (filter.operator) {
+    case "=": return comparison === 0
+    case "!=": return comparison !== 0
+    case ">": return comparison > 0
+    case ">=": return comparison >= 0
+    case "<": return comparison < 0
+    case "<=": return comparison <= 0
+    default: return true
+  }
+}
+
 const ItemsTable = () => {
-  const [selected, setSelected] = React.useState<
-    RecordJoined | Records | undefined
-  >();
+  const [selected, setSelected] = React.useState<RecordFormEntry>();
   const [openUpdate, setOpenUpdate] = React.useState<boolean>(false);
-  const { fetchRecords, handler: recordsHandler } = useRecords();
-  const dateh = useDate();
   const { ToastContainer, showToast } = useToast();
   const { t } = useLanguage();
   const { records, group, setRecords } = useRecordsStore();
   const { colors } = useColorStore();
-  const { balance } = useResumesStore();
   const { credits } = useCreditStore();
   const { RecordTypes, Fixeds } = useDataStore();
-  const [creditRecords, setCreditRecords] = useState<Records[]>();
+  const [creditRecords, setCreditRecords] = useState<RecordFormEntry[]>();
   const {
     configs: { paymentCreditType },
   } = useConfigs();
-  const [fixedsToShow, setFixedsToShow] = useState<RecordJoined[]>([]);
+  const [fixedsToShow, setFixedsToShow] = useState<RecordFormEntry[]>([]);
   const [showActual, setShowActual] = useState<SHOW_OPTIONS>(SHOW_OPTIONS.ALL);
-  const creditsHandler = useHandler("PaidCredits");
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [filters, setFilters] = useState<RecordFilter[]>([]);
+  const [recordOrder, setRecordOrder] = useState<OrderCondition<"Records">[]>([
+    { column: "date", direction: "ASC" }
+  ]);
+  const paidCreditsOrm = useORM("PaidCredits");
+  const recordsOrm = useORM("Records");
+
+  useEffect(() => {
+    let isMounted = true
+    const loadSavedOrder = async () => {
+      try {
+        const storedOrder = await AsyncStorage.getItem(RECORDS_ORDER_STORAGE_KEY)
+        if (!storedOrder) return
+        const parsedOrder: unknown = JSON.parse(storedOrder)
+        if (!Array.isArray(parsedOrder)) {
+          throw new Error("El orden guardado de registros no es válido")
+        }
+
+        const availableColumns = new Set(Object.keys(recordsOrm.availableColumns))
+        const validOrder = parsedOrder.filter((item): item is OrderCondition<"Records"> =>
+          item !== null &&
+          typeof item === "object" &&
+          availableColumns.has(item.column) &&
+          (item.direction === "ASC" || item.direction === "DESC")
+        )
+        if (validOrder.length !== parsedOrder.length) {
+          throw new Error("El orden guardado contiene columnas o direcciones no válidas")
+        }
+        if (isMounted) setRecordOrder(validOrder)
+      } catch (error) {
+        console.error("Error al cargar el orden de los registros:", error)
+        if (isMounted) showToast({ message: t("toast.error"), type: "ERROR" })
+      }
+    }
+    void loadSavedOrder()
+    return () => { isMounted = false }
+  }, [])
+
+  useEffect(() => {
+    if (!group?.id) return
+    const relationPaths = Object.keys(recordsOrm.availableJoins) as JoinPath<"Records">[]
+    recordsOrm
+      .joinMany(relationPaths)
+      .where("group_id", group.id, "=")
+      .order("date", "ASC")
+      .getAll()
+      .then(setRecords)
+      .catch(error => {
+        console.error("Error al cargar los registros y sus relaciones:", error)
+        showToast({ message: t("toast.error"), type: "ERROR" })
+      })
+  }, [group?.id])
+
+  const visibleRecords = useMemo(() => {
+    const filtered = records.filter(record =>
+      filters.every(filter => matchesRecordFilter(record, filter))
+    )
+    return [...filtered].sort((left, right) => {
+      for (const condition of recordOrder) {
+        const comparison = compareRecordValue(
+          getRecordColumnValue(left, condition.column),
+          getRecordColumnValue(right, condition.column)
+        )
+        if (comparison !== 0) return condition.direction === "DESC" ? -comparison : comparison
+      }
+      return 0
+    })
+  }, [records, filters, recordOrder])
+
+  const { balance } = useResumesStore(visibleRecords);
 
   const selectePaymentCreditType = RecordTypes.find(
     (e) => e.id == paymentCreditType
   );
 
-  const handleDelete = async (index: number) => {
+  const handleDelete = async (toDelete: RecordWithRelations) => {
     if (!group) return;
-    const toDelete = records[index];
-    await recordsHandler.deleteById(toDelete.record_id);
+    await recordsOrm.delete(toDelete.id);
     if (toDelete.paid_credit_id)
-      [await creditsHandler.deleteById(toDelete.paid_credit_id)];
-    const data = await fetchRecords(group.id);
+      await paidCreditsOrm.delete(toDelete.paid_credit_id);
+    const relationPaths = Object.keys(recordsOrm.availableJoins) as JoinPath<"Records">[]
+    const data = await recordsOrm
+      .joinMany(relationPaths)
+      .where("group_id", group.id, "=")
+      .order("date", "ASC")
+      .getAll();
     setRecords(data);
     showToast({ message: t("item.deleted"), type: "SUCCESS" });
   };
 
-  const handleUpdate = (index: number) => {
-    const select = records[index];
-    setSelected(select);
+  const handleUpdate = (record: RecordWithRelations) => {
+    setSelected(record);
     setOpenUpdate(!openUpdate);
   };
+
+  const applyFiltersAndOrder = async (
+    nextFilters: RecordFilter[],
+    nextOrder: OrderCondition<"Records">[]
+  ) => {
+    setFilters(nextFilters)
+    setRecordOrder(nextOrder)
+    setFilterModalVisible(false)
+  }
 
   const color = (
     type: "income" | "expense" | "transfer"
@@ -95,14 +254,14 @@ const ItemsTable = () => {
   };
 
   const generateCreditRecords = () => {
-    const list: Records[] = [];
+    const list: RecordFormEntry[] = [];
     const today = new Date();
     credits?.map((credit) => {
       if (!credit.totalPrevious) return;
       if ((credit?.totalCurrentPayments || 0) >= (credit?.totalPrevious || 0))
         return;
 
-      const newJoined: Records = {
+      const newJoined: RecordFormEntry = {
         record_type_id: paymentCreditType,
         amount: credit?.totalPrevious - (credit?.totalCurrentPayments || 0),
         category_id: 0,
@@ -120,7 +279,7 @@ const ItemsTable = () => {
   useEffect(generateCreditRecords, [credits]);
 
   const generateFixedsToShow = () => {
-    const list: RecordJoined[] = [];
+    const list: RecordFormEntry[] = [];
     const today = new Date()
     Fixeds.map((fixed) => {
       const alreadyAdded = records.find(
@@ -136,17 +295,17 @@ const ItemsTable = () => {
         }
 
         list.push({
-          ...fixed,
+          id: undefined,
           fixed_id: fixed.id,
           amount: fixed.fixed_amount,
           date: date.getTime(),
-          goal: 0,
           group_id: group?.id || 0,
-          group_name: "",
-          month: date.getMonth(),
           record_name: fixed.fixed_name,
-          year: date.getFullYear(),
-          id: undefined,
+          record_type_id: fixed.record_type_id,
+          category_id: fixed.category_id,
+          payment_method_id: fixed.payment_method_id,
+          RecordTypes: fixed.RecordTypes,
+          PaymentMethods: fixed.PaymentMethods,
         });
       }
     });
@@ -155,7 +314,7 @@ const ItemsTable = () => {
 
   useEffect(generateFixedsToShow, [records, Fixeds]);
 
-  const onCreditPayment = (item: Records) => {
+  const onCreditPayment = (item: RecordFormEntry) => {
     setSelected(item);
     setOpenUpdate(!openUpdate);
   };
@@ -172,7 +331,10 @@ const ItemsTable = () => {
           >
             $ {balance.toFixed(2)}
           </Text>
-          <View style={[{ position: "absolute", right: 0, top: 0 }]}>
+          <View style={[{ position: "absolute", right: 0, top: 0, flexDirection: "row", gap: 2 }]}>
+            <IconButton onClick={() => setFilterModalVisible(true)}>
+              <AntDesign size={20} name="filter" color={"#000"} />
+            </IconButton>
             {group && (
               <AddItem>
                 <IconButton isButton={false}>
@@ -291,6 +453,7 @@ const ItemsTable = () => {
         {showActual === SHOW_OPTIONS.ALL && (
           <>
             <RecordsGroup
+              records={visibleRecords}
               handleDelete={handleDelete}
               handleUpdate={handleUpdate}
             />
@@ -307,6 +470,7 @@ const ItemsTable = () => {
         )}
         {showActual === SHOW_OPTIONS.RECORDS && (
           <RecordsGroup
+            records={visibleRecords}
             handleDelete={handleDelete}
             handleUpdate={handleUpdate}
           />
@@ -327,6 +491,13 @@ const ItemsTable = () => {
         <ToastContainer />
         <AddItem openUpdate={openUpdate} open={openUpdate} item={selected} />
       </ScrollView>
+      <RecordsFilterModal
+        visible={filterModalVisible}
+        filters={filters}
+        order={recordOrder}
+        onClose={() => setFilterModalVisible(false)}
+        onApply={applyFiltersAndOrder}
+      />
     </>
   );
 };
@@ -357,7 +528,7 @@ const localStyles = StyleSheet.create({
     fontWeight: "300",
   },
   balanceText: {
-    width: "80%",
+    width: "60%",
     borderTopWidth: 4,
     height: 60,
     paddingTop: 10,

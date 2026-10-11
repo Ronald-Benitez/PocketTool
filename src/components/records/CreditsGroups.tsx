@@ -1,15 +1,14 @@
 import { View, Text, Pressable, StyleSheet } from "react-native"
 import BorderLeftBottomBlock from "../ui/BorderLeftButtonBlock"
-import { Records, RecordTypes, RecordJoined } from "@/src/db/types/tables"
-import { MaterialIcons } from "@expo/vector-icons"
+import type { RecordFormEntry, RecordType } from "@/src/interfaces/schema"
 import styles from '@/src/styles/styles'
 import useDate from "@/src/hooks/useDate"
 import { useLanguage } from "@/src/lang/LanguageContext"
 
 type CreditsGroupsProps = {
-    credits: Records[],
-    selectedPaymentCreditType: RecordTypes | undefined,
-    onCreditPayment: (item: Records) => void,
+    credits: RecordFormEntry[],
+    selectedPaymentCreditType: RecordType | undefined,
+    onCreditPayment: (item: RecordFormEntry) => void,
 }
 
 export const CreditsGroups = ({ credits, selectedPaymentCreditType, onCreditPayment }: CreditsGroupsProps) => {

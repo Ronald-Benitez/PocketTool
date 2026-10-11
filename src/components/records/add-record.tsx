@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { View, ScrollView, Pressable, Text, StyleSheet } from "react-native";
+import { View, ScrollView, Text, StyleSheet } from "react-native";
 
 import { useLanguage } from "@/src/lang/LanguageContext";
-import { useRecords } from "@/src/db/handlers/RecordsHandler";
 import useDate from "@/src/hooks/useDate";
 import useToast from "@/src/hooks/useToast";
 import useRecordsStore from '@/src/stores/RecordsStore';
@@ -12,39 +11,70 @@ import BaseSelect from "../ui/base-select";
 import LabelBlock from "../ui/LabelBlock";
 import useAndroidToast from "@/src/hooks/useAndroidToast";
 import DatePicker from "../ui/date-picker";
-import { useHandler } from "@/src/db/handlers/handler";
-import { PaymentMethodsJoined, useDataStore } from "@/src/stores";
-import { Records, Categories, PaymentMethods, PaymentTypes, RecordTypes, RecordJoined, PaidCredits } from "@/src/db/types/tables";
+import { useORM } from "@/src/orm";
+import type { JoinPath } from "@/src/orm";
+import type {
+    Category,
+    Insertable,
+    PaidCredit,
+    PaymentMethodWithRelations,
+    RecordEntry,
+    RecordFormEntry,
+    RecordType
+} from "@/src/interfaces/schema";
 import styles from '@/src/styles/styles';
 import BorderLeftBlock from '@/src/components/ui/BorderLeftBlock';
 import useConfigs from "@/src/hooks/useConfigs";
 
 interface AddItemProps {
-    item?: RecordJoined | Records
+    item?: RecordFormEntry
     children?: React.ReactNode
     openUpdate?: boolean
     open?: boolean
 }
 
-const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
+const AddItem = ({ item, children, open }: AddItemProps) => {
     const { setRecords, group, setPaidCredits } = useRecordsStore()
     const dateH = useDate()
     const { t } = useLanguage()
     const [name, setName] = useState<string>("")
     const [date, setDate] = useState(new Date().getTime())
-    const [type, setType] = useState<RecordTypes>()
-    const [payment_method, setPaymentMethod] = useState<PaymentMethodsJoined>()
-    const [to_pay_method, setToPayMethod] = useState<PaymentMethodsJoined>()
-    const [category, setCategory] = useState<Categories>()
+    const [type, setType] = useState<RecordType>()
+    const [payment_method, setPaymentMethod] = useState<PaymentMethodWithRelations>()
+    const [to_pay_method, setToPayMethod] = useState<PaymentMethodWithRelations>()
+    const [category, setCategory] = useState<Category>()
     const [fixed_id, setFixedId] = useState<number | undefined>(undefined)
     const [value, setValue] = useState<string>("")
     const [group_id, setGroupId] = useState<number>(group?.id || 0)
-    const { fetchRecords, handler: recordsHandler } = useRecords()
-    const { ToastContainer, showToast } = useToast()
+    const { ToastContainer } = useToast()
     const toast = useAndroidToast()
-    const { RecordTypes, PaymentMethods, Categories } = useDataStore()
-    const handler = useHandler('PaidCredits')
+    const [recordTypes, setRecordTypes] = useState<RecordType[]>([])
+    const [paymentMethods, setPaymentMethods] = useState<PaymentMethodWithRelations[]>([])
+    const [categories, setCategories] = useState<Category[]>([])
+    const recordsOrm = useORM("Records")
+    const paidCreditsOrm = useORM("PaidCredits")
+    const recordTypesOrm = useORM("RecordTypes")
+    const paymentMethodsOrm = useORM("PaymentMethods")
+    const categoriesOrm = useORM("Categories")
     const { configs: { paymentCreditType } } = useConfigs()
+
+    useEffect(() => {
+        const loadOptions = async () => {
+            const [loadedRecordTypes, loadedPaymentMethods, loadedCategories] = await Promise.all([
+                recordTypesOrm.getAll(),
+                paymentMethodsOrm.join("PaymentTypes").getAll(),
+                categoriesOrm.getAll()
+            ])
+            setRecordTypes(loadedRecordTypes)
+            setPaymentMethods(loadedPaymentMethods)
+            setCategories(loadedCategories)
+        }
+
+        loadOptions().catch((error) => {
+            console.error("Error al cargar opciones de registros:", error)
+            toast.errorMessage()
+        })
+    }, [])
 
     useEffect(() => {
         if (!group?.id) return
@@ -53,18 +83,27 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
 
     useEffect(() => {
         if (!item) return
-        setName(item.record_name)
-        setValue(String(item.amount))
-        setDate(dateH.verify(item.date).getTime())
-        setType(RecordTypes?.find(val => val.id == item.record_type_id))
-        setGroupId(item.group_id)
-        setCategory(Categories?.find(cat => cat.id == item.category_id))
-        setPaymentMethod(PaymentMethods?.find(pay => pay.id == item.payment_method_id))
-        setFixedId(item.fixed_id)
-        if (item?.paid_method_id) {
-            setToPayMethod(PaymentMethods?.find(pay => pay.id == item.paid_method_id))
+        setName(item.record_name ?? "")
+        setValue(item.amount === undefined ? "" : String(item.amount))
+        if (item.date !== undefined) setDate(dateH.verify(item.date).getTime())
+        setType(recordTypes.find(val => val.id === item.record_type_id))
+        if (item.group_id !== undefined && item.group_id !== null) setGroupId(item.group_id)
+        setCategory(categories.find(cat => cat.id === item.category_id))
+        setPaymentMethod(paymentMethods.find(pay => pay.id === item.payment_method_id))
+        setFixedId(item.fixed_id ?? undefined)
+        const loadPaidMethod = async () => {
+            const paidCredit = item.paid_credit_id
+                ? (await paidCreditsOrm.where("id", item.paid_credit_id, "=").getAll())[0]
+                : undefined
+            const paymentMethodId = item.paid_method_id ?? paidCredit?.payment_method_id
+            setToPayMethod(paymentMethods.find(pay => pay.id === paymentMethodId))
         }
-    }, [item])
+
+        loadPaidMethod().catch((error) => {
+            console.error("Error al cargar el método de pago del crédito:", error)
+            toast.errorMessage()
+        })
+    }, [item, recordTypes, paymentMethods, categories])
 
     const onSave = async () => {
         if (!group) return
@@ -74,89 +113,87 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
             return
         }
 
-        const newItem: Records = {
-            date,
-            group_id,
-            record_name: name.length < 1 ? category?.category_name : name,
-            record_type_id: type.id,
-            amount: Number(value),
-            category_id: category?.id as number,
-            payment_method_id: payment_method?.id as number,
-            fixed_id
-        }
-
-        const payment: PaidCredits = {
-            group_id,
-            amount: Number(value),
-            date,
-            payment_method_id: to_pay_method?.id || 0,
-        }
-
         try {
-            if (item?.id) {
-                newItem.id = item.id
-                let paid_credit_id = undefined
-                if (type.id == paymentCreditType && to_pay_method?.id && !item.paid_credit_id) {
-                    const res = await handler.add(payment)
-                    paid_credit_id = res?.lastInsertRowId
-                } else if (type.id == paymentCreditType && to_pay_method?.id && item.paid_credit_id) {
-                    payment.id = item.paid_credit_id
-                    paid_credit_id = item.paid_credit_id
-                    await handler.edit(payment)
-                } else if (type.id != paymentCreditType && item.paid_credit_id) {
-                    payment.id = item.paid_credit_id
-                    await handler.deleteById(item.paid_credit_id)
+            let paidCreditId = item?.paid_credit_id ?? null
+            if (type.id === paymentCreditType && to_pay_method?.id) {
+                const payment: Insertable<PaidCredit> = {
+                    group_id,
+                    amount: Number(value),
+                    date,
+                    payment_method_id: to_pay_method.id,
                 }
-                newItem.paid_credit_id = paid_credit_id
-                await recordsHandler.edit(newItem)
+
+                if (item?.id && paidCreditId !== null) {
+                    await paidCreditsOrm.update(paidCreditId, payment)
+                } else {
+                    paidCreditId = await paidCreditsOrm.insert(payment) ?? null
+                    if (paidCreditId === null) {
+                        throw new Error("No se pudo crear el crédito asociado al registro")
+                    }
+                }
+            } else if (paidCreditId !== null) {
+                await paidCreditsOrm.forceDelete(paidCreditId)
+                paidCreditId = null
+            }
+
+            const newItem: Insertable<RecordEntry> = {
+                date,
+                group_id,
+                record_name: name.length < 1 ? category.category_name : name,
+                record_type_id: type.id,
+                amount: Number(value),
+                category_id: category.id,
+                payment_method_id: payment_method.id,
+                fixed_id,
+                paid_credit_id: paidCreditId
+            }
+
+            if (item?.id) {
+                await recordsOrm.update(item.id, newItem)
                 toast.editedMessage()
             } else {
-                let paid_credit_id = undefined
-                if (type.id == paymentCreditType && to_pay_method?.id) {
-                    const res = await handler.add(payment)
-                    paid_credit_id = res?.lastInsertRowId
-                }
-                newItem.paid_credit_id = paid_credit_id
-                const res = await recordsHandler.add(newItem)
+                const recordId = await recordsOrm.insert(newItem)
+                if (recordId === undefined) throw new Error("No se pudo crear el registro")
                 toast.addedMessage()
                 setName("")
                 setValue("")
             }
-            const records = await fetchRecords(group_id)
-            const credits = await handler.fetchWithWhere("group_id", String(group_id)) as PaidCredits[]
+
+            const relationPaths = Object.keys(recordsOrm.availableJoins) as JoinPath<"Records">[]
+            const records = await recordsOrm
+                .joinMany(relationPaths)
+                .where("group_id", group_id, "=")
+                .order("date", "ASC")
+                .getAll()
+            const credits = await paidCreditsOrm.where("group_id", group_id, "=").getAll()
             setRecords(records)
             setPaidCredits(credits)
-
-            // setResumes(await records.getAllResume(group_id))
         } catch (e) {
+            console.error("Error al guardar el registro:", e)
             toast.errorMessage()
         }
     }
 
     const onChangeCategory = (index: number) => {
-        if (!Categories) return
-        setCategory(Categories[index])
+        setCategory(categories[index])
     }
 
     const onPaymentChange = (index: number) => {
-        if (!PaymentMethods) return
-        setPaymentMethod(PaymentMethods[index])
+        setPaymentMethod(paymentMethods[index])
     }
 
     const onToPayChange = (index: number) => {
-        if (!PaymentMethods) return
-        setToPayMethod(PaymentMethods[index])
+        setToPayMethod(paymentMethods[index])
     }
 
     const onTypeChange = (index: number) => {
-        if (!RecordTypes) return
-        setType(RecordTypes[index])
+        setType(recordTypes[index])
     }
 
     const SelectTypeBlockRender = (index: number) => {
         return (
-            <BorderLeftBlock color={RecordTypes[index].record_color}>
-                <Text style={[styles.text]}>{RecordTypes[index].type_name}</Text>
+            <BorderLeftBlock color={recordTypes[index].record_color || "#000"}>
+                <Text style={[styles.text]}>{recordTypes[index].type_name}</Text>
             </BorderLeftBlock>
         )
     }
@@ -171,15 +208,15 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
 
     const SelectPaymentBlockRender = (index: number) => {
         return (
-            <BorderLeftBlock color={PaymentMethods[index].payment_color}>
-                <Text style={[styles.text]}>{PaymentMethods[index].method_name}</Text>
+            <BorderLeftBlock color={paymentMethods[index].PaymentTypes?.payment_color || "#000"}>
+                <Text style={[styles.text]}>{paymentMethods[index].method_name}</Text>
             </BorderLeftBlock>
         )
     }
 
-    const SelectedPaymentBlockRender = ({ payment }: { payment: PaymentMethodsJoined | undefined }) => {
+    const SelectedPaymentBlockRender = ({ payment }: { payment: PaymentMethodWithRelations | undefined }) => {
         return (
-            <BorderLeftBlock color={payment?.payment_color || "#000"}>
+            <BorderLeftBlock color={payment?.PaymentTypes?.payment_color || "#000"}>
                 <Text style={[styles.text]}>{payment?.method_name || t('item.selectPayment')}</Text>
             </BorderLeftBlock>
         )
@@ -209,7 +246,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
                                 label={t('item.type') + '*'}
                                 selected={type?.type_name}
                                 onChange={onTypeChange}
-                                options={RecordTypes?.map(val => val.type_name)}
+                                options={recordTypes.map(val => val.type_name)}
                                 title={t('item.type')}
                                 render={SelectTypeBlockRender}
 
@@ -223,7 +260,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
                                 label={t('item.category') + '*'}
                                 selected={category?.category_name}
                                 onChange={onChangeCategory}
-                                options={Categories?.map(cat => cat.category_name)}
+                                options={categories.map(cat => cat.category_name)}
                                 title={t('item.selectCategory')}
                             />
                         </View>
@@ -233,7 +270,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
                                 label={t('item.payment') + '*'}
                                 selected={payment_method?.method_name}
                                 onChange={onPaymentChange}
-                                options={PaymentMethods?.map(pay => pay.method_name)}
+                                options={paymentMethods.map(pay => pay.method_name)}
                                 title={t('item.selectPayment')}
                                 render={SelectPaymentBlockRender}
                             >
@@ -247,7 +284,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
                                         label={t('item.toPay') + '*'}
                                         selected={to_pay_method?.method_name}
                                         onChange={onToPayChange}
-                                        options={PaymentMethods?.map(pay => pay.method_name)}
+                                        options={paymentMethods.map(pay => pay.method_name)}
                                         title={t('item.selectToPay')}
                                         render={SelectPaymentBlockRender}
                                     >

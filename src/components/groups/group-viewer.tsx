@@ -143,9 +143,6 @@ const GroupViewer = ({ group, setGroup, recordsI }: GroupViewerProps) => {
             </View>
             <AddGroup
                 openUpdate={openUpdate}
-                setOpenUpdate={setOpenUpdate}
-                group={group}
-                setGroup={setGroup}
             />
             <ToastContainer />
         </>
