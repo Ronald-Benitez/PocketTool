@@ -18,7 +18,6 @@ const PaymentTypesScreen = () => {
     const { t } = useLanguage();
     const [category_name, setCategoryName ] = useState('');
     const [editingId, setEditingId] = useState<number | undefined>(undefined);
-    const handler = useHandler("Categories");
     const {Categories, setCategories} = useDataStore()
     const toast = useAndroidToast()
     const orm = useORM("Categories");

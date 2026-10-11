@@ -67,6 +67,10 @@ export interface RecordEntry extends SoftDeletable {
   paid_credit_id?: number | null; // Agregado en migración
 }
 
+export type RecordFormEntry = Partial<RecordWithRelations> & {
+  paid_method_id?: number;
+};
+
 // 8. PaidCredits
 export interface PaidCredit extends SoftDeletable {
   id: number;

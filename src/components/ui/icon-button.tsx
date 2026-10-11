@@ -10,9 +10,9 @@ interface props {
     shake?: boolean
 }
 
-const IconButton = ({ children, onClick, isButton = true, shake = true }: props) => {
+const IconButton = ({ children, onClick, isButton = true, shake = false }: props) => {
     return (
-        <ShakeAnimation shake={shake}>
+        <ShakeAnimation shake={false}>
             {isButton ? (
                 <Pressable onPress={onClick} style={[localStyles.button]}>
                     {children}

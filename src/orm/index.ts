@@ -206,6 +206,7 @@ class ORM<T extends TableOption = TableOption> {
 
   public where<Path extends ColumnPath<T>>(column: Path, value: SqlValue, operator: SqlOperator): this
   public where<Path extends ColumnPath<T>>(filter: WhereCondition<T>): this
+  
   public where<Path extends ColumnPath<T>>(
     columnOrFilter: Path | WhereCondition<T>,
     value?: SqlValue,
@@ -340,16 +341,17 @@ class ORM<T extends TableOption = TableOption> {
     }
   }
 
-  public async insert(data: Insertable<BaseSchemaMap[T]>): Promise<void> {
+  public async insert(data: Insertable<BaseSchemaMap[T]>): Promise<number | undefined> {
     const columns = Object.keys(data).join(', ')
     const placeholders = Object.keys(data).map(() => '?').join(', ')
     const values = Object.values(data)
 
     try {
-      await this.db.runAsync(
+      const result = await this.db.runAsync(
         `INSERT INTO ${this.table} (${columns}) VALUES (${placeholders})`,
         values as any[]
       )
+      return result.lastInsertRowId
     } catch (error) {
       console.error(`Error en insert() para ${this.table}:`, error)
     }
@@ -370,11 +372,11 @@ class ORM<T extends TableOption = TableOption> {
   }
 
   // Realiza soft delete asignando el ISO string actual en deleted_at
-  public async delete(id: number): Promise<void> {
+  public async delete(id: number, column: string | null = "id"): Promise<void> {
     try {
       const now = new Date().toISOString()
       await this.db.runAsync(
-        `UPDATE ${this.table} SET deleted_at = ? WHERE id = ? AND deleted_at IS NULL`,
+        `UPDATE ${this.table} SET deleted_at = ? WHERE ${column} = ? AND deleted_at IS NULL`,
         [now, id]
       )
     } catch (error) {
