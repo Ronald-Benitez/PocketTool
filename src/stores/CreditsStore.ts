@@ -1,92 +1,118 @@
-import { create } from "zustand"
-import { useEffect, useState } from "react"
-import useRecordsStore from "./RecordsStore"
-import useConfigs from "../hooks/useConfigs"
-import { useDataStore } from "."
-import { useRecords } from "../db/handlers/RecordsHandler"
-import { PaymentMethods } from "../db/types/tables"
+import { useEffect, useState } from "react";
 
-const getPeriods = (card: PaymentMethods, month: number, year: number) => {
-    let localMonth = month;
-    let localYear = year;
+import { useORM } from "../orm";
+import type { PaidCredit, PaymentMethod } from "../interfaces/schema";
+import useConfigs from "../hooks/useConfigs";
+import { useDataStore } from ".";
 
-    if (card.closing_date < new Date().getDate()) {
-        localMonth += 1;
-        if (localMonth > 12) {
-            localMonth = 1;
-            localYear += 1;
-        }
-    }
-
-    const periodStart = new Date(localYear, localMonth - 1, card.closing_date + 1, 0, 0, 0, 0).getTime();
-    const periodEnd = new Date(localYear, localMonth, card.closing_date + 1, 0, 0, 0, 0).getTime() - 1;
-
-    return [periodStart, periodEnd];
+const getClosingDate = (year: number, month: number, day: number) => {
+    const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+    return new Date(year, month, Math.min(day, lastDayOfMonth));
 };
 
-export interface Credit extends PaymentMethods {
-    totalCurrent?: number
-    totalPrevious?: number
-    totalCurrentPayments?: number
+const getCurrentAndPreviousPeriods = (closingDay: number, today: Date) => {
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    let periodEnd = getClosingDate(today.getFullYear(), today.getMonth(), closingDay);
+
+    if (periodEnd < todayStart) {
+        periodEnd = getClosingDate(today.getFullYear(), today.getMonth() + 1, closingDay);
+    }
+
+    const periodStart = getClosingDate(
+        periodEnd.getFullYear(),
+        periodEnd.getMonth() - 1,
+        closingDay
+    );
+    periodStart.setDate(periodStart.getDate() + 1);
+    periodStart.setHours(0, 0, 0, 0);
+    periodEnd.setHours(23, 59, 59, 999);
+
+    const previousEnd = new Date(periodStart.getTime() - 1);
+    const previousStart = getClosingDate(
+        previousEnd.getFullYear(),
+        previousEnd.getMonth() - 1,
+        closingDay
+    );
+    previousStart.setDate(previousStart.getDate() + 1);
+    previousStart.setHours(0, 0, 0, 0);
+
+    return {
+        current: [periodStart.getTime(), periodEnd.getTime()] as const,
+        previous: [previousStart.getTime(), previousEnd.getTime()] as const
+    };
+};
+
+export interface Credit extends PaymentMethod {
+    totalCurrent: number;
+    totalPrevious: number;
+    totalCurrentPayments: number;
 }
 
 export const useCreditStore = () => {
-    const { records } = useRecordsStore()
-    const { PaymentMethods } = useDataStore()
-    const { configs: { creditType, paymentCreditType } } = useConfigs()
-    const { fetchCredits, fetchPaidCredits } = useRecords()
-    const [credits, setCredits] = useState<Credit[] | undefined>()
+    const { PaymentMethods } = useDataStore();
+    const { configs: { creditType } } = useConfigs();
+    const recordsOrm = useORM("Records");
+    const paidCreditsOrm = useORM("PaidCredits");
+    const [credits, setCredits] = useState<Credit[]>([]);
 
     useEffect(() => {
-        const load = async () => {
-            const result = await calculatePaymentTotal()
-            setCredits(result)
-        }
-        load()
-    }, [records, creditType])
+        let isMounted = true;
 
-    const calculatePaymentTotal = async () => {
-        const filteredPayments = PaymentMethods.filter(p => p.closing_date > 0)
-        let today = new Date();
-        const month = today.getMonth();
-        const year = today.getFullYear()
-        const credits = await Promise.all(filteredPayments.map(async payment => {
-            if (!payment.id) return {
-                ...payment,
-                totalCurrent: 0,
-                totalPrevious: 0
+        const loadCredits = async () => {
+            try {
+                const [records, paidCredits] = await Promise.all([
+                    recordsOrm.getAll(),
+                    paidCreditsOrm.getAll()
+                ]);
+                const today = new Date();
+
+                const calculatedCredits = PaymentMethods
+                    .filter((payment): payment is PaymentMethod & { id: number; closing_date: number } =>
+                        payment.id !== undefined &&
+                        payment.closing_date !== undefined &&
+                        payment.closing_date !== null &&
+                        payment.closing_date > 0
+                    )
+                    .map(payment => {
+                        const { current, previous } = getCurrentAndPreviousPeriods(
+                            payment.closing_date,
+                            today
+                        );
+                        const isInPeriod = (date: number, period: readonly [number, number]) =>
+                            date >= period[0] && date <= period[1];
+                        const cardRecords = records.filter(record =>
+                            record.payment_method_id === payment.id &&
+                            record.record_type_id === creditType
+                        );
+                        const cardPayments = paidCredits.filter(
+                            (paidCredit: PaidCredit) => paidCredit.payment_method_id === payment.id
+                        );
+
+                        return {
+                            ...payment,
+                            totalCurrent: cardRecords
+                                .filter(record => isInPeriod(record.date, current))
+                                .reduce((total, record) => total + record.amount, 0),
+                            totalPrevious: cardRecords
+                                .filter(record => isInPeriod(record.date, previous))
+                                .reduce((total, record) => total + record.amount, 0),
+                            totalCurrentPayments: cardPayments
+                                .filter(paidCredit => isInPeriod(paidCredit.date, current))
+                                .reduce((total, paidCredit) => total + paidCredit.amount, 0)
+                        };
+                    });
+
+                if (isMounted) setCredits(calculatedCredits);
+            } catch (error) {
+                console.error("Error loading credit card summaries:", error);
             }
-            const [currentPeriodStart, currentPeriodEnd] = getPeriods(
-                payment,
-                month,
-                year
-            );
-            const [previousPeriodStart, previousPeriodEnd] = getPeriods(
-                payment,
-                month - 1,
-                year
-            );
-            const currentCredits = await fetchCredits(payment.id, currentPeriodStart, currentPeriodEnd)
-            const currentPayments = await fetchPaidCredits(payment.id, currentPeriodStart, currentPeriodEnd)
-            const totalCurrentPayments = currentPayments?.reduce((acc, current) => acc + current.amount, 0) || 0
-            const previousCredits = await fetchCredits(payment.id, previousPeriodStart, previousPeriodEnd)
-            const totalCurrent = currentCredits?.reduce((acc, current) => acc + current.amount, 0)
-            const totalPrevious = previousCredits?.reduce((acc, current) => acc + current.amount, 0)
-            const newPayment = {
-                ...payment,
-                totalCurrent,
-                totalCurrentPayments,
-                totalPrevious
-            }
-            return newPayment as Credit
-        }))
-        return credits;
-    }
+        };
 
-    calculatePaymentTotal()
+        void loadCredits();
+        return () => {
+            isMounted = false;
+        };
+    }, [PaymentMethods, creditType]);
 
-    return create<{ credits: Credit[] | undefined }>((set, get) => ({
-        credits
-    }))();
-
-}
+    return { credits };
+};

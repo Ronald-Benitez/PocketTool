@@ -252,7 +252,7 @@
         "pending": "Pendiente",
         "previousTotal": "Total Anterior",
         "currentTotal": "Total Actual",
-        "nextPaymentDate": "Fecha del próximo corte"
+        "nextPaymentDate": "Fecha del próximo pago"
     },
     "greeting": {
         "morning": "¡Buenos días!",

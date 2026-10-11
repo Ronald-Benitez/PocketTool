@@ -1,64 +1,40 @@
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import React, { useState, useEffect } from 'react';
 
-import { useRecords } from '@/src/db';
 import styles from '@/src/styles/styles';
-import ColorText from '@/src/components/ui/color-text';
-import useCreditCardStore from '@/src/stores/CreditCardsStore';
 import useColorStore from '@/src/stores/ColorsStore';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import BalanceBlock from '@/src/components/ui/BalanceBlock';
-import useRecordsStore from '@/src/stores/RecordsStore';
 import { useCreditStore } from '@/src/stores/CreditsStore';
 
 import useDate from '@/src/hooks/useDate';
-import { useDataStore } from '@/src/stores';
 
 const Index = () => {
-    const { fetchResumeByCreditCards } = useRecords();
-    const { creditCards, setCreditCards } = useCreditCardStore();
-    const { PaymentMethods } = useDataStore()
     const { colors } = useColorStore();
     const { t } = useLanguage();
-    const [totalCurrent, setTotalCurrent] = useState(0);
-    const [totalPrevious, setTotalPrevious] = useState(0);
-    const { records } = useRecordsStore();
     const { credits } = useCreditStore();
     const { getStringDate } = useDate();
+    const totalCurrent = credits.reduce((total, credit) => total + credit.totalCurrent, 0);
+    const totalPrevious = credits.reduce((total, credit) => total + credit.totalPrevious, 0);
 
-    useEffect(() => {
-        try {
-            if (credits?.length && credits.length > 0) {
-                let newCurrent = 0;
-                let newPrevious = 0;
-                credits.forEach(e => {
-                    newCurrent += e?.totalCurrent || 0;
-                    newPrevious += e?.totalPrevious || 0;
-                });
-                setTotalCurrent(newCurrent);
-                setTotalPrevious(newPrevious);
-            }
-        } catch (e) {
-            console.error("Error calculating total credits:", e);
-        }
-    }, [credits, PaymentMethods]);
+    const dateForDay = (year: number, month: number, day: number) =>
+        new Date(year, month, Math.min(day, new Date(year, month + 1, 0).getDate()));
 
     const closingDateToShow = (day: number) => {
         const today = new Date();
-        const closingDate = new Date(today.getFullYear(), today.getMonth(), day);
+        let closingDate = dateForDay(today.getFullYear(), today.getMonth(), day);
         if (closingDate > today) {
-            closingDate.setMonth(closingDate.getMonth() - 1);
+            closingDate = dateForDay(today.getFullYear(), today.getMonth() - 1, day);
         }
         return getStringDate(closingDate.getTime());
     }
 
-    const nextClosingDateToShow = (day: number) => {
+    const nextPaymentDateToShow = (day: number) => {
         const today = new Date();
-        const closingDate = new Date(today.getFullYear(), today.getMonth(), day);
-        if (closingDate < today) {
-            closingDate.setMonth(closingDate.getMonth() + 1);
+        let paymentDate = dateForDay(today.getFullYear(), today.getMonth(), day);
+        if (paymentDate < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
+            paymentDate = dateForDay(today.getFullYear(), today.getMonth() + 1, day);
         }
-        return getStringDate(closingDate.getTime());
+        return getStringDate(paymentDate.getTime());
     }
 
     return (
@@ -84,20 +60,20 @@ const Index = () => {
 
             <ScrollView style={{ flex: 1 }}>
                 <View style={localStyles.individualCreditsContainer}>
-                    {credits?.map((credit, index) => {
-                        const amountPaid = credit?.totalCurrentPayments || 0;
-                        const previousBalance = credit?.totalPrevious || 0;
+                    {credits.map(credit => {
+                        const amountPaid = credit.totalCurrentPayments;
+                        const previousBalance = credit.totalPrevious;
                         const pendingAmount = (previousBalance - amountPaid).toFixed(2);
                         const isPendingNegative = parseFloat(pendingAmount) < 0;
 
                         return (
-                            <View key={index} style={[localStyles.creditBlock, { backgroundColor: colors?.BGSimple }]}>
+                            <View key={credit.id} style={[localStyles.creditBlock, { backgroundColor: colors?.BGSimple }]}>
                                 <View style={localStyles.headerRow}>
                                     <Text style={[localStyles.creditName]}>
-                                        {credit?.method_name}
+                                        {credit.method_name}
                                     </Text>
                                     <Text style={[localStyles.currentValue]}>
-                                        {t("credits.current")}: <Text style={localStyles.amountValue}>${(credit?.totalCurrent || 0).toFixed(2)}</Text>
+                                        {t("credits.current")}: <Text style={localStyles.amountValue}>${credit.totalCurrent.toFixed(2)}</Text>
                                     </Text>
                                 </View>
 
@@ -122,16 +98,16 @@ const Index = () => {
                                     <View style={localStyles.closingDateContainer}>
                                         <Text style={localStyles.detailLabel}>{t("credits.closingDate")}:</Text>
                                         <Text style={localStyles.amountValue}>
-                                            {credit?.closing_date ? closingDateToShow(credit.closing_date) : 'N/A'}
+                                            {credit.closing_date ? closingDateToShow(credit.closing_date) : 'N/A'}
                                         </Text>
                                     </View>
                                 </View>
                                 <View style={[localStyles.detailRow, { marginTop: 10, borderTopColor: '#eee', borderTopWidth: 1, paddingTop: 10 }]}>
                                     <Text style={localStyles.detailLabel}>
-                                        {t("credits.nextPaymentDate")}:
+                                        {t("credits.paidDate")}:
                                     </Text>
                                     <Text style={localStyles.amountValue}>
-                                        {credit?.closing_date ? nextClosingDateToShow(credit.closing_date) : 'N/A'}
+                                        {credit.payment_date ? nextPaymentDateToShow(credit.payment_date) : 'N/A'}
                                     </Text>
                                 </View>
                             </View>

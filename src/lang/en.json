@@ -243,11 +243,12 @@
         "previous": "Previous",
         "current": "Current",
         "closingDate": "Closing Date",
+        "paidDate": "Payment date",
         "paid": "Paid",
         "pending": "Pending",
         "previousTotal": "Previous Total",
         "currentTotal": "Current Total",
-        "nextPaymentDate": "Next closing Date"
+        "nextPaymentDate": "Next payment date"
     },
     "greeting": {
         "morning": "Good morning!",
