@@ -22,6 +22,7 @@ const PaymentMethodsScreen = () => {
     const [editingId, setEditingId] = useState<number | undefined>(undefined);
     const [type, setType] = useState<PaymentType | null>(null);
     const [closingDate, setClosingDate] = useState(0)
+    const [paidDate, setPaidDate] = useState(0)
     const [openModal, setOpenModal] = useState(false)
     const { colors } = useColorStore();
     const toast = useAndroidToast()
@@ -41,11 +42,11 @@ const PaymentMethodsScreen = () => {
     }, []);
 
     const handleAddPaymentMethod = async () => {
-        if (!methodName || !type || closingDate < 0 || closingDate > 31) {
+        if (!methodName || !type || closingDate < 0 || closingDate > 31 || paidDate < 0 || paidDate > 31) {
             toast.emptyMessage()
             return;
         }
-        const newPaymentMethod: Insertable<PaymentMethod> = { method_name: methodName, payment_type_id: type?.id || 1, closing_date: closingDate };
+        const newPaymentMethod: Insertable<PaymentMethod> = { method_name: methodName, payment_type_id: type?.id || 1, closing_date: closingDate, payment_date: paidDate };
         try {
             if (editingId) {
                 await paymentMethodOrm.update(editingId, newPaymentMethod);
@@ -87,6 +88,7 @@ const PaymentMethodsScreen = () => {
         ); // Establecer el tipo al editar
         setEditingId(method.id);
         setClosingDate(method?.closing_date || 0)
+        setPaidDate(method?.payment_date || 0)
         setOpenModal(!openModal)
     };
 
@@ -96,6 +98,14 @@ const PaymentMethodsScreen = () => {
             return
         }
         setClosingDate(val)
+    }
+
+    const handlePaidDate = (value: string) => {
+        const val = Number(value)
+        if (val < 0 || val > 31 || isNaN(val)) {
+            return
+        }
+        setPaidDate(val)
     }
 
     const buttonOpen = (
@@ -147,6 +157,12 @@ const PaymentMethodsScreen = () => {
                         placeholder={t('paymentMethods.closingDate') + "*"}
                         value={String(closingDate)}
                         onChangeText={handleCutOffDay}
+                        keyboardType='numeric'
+                    />
+                    <InputLabel
+                        placeholder={t('paymentMethods.paidDate') + "*"}
+                        value={String(paidDate)}
+                        onChangeText={handlePaidDate}
                         keyboardType='numeric'
                     />
                     {/* )

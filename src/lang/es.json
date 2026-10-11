@@ -247,6 +247,7 @@
         "previous": "Previo",
         "current": "Actual",
         "closingDate": "Fecha de corte",
+        "paidDate": "Fecha de pago",
         "paid": "Pagado",
         "pending": "Pendiente",
         "previousTotal": "Total Anterior",

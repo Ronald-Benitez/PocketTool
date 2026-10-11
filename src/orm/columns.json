@@ -15,6 +15,7 @@
     "id": "id",
     "method_name": "method_name",
     "closing_date": "closing_date",
+    "payment_date": "payment_date",
     "payment_type_id": "payment_type_id",
     "PaymentTypes.id": "PaymentTypes.id",
     "PaymentTypes.payment_type_name": "PaymentTypes.payment_type_name",

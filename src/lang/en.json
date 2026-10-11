@@ -39,6 +39,7 @@
         "delete": "Delete",
         "edit": "Edit",
         "closingDate": "Closing date",
+        "paidDate": "Payment date",
         "error": {
             "emptyFields": "Please enter all fields."
         },
