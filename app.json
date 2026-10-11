@@ -2,7 +2,7 @@
   "expo": {
     "name": "PoketTool",
     "slug": "PoketTool",
-    "version": "2.0.9",
+    "version": "3.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon3.png",
     "scheme": "myapp",
