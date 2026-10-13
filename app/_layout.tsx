@@ -126,6 +126,7 @@ const AppDrawer = () => {
         <Drawer.Screen
           name="(vehicle)"
           options={{
+            drawerItemStyle: { display: 'none' },
             title: t("headers.financialsIndex"),
             headerShown: false,
             drawerIcon: ({ color, size }) => (
