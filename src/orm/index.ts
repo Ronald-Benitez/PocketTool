@@ -136,7 +136,7 @@ const normalizeOperator = (operator: SqlOperator): string => {
 // ----------------------------------------------------------------------
 // 3. Clase ORM con Soft Delete y Tipado Anidado
 // ----------------------------------------------------------------------
-class ORM<T extends TableOption = TableOption> {
+export class ORM<T extends TableOption = TableOption> {
   private db: SQLiteDatabase
   private table: T
   private joinedTables: string[] = []
@@ -324,6 +324,12 @@ class ORM<T extends TableOption = TableOption> {
         }
         return result
       }
+
+      this.joinedColumns = []
+      this.joinedTables = []
+      this.whereClauses = []
+      this.whereValues = []
+      this.orderClauses = []
 
       return rows.map(mapRow) as RelationsSchemaMap[T][]
     } catch (error) {

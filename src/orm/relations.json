@@ -37,6 +37,10 @@
         "Fixed.PaymentMethods.PaymentTypes": "Fixed.PaymentMethods.PaymentTypes",
         "Fixed.RecordTypes": "Fixed.RecordTypes",
         "Groups": "Groups",
+        "PaidCredits": "PaidCredits",
+        "PaidCredits.Groups": "PaidCredits.Groups",
+        "PaidCredits.PaymentMethods": "PaidCredits.PaymentMethods",
+        "PaidCredits.PaymentMethods.PaymentTypes": "PaidCredits.PaymentMethods.PaymentTypes",
         "PaymentMethods": "PaymentMethods",
         "PaymentMethods.PaymentTypes": "PaymentMethods.PaymentTypes",
         "RecordTypes": "RecordTypes"
