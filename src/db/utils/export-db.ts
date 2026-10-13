@@ -2,6 +2,7 @@ import * as SQLite from 'expo-sqlite';
 import { File, Paths } from 'expo-file-system';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
+import { Platform } from 'react-native';
 
 export const useDBExport = function () {
   const db = SQLite.useSQLiteContext();
@@ -54,16 +55,28 @@ export const useDBExport = function () {
 
   const importDatabase = async () => {
   try {
-    const result = await DocumentPicker.getDocumentAsync({
-      type: ['application/x-sql', 'text/plain'],
-      copyToCacheDirectory: true,
-    });
+    let sqlContent: string;
 
-    if (result.canceled || !result.assets) return;
+    if (Platform.OS === 'web') {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/x-sql', 'text/plain'],
+      });
 
-    const selectedFileUri = result.assets[0].uri;
-    const fileToImport = new File(selectedFileUri);
-    const sqlContent = await fileToImport.text();
+      if (result.canceled || !result.assets) return;
+
+      const selectedFile = result.assets[0].file;
+      if (!selectedFile) throw new Error('No se pudo leer el archivo seleccionado');
+
+      sqlContent = await selectedFile.text();
+    } else {
+      const result = await File.pickFileAsync({
+        mimeTypes: ['application/x-sql', 'text/plain'],
+      });
+
+      if (result.canceled) return;
+
+      sqlContent = await result.result.text();
+    }
 
     if (!sqlContent) throw new Error("El archivo está vacío");
 
