@@ -35,6 +35,7 @@
         "category_id": "Categoría",
         "payment_method_id": "Método de pago",
         "fixed_id": "Registro fijo",
+        "paid_credit_id": "Crédito pagado",
         "RecordTypes": "Tipo de registro",
         "type_name": "Nombre del tipo",
         "effect": "Efecto",
@@ -56,6 +57,7 @@
         "payment_type_id": "Tipo de pago",
         "PaymentTypes": "Tipo de pago",
         "payment_type_name": "Nombre del tipo de pago",
-        "payment_color": "Color del pago"
+        "payment_color": "Color del pago",
+        "PaidCredits": "Crédito pagado"
     }
 }

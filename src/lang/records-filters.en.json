@@ -35,6 +35,7 @@
         "category_id": "Category",
         "payment_method_id": "Payment method",
         "fixed_id": "Fixed record",
+        "paid_credit_id": "Paid credit",
         "RecordTypes": "Record type",
         "type_name": "Type name",
         "effect": "Effect",
@@ -56,6 +57,7 @@
         "payment_type_id": "Payment type",
         "PaymentTypes": "Payment type",
         "payment_type_name": "Payment type name",
-        "payment_color": "Payment color"
+        "payment_color": "Payment color",
+        "PaidCredits": "Paid credit"
     }
 }
