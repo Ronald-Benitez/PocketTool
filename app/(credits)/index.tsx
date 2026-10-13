@@ -13,8 +13,8 @@ const Index = () => {
     const { t } = useLanguage();
     const { credits } = useCreditStore();
     const { getStringDate } = useDate();
-    const totalCurrent = credits.reduce((total, credit) => total + credit.totalCurrent, 0);
-    const totalPrevious = credits.reduce((total, credit) => total + credit.totalPrevious, 0);
+    const totalCurrent = credits ? credits.reduce((total, credit) => total + (credit?.totalCurrent || 0), 0) : 0;
+    const totalPrevious = credits ? credits.reduce((total, credit) => total + (credit?.totalPrevious || 0), 0): 0;
 
     const dateForDay = (year: number, month: number, day: number) =>
         new Date(year, month, Math.min(day, new Date(year, month + 1, 0).getDate()));
@@ -60,12 +60,12 @@ const Index = () => {
 
             <ScrollView style={{ flex: 1 }}>
                 <View style={localStyles.individualCreditsContainer}>
-                    {credits.map(credit => {
+                    {credits && credits.map(credit => {
                         const amountPaid = credit.totalCurrentPayments;
                         const previousBalance = credit.totalPrevious;
-                        const pendingAmount = (previousBalance - amountPaid).toFixed(2);
+                        const pendingAmount = ((previousBalance || 0) - (amountPaid || 0)).toFixed(2);
                         const isPendingNegative = parseFloat(pendingAmount) < 0;
-
+                        console.log("Card", credit)
                         return (
                             <View key={credit.id} style={[localStyles.creditBlock, { backgroundColor: colors?.BGSimple }]}>
                                 <View style={localStyles.headerRow}>
@@ -73,7 +73,7 @@ const Index = () => {
                                         {credit.method_name}
                                     </Text>
                                     <Text style={[localStyles.currentValue]}>
-                                        {t("credits.current")}: <Text style={localStyles.amountValue}>${credit.totalCurrent.toFixed(2)}</Text>
+                                        {t("credits.current")}: <Text style={localStyles.amountValue}>${(credit?.totalCurrent || 0).toFixed(2)}</Text>
                                     </Text>
                                 </View>
 
@@ -81,11 +81,11 @@ const Index = () => {
                                     <View style={localStyles.paymentSummary}>
                                         <View style={localStyles.detailItem}>
                                             <Text style={localStyles.detailLabel}>{t("credits.previous")}:</Text>
-                                            <Text style={localStyles.amountValue}>${previousBalance.toFixed(2)}</Text>
+                                            <Text style={localStyles.amountValue}>${(previousBalance || 0).toFixed(2)}</Text>
                                         </View>
                                         <View style={localStyles.detailItem}>
                                             <Text style={localStyles.detailLabel}>{t("credits.paid")}:</Text>
-                                            <Text style={[localStyles.amountValue, { color: colors?.IncomeColor }]}>${amountPaid.toFixed(2)}</Text>
+                                            <Text style={[localStyles.amountValue, { color: colors?.IncomeColor }]}>${(amountPaid || 0).toFixed(2)}</Text>
                                         </View>
                                         <View style={localStyles.detailItem}>
                                             <Text style={localStyles.detailLabel}>{t("credits.pending")}:</Text>
