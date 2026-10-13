@@ -21,6 +21,8 @@ import type {
 } from "@/src/orm"
 import ModalButton from "../ui/modal-button"
 import BaseSelect from "../ui/base-select"
+import IconButton from "../ui/icon-button"
+import { Feather, Octicons } from "@expo/vector-icons"
 
 export interface RecordFilter {
     column: ColumnPath<"Records">
@@ -53,7 +55,10 @@ const OPERATORS: SqlOperator[] = [
     "IS NOT",
     "BETWEEN"
 ]
-const DIRECTIONS: OrderDirection[] = ["ASC", "DESC"]
+const DIRECTIONS = {
+    "ASC": "ASC",
+    "DESC": "DESC"
+}
 
 const RecordsFilterModal = ({
     visible,
@@ -166,23 +171,25 @@ const RecordsFilterModal = ({
                                         updateOrder(index, { column: columns[columnIndex] })
                                     }
                                 />
-                                <BaseSelect
-                                    blockWith="32%"
-                                    options={DIRECTIONS.map(directionLabel)}
-                                    selected={directionLabel(condition.direction ?? "ASC")}
-                                    title={t("recordsFilters.selectDirection")}
-                                    onChange={directionIndex =>
-                                        updateOrder(index, { direction: DIRECTIONS[directionIndex] })
-                                    }
-                                />
-                                <Pressable
-                                    style={localStyles.removeButton}
-                                    onPress={() => setDraftOrder(current =>
-                                        current.filter((_, itemIndex) => itemIndex !== index)
-                                    )}
+                               
+                                <IconButton 
+                                    isButton  
+                                    shake={false}
+                                    onClick={() => 
+                                        updateOrder(index, { direction: condition.direction == DIRECTIONS.ASC ? "DESC" : "ASC" })
+                                    } 
                                 >
-                                    <Text style={localStyles.removeText}>×</Text>
-                                </Pressable>
+                                    <Octicons name={condition.direction == DIRECTIONS.ASC ? "sort-asc" : "sort-desc" } size={20} />
+                                </IconButton>
+                                <IconButton 
+                                    isButton  
+                                    shake={false}
+                                    onClick={() => setDraftOrder(current =>
+                                        current.filter((_, itemIndex) => itemIndex !== index)
+                                    )} 
+                                >
+                                    <Feather name="trash" size={20} color={"#F00"} />
+                                </IconButton>
                             </View>
                         ))}
                         <Pressable style={localStyles.addButton} onPress={addOrder}>
@@ -221,14 +228,16 @@ const RecordsFilterModal = ({
                                     }
                                     autoCapitalize="none"
                                 />
-                                <Pressable
-                                    style={localStyles.removeButton}
-                                    onPress={() => setDraftFilters(current =>
+                               
+                                <IconButton 
+                                    isButton  
+                                    shake={false}
+                                    onClick={() => setDraftFilters(current =>
                                         current.filter((_, itemIndex) => itemIndex !== index)
                                     )}
                                 >
-                                    <Text style={localStyles.removeText}>×</Text>
-                                </Pressable>
+                                    <Feather name="trash" size={20} color={"#F00"} />
+                                </IconButton>
                             </View>
                         ))}
                         <Pressable style={localStyles.addButton} onPress={addFilter}>
@@ -282,21 +291,20 @@ const localStyles = StyleSheet.create({
     },
     optionRow: {
         flexDirection: "row",
-        alignItems: "center",
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderColor: "#bbb"
+        alignItems: "flex-end",
+        justifyContent:"center",
+        gap:4
     },
     filterRow: {
         flexDirection: "row",
         alignItems: "center",
         flexWrap: "wrap",
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderColor: "#bbb"
+        gap: 4
     },
     valueInput: {
         flex: 1,
-        minWidth: 95,
-        height: 44,
+        minWidth: 80,
+        height: 50,
         borderWidth: 1,
         borderColor: "#aaa",
         paddingHorizontal: 8
