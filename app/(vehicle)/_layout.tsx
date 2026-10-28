@@ -14,7 +14,7 @@ export default function Layout() {
                 options={{
                     title: t("headers.financialsIndex"),
                     tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="home-outline" size={size} color={color} />
+                        <Ionicons name="home-outline" size={size} color={color as string | undefined} />
                     ),
                     headerStyle: {
                         backgroundColor: '#fff'
@@ -25,7 +25,7 @@ export default function Layout() {
                 options={{
                     title: t("vehicle"),
                     tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="cash-outline" size={size} color={color} />
+                        <Ionicons name="cash-outline" size={size} color={color as string | undefined} />
                     ),
                     headerStyle: {
                         backgroundColor: '#fff'

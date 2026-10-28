@@ -50,18 +50,14 @@ const ItemsTable = () => {
         setOpenUpdate(!openUpdate)
     }
 
-    const color = (type: "income" | "expense" | "transfer"): StyleProp<TextStyle> => {
-        const c: StyleProp<TextStyle> = {
-        }
-        if (type === "expense") {
-            c.borderColor = colors?.ExpenseColor
-        } else if (type === "income") {
-            c.borderColor = colors?.IncomeColor
-        } else {
-            c.borderColor = colors?.TransferColor
-        }
-        return c
-    }
+    const color = (type: "income" | "expense" | "transfer"): TextStyle => ({
+        borderColor:
+            type === "expense"
+                ? colors?.ExpenseColor
+                : type === "income"
+                    ? colors?.IncomeColor
+                    : colors?.TransferColor
+    })
 
     const effectToType = (effect: string | null | undefined): "income" | "expense" | "transfer" => {
         if (effect === "+") return "income"

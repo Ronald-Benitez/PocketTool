@@ -244,15 +244,14 @@ const ItemsTable = () => {
 
   const color = (
     type: "income" | "expense" | "transfer"
-  ): StyleProp<TextStyle> => {
-    const c: StyleProp<TextStyle> = {};
-    if (type === "expense") {
-      c.borderColor = colors?.ExpenseColor;
-    } else if (type === "income") {
-      c.borderColor = colors?.IncomeColor;
-    }
-    return c;
-  };
+  ): TextStyle => ({
+    borderColor:
+      type === "expense"
+        ? colors?.ExpenseColor
+        : type === "income"
+          ? colors?.IncomeColor
+          : undefined,
+  });
 
   const generateCreditRecords = () => {
     const list: RecordFormEntry[] = [];

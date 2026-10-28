@@ -54,7 +54,7 @@ const AppDrawer = () => {
           options={{
             title: t("headers.home"),
             drawerIcon: ({ color, size }) => (
-              <Ionicons name="home-outline" size={size} color={color} />
+              <Ionicons name="home-outline" size={size} color={color as string | undefined} />
             ),
             headerStyle: {
               backgroundColor: '#fff',
@@ -68,7 +68,7 @@ const AppDrawer = () => {
             title: t("headers.financials"),
             headerShown: false,
             drawerIcon: ({ color, size }) => (
-              <Ionicons name="wallet-outline" size={size} color={color} />
+              <Ionicons name="wallet-outline" size={size} color={color as string | undefined} />
             )
           }}
         />
@@ -78,7 +78,7 @@ const AppDrawer = () => {
             title: t("headers.fixeds"),
             headerShown: false,
             drawerIcon: ({ color, size }) => (
-              <Ionicons name="repeat" size={size} color={color} />
+              <Ionicons name="repeat" size={size} color={color as string | undefined} />
             )
           }}
         />
@@ -88,7 +88,7 @@ const AppDrawer = () => {
             title: t("headers.financialsIndex"),
             headerShown: false,
             drawerIcon: ({ color, size }) => (
-              <Ionicons name="stats-chart-outline" size={size} color={color} />
+              <Ionicons name="stats-chart-outline" size={size} color={color as string | undefined} />
             )
           }}
         />
@@ -98,7 +98,7 @@ const AppDrawer = () => {
             title: t("headers.credits"),
             headerShown: true,
             drawerIcon: ({ color, size }) => (
-              <MaterialCommunityIcons name="bank-off-outline" size={size} color={color} />
+              <MaterialCommunityIcons name="bank-off-outline" size={size} color={color as string | undefined} />
             )
           }}
         />
@@ -108,7 +108,7 @@ const AppDrawer = () => {
             title: t("headers.savings"),
             headerShown: true,
             drawerIcon: ({ color, size }) => (
-              <MaterialCommunityIcons name="piggy-bank-outline" size={size} color={color} />
+              <MaterialCommunityIcons name="piggy-bank-outline" size={size} color={color as string | undefined} />
             )
           }}
         />
@@ -119,7 +119,7 @@ const AppDrawer = () => {
             title: t("headers.budget"),
             headerShown: true,
             drawerIcon: ({ color, size }) => (
-              <Ionicons name="wallet-outline" size={size} color={color} />
+              <Ionicons name="wallet-outline" size={size} color={color as string | undefined} />
             )
           }}
         />
@@ -130,7 +130,7 @@ const AppDrawer = () => {
             title: t("headers.financialsIndex"),
             headerShown: false,
             drawerIcon: ({ color, size }) => (
-              <Ionicons name="stats-chart-outline" size={size} color={color} />
+              <Ionicons name="stats-chart-outline" size={size} color={color as string | undefined} />
             )
           }}
         />
@@ -140,7 +140,7 @@ const AppDrawer = () => {
             title: t("headers.help"),
             headerShown: true,
             drawerIcon: ({ color, size }) => (
-              <MaterialCommunityIcons name="help-circle-outline" size={size} color={color} />
+              <MaterialCommunityIcons name="help-circle-outline" size={size} color={color as string | undefined} />
             )
           }}
         />
@@ -150,7 +150,7 @@ const AppDrawer = () => {
             title: t("headers.settings"),
             headerShown: true,
             drawerIcon: ({ color, size }) => (
-              <Ionicons name="settings-outline" size={size} color={color} />
+              <Ionicons name="settings-outline" size={size} color={color as string | undefined} />
             )
           }}
         />

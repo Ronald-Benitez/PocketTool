@@ -14,7 +14,7 @@ export default function Layout() {
                 options={{
                     title: t("headers.financialsIndex"),
                     tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="home-outline" size={size} color={color} />
+                        <Ionicons name="home-outline" size={size} color={color as string | undefined} />
                     ),
                     headerStyle: {
                         backgroundColor: '#fff'
@@ -25,7 +25,7 @@ export default function Layout() {
                 options={{
                     title: t("headers.payments"),
                     tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="cash-outline" size={size} color={color} />
+                        <Ionicons name="cash-outline" size={size} color={color as string | undefined} />
                     ),
                     headerStyle: {
                         backgroundColor: '#fff'
@@ -36,7 +36,7 @@ export default function Layout() {
                 options={{
                     title: t("headers.categories"),
                     tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="options" size={size} color={color} />
+                        <Ionicons name="options" size={size} color={color as string | undefined} />
                     ),
                     headerStyle: {
                         backgroundColor: '#fff'
@@ -47,7 +47,7 @@ export default function Layout() {
                 options={{
                     title: t("headers.paymentTypes"),
                     tabBarIcon: ({ color, size }) => (
-                        <MaterialCommunityIcons name="cash-multiple" size={size} color={color} />
+                        <MaterialCommunityIcons name="cash-multiple" size={size} color={color as string | undefined} />
                     ),
                     headerStyle: {
                         backgroundColor: '#fff'
