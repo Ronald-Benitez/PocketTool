@@ -27,7 +27,7 @@ const TapBlock: React.FC<TapBlockProps> = ({
     const isHorizontal = disposition === 'horizontal';
     const selectValue = useSharedValue(0);
     const [colorValue, setColorValue] = useState(0); // Valor actual del color (0-255)
-    const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Referencia para almacenar el timeout
+    const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null); // Referencia para almacenar el timeout
 
     useEffect(() => {
         const value = (parseInt(baseHex, 16) / 255) * (isHorizontal ? baseWidth : baseHeight);
