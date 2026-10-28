@@ -13,9 +13,10 @@ import BGSimpleBlock from '@/src/components/ui/BGSimpleBlock';
 import useDate from '@/src/hooks/useDate';
 import useBaseModal from '@/src/components/ui/base-modal';
 import styles from '@/src/styles/styles';
-import { SavingsHistory, Savings } from '@/src/db/types/tables';
-import { useHandler } from '@/src/db/handlers/handler';
+import { Saving, SavingsHistoryWithRelations } from '@/src/interfaces/schema';
+import { useTableRepository } from '@/src/db';
 import useColorStore from '@/src/stores/ColorsStore';
+import { formatMoney } from '@/src/utils';
 
 const Index = () => {
     const { t } = useLanguage();
@@ -23,8 +24,8 @@ const Index = () => {
     const [pinned, setPinned] = useState(saving?.id)
     const { CustomModal, showModal, hideModal } = useBaseModal(true)
     const [chartData, setChartData] = useState<lineDataItem[]>([])
-    const savingsHandler = useHandler("Savings")
-    const historyHandler = useHandler("SavingsHistory")
+    const savingsHandler = useTableRepository("Savings")
+    const historyHandler = useTableRepository("SavingsHistory")
     const date = useDate()
     const { colors } = useColorStore()
 
@@ -32,11 +33,11 @@ const Index = () => {
         if (savingsHistory) {
             const data = savingsHistory.map(e => {
                 return {
-                    value: e.new_amount
+                    value: Number(formatMoney(e.new_amount))
                 }
             })
             if (savingsHistory.length > 0) {
-                data.push({ value: savingsHistory[savingsHistory.length - 1].previous_amount })
+                data.push({ value: Number(formatMoney(savingsHistory[savingsHistory.length - 1].previous_amount)) })
             }
             data.reverse()
             setChartData(data)
@@ -72,9 +73,9 @@ const Index = () => {
     const onConfirmDelete = async () => {
         if (!saving?.id) return
         await savingsHandler.deleteById(saving.id)
-        await historyHandler.deleteWithWhere("savings_id", String(saving.id))
+        await historyHandler.deleteWithWhere("savings_id", saving.id)
         setSaving(null)
-        const newSavings = await savingsHandler.fetchAll() as Savings[]
+        const newSavings = await savingsHandler.fetchAll() as Saving[]
         setSavings(newSavings)
         setSavingsHistory([])
         hideModal()
@@ -96,7 +97,7 @@ const Index = () => {
                 <View style={localStyles.colContainer}>
                     <Text style={localStyles.valueText}> $
                         {
-                            saving ? saving?.amount : "00.00"
+                            saving ? formatMoney(saving.amount) : "00.00"
                         }
                     </Text>
                     <Text style={localStyles.nameText}>
@@ -152,9 +153,9 @@ const Index = () => {
                                                 new Date(e.change_date).toISOString().split("T")[1]
                                             }
                                         </Text>
-                                        <Text style={localStyles.amountText}>${e.new_amount}</Text>
+                                        <Text style={localStyles.amountText}>${formatMoney(e.new_amount)}</Text>
                                         <View style={[{ alignItems: "center", flexDirection: "row", gap: 5, justifyContent: "center" }]}>
-                                            <Text style={localStyles.differenceText}>${(e.new_amount - e.previous_amount).toFixed(2)}</Text>
+                                            <Text style={localStyles.differenceText}>${formatMoney(e.new_amount - e.previous_amount)}</Text>
                                             <Feather name={minus ? "arrow-down" : "arrow-up"} size={20} color={minus ? colors?.ExpenseColor : colors?.IncomeColor} />
                                         </View>
                                     </View>

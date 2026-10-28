@@ -5,12 +5,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import AddGroup from '@/src/components/groups/add-group'
 import Table from '@/src/components/records/records-table'
-import { RecordI } from '@/src/interfaces'
 import GroupSelector from '@/src/components/groups/group-selector'
 
 import styles from '@/src/styles/styles'
 import useRecordsStore from '@/src/stores/RecordsStore';
-import { RecordJoined, Records } from '@/src/db/types/tables';
 
 const Index = () => {
     const [pinned, setPinned] = useState<number>(0)

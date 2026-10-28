@@ -33,13 +33,14 @@ export const useFixedsResumesStore = () => {
 
     const calculateBalance = (): number => {
         return Fixeds.reduce((acc, fixed) => {
-            if (!recordTypes.includes(fixed.record_type_id)) {
+            if (fixed.record_type_id == null || !recordTypes.includes(fixed.record_type_id)) {
                 return acc;
             }
-            if (fixed.effect === '+') {
+            const effect = fixed.RecordTypes?.effect;
+            if (effect === '+') {
                 acc += fixed.fixed_amount;
             }
-            else if (fixed.effect === '-') {
+            else if (effect === '-') {
                 acc -= fixed.fixed_amount;
             }
             return acc;
@@ -83,7 +84,9 @@ export const useFixedsResumesStore = () => {
                 recordType.total += fixed.fixed_amount;
             }
 
-            const paymentType = paymentTypeResume.find(pt => pt.id === fixed.payment_type_id);
+            const paymentTypeId =
+                fixed.PaymentMethods?.payment_type_id ?? fixed.PaymentMethods?.PaymentTypes?.id;
+            const paymentType = paymentTypeResume.find(pt => pt.id === paymentTypeId);
             if (paymentType) {
                 paymentType.totalPerRecordType.forEach(r => {
                     if (r.id === fixed.record_type_id) {

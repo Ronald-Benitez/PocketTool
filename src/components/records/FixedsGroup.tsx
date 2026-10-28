@@ -5,6 +5,7 @@ import useDate from '@/src/hooks/useDate'
 import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
 import type { RecordFormEntry } from '@/src/interfaces/schema'
 import styles from '@/src/styles/styles'
+import { formatMoneyWithSymbol } from '@/src/utils'
 
 type FixedsGroupProps = {
     fixeds: RecordFormEntry[],
@@ -47,7 +48,7 @@ const FixedsGroup = ({ fixeds, onCreditPayment }: FixedsGroupProps) => {
                                         </Text>
                                     </View>
                                     <Text style={localStyles.nameText}>{item.record_name}</Text>
-                                    <Text style={localStyles.valueText}>${item.amount?.toFixed(2)}</Text>
+                                    <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.amount)}</Text>
                                 </View>
                             </BorderLeftBottomBlock>
                         </Pressable>

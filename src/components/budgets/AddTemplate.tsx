@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { useLanguage } from '@/src/lang/LanguageContext'
 import useDate from '@/src/hooks/useDate'
 import useToast from '@/src/hooks/useToast'
-import { Group, CreateGroupRequest } from '@/src/interfaces'
+import { Group, Insertable } from '@/src/interfaces/schema'
 import { useGroups } from '@/src/db'
 import MonthSelector from '../ui/month-selector'
 import { ScrollView } from 'react-native-gesture-handler'
@@ -12,9 +12,8 @@ import ModalContainer from '../ui/modal-container'
 import InputLabel from '../ui/InputLabel'
 import useRecordsStore from '@/src/stores/RecordsStore'
 import useAndroidToast from '@/src/hooks/useAndroidToast'
-import { useHandler } from '@/src/db/handlers/handler';
-import { Groups } from '@/src/db/types/tables';
-import { useDataStore } from '@/src/stores'
+import { useTableRepository } from '@/src/db';
+import { centsToInput, parseMoneyToCents } from '@/src/utils';
 
 interface AddTemplateProps {
     children?: React.ReactNode
@@ -29,14 +28,14 @@ const AddTemplate = ({ children, openUpdate, isEditing = false }: AddTemplatePro
     const { ToastContainer, showToast } = useToast()
     const [modalVisible, setModalVisible] = useState(false)
     const [name, setName] = useState<string>('')
-    const [goal, setGoal] = useState<number>(0)
+    const [goal, setGoal] = useState<string>('')
     const today = date.create()
     const [month, setMonth] = useState<number>(new Date().getMonth())
     const [year, setYear] = useState<number>(new Date().getFullYear())
     const { addGroup, editGroup, fetchGroupsByYear } = useGroups()
     const { group, setGroup, groups, setGroups } = useRecordsStore()
     const toast = useAndroidToast()
-    const handler = useHandler("Groups")
+    const handler = useTableRepository("Groups")
     
 
 
@@ -45,26 +44,26 @@ const AddTemplate = ({ children, openUpdate, isEditing = false }: AddTemplatePro
         cleanData()
         if (isEditing) {
             setName(group.group_name)
-            setGoal(group.goal)
+            setGoal(centsToInput(group.goal))
             setMonth(group.month)
             setYear(group.year)
         }
     }, [openUpdate])
 
     const getGroups = async () => {
-        const groups = await handler.fetchWithWhere("year", String(year)) as Groups[]
+        const groups = await handler.fetchWithWhere("year", String(year)) as Group[]
         setGroups(groups)
     }
 
     const cleanData = () => {
         setName('')
-        setGoal(0)
+        setGoal('')
         setMonth(new Date().getMonth())
         setYear(new Date().getFullYear())
     }
 
     const onSave = async () => {
-        if (!name || !month || !year || !goal) {
+        if (!name || month == null || !year || !goal) {
             toast.emptyMessage()
             return
         }
@@ -74,9 +73,9 @@ const AddTemplate = ({ children, openUpdate, isEditing = false }: AddTemplatePro
             return
         }
 
-        const newGroup: Groups = {
+        const newGroup: Insertable<Group> = {
             group_name: name,
-            goal,
+            goal: parseMoneyToCents(goal),
             month,
             year
         }
@@ -115,8 +114,8 @@ const AddTemplate = ({ children, openUpdate, isEditing = false }: AddTemplatePro
                         </View>
                         <View style={localStyles.inputContainer}>
                             <InputLabel
-                                value={String(goal)}
-                                onChangeText={(e) => setGoal(Number(e))}
+                                value={goal}
+                                onChangeText={setGoal}
                                 keyboardType="numeric"
                                 placeholder={t('group.goal') + '*'}
                             />

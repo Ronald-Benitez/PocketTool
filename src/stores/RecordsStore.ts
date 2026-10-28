@@ -1,10 +1,10 @@
 import { create } from "zustand";
-import { Group, PaidCreditWithRelations, RecordWithRelations } from "../interfaces/schema";
+import { Group, PaidCreditWithRelations, RecordView, RecordWithRelations } from "../interfaces/schema";
 
 interface RecordsState {
   group: Group | null;
   groups: Group[] | [];
-  records: RecordWithRelations[] | [];
+  records: RecordView[] | [];
   paidCredits: PaidCreditWithRelations[] | [];
   setGroup: (group: Group) => void;
   setRecords: (records: RecordWithRelations[] | undefined) => void;

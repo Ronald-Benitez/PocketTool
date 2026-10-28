@@ -5,6 +5,7 @@ import useColorStore from '@/src/stores/ColorsStore';
 import FinanceSimpleBlock from '@/src/components/ui/FinanceSimpleBlock';
 import BalanceBlock from '@/src/components/ui/BalanceBlock';
 import useFixedsResumesStore from '@/src/stores/FixedsResumesStore';
+import { formatMoney } from '@/src/utils';
 
 const RecordTypeScreen = () => {
     const { t } = useLanguage();
@@ -19,7 +20,7 @@ const RecordTypeScreen = () => {
                 <BalanceBlock
                     bottom={false}
                     text={t('resume.balance')}
-                    value={(balance || 0).toFixed(2)}
+                    value={formatMoney(balance)}
                     color={balance < 0 ? colors?.ExpenseColor : colors?.IncomeColor}
                 />
             </View >
@@ -30,8 +31,8 @@ const RecordTypeScreen = () => {
                             <View style={localStyles.simpleContainer} key={item?.id}>
                                 <FinanceSimpleBlock
                                     text={item.type_name}
-                                    value={String(item.total)}
-                                    color={item.record_color}
+                                    value={formatMoney(item.total)}
+                                    color={item.record_color ?? undefined}
                                 />
                             </View>
                         ))

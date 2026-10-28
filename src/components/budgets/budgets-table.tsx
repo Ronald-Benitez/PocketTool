@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react'
 import { AntDesign } from '@expo/vector-icons'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
-import { Budget, RecordI } from '@/src/interfaces'
+import type { BudgetItemView } from '@/src/interfaces/schema'
+import { formatMoney, formatMoneyWithSymbol } from '@/src/utils'
 import styles from '@/src/styles/styles'
 import SwipeItem from '../ui/swipe-item'
 import useDate from '@/src/hooks/useDate'
@@ -22,21 +23,21 @@ import BalanceBlock from '../ui/BalanceBlock'
 
 
 const ItemsTable = () => {
-    const [selected, setSelected] = React.useState<Budget | undefined>()
+    const [selected, setSelected] = React.useState<BudgetItemView | undefined>()
     const [openUpdate, setOpenUpdate] = React.useState<boolean>(false)
     const { ToastContainer, showToast } = useToast()
     const { t } = useLanguage()
-    const { group } = useRecordsStore()
+    const { group, records } = useRecordsStore()
     const { colors } = useColorStore()
     const { budgets, resumes, setBudgets, setResumes } = useBudgetStore()
-    const { resumes: recordsResume } = useRecordsStore()
     const budget = useBudget()
 
     const handleDelete = async (index: number) => {
-        if (!group) return
+        if (!group?.id) return
         const toDelete = budgets[index]
-        await budget.deleteBudget(toDelete.id_budget)
-        const i = await budget.fetchBudget(group.id) as Budget[]
+        if (!toDelete?.id) return
+        await budget.deleteBudget(toDelete.id)
+        const i = (await budget.fetchBudget(group.id)) ?? []
         const resume = await budget.getAllResume(group.id)
         setBudgets(i)
         setResumes(resume)
@@ -62,55 +63,43 @@ const ItemsTable = () => {
         return c
     }
 
-    const typeColor = (color: string) => {
+    const effectToType = (effect: string | null | undefined): "income" | "expense" | "transfer" => {
+        if (effect === "+") return "income"
+        if (effect === "-") return "expense"
+        return "transfer"
+    }
+
+    const typeColor = (color: "income" | "expense" | "transfer") => {
         switch (color) {
             case "income":
                 return colors?.IncomeColor
             case "expense":
-                return colors?.ExpenseColor;
+                return colors?.ExpenseColor
             case "transfer":
                 return colors?.TransferColor
         }
     }
 
-    const findInResume = (item: Budget) => {
-        const categories = recordsResume?.categoryTotals
-        const cat = categories?.find(c => c.category_id == item.category_id)
-        if (cat) {
-            switch (item.budget_type) {
-                case "expense":
-                    return cat.totalExpense
-                case "income":
-                    return cat.totalIncome
-                case "transfer":
-                    return cat.totalTransfer
-            }
-        } else {
-            return 0
-        }
+    const findInResume = (item: BudgetItemView) => {
+        return records
+            .filter(record =>
+                record.category_id === item.category_id &&
+                record.record_type_id === item.record_type_id
+            )
+            .reduce((total, record) => total + record.amount, 0)
     }
 
-    const getPercentage = (item: Budget) => {
-        const categories = recordsResume?.categoryTotals
-        const cat = categories?.find(c => c.category_id == item.category_id)
-        let percentage = 0
-        if (cat) {
-            switch (item.budget_type) {
-                case "expense":
-                    percentage = cat.totalExpense / item.amount
-                    break;
-                case "income":
-                    percentage = cat.totalIncome / item.amount
-                    break;
-                case "transfer":
-                    percentage = cat.totalTransfer / item.amount
-                    break;
-            }
-        } else {
-            return 0
-        }
-        return (percentage * 100).toFixed(2)
+    const getPercentage = (item: BudgetItemView) => {
+        if (!item.amount) return "0.00"
+        return ((findInResume(item) / item.amount) * 100).toFixed(2)
     }
+
+    const currentBalance = records.reduce((total, record) => {
+        const effect = record.RecordTypes?.effect
+        if (effect === "+") return total + record.amount
+        if (effect === "-") return total - record.amount
+        return total
+    }, 0)
 
     const getName = (val: string) => {
         if (val.length > 20) {
@@ -123,15 +112,12 @@ const ItemsTable = () => {
     return (
         <>
             <View style={localStyles.rowContainer}>
-                {/* <Text style={[localStyles.balanceText, { borderColor: resumes ? (resumes?.balance < 0 ? colors?.ExpenseColor : colors?.GoalColor) : "" }]}>
-                    $ {Math.abs(resumes?.balance || 0).toFixed(2)}
-                </Text> */}
                 <View style={[localStyles.rowContainer, { gap: 20 }]}>
                     <View style={{ flex: 1 }}>
                         <BalanceBlock
                             bottom={true}
                             text={t("budget.budget")}
-                            value={Math.abs(resumes?.balance || 0).toFixed(2)}
+                            value={formatMoney(Math.abs(resumes?.balance || 0))}
                             color={resumes ? (resumes?.balance < 0 ? colors?.ExpenseColor : colors?.GoalColor) : ""}
                         />
                     </View>
@@ -139,8 +125,8 @@ const ItemsTable = () => {
                         <BalanceBlock
                             bottom={true}
                             text={t("budget.current")}
-                            value={Math.abs(recordsResume?.balance || 0).toFixed(2)}
-                            color={recordsResume ? (recordsResume?.balance < 0 ? colors?.ExpenseColor : colors?.IncomeColor) : colors?.GoalColor}
+                            value={formatMoney(Math.abs(currentBalance))}
+                            color={currentBalance < 0 ? colors?.ExpenseColor : colors?.IncomeColor}
                         />
                     </View>
                 </View>
@@ -159,17 +145,17 @@ const ItemsTable = () => {
             <View style={localStyles.rowContainer}>
                 <FinanceSmallBlock
                     text={t("resume.incomes")}
-                    value={Math.abs(resumes?.incomesTotal || 0).toFixed(2)}
+                    value={formatMoney(Math.abs(resumes?.incomesTotal || 0))}
                     color={colors?.IncomeColor}
                 />
                 <FinanceSmallBlock
                     text={t("resume.expenses")}
-                    value={Math.abs(resumes?.expensesTotal || 0).toFixed(2)}
+                    value={formatMoney(Math.abs(resumes?.expensesTotal || 0))}
                     color={colors?.ExpenseColor}
                 />
                 <FinanceSmallBlock
                     text={t("resume.transfers")}
-                    value={Math.abs(resumes?.transferTotal || 0).toFixed(2)}
+                    value={formatMoney(Math.abs(resumes?.transferTotal || 0))}
                     color={colors?.TransferColor}
                 />
             </View>
@@ -183,18 +169,18 @@ const ItemsTable = () => {
                                 key={index}
                             >
                                 <BorderLeftBottomBlock
-                                    letfColor={colors ? typeColor(item.budget_type) : ""}
+                                    letfColor={colors ? typeColor(effectToType(item.effect ?? item.RecordTypes?.effect)) : ""}
                                     bottomColor={colors ? (Number(getPercentage(item)) > 100 ? colors.ExpenseColor : colors.GoalColor) : ""}
                                 >
                                     <View style={localStyles.rowContainer}>
-                                        <Text style={localStyles.nameText}>{getName(item.category_name)}</Text>
+                                        <Text style={localStyles.nameText}>{getName(item.category_name ?? "")}</Text>
                                         <View style={localStyles.colContainer}>
                                             <Text style={localStyles.typeText}>{t("budget.budget")}</Text>
-                                            <Text style={localStyles.valueText}>${item.amount}</Text>
+                                            <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.amount)}</Text>
                                         </View>
                                         <View style={localStyles.colContainer}>
                                             <Text style={localStyles.typeText}>{t("budget.current")}</Text>
-                                            <Text style={localStyles.valueText}>${findInResume(item)}</Text>
+                                            <Text style={localStyles.valueText}>{formatMoneyWithSymbol(findInResume(item))}</Text>
                                         </View>
                                         <Text style={localStyles.percentageText}>{getPercentage(item)}%</Text>
                                     </View>

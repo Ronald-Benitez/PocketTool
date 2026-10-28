@@ -25,6 +25,7 @@ import type {
 import styles from '@/src/styles/styles';
 import BorderLeftBlock from '@/src/components/ui/BorderLeftBlock';
 import useConfigs from "@/src/hooks/useConfigs";
+import { centsToInput, parseMoneyToCents } from "@/src/utils";
 
 interface AddItemProps {
     item?: RecordFormEntry
@@ -84,7 +85,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     useEffect(() => {
         if (!item) return
         setName(item.record_name ?? "")
-        setValue(item.amount === undefined ? "" : String(item.amount))
+        setValue(item.amount === undefined ? "" : centsToInput(item.amount))
         if (item.date !== undefined) setDate(dateH.verify(item.date).getTime())
         setType(recordTypes.find(val => val.id === item.record_type_id))
         if (item.group_id !== undefined && item.group_id !== null) setGroupId(item.group_id)
@@ -118,7 +119,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
             if (type.id === paymentCreditType && to_pay_method?.id) {
                 const payment: Insertable<PaidCredit> = {
                     group_id,
-                    amount: Number(value),
+                    amount: parseMoneyToCents(value),
                     date,
                     payment_method_id: to_pay_method.id,
                 }
@@ -141,7 +142,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                 group_id,
                 record_name: name.length < 1 ? category.category_name : name,
                 record_type_id: type.id,
-                amount: Number(value),
+                amount: parseMoneyToCents(value),
                 category_id: category.id,
                 payment_method_id: payment_method.id,
                 fixed_id,

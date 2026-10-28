@@ -8,8 +8,9 @@ import useRecordsStore from '@/src/stores/RecordsStore';
 import ModalContainer from "../ui/modal-container";
 import InputLabel from "../ui/InputLabel";
 import useSavingsStore from "@/src/stores/SavingsStore";
-import { useHandler } from "@/src/db/handlers/handler";
-import { Savings, SavingsHistory } from "@/src/db/types/tables";
+import { useTableRepository } from "@/src/db";
+import { Saving, SavingsHistoryEntry } from "@/src/interfaces/schema";
+import { centsToInput, parseMoneyToCents } from "@/src/utils";
 
 interface AddItemProps {
     isEditing?: boolean
@@ -25,15 +26,14 @@ const AddSaving = ({ isEditing = false, children, open }: AddItemProps) => {
     const [value, setValue] = useState<string>("")
     const { addSavings, fetchSavings, updateSavings, } = useSavings()
     const { fetchSavingsHistoryBySavingId } = useSavingsHistory()
-    const savingsHandler = useHandler("Savings")
-    const historyHandler = useHandler("SavingsHistory")
+    const historyHandler = useTableRepository("SavingsHistory")
 
     const { ToastContainer, showToast } = useToast()
     const { saving, setSaving, setSavingsHistory, setSavings } = useSavingsStore()
 
     useEffect(() => {
         if (saving && isEditing) {
-            setValue(String(saving.amount))
+            setValue(centsToInput(saving.amount))
             setName(saving.saving_name)
         }else{
             setValue("")
@@ -49,36 +49,32 @@ const AddSaving = ({ isEditing = false, children, open }: AddItemProps) => {
             showToast({ message: t("item.error"), type: "ERROR" })
             return
         }
-        const newData: Savings = {
-            amount: Number(value),
-            saving_name: name,
-        }
+        const amount = parseMoneyToCents(value);
 
         if (isEditing && saving?.id) {
-            newData.id = saving.id
-            await savingsHandler.edit(newData)
+            await updateSavings(saving.id, name, amount)
             showToast({ message: t("item.edited"), type: "SUCCESS" })
-            const newHistory: SavingsHistory = {
+            const newHistory: SavingsHistoryEntry = {
                 savings_id: saving.id,
-                new_amount: Number(value),
+                new_amount: amount,
                 change_date: new Date().getTime(),
                 previous_amount: saving.amount,
             }
             await historyHandler.add(newHistory)
-            const history = await historyHandler.fetchWithWhere("savings_id", String(saving.id)) as SavingsHistory[]
+            const history = await historyHandler.fetchWithWhere("savings_id", saving.id) as SavingsHistoryEntry[]
             setSaving({
                 ...saving,
-                amount: Number(value),
+                amount,
                 saving_name: name
             })
             setSavingsHistory(history.reverse())
         } else {
-            await savingsHandler.add(newData)
+            await addSavings(name, amount)
             showToast({ message: t("item.added"), type: "SUCCESS" })
             setName("")
             setValue("")
         }
-        const savings = await savingsHandler.fetchAll() as Savings[]
+        const savings = await fetchSavings() as Saving[]
         setSavings(savings)
     }
 

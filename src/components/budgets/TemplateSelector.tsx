@@ -11,13 +11,18 @@ import AddGroup from './AddTemplate'
 import useBudgetStore from '@/src/stores/BudgetStore'
 import { useBudget } from '@/src/db'
 import Input from '../ui/Input'
-import { useHandler } from '@/src/db/handlers/handler'
-import { Groups, PaidCredits, PaymentTypes, RecordJoined } from '@/src/db/types/tables'
-import { useRecords } from '@/src/db/handlers/RecordsHandler'
-import { useFixeds } from '@/src/db/handlers/FixedsHandler'
+import { useTableRepository } from '@/src/db'
+import { useRecords } from '@/src/db'
+import { useFixeds } from '@/src/db'
 import { useDataStore } from '@/src/stores'
-import { Categories, RecordTypes } from '@/src/db/types/tables'
-import { PaymentMethodsJoined } from '@/src/stores'
+import type {
+    Category,
+    Group,
+    PaidCredit,
+    PaymentMethodView,
+    PaymentType,
+    RecordType,
+} from '@/src/interfaces/schema'
 
 const GroupSelector = () => {
     const { t } = useLanguage()
@@ -28,10 +33,13 @@ const GroupSelector = () => {
     const { budgets, resumes, setBudgets, setResumes: setBudgetResume } = useBudgetStore()
     const { fetchRecords, handler: recordsHandler } = useRecords()
     const { fetchFixeds } = useFixeds()
-    const groupsHandler = useHandler("Groups")
-    const paymentsHandler = useHandler("PaymentMethods")
-    const creditsHandler = useHandler('PaidCredits')
-    const budgetsHanlder = useHandler("Budgets")
+    const groupsHandler = useTableRepository("Groups")
+    const categoriesHandler = useTableRepository("Categories")
+    const recordTypesHandler = useTableRepository("RecordTypes")
+    const paymentTypesHandler = useTableRepository("PaymentTypes")
+    const paymentsHandler = useTableRepository("PaymentMethods")
+    const creditsHandler = useTableRepository('PaidCredits')
+    const budgetsHanlder = useTableRepository("Budgets")
     const { setCategories, setPaymentMethods, setRecordTypes, setPaymentTypes, setFixeds } = useDataStore()
 
     useEffect(() => {
@@ -41,10 +49,10 @@ const GroupSelector = () => {
 
     const loadData = async () => {
         try {
-            const categories = await groupsHandler.fetchAll('Categories') as Categories[]
-            const payments = await paymentsHandler.fetchAllWithJoin('PaymentTypes', "payment_type_id") as PaymentMethodsJoined[];
-            const recordTypes = await groupsHandler.fetchAll('RecordTypes') as RecordTypes[]
-            const paymentTypes = await groupsHandler.fetchAll('PaymentTypes') as PaymentTypes[]
+            const categories = await categoriesHandler.fetchAll() as Category[]
+            const payments = await paymentsHandler.fetchAllWithJoin('PaymentTypes', "payment_type_id") as PaymentMethodView[];
+            const recordTypes = await recordTypesHandler.fetchAll() as RecordType[]
+            const paymentTypes = await paymentTypesHandler.fetchAll() as PaymentType[]
             const fixeds = await fetchFixeds()
             setCategories(categories)
             setPaymentMethods(payments)
@@ -57,7 +65,7 @@ const GroupSelector = () => {
     }
 
     const getGroups = async () => {
-        const groups = await recordsHandler.fetchGroupsByYear(year) as Groups[]
+        const groups = await groupsHandler.fetchGroupsByYear(year) as Group[]
         setGroups(groups)
     }
 
@@ -66,14 +74,14 @@ const GroupSelector = () => {
         getGroups()
     }, [year])
 
-    const onSelect = async (group: Groups) => {
+    const onSelect = async (group: Group) => {
         if (!group?.id) return
         setGroup(group)
         await fetchRecords(group.id).then((res) => {
             setRecords(res)
         })
         await creditsHandler.fetchWithWhere('group_id', String(group.id)).then((res) => {
-            setPaidCredits(res as PaidCredits[])
+            setPaidCredits(res as PaidCredit[])
         })
         // await getAllResume(group.id).then(res => {
         //     setResumes(res)
@@ -96,7 +104,7 @@ const GroupSelector = () => {
         onSelect(g)
     }
 
-    const getPlaceHolder = (group: Groups | null) => {
+    const getPlaceHolder = (group: Group | null) => {
         if (!group) return ""
         return group.group_name?.substring(0, 20) + (group.group_name?.length > 20 ? "..." : "") + " (" + t("months." + Number(group.month)) + " " + group.year + ")"
     }
@@ -106,16 +114,16 @@ const GroupSelector = () => {
         if (pinned) {
             const p = Number(pinned)
             groupsHandler.fetchById(p).then(g => {
-                onSelect(g as Groups)
+                if (g) onSelect(g as Group)
             })
         } else {
             groupsHandler.fetchLast().then(g => {
-                onSelect(g as Groups)
+                if (g) onSelect(g as Group)
             })
         }
     }
 
-    const setOptions = (gs: Groups[]) => {
+    const setOptions = (gs: Group[]) => {
         return gs?.map(val => getPlaceHolder(val))
     }
 
@@ -128,7 +136,7 @@ const GroupSelector = () => {
             await AsyncStorage.removeItem('group')
         }
         groupsHandler.fetchLast().then(g => {
-            onSelect(g as Groups)
+            if (g) onSelect(g as Group)
         })
         getGroups()
     }

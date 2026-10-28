@@ -9,12 +9,13 @@ import useToast from '@/src/hooks/useToast'
 import AddItem from './AddFixed'
 import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
 import IconButton from '../ui/icon-button'
-import { Fixed, FixedJoined } from '@/src/db/types/tables'
+import type { FixedRecord, FixedView } from '@/src/interfaces/schema'
+import { formatMoneyWithSymbol } from '@/src/utils'
 import { useDataStore } from '@/src/stores'
-import { useFixeds } from '@/src/db/handlers/FixedsHandler'
+import { useFixeds } from '@/src/db'
 
 const FixedsTable = () => {
-    const [selected, setSelected] = useState<FixedJoined | Fixed | undefined>()
+    const [selected, setSelected] = useState<FixedView | FixedRecord | undefined>()
     const [openUpdate, setOpenUpdate] = useState<boolean>(false)
     const { ToastContainer, showToast } = useToast()
     const { t } = useLanguage()
@@ -59,8 +60,8 @@ const FixedsTable = () => {
                                 key={item.id}
                             >
                                 <BorderLeftBottomBlock
-                                    bottomColor={item.record_color}
-                                    letfColor={item.payment_color}
+                                    bottomColor={item.RecordTypes?.record_color ?? undefined}
+                                    letfColor={item.PaymentMethods?.PaymentTypes?.payment_color ?? undefined}
                                 >
                                     <View style={localStyles.rowContainer}>
                                         <Text style={[localStyles.dayText, item.fixed_day > 9 ? {
@@ -73,7 +74,7 @@ const FixedsTable = () => {
                                             {String(item.fixed_day)}
                                         </Text>
                                         <Text style={localStyles.nameText}>{item.fixed_name}</Text>
-                                        <Text style={localStyles.valueText}>${item.fixed_amount}</Text>
+                                        <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.fixed_amount)}</Text>
                                     </View>
                                 </BorderLeftBottomBlock>
                             </SwipeItem>

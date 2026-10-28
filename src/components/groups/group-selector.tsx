@@ -11,6 +11,7 @@ import Input from '../ui/Input'
 import { useDataStore } from '@/src/stores'
 import { useORM } from '@/src/orm'
 import { Group } from '@/src/interfaces/schema'
+import { useFixeds, usePaymentMethods, useRecords } from '@/src/db'
 
 const GroupSelector = () => {
     const { t } = useLanguage()
@@ -23,10 +24,12 @@ const GroupSelector = () => {
     const groupsOrm = useORM("Groups")
     const categoriesOrm = useORM("Categories")
     const recordTypesOrm = useORM("RecordTypes")
-    const paymentsOrm = useORM("PaymentMethods")
-    const fixedsOrm = useORM("Fixed")
+    const paymentTypesOrm = useORM("PaymentTypes")
     const creditsOrm = useORM("PaidCredits")
     const recordsOrm = useORM("Records")
+    const { fetchFixeds } = useFixeds()
+    const { fetchPaymentMethods } = usePaymentMethods()
+    const { fetchRecords } = useRecords()
 
     useEffect(() => {
         getPinned()
@@ -36,15 +39,15 @@ const GroupSelector = () => {
     const loadData = async () => {
         try {
             const categories = await categoriesOrm.getAll()
-            const payments = await paymentsOrm.getAll()
+            const payments = await fetchPaymentMethods()
             const recordTypes = await recordTypesOrm.getAll()
-            const paymentTypes = await groupsOrm.getAll()
-            const fixeds = await fixedsOrm.joinMany(["PaymentMethods", "Categories", "PaymentMethods.PaymentTypes","RecordTypes"]).getAll()
+            const paymentTypes = await paymentTypesOrm.getAll()
+            const fixeds = await fetchFixeds()
             setCategories(categories)
             setPaymentMethods(payments)
             setRecordTypes(recordTypes)
             setPaymentTypes(paymentTypes)
-            setFixeds(fixeds)
+            setFixeds(fixeds ?? [])
         } catch (error) {
             console.error("Error loading data for group selector:", error)
         }
@@ -63,10 +66,10 @@ const GroupSelector = () => {
     const onSelect = async (group: Group) => {
         if (!group?.id) return
         setGroup(group)
-        await recordsOrm.where('group_id', String(group.id), "=").joinMany(["Categories", "PaymentMethods", "RecordTypes", "PaymentMethods.PaymentTypes"]).getAll().then((res) => {
-            setRecords(res)
+        await fetchRecords(group.id).then((res) => {
+            setRecords(res ?? [])
         })
-        await creditsOrm.where('group_id', String(group.id), "=").getAll().then((res) => {
+        await creditsOrm.where('group_id', group.id, "=").getAll().then((res) => {
             setPaidCredits(res)
         })
         setModalVisible(false)
@@ -87,7 +90,7 @@ const GroupSelector = () => {
         const pinned = await AsyncStorage.getItem('group');
         if (pinned) {
             const p = Number(pinned)
-            groupsOrm.where('id', String(p), '=').getAll().then((gs) => {
+            groupsOrm.where('id', p, '=').getAll().then((gs) => {
                 onSelect(gs[0])
             })
         } else {

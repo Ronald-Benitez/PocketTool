@@ -8,18 +8,17 @@ import useColorStore from '@/src/stores/ColorsStore';
 import ColorText from '../ui/color-text'; // Assuming this component exists
 import ModalButton from '../ui/modal-button'; // Assuming this component exists
 import { useLanguage } from '@/src/lang/LanguageContext';
-
-// Assuming this type is imported or defined
-type RecordJoined = any; 
+import { formatMoneyWithSymbol } from '@/src/utils';
+import type { RecordView } from '@/src/interfaces/schema';
 
 export interface RecordsModalRef {
-    open: (filteredRecords: RecordJoined[] | []) => void;
+    open: (filteredRecords: RecordView[]) => void;
     close: () => void;
 }
 
 export const RecordsModal = forwardRef<RecordsModalRef, {}>(
     ({ }, ref) => {
-        const [records, setRecords] = useState<RecordJoined[] | []>([])
+        const [records, setRecords] = useState<RecordView[]>([])
         const [isVisible, setIsVisible] = useState(false) 
         const { t } = useLanguage()
         const { colors } = useColorStore() 
@@ -29,7 +28,7 @@ export const RecordsModal = forwardRef<RecordsModalRef, {}>(
             setIsVisible(false);
         }
 
-        const onOpen = (filteredRecords: RecordJoined[] | []) => {
+        const onOpen = (filteredRecords: RecordView[]) => {
             setRecords(filteredRecords)
             setIsVisible(true);
         }
@@ -57,8 +56,8 @@ export const RecordsModal = forwardRef<RecordsModalRef, {}>(
                                         {records?.map((item, index) => (
                                             <BorderLeftBottomBlock
                                                 key={item.record_id}
-                                                bottomColor={item.payment_color}
-                                                letfColor={item.record_color}
+                                                bottomColor={item.PaymentMethods?.PaymentTypes?.payment_color ?? undefined}
+                                                letfColor={item.RecordTypes?.record_color ?? undefined}
                                             >
                                                 <View style={localStyles.rowContainer}>
                                                     <View style={localStyles.dateContainer}>
@@ -73,7 +72,7 @@ export const RecordsModal = forwardRef<RecordsModalRef, {}>(
                                                         </Text>
                                                     </View>
                                                     <Text style={localStyles.nameText}>{item.record_name}</Text>
-                                                    <Text style={localStyles.valueText}>${item.amount}</Text>
+                                                    <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.amount)}</Text>
                                                 </View>
                                             </BorderLeftBottomBlock>
                                         ))}

@@ -1,13 +1,13 @@
 import { create } from "zustand";
-import { Savings, SavingsHistory } from "@/src/db/types/tables";
+import { Saving, SavingsHistoryEntry } from "@/src/interfaces/schema";
 
 interface SavingsState {
-  saving: Savings | null;
-  setSaving: (saving: Savings | null) => void;
-  savings: Savings[] | null;
-  setSavings: (savings: Savings[] ) => void;
-  savingsHistory: SavingsHistory[] | null;
-  setSavingsHistory: (savingsHistory: SavingsHistory[]) => void
+  saving: Saving | null;
+  setSaving: (saving: Saving | null) => void;
+  savings: Saving[] | null;
+  setSavings: (savings: Saving[]) => void;
+  savingsHistory: SavingsHistoryEntry[] | null;
+  setSavingsHistory: (savingsHistory: SavingsHistoryEntry[]) => void;
 }
 
 const useSavingsStore = create<SavingsState>()((set) => ({
@@ -16,17 +16,17 @@ const useSavingsStore = create<SavingsState>()((set) => ({
   savingsHistory: null,
   setSaving: async (saving) => {
     set(() => ({
-      saving
+      saving,
     }));
   },
   setSavings: async (savings) => {
     set(() => ({
-      savings
+      savings,
     }));
   },
   setSavingsHistory: async (savingsHistory) => {
     set(() => ({
-        savingsHistory
+      savingsHistory,
     }));
   },
 }));

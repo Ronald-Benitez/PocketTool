@@ -13,7 +13,8 @@ import AddItem from '@/src/components/records/add-record';
 import ColorText from '@/src/components/ui/color-text';
 import useResumesStore from '@/src/stores/ResumesStore';
 import { useDataStore } from '@/src/stores';
-import { Fixed, FixedJoined, RecordJoined } from '@/src/db/types/tables';
+import type { FixedView, RecordFormEntry } from '@/src/interfaces/schema';
+import { formatMoney, formatMoneyWithSymbol } from '@/src/utils';
 import useConfigs from '@/src/hooks/useConfigs';
 
 const Index = () => {
@@ -21,9 +22,9 @@ const Index = () => {
     const { initializeColors, colors } = useColorStore()
     const { group } = useRecordsStore()
     const [today, setToday] = useState(new Date())
-    const [todayFixeds, setTodayFixeds] = useState<FixedJoined[]>()
+    const [todayFixeds, setTodayFixeds] = useState<FixedView[]>()
     const { balance, todayBalanceByRecordType } = useResumesStore()
-    const [fixedToSave, setFixedToSave] = useState<RecordJoined>()
+    const [fixedToSave, setFixedToSave] = useState<RecordFormEntry>()
     const { loadConfigs } = useConfigs()
     const [open, setOpen] = useState(false)
     const { records } = useRecordsStore()
@@ -42,7 +43,7 @@ const Index = () => {
     const verifyFixedsForToday = () => {
         const today = new Date()
         const day = today.getDate()
-        const list: FixedJoined[] = []
+        const list: FixedView[] = []
         const todayFixeds = Fixeds.filter(fixed => fixed.fixed_day == day)
         todayFixeds.map((fixed) => {
             const record = records.find(record => record.fixed_id == fixed.id)
@@ -73,19 +74,18 @@ const Index = () => {
         return [message, icon]
     }
 
-    const onFixedPress = (item: FixedJoined) => {
+    const onFixedPress = (item: FixedView) => {
         const today = new Date()
         today.setDate(item.fixed_day)
         setFixedToSave({
-            ...item,
             amount: item.fixed_amount,
             date: today.getTime(),
-            goal: 0,
-            group_id: group?.id || 0,
-            group_name: "",
-            month: today.getMonth(),
-            year: today.getFullYear(),
-            record_name: item.fixed_name
+            group_id: group?.id ?? null,
+            record_name: item.fixed_name,
+            record_type_id: item.record_type_id,
+            category_id: item.category_id,
+            payment_method_id: item.payment_method_id,
+            fixed_id: item.id,
         })
         setOpen(!open)
     }
@@ -114,10 +114,11 @@ const Index = () => {
                                                 todayFixeds?.map((item) => (
                                                     <Pressable key={item.id} onPress={() => onFixedPress(item)} >
                                                         <View style={[localStyles.fixedContainer, {
-                                                            borderLeftColor: item.payment_color, borderBottomColor: item.record_color
+                                                            borderLeftColor: item.PaymentMethods?.PaymentTypes?.payment_color ?? undefined,
+                                                            borderBottomColor: item.RecordTypes?.record_color ?? undefined
                                                         }]}>
                                                             <Text style={localStyles.nameText}>{item.fixed_name}</Text>
-                                                            <Text style={localStyles.valueText}>${item.fixed_amount}</Text>
+                                                            <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.fixed_amount)}</Text>
                                                         </View>
                                                     </Pressable>
                                                 ))
@@ -130,14 +131,14 @@ const Index = () => {
                         <IndexBlock>
                             <FinanceSimpleBlock
                                 text={t("resume.balance")}
-                                value={(balance || 0).toFixed(2)}
+                                value={formatMoney(balance)}
                                 color={balance < 0 ? colors?.ExpenseColor : colors?.IncomeColor}
                             />
                         </IndexBlock>
                         <IndexBlock>
                             <FinanceSimpleBlock
                                 text={t("resume.goal")}
-                                value={String(group?.goal || 0)}
+                                value={formatMoney(group?.goal)}
                                 color={colors?.GoalColor}
                             />
                         </IndexBlock>
@@ -151,8 +152,8 @@ const Index = () => {
                                             <FinanceSimpleBlock
                                                 key={item.id}
                                                 text={item.type_name}
-                                                value={item.total.toFixed(2)}
-                                                color={item.record_color}
+                                                value={formatMoney(item.total)}
+                                                color={item.record_color ?? undefined}
                                             />
                                         ))
                                     }

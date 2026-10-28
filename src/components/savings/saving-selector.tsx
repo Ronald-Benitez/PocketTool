@@ -5,9 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useLanguage } from '@/src/lang/LanguageContext'
 import { useSavings, useSavingsHistory } from '@/src/db'
 import useSavingsStore from '@/src/stores/SavingsStore'
-import { SavingsHistory, Savings } from '@/src/db/types/tables';
+import { Saving, SavingsHistoryEntry } from '@/src/interfaces/schema';
 import BaseSelect from '../ui/base-select'
-import { useHandler } from '@/src/db/handlers/handler'
+import { useTableRepository } from '@/src/db'
 
 interface Props {
     children: ReactNode
@@ -21,8 +21,7 @@ const SavingsSelector = ({ children }: Props) => {
     const { fetchSavings, fetchSavingsById } = useSavings()
     const { fetchSavingsHistoryBySavingId } = useSavingsHistory()
     const [openUpdate, setOpenUpdate] = useState(false)
-    const savingsHandler = useHandler("Savings")
-    const historyHandler = useHandler("SavingsHistory")
+    const historyHandler = useTableRepository("SavingsHistory")
 
     useEffect(() => {
         getPinned()
@@ -37,10 +36,10 @@ const SavingsSelector = ({ children }: Props) => {
         getSavings()
     }, [year])
 
-    const onSelect = async (saving: Savings) => {
+    const onSelect = async (saving: Saving) => {
         setSaving(saving)
-        await historyHandler.fetchWithWhere("savings_id", String(saving.id)).then((res) => {
-            setSavingsHistory(res.reverse() as SavingsHistory[])
+        await historyHandler.fetchWithWhere("savings_id", saving.id ?? 0).then((res) => {
+            setSavingsHistory(res.reverse() as SavingsHistoryEntry[])
         })
         setModalVisible(false)
     }
@@ -57,7 +56,7 @@ const SavingsSelector = ({ children }: Props) => {
         if (pinned) {
             const p = Number(pinned)
             fetchSavingsById(p).then(g => {
-                onSelect(g as Savings)
+                if (g) onSelect(g)
             })
         }
     }

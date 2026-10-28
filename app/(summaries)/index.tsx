@@ -8,6 +8,7 @@ import useColorStore from '@/src/stores/ColorsStore';
 import FinanceSimpleBlock from '@/src/components/ui/FinanceSimpleBlock';
 import BalanceBlock from '@/src/components/ui/BalanceBlock';
 import useResumesStore from '@/src/stores/ResumesStore';
+import { formatMoney } from '@/src/utils';
 
 const Index = () => {
     const { t } = useLanguage();
@@ -25,7 +26,7 @@ const Index = () => {
                 <BalanceBlock
                     bottom={false}
                     text={t('resume.balance')}
-                    value={(balance || 0).toFixed(2)}
+                    value={formatMoney(balance)}
                     color={balance < 0 ? colors?.ExpenseColor : colors?.IncomeColor}
                 />
             </View >
@@ -36,8 +37,8 @@ const Index = () => {
                             <View style={localStyles.simpleContainer} key={item?.id}>
                                 <FinanceSimpleBlock
                                     text={item.type_name}
-                                    value={String(item.total)}
-                                    color={item.record_color}
+                                    value={formatMoney(item.total)}
+                                    color={item.record_color ?? undefined}
                                 />
                             </View>
                         ))

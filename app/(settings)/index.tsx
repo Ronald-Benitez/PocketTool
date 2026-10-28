@@ -80,7 +80,7 @@ const SettingsScreen = () => {
             transform: Array.isArray(configs?.recordTypes) && configs.recordTypes.includes(RecordTypes[index]?.id || 0) ? [{ scale: 0.95 }] : [{ scale: 1 }]
         };
         return (
-            <BorderLeftBlock color={RecordTypes[index].record_color} style={transformStyle}>
+            <BorderLeftBlock color={RecordTypes[index].record_color ?? undefined} style={transformStyle}>
                 <Text style={[styles.text]}>{RecordTypes[index].type_name}</Text>
             </BorderLeftBlock>
         )
@@ -98,7 +98,7 @@ const SettingsScreen = () => {
         }
 
         return (
-            <View style={[localStyles.block, { borderColor: selected[0].record_color }]}>
+            <View style={[localStyles.block, { borderColor: selected[0].record_color ?? undefined }]}>
                 <Text style={[styles.text]}>{selected.map(rt => rt.type_name).join(", ")}</Text>
             </View>
         )
@@ -111,7 +111,7 @@ const SettingsScreen = () => {
                 transform: type == RecordTypes[index]?.id ? [{ scale: 0.95 }] : [{ scale: 1 }]
             };
             return (
-                <BorderLeftBlock color={RecordTypes[index].record_color} style={transformStyle}>
+                <BorderLeftBlock color={RecordTypes[index].record_color ?? undefined} style={transformStyle}>
                     <Text style={[styles.text]}>{RecordTypes[index].type_name}</Text>
                 </BorderLeftBlock>
             )
@@ -130,7 +130,7 @@ const SettingsScreen = () => {
         }
 
         return (
-            <View style={[localStyles.block, { borderColor: selected[0].record_color }]}>
+            <View style={[localStyles.block, { borderColor: selected[0].record_color ?? undefined }]}>
                 <Text style={[styles.text]}>{selected.map(rt => rt.type_name).join(", ")}</Text>
             </View>
         )

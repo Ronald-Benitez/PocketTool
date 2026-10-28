@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { Budget, Group, RecordI } from "../interfaces";
 import { ResumeByCreditCards } from "../db";
 
 interface CreditCardsState {

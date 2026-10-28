@@ -1,7 +1,7 @@
 import { View, ScrollView, StyleSheet } from 'react-native';
 import FinnanceTableBlock from '@/src/components/ui/FinanceTableBlock';
 import useRecordsStore from '@/src/stores/RecordsStore';
-import { useRecords } from '@/src/db/handlers/RecordsHandler';
+import { useRecords } from '@/src/db';
 import { useCallback, useRef } from 'react';
 import { RecordsModalRef, RecordsModal } from '@/src/components/records/RecordsModal';
 
@@ -14,7 +14,7 @@ const CategoriesScreen = () => {
     const onSummarySelected = async (id: number | undefined) => {
         if (!id) return;
         try {
-            await fetchRecordsWithMultipleWhere([{ column: "Records.category_id", value: id }, { column: "Records.group_id", value: group?.id }]).then((res) => {
+            await fetchRecordsWithMultipleWhere([{ column: "Records.category_id", value: id }, { column: "Records.group_id", value: group?.id ?? null }]).then((res) => {
                 if (res) {
                     recordsModalRef.current?.open(res)
                 }

@@ -7,6 +7,7 @@ import ColorText from "./color-text";
 import useResumesStore, { Resumes } from "@/src/stores/ResumesStore";
 import useFixedsResumesStore from "@/src/stores/FixedsResumesStore";
 import { useDataStore } from "@/src/stores";
+import { formatMoney } from "@/src/utils";
 
 interface props {
     render: "categories" | "payments" | "types",
@@ -74,7 +75,7 @@ const FinnanceTableChart = ({ render, fixed, onSummarySelected }: props) => {
                             key={index}
                             index={index}
                             val={val}
-                            nameValue={val.payment_type_name}
+                            nameValue={val.payment_type_name ?? ""}
                         />
                     </Pressable>
                 ))
@@ -114,7 +115,7 @@ const RecordTypeBlock = ({
 
                     <ColorText fontSize={12} fontWeight={200}>{nameValue}</ColorText>
                 </View>
-                <ColorText fontSize={12} fontWeight={200}>${val?.balance?.toFixed(2)}</ColorText>
+                <ColorText fontSize={12} fontWeight={200}>${formatMoney(val?.balance)}</ColorText>
             </View>
             <View style={localStyles.colContainer} key={index}>
                 <View style={localStyles.wrapContainer} key={index}>
@@ -126,8 +127,8 @@ const RecordTypeBlock = ({
                                     <FinanceSimpleBlock
                                         key={item.id}
                                         text={item.type_name}
-                                        value={String(item.total)}
-                                        color={item.record_color}
+                                        value={formatMoney(item.total)}
+                                        color={item.record_color ?? undefined}
                                         blockwidth={170}
                                     />
                                 </Pressable>

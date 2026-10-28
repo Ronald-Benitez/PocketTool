@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, ScrollView, Pressable, Text, StyleSheet } from "react-native";
 
 import { useLanguage } from "@/src/lang/LanguageContext";
-import { useRecords } from "@/src/db/handlers/RecordsHandler";
+import { useRecords } from "@/src/db";
 import useDate from "@/src/hooks/useDate";
 import useToast from "@/src/hooks/useToast";
 import useRecordsStore from '@/src/stores/RecordsStore';
@@ -12,16 +12,24 @@ import BaseSelect from "../ui/base-select";
 import LabelBlock from "../ui/LabelBlock";
 import useAndroidToast from "@/src/hooks/useAndroidToast";
 import DatePicker from "../ui/date-picker";
-import { useHandler } from "@/src/db/handlers/handler";
-import { PaymentMethodsJoined, useDataStore } from "@/src/stores";
-import { Categories, RecordTypes, FixedJoined, Fixed } from "@/src/db/types/tables";
+import { useTableRepository } from "@/src/db";
+import { useDataStore } from "@/src/stores";
+import type {
+    Category,
+    FixedRecord,
+    FixedView,
+    Insertable,
+    PaymentMethodWithRelations,
+    RecordType,
+} from "@/src/interfaces/schema";
+import { centsToInput, parseMoneyToCents } from "@/src/utils";
 import styles from '@/src/styles/styles';
 import BorderLeftBlock from '@/src/components/ui/BorderLeftBlock';
 import useConfigs from "@/src/hooks/useConfigs";
-import { useFixeds } from "@/src/db/handlers/FixedsHandler";
+import { useFixeds } from "@/src/db";
 
 interface AddItemProps {
-    item?: FixedJoined | Fixed
+    item?: FixedView | FixedRecord
     children?: React.ReactNode
     openUpdate?: boolean
     open?: boolean
@@ -33,17 +41,17 @@ const AddFixed = ({ item, children, openUpdate, open }: AddItemProps) => {
     const { t } = useLanguage()
     const [name, setName] = useState<string>("")
     const [day, setDay] = useState(1)
-    const [type, setType] = useState<RecordTypes>()
-    const [payment_method, setPaymentMethod] = useState<PaymentMethodsJoined>()
-    const [to_pay_method, setToPayMethod] = useState<PaymentMethodsJoined>()
-    const [category, setCategory] = useState<Categories>()
+    const [type, setType] = useState<RecordType>()
+    const [payment_method, setPaymentMethod] = useState<PaymentMethodWithRelations>()
+    const [to_pay_method, setToPayMethod] = useState<PaymentMethodWithRelations>()
+    const [category, setCategory] = useState<Category>()
     const [value, setValue] = useState<string>("")
     const [group_id, setGroupId] = useState<number>(group?.id || 0)
     const { ToastContainer, showToast } = useToast()
     const toast = useAndroidToast()
     const { RecordTypes, PaymentMethods, Categories, Fixeds, setFixeds } = useDataStore()
     const { fetchFixeds, handler: fixedsHandler } = useFixeds()
-    const handler = useHandler('PaidCredits')
+    const handler = useTableRepository('PaidCredits')
     const { configs: { paymentCreditType } } = useConfigs()
 
     useEffect(() => {
@@ -54,7 +62,7 @@ const AddFixed = ({ item, children, openUpdate, open }: AddItemProps) => {
     useEffect(() => {
         if (!item) return
         setName(item.fixed_name)
-        setValue(String(item.fixed_amount))
+        setValue(centsToInput(item.fixed_amount))
         setDay(item.fixed_day)
         setType(RecordTypes?.find(val => val.id == item.record_type_id))
         setCategory(Categories?.find(cat => cat.id == item.category_id))
@@ -69,19 +77,18 @@ const AddFixed = ({ item, children, openUpdate, open }: AddItemProps) => {
             return
         }
 
-        const newItem: Fixed = {
+        const newItem: Insertable<FixedRecord> = {
             fixed_day: day,
-            fixed_name: name.length < 1 ? category?.category_name : name,
+            fixed_name: name.length < 1 ? category.category_name : name,
             record_type_id: type.id,
-            fixed_amount: Number(value),
-            category_id: category?.id as number,
-            payment_method_id: payment_method?.id as number,
+            fixed_amount: parseMoneyToCents(value),
+            category_id: category.id as number,
+            payment_method_id: payment_method.id as number,
         }
 
         try {
             if (item?.id) {
-                newItem.id = item.id
-                await fixedsHandler.edit(newItem)
+                await fixedsHandler.edit({ ...newItem, id: item.id })
                 toast.editedMessage()
             } else {
                 await fixedsHandler.add(newItem)
@@ -119,7 +126,7 @@ const AddFixed = ({ item, children, openUpdate, open }: AddItemProps) => {
 
     const SelectTypeBlockRender = (index: number) => {
         return (
-            <BorderLeftBlock color={RecordTypes[index].record_color}>
+            <BorderLeftBlock color={RecordTypes[index].record_color ?? undefined}>
                 <Text style={[styles.text]}>{RecordTypes[index].type_name}</Text>
             </BorderLeftBlock>
         )
@@ -135,15 +142,15 @@ const AddFixed = ({ item, children, openUpdate, open }: AddItemProps) => {
 
     const SelectPaymentBlockRender = (index: number) => {
         return (
-            <BorderLeftBlock color={PaymentMethods[index].payment_color}>
+            <BorderLeftBlock color={PaymentMethods[index].PaymentTypes?.payment_color ?? undefined}>
                 <Text style={[styles.text]}>{PaymentMethods[index].method_name}</Text>
             </BorderLeftBlock>
         )
     }
 
-    const SelectedPaymentBlockRender = ({ payment }: { payment: PaymentMethodsJoined | undefined }) => {
+    const SelectedPaymentBlockRender = ({ payment }: { payment: PaymentMethodWithRelations | undefined }) => {
         return (
-            <BorderLeftBlock color={payment?.payment_color || "#000"}>
+            <BorderLeftBlock color={payment?.PaymentTypes?.payment_color ?? "#000"}>
                 <Text style={[styles.text]}>{payment?.method_name || t('item.selectPayment')}</Text>
             </BorderLeftBlock>
         )

@@ -4,6 +4,7 @@ import type { RecordFormEntry, RecordType } from "@/src/interfaces/schema"
 import styles from '@/src/styles/styles'
 import useDate from "@/src/hooks/useDate"
 import { useLanguage } from "@/src/lang/LanguageContext"
+import { formatMoneyWithSymbol } from "@/src/utils"
 
 type CreditsGroupsProps = {
     credits: RecordFormEntry[],
@@ -47,7 +48,7 @@ export const CreditsGroups = ({ credits, selectedPaymentCreditType, onCreditPaym
                                         </Text>
                                     </View>
                                     <Text style={localStyles.nameText}>{item.record_name}</Text>
-                                    <Text style={localStyles.valueText}>${item.amount?.toFixed(2)}</Text>
+                                    <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.amount)}</Text>
                                 </View>
                             </BorderLeftBottomBlock>
                         </Pressable>

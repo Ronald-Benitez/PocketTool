@@ -29,6 +29,7 @@ import ColorText from "../ui/color-text";
 import { useORM } from "@/src/orm";
 import type { JoinPath, OrderCondition } from "@/src/orm";
 import type { RecordFormEntry, RecordType, RecordWithRelations } from "@/src/interfaces/schema";
+import { formatMoney } from "@/src/utils";
 import RecordsFilterModal, { RECORDS_ORDER_STORAGE_KEY } from "./RecordsFilterModal";
 import type { RecordFilter } from "./RecordsFilterModal";
 
@@ -213,7 +214,7 @@ const ItemsTable = () => {
   );
 
   const handleDelete = async (toDelete: RecordWithRelations) => {
-    if (!group) return;
+    if (!group?.id || !toDelete.id) return;
     await recordsOrm.delete(toDelete.id);
     if (toDelete.paid_credit_id)
       await paidCreditsOrm.delete(toDelete.paid_credit_id);
@@ -329,7 +330,7 @@ const ItemsTable = () => {
               color(balance < 0 ? "expense" : "income"),
             ]}
           >
-            $ {balance.toFixed(2)}
+            $ {formatMoney(balance)}
           </Text>
           <View style={[{ position: "absolute", right: 0, top: 0, flexDirection: "row", gap: 2 }]}>
             <IconButton onClick={() => setFilterModalVisible(true)}>

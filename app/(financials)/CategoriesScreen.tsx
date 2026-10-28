@@ -9,8 +9,7 @@ import IconButton from '@/src/components/ui/icon-button';
 import { MaterialIcons } from '@expo/vector-icons';
 import InputLabel from '@/src/components/ui/InputLabel';
 import useAndroidToast from '@/src/hooks/useAndroidToast';
-import { useHandler } from '@/src/db/handlers/handler';
-import { Categories } from '@/src/db/types/tables';
+import { Category } from '@/src/interfaces/schema';
 import { useDataStore } from '@/src/stores';
 import { useORM } from '@/src/orm';
 
@@ -35,7 +34,7 @@ const PaymentTypesScreen = () => {
             toast.emptyMessage()
             return;
         }
-        const newData: Categories = { category_name }; 
+        const newData: Category = { category_name };
 
         try {
             if (editingId) {
@@ -57,7 +56,7 @@ const PaymentTypesScreen = () => {
         }
     };
 
-    const handleEdit = (data: Categories) => {
+    const handleEdit = (data: Category) => {
         setCategoryName(data.category_name);
         setEditingId(data.id);
     };

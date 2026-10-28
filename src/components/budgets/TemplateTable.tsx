@@ -12,17 +12,18 @@ import useRecordsStore from '@/src/stores/RecordsStore';
 import useColorStore from '@/src/stores/ColorsStore'
 import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
 import IconButton from '../ui/icon-button'
-import { FixedJoined, RecordJoined, Records } from '@/src/db/types/tables'
-import { useRecords } from "@/src/db/handlers/RecordsHandler";
+import type { RecordFormEntry, RecordView } from '@/src/interfaces/schema'
+import { formatMoney, formatMoneyWithSymbol } from '@/src/utils'
+import { useRecords } from "@/src/db";
 import useResumesStore from '@/src/stores/ResumesStore'
 import { useCreditStore } from '@/src/stores/CreditsStore'
 import useConfigs from '@/src/hooks/useConfigs'
 import { useDataStore } from '@/src/stores'
 import styles from '@/src/styles/styles'
-import { useHandler } from '@/src/db/handlers/handler'
+import { useTableRepository } from '@/src/db'
 
 const TemplateTable = () => {
-    const [selected, setSelected] = React.useState<RecordJoined | Records | undefined>()
+    const [selected, setSelected] = React.useState<RecordFormEntry | undefined>()
     const [openUpdate, setOpenUpdate] = React.useState<boolean>(false)
     const { fetchRecords, handler: recordsHandler } = useRecords()
     const dateh = useDate()
@@ -33,20 +34,21 @@ const TemplateTable = () => {
     const { balance } = useResumesStore()
     const { credits } = useCreditStore()
     const { RecordTypes, Fixeds } = useDataStore()
-    const [creditRecords, setCreditRecords] = useState<Records[]>()
+    const [creditRecords, setCreditRecords] = useState<RecordFormEntry[]>()
     const { configs: { paymentCreditType } } = useConfigs()
-    const [fixedsToShow, setFixedsToShow] = useState<RecordJoined[]>([])
-    const creditsHandler = useHandler('PaidCredits')
+    const [fixedsToShow, setFixedsToShow] = useState<RecordFormEntry[]>([])
+    const creditsHandler = useTableRepository('PaidCredits')
 
     const selectePaymentCreditType = RecordTypes.find(e => e.id == paymentCreditType)
 
     const handleDelete = async (index: number) => {
-        if (!group) return
+        if (!group?.id) return
         const toDelete = records[index]
-        await recordsHandler.deleteById(toDelete.record_id)
-        if (toDelete.paid_credit_id) [
+        if (!toDelete?.id) return
+        await recordsHandler.deleteById(toDelete.id)
+        if (toDelete.paid_credit_id) {
             await creditsHandler.deleteById(toDelete.paid_credit_id)
-        ]
+        }
         const data = await fetchRecords(group.id)
         setRecords(data)
         showToast({ message: t("item.deleted"), type: "SUCCESS" })
@@ -70,13 +72,13 @@ const TemplateTable = () => {
     }
 
     const generateCreditRecords = () => {
-        const list: Records[] = []
+        const list: RecordFormEntry[] = []
         const today = new Date()
         credits?.map((credit) => {
             if (!credit.totalPrevious) return
-            if (credit?.totalCurrentPayments || 0 >= credit.totalPrevious) return
+            if ((credit?.totalCurrentPayments || 0) >= (credit?.totalPrevious || 0)) return
 
-            const newJoined: Records = {
+            const newJoined: RecordFormEntry = {
                 record_type_id: paymentCreditType,
                 amount: credit?.totalPrevious - (credit?.totalCurrentPayments || 0),
                 category_id: 0,
@@ -95,24 +97,21 @@ const TemplateTable = () => {
     useEffect(generateCreditRecords, [credits])
 
     const generateFixedsToShow = () => {
-        const list: RecordJoined[] = []
+        const list: RecordFormEntry[] = []
         Fixeds.map((fixed) => {
             const alreadyAdded = records.find(records => records.fixed_id == fixed.id)
             if (!alreadyAdded) {
                 const date = new Date()
                 date.setDate(fixed.fixed_day)
                 list.push({
-                    ...fixed,
                     fixed_id: fixed.id,
                     amount: fixed.fixed_amount,
                     date: date.getTime(),
-                    goal: 0,
-                    group_id: group?.id || 0,
-                    group_name: "",
-                    month: date.getMonth(),
+                    group_id: group?.id ?? null,
                     record_name: fixed.fixed_name,
-                    year: date.getFullYear(),
-                    id: undefined
+                    record_type_id: fixed.record_type_id,
+                    category_id: fixed.category_id,
+                    payment_method_id: fixed.payment_method_id,
                 })
             }
         })
@@ -121,7 +120,7 @@ const TemplateTable = () => {
 
     useEffect(generateFixedsToShow, [records, Fixeds])
 
-    const onCreditPayment = (item: Records) => {
+    const onCreditPayment = (item: RecordFormEntry) => {
         setSelected(item)
         setOpenUpdate(!openUpdate)
     }
@@ -132,7 +131,7 @@ const TemplateTable = () => {
                 style={localStyles.rowContainer}
             >
                 <Text style={[localStyles.balanceText, color(balance < 0 ? "expense" : "income")]}>
-                    $ {(balance).toFixed(2)}
+                    $ {formatMoney(balance)}
                 </Text>
                 <View style={[{ position: "absolute", right: 0, top: 0 }]}>
                     {
@@ -157,8 +156,8 @@ const TemplateTable = () => {
                                 key={item.id}
                             >
                                 <BorderLeftBottomBlock
-                                    bottomColor={item.record_color}
-                                    letfColor={item.payment_color}
+                                    bottomColor={item.RecordTypes?.record_color ?? undefined}
+                                    letfColor={item.PaymentMethods?.PaymentTypes?.payment_color ?? undefined}
                                 >
                                     <View style={localStyles.rowContainer}>
                                         <View style={localStyles.dateContainer}>
@@ -173,7 +172,7 @@ const TemplateTable = () => {
                                             </Text>
                                         </View>
                                         <Text style={localStyles.nameText}>{item.record_name}</Text>
-                                        <Text style={localStyles.valueText}>${item.amount}</Text>
+                                        <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.amount)}</Text>
                                     </View>
                                 </BorderLeftBottomBlock>
                             </SwipeItem>
@@ -206,7 +205,7 @@ const TemplateTable = () => {
                                             </Text>
                                         </View>
                                         <Text style={localStyles.nameText}>{item.record_name}</Text>
-                                        <Text style={localStyles.valueText}>${item.amount}</Text>
+                                        <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.amount)}</Text>
                                     </View>
                                 </BorderLeftBottomBlock>
                             </Pressable>
@@ -223,8 +222,8 @@ const TemplateTable = () => {
                         return (
                             <Pressable key={index} onPress={() => onCreditPayment(item)}>
                                 <BorderLeftBottomBlock
-                                    bottomColor={item?.record_color || "#000"}
-                                    letfColor={item?.payment_color || "#000"}
+                                    bottomColor={selectePaymentCreditType?.record_color ?? "#000"}
+                                    letfColor={selectePaymentCreditType?.record_color ?? "#000"}
                                 >
                                     <View style={localStyles.rowContainer}>
                                         <View style={localStyles.dateContainer}>
@@ -239,7 +238,7 @@ const TemplateTable = () => {
                                             </Text>
                                         </View>
                                         <Text style={localStyles.nameText}>{item.record_name}</Text>
-                                        <Text style={localStyles.valueText}>${item.amount}</Text>
+                                        <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.amount)}</Text>
                                     </View>
                                 </BorderLeftBottomBlock>
                             </Pressable>

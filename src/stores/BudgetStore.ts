@@ -1,11 +1,11 @@
 import { create } from "zustand";
-import { Budget, Group, RecordI } from "../interfaces";
+import type { BudgetItemView } from "../interfaces/schema";
 import { ResumeTotalsBudget } from "../db";
 
 interface RecordsState {
-  budgets: Budget[] | [];
+  budgets: BudgetItemView[] | [];
   resumes: ResumeTotalsBudget | null;
-  setBudgets: (budgets: Budget[]) => void;
+  setBudgets: (budgets: BudgetItemView[]) => void;
   setResumes: (resumes: ResumeTotalsBudget) => void;
 }
 

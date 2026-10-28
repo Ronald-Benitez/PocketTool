@@ -2,7 +2,7 @@ import { View, ScrollView, StyleSheet } from 'react-native';
 import FinnanceTableBlock from '@/src/components/ui/FinanceTableBlock';
 import FinnanceTableChart from '@/src/components/ui/FinanceTableChart';
 import useRecordsStore from '@/src/stores/RecordsStore';
-import { useRecords } from '@/src/db/handlers/RecordsHandler';
+import { useRecords } from '@/src/db';
 import { useRef, useState } from 'react';
 import { RecordsModalRef, RecordsModal } from '@/src/components/records/RecordsModal';
 import { AntDesign } from '@expo/vector-icons';
@@ -17,7 +17,7 @@ const PaymentMethodsScreen = () => {
     const onSummarySelected = async (id: number | undefined) => {
         if (!id) return;
         try {
-            await fetchRecordsWithMultipleWhere([{ column: "record_type_id", value: id }, { column: "Records.group_id", value: group?.id }]).then((res) => {
+            await fetchRecordsWithMultipleWhere([{ column: "record_type_id", value: id }, { column: "Records.group_id", value: group?.id ?? null }]).then((res) => {
                 if (res) {
                     recordsModalRef.current?.open(res)
                 }

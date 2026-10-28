@@ -4,6 +4,7 @@ import SwipeItem from '../ui/swipe-item'
 import useDate from '@/src/hooks/useDate'
 import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
 import type { RecordWithRelations } from '@/src/interfaces/schema'
+import { formatMoneyWithSymbol } from '@/src/utils'
 
 type RecordsGroupProps = {
     records: RecordWithRelations[],
@@ -40,7 +41,7 @@ const RecordsGroup = ({ records, handleDelete, handleUpdate }: RecordsGroupProps
                                         </Text>
                                     </View>
                                     <Text style={localStyles.nameText}>{item.record_name}</Text>
-                                    <Text style={localStyles.valueText}>${item.amount}</Text>
+                                    <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.amount)}</Text>
                                 </View>
                             </BorderLeftBottomBlock>
                         </SwipeItem>

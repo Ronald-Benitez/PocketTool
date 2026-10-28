@@ -1,7 +1,8 @@
 import { View, Text, ViewStyle, TextStyle } from "react-native"
 import React, { SetStateAction, useEffect, useState, useTransition } from "react"
 
-import { Group, RecordI } from "@/src/interfaces"
+import { Group, RecordView } from "@/src/interfaces/schema"
+import { formatMoney } from "@/src/utils"
 import styles from "@/src/styles/styles"
 import Dropdown from "../ui/dropdown"
 import SwipeItem from "../ui/swipe-item"
@@ -12,7 +13,7 @@ import useToast from "@/src/hooks/useToast"
 
 interface GroupViewerProps {
     group: Group | null
-    recordsI: RecordI[]
+    recordsI: RecordView[]
     setGroup: React.Dispatch<SetStateAction<Group | null>>
 }
 
@@ -31,7 +32,7 @@ const GroupViewer = ({ group, setGroup, recordsI }: GroupViewerProps) => {
 
     useEffect(() => {
         const load = async () => {
-            if (group) {
+            if (group?.id) {
                 setTotalIncomes(await records.fetchTotalIncomes(group.id) as number)
                 setTotalExpenses(await records.fetchTotalExpenses(group.id) as number)
             }
@@ -79,6 +80,7 @@ const GroupViewer = ({ group, setGroup, recordsI }: GroupViewerProps) => {
     }
 
     const onDelete = async () => {
+        if (!group.id) return
         await groups.deleteGroup(group.id)
         setGroup(null)
         await records.deleteRecordByGroup(group.id)
@@ -114,7 +116,7 @@ const GroupViewer = ({ group, setGroup, recordsI }: GroupViewerProps) => {
                     {t(`group.${names[type]}`).substring(0,3)}
                     </Text> */}
                     <Text style={[styles.textCenter, styles.text, baseColors, { borderRadius: 8, minWidth: 200, padding: 5 }]}>
-                        $ {Math.abs(value)}
+                        $ {formatMoney(Math.abs(value))}
                     </Text>
                 </View>
             </>

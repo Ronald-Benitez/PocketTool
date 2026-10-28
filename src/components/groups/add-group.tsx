@@ -12,6 +12,7 @@ import useAndroidToast from '@/src/hooks/useAndroidToast'
 import { Groups } from '@/src/db/types/tables';
 import { useORM } from '@/src/orm'
 import { Insertable } from '@/src/interfaces/schema'
+import { centsToInput, parseMoneyToCents } from '@/src/utils'
 
 interface AddGroupProps {
     children?: React.ReactNode
@@ -23,7 +24,7 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
     const { t } = useLanguage()
     const { ToastContainer, showToast } = useToast()
     const [name, setName] = useState<string>('')
-    const [goal, setGoal] = useState<number>(0)
+    const [goal, setGoal] = useState<string>('')
     const [month, setMonth] = useState<number>(new Date().getMonth())
     const [year, setYear] = useState<number>(new Date().getFullYear())
     const { group, setGroup, setGroups } = useRecordsStore()
@@ -35,7 +36,7 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
         cleanData()
         if (isEditing) {
             setName(group.group_name)
-            setGoal(group.goal)
+            setGoal(centsToInput(group.goal))
             setMonth(group.month)
             setYear(group.year)
         }
@@ -48,7 +49,7 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
 
     const cleanData = () => {
         setName('')
-        setGoal(0)
+        setGoal('')
         setMonth(new Date().getMonth())
         setYear(new Date().getFullYear())
     }
@@ -66,7 +67,7 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
 
         const newGroup: Insertable<Groups> = {
             group_name: name,
-            goal,
+            goal: parseMoneyToCents(goal),
             month,
             year
         }
@@ -104,8 +105,8 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
                         </View>
                         <View style={localStyles.inputContainer}>
                             <InputLabel
-                                value={String(goal)}
-                                onChangeText={(e) => setGoal(Number(e))}
+                                value={goal}
+                                onChangeText={setGoal}
                                 keyboardType="numeric"
                                 placeholder={t('group.goal') + '*'}
                             />
