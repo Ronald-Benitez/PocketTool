@@ -6,5 +6,6 @@ export interface ColorScheme {
   ConfirmColor: string;
   IncomeColor: string;
   ExpenseColor: string;
+  TransferColor: string;
   BGSimple: string;
 }
