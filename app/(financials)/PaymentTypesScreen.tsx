@@ -13,7 +13,7 @@ import useAndroidToast from '@/src/hooks/useAndroidToast';
 import { Insertable, PaymentType } from '@/src/interfaces/schema';
 import { useDataStore } from '@/src/stores';
 import ColorPicker2 from '@/src/components/ui/color-picker-2';
-import { useORM } from '@/src/orm';
+import { useTableRepository } from '@/src/db';
 
 const PaymentTypesScreen = () => {
     const { t } = useLanguage();
@@ -23,11 +23,11 @@ const PaymentTypesScreen = () => {
     const [openModal, setOpenModal] = useState(false)
     const toast = useAndroidToast()
     const { PaymentTypes, setPaymentTypes } = useDataStore();
-    const orm = useORM("PaymentTypes");
+    const repository = useTableRepository("PaymentTypes");
 
     useEffect(() => {
         const loadData = async () => {
-            const data = await orm.getAll();
+            const data = await repository.fetchAll();
             setPaymentTypes(data);
         };
         loadData();
@@ -41,13 +41,13 @@ const PaymentTypesScreen = () => {
         const newData: Insertable<PaymentType> = { payment_type_name: name, payment_color: color };
         try {
             if (editingId) {
-                await orm.update(editingId, newData);
+                await repository.edit({ ...newData, id: editingId });
                 toast.editedMessage()
             } else {
-                await orm.insert(newData);
+                await repository.add(newData);
                 toast.addedMessage()
             }
-            const methods = await orm.getAll();
+            const methods = await repository.fetchAll();
             setPaymentTypes(methods);
             setName('');
             setColor('#000000');
@@ -61,8 +61,8 @@ const PaymentTypesScreen = () => {
     const handleDelete = async (id: number | undefined) => {
         if (!id) return;
         try {
-            await orm.delete(id);
-            const methods = await orm.getAll();
+            await repository.deleteById(id);
+            const methods = await repository.fetchAll();
             toast.deletedMessage()
             setPaymentTypes(methods);
         } catch (error) {

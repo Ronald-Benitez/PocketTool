@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { View, ScrollView, Pressable, Text, StyleSheet } from "react-native";
 
 import { useLanguage } from "@/src/lang/LanguageContext";
-import { useRecords } from "@/src/db";
 import useDate from "@/src/hooks/useDate";
 import useToast from "@/src/hooks/useToast";
 import useRecordsStore from '@/src/stores/RecordsStore';
@@ -12,7 +11,7 @@ import BaseSelect from "../ui/base-select";
 import LabelBlock from "../ui/LabelBlock";
 import useAndroidToast from "@/src/hooks/useAndroidToast";
 import DatePicker from "../ui/date-picker";
-import { useTableRepository } from "@/src/db";
+import { useFixeds } from "@/src/db";
 import { useDataStore } from "@/src/stores";
 import type {
     Category,
@@ -25,8 +24,6 @@ import type {
 import { centsToInput, parseMoneyToCents } from "@/src/utils";
 import styles from '@/src/styles/styles';
 import BorderLeftBlock from '@/src/components/ui/BorderLeftBlock';
-import useConfigs from "@/src/hooks/useConfigs";
-import { useFixeds } from "@/src/db";
 
 interface AddItemProps {
     item?: FixedView | FixedRecord
@@ -51,8 +48,6 @@ const AddFixed = ({ item, children, openUpdate, open }: AddItemProps) => {
     const toast = useAndroidToast()
     const { RecordTypes, PaymentMethods, Categories, Fixeds, setFixeds } = useDataStore()
     const { fetchFixeds, handler: fixedsHandler } = useFixeds()
-    const handler = useTableRepository('PaidCredits')
-    const { configs: { paymentCreditType } } = useConfigs()
 
     useEffect(() => {
         if (!group?.id) return

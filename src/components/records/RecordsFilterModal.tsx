@@ -12,7 +12,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { useLanguage } from "@/src/lang/LanguageContext"
 import useColorStore from "@/src/stores/ColorsStore"
-import { useORM } from "@/src/orm"
+import { useTableRepository } from "@/src/db"
 import type {
     ColumnPath,
     OrderCondition,
@@ -69,9 +69,9 @@ const RecordsFilterModal = ({
 }: RecordsFilterModalProps) => {
     const { t } = useLanguage()
     const { colors } = useColorStore()
-    const recordsOrm = useORM("Records")
-    const joins = new Set(Object.keys(recordsOrm.availableJoins))
-    const columns = (Object.keys(recordsOrm.availableColumns) as ColumnPath<"Records">[])
+    const recordsRepository = useTableRepository("Records")
+    const joins = new Set(Object.keys(recordsRepository.availableJoins))
+    const columns = (Object.keys(recordsRepository.availableColumns) as ColumnPath<"Records">[])
         .filter(column => {
             const relationPath = column.split(".").slice(0, -1).join(".")
             return (relationPath === "" || joins.has(relationPath)) && !column.endsWith("id")

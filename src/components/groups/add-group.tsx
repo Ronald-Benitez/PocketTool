@@ -9,9 +9,8 @@ import ModalContainer from '../ui/modal-container'
 import InputLabel from '../ui/InputLabel'
 import useRecordsStore from '@/src/stores/RecordsStore'
 import useAndroidToast from '@/src/hooks/useAndroidToast'
-import { Groups } from '@/src/db/types/tables';
-import { useORM } from '@/src/orm'
-import { Insertable } from '@/src/interfaces/schema'
+import { useGroups } from '@/src/db'
+import type { Group, Insertable } from '@/src/interfaces/schema'
 import { centsToInput, parseMoneyToCents } from '@/src/utils'
 
 interface AddGroupProps {
@@ -29,7 +28,7 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
     const [year, setYear] = useState<number>(new Date().getFullYear())
     const { group, setGroup, setGroups } = useRecordsStore()
     const toast = useAndroidToast()
-    const orm = useORM("Groups")
+    const { addGroup, editGroup, fetchGroupsByYear } = useGroups()
 
     useEffect(() => {
         if (!group) return
@@ -43,7 +42,7 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
     }, [openUpdate])
 
     const getGroups = async () => {
-        const groups = await orm.where("year", year, "=").getAll()
+        const groups = await fetchGroupsByYear(year)
         setGroups(groups)
     }
 
@@ -65,7 +64,7 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
             return
         }
 
-        const newGroup: Insertable<Groups> = {
+        const newGroup: Insertable<Group> = {
             group_name: name,
             goal: parseMoneyToCents(goal),
             month,
@@ -73,11 +72,11 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
         }
         if (group?.id && isEditing) {
             const updateGroup = { ...group, ...newGroup }
-            await orm.update(group.id, updateGroup)
+            await editGroup(group.id, updateGroup)
             setGroup && setGroup(updateGroup)
             toast.editedMessage()
         } else {
-            await orm.insert(newGroup)
+            await addGroup(newGroup)
             toast.addedMessage()
         }
         getGroups()

@@ -11,7 +11,7 @@ import InputLabel from '@/src/components/ui/InputLabel';
 import useAndroidToast from '@/src/hooks/useAndroidToast';
 import { Category } from '@/src/interfaces/schema';
 import { useDataStore } from '@/src/stores';
-import { useORM } from '@/src/orm';
+import { useTableRepository } from '@/src/db';
 
 const PaymentTypesScreen = () => {
     const { t } = useLanguage();
@@ -19,11 +19,11 @@ const PaymentTypesScreen = () => {
     const [editingId, setEditingId] = useState<number | undefined>(undefined);
     const {Categories, setCategories} = useDataStore()
     const toast = useAndroidToast()
-    const orm = useORM("Categories");
+    const repository = useTableRepository("Categories");
 
     useEffect(() => {
         const loadData = async () => {
-            const result = await orm.getAll();
+            const result = await repository.fetchAll();
             setCategories(result);
         };
         loadData();
@@ -38,15 +38,14 @@ const PaymentTypesScreen = () => {
 
         try {
             if (editingId) {
-                newData.id = editingId
-                await orm.update(editingId, newData);
+                await repository.edit({ ...newData, id: editingId });
                 toast.editedMessage()
             } else {
-                await orm.insert(newData);
+                await repository.add(newData);
                 toast.addedMessage()
             }
 
-            const result = await orm.getAll();
+            const result = await repository.fetchAll();
             setCategories(result);
             setCategoryName('');
             setEditingId(undefined);
@@ -64,8 +63,8 @@ const PaymentTypesScreen = () => {
     const handleDelete = async (id: number | undefined) => {
         if(!id) return;
         try {
-            await orm.delete(id);
-            const result = await orm.getAll();
+            await repository.deleteById(id);
+            const result = await repository.fetchAll();
             setCategories(result);
             toast.deletedMessage();
         } catch (error) {

@@ -7,7 +7,6 @@ import { useSavings, useSavingsHistory } from '@/src/db'
 import useSavingsStore from '@/src/stores/SavingsStore'
 import { Saving, SavingsHistoryEntry } from '@/src/interfaces/schema';
 import BaseSelect from '../ui/base-select'
-import { useTableRepository } from '@/src/db'
 
 interface Props {
     children: ReactNode
@@ -19,9 +18,8 @@ const SavingsSelector = ({ children }: Props) => {
     const [modalVisible, setModalVisible] = useState(false)
     const { saving, savingsHistory, setSaving, setSavingsHistory, savings, setSavings } = useSavingsStore()
     const { fetchSavings, fetchSavingsById } = useSavings()
-    const { fetchSavingsHistoryBySavingId } = useSavingsHistory()
+    const { fetchBySavingId } = useSavingsHistory()
     const [openUpdate, setOpenUpdate] = useState(false)
-    const historyHandler = useTableRepository("SavingsHistory")
 
     useEffect(() => {
         getPinned()
@@ -38,8 +36,8 @@ const SavingsSelector = ({ children }: Props) => {
 
     const onSelect = async (saving: Saving) => {
         setSaving(saving)
-        await historyHandler.fetchWithWhere("savings_id", saving.id ?? 0).then((res) => {
-            setSavingsHistory(res.reverse() as SavingsHistoryEntry[])
+        await fetchBySavingId(saving.id ?? 0).then((res) => {
+            setSavingsHistory(res.reverse())
         })
         setModalVisible(false)
     }

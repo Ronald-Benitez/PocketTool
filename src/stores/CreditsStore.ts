@@ -4,8 +4,7 @@ import useRecordsStore from "./RecordsStore"
 import useConfigs from "../hooks/useConfigs"
 import { useDataStore } from "."
 import { PaymentMethod } from "../interfaces/schema"
-import { ORM, useORM } from "../orm"
-import { useSQLiteContext } from "expo-sqlite"
+import { useRecords } from "../db"
 
 const getPeriods = (card: PaymentMethod, month: number, year: number) => {
     if(!card?.closing_date) return [0,0]
@@ -35,10 +34,9 @@ export interface Credit extends PaymentMethod {
 export const useCreditStore = () => {
     const { records } = useRecordsStore()
     const { PaymentMethods } = useDataStore()
-    const { configs: { creditType, paymentCreditType } } = useConfigs()
+    const { configs: { creditType } } = useConfigs()
     const [credits, setCredits] = useState<Credit[] | undefined>()
-
-    const db = useSQLiteContext()
+    const { fetchCreditPeriodTotals } = useRecords()
 
     useEffect(() => {
         const load = async () => {
@@ -61,8 +59,6 @@ export const useCreditStore = () => {
                 totalCurrent: 0,
                 totalPrevious: 0
             }
-            const recordsOrm = new ORM<"Records">(db, "Records")
-            const paidCreditsOrm = new ORM<"PaidCredits">(db, "PaidCredits")
             const [currentPeriodStart, currentPeriodEnd] = getPeriods(
                 payment,
                 month,
@@ -74,24 +70,20 @@ export const useCreditStore = () => {
                 year
             );
 
-            const currentCredits = await recordsOrm.whereMany([
-                {column: "payment_method_id", operator:"=", value: payment.id},
-                {column: "date", operator:"BETWEEN", value:[currentPeriodStart, currentPeriodEnd]}]
-            ).getAll()
-            const currentPayments = await paidCreditsOrm.whereMany([
-                {column: "payment_method_id", operator:"=", value: payment.id},
-                {column: "date", operator:"BETWEEN", value:[currentPeriodStart, currentPeriodEnd]}]
-            ).getAll()
+            const currentTotals = await fetchCreditPeriodTotals(
+                payment.id,
+                currentPeriodStart,
+                currentPeriodEnd
+            )
+            const previousTotals = await fetchCreditPeriodTotals(
+                payment.id,
+                previousPeriodStart,
+                previousPeriodEnd
+            )
 
-            
-            const totalCurrent = currentCredits?.reduce((acc, current) => acc + current.amount, 0) || 0
-            const totalCurrentPayments = currentPayments?.reduce((acc, current) => acc + current.amount, 0) || 0
-            
-            const previousCredits = await recordsOrm.whereMany([
-                {column: "payment_method_id", operator:"=", value: payment.id},
-                {column: "date", operator:"BETWEEN", value:[previousPeriodStart, previousPeriodEnd]}]
-            ).getAll()
-            const totalPrevious = previousCredits?.reduce((acc, current) => acc + current.amount, 0) || 0
+            const totalCurrent = currentTotals.recordsTotal
+            const totalCurrentPayments = currentTotals.paymentsTotal
+            const totalPrevious = previousTotals.recordsTotal
             
             //console.log(payment, previousCredits, new Date(previousPeriodStart), new Date(previousPeriodEnd), totalPrevious)
 

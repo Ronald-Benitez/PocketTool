@@ -26,8 +26,8 @@ import RecordsGroup from "./RecordsGroup";
 import FixedsGroup from "./FixedsGroup";
 import CreditsGroups from "./CreditsGroups";
 import ColorText from "../ui/color-text";
-import { useORM } from "@/src/orm";
-import type { JoinPath, OrderCondition } from "@/src/orm";
+import { useRecords } from "@/src/db";
+import type { OrderCondition } from "@/src/orm";
 import type { RecordFormEntry, RecordType, RecordWithRelations } from "@/src/interfaces/schema";
 import { formatMoney } from "@/src/utils";
 import RecordsFilterModal, { RECORDS_ORDER_STORAGE_KEY } from "./RecordsFilterModal";
@@ -142,8 +142,7 @@ const ItemsTable = () => {
   const [recordOrder, setRecordOrder] = useState<OrderCondition<"Records">[]>([
     { column: "date", direction: "ASC" }
   ]);
-  const paidCreditsOrm = useORM("PaidCredits");
-  const recordsOrm = useORM("Records");
+  const { fetchRecords, deleteRecordWithCredit, handler: recordsRepository } = useRecords();
 
   useEffect(() => {
     let isMounted = true
@@ -156,7 +155,7 @@ const ItemsTable = () => {
           throw new Error("El orden guardado de registros no es válido")
         }
 
-        const availableColumns = new Set(Object.keys(recordsOrm.availableColumns))
+        const availableColumns = new Set(Object.keys(recordsRepository.availableColumns))
         const validOrder = parsedOrder.filter((item): item is OrderCondition<"Records"> =>
           item !== null &&
           typeof item === "object" &&
@@ -178,13 +177,8 @@ const ItemsTable = () => {
 
   useEffect(() => {
     if (!group?.id) return
-    const relationPaths = Object.keys(recordsOrm.availableJoins) as JoinPath<"Records">[]
-    recordsOrm
-      .joinMany(relationPaths)
-      .where("group_id", group.id, "=")
-      .order("date", "ASC")
-      .getAll()
-      .then(setRecords)
+    fetchRecords(group.id)
+      .then((records) => setRecords(records ?? []))
       .catch(error => {
         console.error("Error al cargar los registros y sus relaciones:", error)
         showToast({ message: t("toast.error"), type: "ERROR" })
@@ -215,16 +209,9 @@ const ItemsTable = () => {
 
   const handleDelete = async (toDelete: RecordWithRelations) => {
     if (!group?.id || !toDelete.id) return;
-    await recordsOrm.delete(toDelete.id);
-    if (toDelete.paid_credit_id)
-      await paidCreditsOrm.delete(toDelete.paid_credit_id);
-    const relationPaths = Object.keys(recordsOrm.availableJoins) as JoinPath<"Records">[]
-    const data = await recordsOrm
-      .joinMany(relationPaths)
-      .where("group_id", group.id, "=")
-      .order("date", "ASC")
-      .getAll();
-    setRecords(data);
+    await deleteRecordWithCredit(toDelete.id, toDelete.paid_credit_id);
+    const data = await fetchRecords(group.id);
+    setRecords(data ?? []);
     showToast({ message: t("item.deleted"), type: "SUCCESS" });
   };
 

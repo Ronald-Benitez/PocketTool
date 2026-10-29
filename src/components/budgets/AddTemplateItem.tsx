@@ -12,7 +12,6 @@ import BaseSelect from "../ui/base-select";
 import LabelBlock from "../ui/LabelBlock";
 import useAndroidToast from "@/src/hooks/useAndroidToast";
 import DatePicker from "../ui/date-picker";
-import { useTableRepository } from "@/src/db";
 import { useDataStore } from "@/src/stores";
 import type {
     Category,
@@ -48,11 +47,10 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
     const [fixed_id, setFixedId] = useState<number | undefined>(undefined)
     const [value, setValue] = useState<string>("")
     const [group_id, setGroupId] = useState<number>(group?.id || 0)
-    const { fetchRecords, handler: recordsHandler } = useRecords()
+    const { fetchRecords, saveRecord, fetchPaidCreditsByGroup } = useRecords()
     const { ToastContainer, showToast } = useToast()
     const toast = useAndroidToast()
     const { RecordTypes, PaymentMethods, Categories } = useDataStore()
-    const handler = useTableRepository('PaidCredits')
     const { configs: { paymentCreditType } } = useConfigs()
 
     useEffect(() => {
@@ -94,41 +92,35 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
             fixed_id
         }
 
-        const payment: Insertable<PaidCredit> = {
-            group_id,
-            amount: parseMoneyToCents(value),
-            date,
-            payment_method_id: to_pay_method?.id || 0,
-        }
+        const paidCredit: Insertable<PaidCredit> | null =
+            type.id === paymentCreditType && to_pay_method?.id
+                ? {
+                    group_id,
+                    amount: parseMoneyToCents(value),
+                    date,
+                    payment_method_id: to_pay_method.id,
+                }
+                : null
 
         try {
+            await saveRecord({
+                record: newItem,
+                recordId: item?.id,
+                paidCredit,
+                paidCreditId: item?.paid_credit_id ?? null,
+            })
+
             if (item?.id) {
-                let paid_credit_id: number | undefined
-                if (type.id == paymentCreditType && to_pay_method?.id && !item.paid_credit_id) {
-                    paid_credit_id = await handler.add(payment)
-                } else if (type.id == paymentCreditType && to_pay_method?.id && item.paid_credit_id) {
-                    paid_credit_id = item.paid_credit_id
-                    await handler.edit({ ...payment, id: item.paid_credit_id })
-                } else if (type.id != paymentCreditType && item.paid_credit_id) {
-                    await handler.deleteById(item.paid_credit_id)
-                }
-                newItem.paid_credit_id = paid_credit_id ?? null
-                await recordsHandler.edit({ ...newItem, id: item.id })
                 toast.editedMessage()
             } else {
-                let paid_credit_id: number | undefined
-                if (type.id == paymentCreditType && to_pay_method?.id) {
-                    paid_credit_id = await handler.add(payment)
-                }
-                newItem.paid_credit_id = paid_credit_id ?? null
-                await recordsHandler.add(newItem)
                 toast.addedMessage()
                 setName("")
                 setValue("")
             }
+
             const records = await fetchRecords(group_id)
-            const credits = await handler.fetchWithWhere("group_id", group_id) as PaidCredit[]
-            setRecords(records)
+            const credits = await fetchPaidCreditsByGroup(group_id)
+            setRecords(records ?? [])
             setPaidCredits(credits)
 
             // setResumes(await records.getAllResume(group_id))

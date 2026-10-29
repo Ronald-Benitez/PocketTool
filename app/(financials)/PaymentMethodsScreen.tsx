@@ -14,7 +14,7 @@ import InputLabel from '@/src/components/ui/InputLabel';
 import useAndroidToast from '@/src/hooks/useAndroidToast';
 import { PaymentType, PaymentMethod, Insertable } from '@/src/interfaces/schema';
 import { useDataStore} from '@/src/stores';
-import { useORM } from '@/src/orm';
+import { usePaymentMethods, useTableRepository } from '@/src/db';
 
 const PaymentMethodsScreen = () => {
     const { t } = useLanguage();
@@ -27,14 +27,19 @@ const PaymentMethodsScreen = () => {
     const { colors } = useColorStore();
     const toast = useAndroidToast()
     const { PaymentMethods, setPaymentMethods, PaymentTypes, setPaymentTypes } = useDataStore();
-    const paymentMethodOrm = useORM("PaymentMethods");
-    const paymentTypeOrm = useORM("PaymentTypes");
+    const {
+        fetchPaymentMethods,
+        addPaymentMethod,
+        updatePaymentMethod,
+        deletePaymentMethod,
+    } = usePaymentMethods();
+    const paymentTypesRepository = useTableRepository('PaymentTypes');
 
     useEffect(() => {
         const loadData = async () => {
-            const ormData = await paymentMethodOrm.join("PaymentTypes").getAll();
+            const ormData = await fetchPaymentMethods();
             setPaymentMethods(ormData);
-            const types = await paymentTypeOrm.getAll();
+            const types = await paymentTypesRepository.fetchAll();
             setPaymentTypes(types);
         };
 
@@ -49,13 +54,13 @@ const PaymentMethodsScreen = () => {
         const newPaymentMethod: Insertable<PaymentMethod> = { method_name: methodName, payment_type_id: type?.id || 1, closing_date: closingDate, payment_date: paidDate };
         try {
             if (editingId) {
-                await paymentMethodOrm.update(editingId, newPaymentMethod);
+                await updatePaymentMethod(editingId, newPaymentMethod);
                 toast.editedMessage()
             } else {
-                await paymentMethodOrm.insert(newPaymentMethod);
+                await addPaymentMethod(newPaymentMethod);
                 toast.addedMessage()
             }
-            const data = await paymentMethodOrm.join("PaymentTypes").getAll();
+            const data = await fetchPaymentMethods();
             setPaymentMethods(data);
             setMethodName('');
             setType(null);
@@ -70,8 +75,8 @@ const PaymentMethodsScreen = () => {
     const handleDeletePaymentMethod = async (id: number | undefined) => {
         if (!id) return;
         try {
-            await paymentMethodOrm.delete(id);
-            const data = await paymentMethodOrm.join("PaymentTypes").getAll();
+            await deletePaymentMethod(id);
+            const data = await fetchPaymentMethods();
 
             toast.deletedMessage()
             setPaymentMethods(data);

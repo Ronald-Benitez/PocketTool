@@ -11,8 +11,7 @@ import BaseSelect from "../ui/base-select";
 import LabelBlock from "../ui/LabelBlock";
 import useAndroidToast from "@/src/hooks/useAndroidToast";
 import DatePicker from "../ui/date-picker";
-import { useORM } from "@/src/orm";
-import type { JoinPath } from "@/src/orm";
+import { usePaidCredits, usePaymentMethods, useRecords, useTableRepository } from "@/src/db";
 import type {
     Category,
     Insertable,
@@ -52,19 +51,19 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     const [recordTypes, setRecordTypes] = useState<RecordType[]>([])
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethodWithRelations[]>([])
     const [categories, setCategories] = useState<Category[]>([])
-    const recordsOrm = useORM("Records")
-    const paidCreditsOrm = useORM("PaidCredits")
-    const recordTypesOrm = useORM("RecordTypes")
-    const paymentMethodsOrm = useORM("PaymentMethods")
-    const categoriesOrm = useORM("Categories")
+    const { fetchRecords, saveRecord, fetchPaidCreditsByGroup } = useRecords()
+    const { fetchById: fetchPaidCreditById } = usePaidCredits()
+    const { fetchPaymentMethods } = usePaymentMethods()
+    const recordTypesRepository = useTableRepository("RecordTypes")
+    const categoriesRepository = useTableRepository("Categories")
     const { configs: { paymentCreditType } } = useConfigs()
 
     useEffect(() => {
         const loadOptions = async () => {
             const [loadedRecordTypes, loadedPaymentMethods, loadedCategories] = await Promise.all([
-                recordTypesOrm.getAll(),
-                paymentMethodsOrm.join("PaymentTypes").getAll(),
-                categoriesOrm.getAll()
+                recordTypesRepository.fetchAll(),
+                fetchPaymentMethods(),
+                categoriesRepository.fetchAll()
             ])
             setRecordTypes(loadedRecordTypes)
             setPaymentMethods(loadedPaymentMethods)
@@ -94,8 +93,8 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
         setFixedId(item.fixed_id ?? undefined)
         const loadPaidMethod = async () => {
             const paidCredit = item.paid_credit_id
-                ? (await paidCreditsOrm.where("id", item.paid_credit_id, "=").getAll())[0]
-                : undefined
+                ? await fetchPaidCreditById(item.paid_credit_id)
+                : null
             const paymentMethodId = item.paid_method_id ?? paidCredit?.payment_method_id
             setToPayMethod(paymentMethods.find(pay => pay.id === paymentMethodId))
         }
@@ -115,27 +114,15 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
         }
 
         try {
-            let paidCreditId = item?.paid_credit_id ?? null
-            if (type.id === paymentCreditType && to_pay_method?.id) {
-                const payment: Insertable<PaidCredit> = {
-                    group_id,
-                    amount: parseMoneyToCents(value),
-                    date,
-                    payment_method_id: to_pay_method.id,
-                }
-
-                if (item?.id && paidCreditId !== null) {
-                    await paidCreditsOrm.update(paidCreditId, payment)
-                } else {
-                    paidCreditId = await paidCreditsOrm.insert(payment) ?? null
-                    if (paidCreditId === null) {
-                        throw new Error("No se pudo crear el crédito asociado al registro")
+            const paidCredit: Insertable<PaidCredit> | null =
+                type.id === paymentCreditType && to_pay_method?.id
+                    ? {
+                        group_id,
+                        amount: parseMoneyToCents(value),
+                        date,
+                        payment_method_id: to_pay_method.id,
                     }
-                }
-            } else if (paidCreditId !== null) {
-                await paidCreditsOrm.delete(paidCreditId)
-                paidCreditId = null
-            }
+                    : null
 
             const newItem: Insertable<RecordEntry> = {
                 date,
@@ -146,28 +133,26 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                 category_id: category.id,
                 payment_method_id: payment_method.id,
                 fixed_id,
-                paid_credit_id: paidCreditId
             }
 
+            await saveRecord({
+                record: newItem,
+                recordId: item?.id,
+                paidCredit,
+                paidCreditId: item?.paid_credit_id ?? null,
+            })
+
             if (item?.id) {
-                await recordsOrm.update(item.id, newItem)
                 toast.editedMessage()
             } else {
-                const recordId = await recordsOrm.insert(newItem)
-                if (recordId === undefined) throw new Error("No se pudo crear el registro")
                 toast.addedMessage()
                 setName("")
                 setValue("")
             }
 
-            const relationPaths = Object.keys(recordsOrm.availableJoins) as JoinPath<"Records">[]
-            const records = await recordsOrm
-                .joinMany(relationPaths)
-                .where("group_id", group_id, "=")
-                .order("date", "ASC")
-                .getAll()
-            const credits = await paidCreditsOrm.where("group_id", group_id, "=").getAll()
-            setRecords(records)
+            const records = await fetchRecords(group_id)
+            const credits = await fetchPaidCreditsByGroup(group_id)
+            setRecords(records ?? [])
             setPaidCredits(credits)
         } catch (e) {
             console.error("Error al guardar el registro:", e)

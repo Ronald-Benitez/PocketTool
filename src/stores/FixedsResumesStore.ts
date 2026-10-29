@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 import { create } from "zustand";
 
 import useConfigs from "../hooks/useConfigs";
-import { RecordTypes, PaymentTypes, PaymentMethods, Categories } from "../db/types/tables";
+import type {
+    RecordType as RecordTypes,
+    PaymentType as PaymentTypes,
+    PaymentMethod as PaymentMethods,
+    Category as Categories,
+} from "../interfaces/schema";
 import { useDataStore } from ".";
 interface totalPerRecordType extends RecordTypes {
     total: number;

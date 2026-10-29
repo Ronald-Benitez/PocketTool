@@ -9,9 +9,16 @@ import SwipeItem from '../ui/swipe-item'
 import AddGroup from './add-group'
 import Input from '../ui/Input'
 import { useDataStore } from '@/src/stores'
-import { useORM } from '@/src/orm'
 import { Group } from '@/src/interfaces/schema'
-import { useFixeds, usePaymentMethods, useRecords } from '@/src/db'
+import {
+    useCategories,
+    useFixeds,
+    useGroups,
+    usePaidCredits,
+    usePaymentMethods,
+    useRecords,
+    useTableRepository,
+} from '@/src/db'
 import useConfigs from '@/src/hooks/useConfigs'
 
 const GroupSelector = () => {
@@ -22,12 +29,11 @@ const GroupSelector = () => {
     const [openUpdate, setOpenUpdate] = useState(false)
     const { setCategories, setPaymentMethods, setRecordTypes, setPaymentTypes, setFixeds } = useDataStore()
     
-    const groupsOrm = useORM("Groups")
-    const categoriesOrm = useORM("Categories")
-    const recordTypesOrm = useORM("RecordTypes")
-    const paymentTypesOrm = useORM("PaymentTypes")
-    const creditsOrm = useORM("PaidCredits")
-    const recordsOrm = useORM("Records")
+    const groupsOrm = useGroups()
+    const { fetchCategories } = useCategories()
+    const recordTypesRepository = useTableRepository('RecordTypes')
+    const paymentTypesRepository = useTableRepository('PaymentTypes')
+    const { fetchByGroup: fetchPaidCreditsByGroup } = usePaidCredits()
     const { fetchFixeds } = useFixeds()
     const { fetchPaymentMethods } = usePaymentMethods()
     const { fetchRecords } = useRecords()
@@ -40,10 +46,10 @@ const GroupSelector = () => {
 
     const loadData = async () => {
         try {
-            const categories = await categoriesOrm.getAll()
+            const categories = await fetchCategories()
             const payments = await fetchPaymentMethods()
-            const recordTypes = await recordTypesOrm.getAll()
-            const paymentTypes = await paymentTypesOrm.getAll()
+            const recordTypes = await recordTypesRepository.fetchAll()
+            const paymentTypes = await paymentTypesRepository.fetchAll()
             const fixeds = await fetchFixeds()
             setCategories(categories)
             setPaymentMethods(payments)
@@ -57,7 +63,7 @@ const GroupSelector = () => {
     }
 
     const getGroups = async () => {
-        const groups = await groupsOrm.where('year', year, '=').getAll()
+        const groups = await groupsOrm.fetchGroupsByYear(year)
         setGroups(groups)
     }
 
@@ -72,7 +78,7 @@ const GroupSelector = () => {
         await fetchRecords(group.id).then((res) => {
             setRecords(res ?? [])
         })
-        await creditsOrm.where('group_id', group.id, "=").getAll().then((res) => {
+        await fetchPaidCreditsByGroup(group.id).then((res) => {
             setPaidCredits(res)
         })
         setModalVisible(false)
@@ -93,12 +99,12 @@ const GroupSelector = () => {
         const pinned = await AsyncStorage.getItem('group');
         if (pinned) {
             const p = Number(pinned)
-            groupsOrm.where('id', p, '=').getAll().then((gs) => {
-                onSelect(gs[0])
+            groupsOrm.fetchGroupsById(p).then((g) => {
+                if (g) onSelect(g)
             })
         } else {
-            groupsOrm.order({ column: "id", direction: "DESC" }).getAll().then((gs) => {
-                onSelect(gs[0])
+            groupsOrm.fetchLastGroup().then((g) => {
+                if (g) onSelect(g)
             })
         }
     }
@@ -109,14 +115,13 @@ const GroupSelector = () => {
 
     const handleDelete = async () => {
         if (!group?.id) return
-        await recordsOrm.delete(group.id, "group_id")
-        await groupsOrm.delete(group.id)
+        await groupsOrm.deleteGroup(group.id)
         const pinned = await AsyncStorage.getItem('group');
         if (pinned == String(group.id)) {
             await AsyncStorage.removeItem('group')
         }
-        groupsOrm.order({ column: "id", direction: "DESC" }).getAll().then((gs) => {
-            onSelect(gs[0])
+        groupsOrm.fetchLastGroup().then((g) => {
+            if (g) onSelect(g)
         })
         getGroups()
     }

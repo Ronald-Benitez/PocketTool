@@ -8,7 +8,6 @@ import useRecordsStore from '@/src/stores/RecordsStore';
 import ModalContainer from "../ui/modal-container";
 import InputLabel from "../ui/InputLabel";
 import useSavingsStore from "@/src/stores/SavingsStore";
-import { useTableRepository } from "@/src/db";
 import { Saving, SavingsHistoryEntry } from "@/src/interfaces/schema";
 import { centsToInput, parseMoneyToCents } from "@/src/utils";
 
@@ -25,8 +24,7 @@ const AddSaving = ({ isEditing = false, children, open }: AddItemProps) => {
     const [name, setName] = useState<string>("")
     const [value, setValue] = useState<string>("")
     const { addSavings, fetchSavings, updateSavings, } = useSavings()
-    const { fetchSavingsHistoryBySavingId } = useSavingsHistory()
-    const historyHandler = useTableRepository("SavingsHistory")
+    const { addHistory, fetchBySavingId } = useSavingsHistory()
 
     const { ToastContainer, showToast } = useToast()
     const { saving, setSaving, setSavingsHistory, setSavings } = useSavingsStore()
@@ -60,8 +58,8 @@ const AddSaving = ({ isEditing = false, children, open }: AddItemProps) => {
                 change_date: new Date().getTime(),
                 previous_amount: saving.amount,
             }
-            await historyHandler.add(newHistory)
-            const history = await historyHandler.fetchWithWhere("savings_id", saving.id) as SavingsHistoryEntry[]
+            await addHistory(newHistory)
+            const history = await fetchBySavingId(saving.id)
             setSaving({
                 ...saving,
                 amount,

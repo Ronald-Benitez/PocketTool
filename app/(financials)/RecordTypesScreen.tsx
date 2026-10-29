@@ -13,7 +13,7 @@ import useAndroidToast from '@/src/hooks/useAndroidToast';
 import { RecordType, Insertable } from '@/src/interfaces/schema';
 import { useDataStore } from '@/src/stores';
 import ColorPicker2 from '@/src/components/ui/color-picker-2';
-import { useORM } from '@/src/orm';
+import { useTableRepository } from '@/src/db';
 
 type EffectType = "-" | "=" | "+";
 
@@ -26,11 +26,11 @@ const RecordTypesScreen = () => {
     const [openModal, setOpenModal] = useState(false)
     const toast = useAndroidToast()
     const { RecordTypes, setRecordTypes } = useDataStore();
-    const orm = useORM("RecordTypes");
+    const repository = useTableRepository("RecordTypes");
 
     useEffect(() => {
         const loadData = async () => {
-            const ormData = await orm.getAll();
+            const ormData = await repository.fetchAll();
             setRecordTypes(ormData);
         };
         loadData();
@@ -44,13 +44,13 @@ const RecordTypesScreen = () => {
         const newData: Insertable<RecordType>  = { type_name: name, effect, record_color: color };
         try {
             if (editingId) {
-                await orm.update(editingId, newData);
+                await repository.edit({ ...newData, id: editingId });
                 toast.editedMessage()
             } else {
-                await orm.insert(newData);
+                await repository.add(newData);
                 toast.addedMessage()
             }
-            const methods = await orm.getAll();
+            const methods = await repository.fetchAll();
             setRecordTypes(methods);
             setName('');
             setColor('#000000');
@@ -65,8 +65,8 @@ const RecordTypesScreen = () => {
     const handleDelete = async (id: number | undefined) => {
         if (!id) return;
         try {
-            await orm.delete(id);
-            const methods = await orm.getAll();
+            await repository.deleteById(id);
+            const methods = await repository.fetchAll();
             toast.deletedMessage()
             setRecordTypes(methods);
         } catch (error) {

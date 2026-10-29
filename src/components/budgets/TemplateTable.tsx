@@ -14,18 +14,16 @@ import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
 import IconButton from '../ui/icon-button'
 import type { RecordFormEntry, RecordView } from '@/src/interfaces/schema'
 import { formatMoney, formatMoneyWithSymbol } from '@/src/utils'
-import { useRecords } from "@/src/db";
-import useResumesStore from '@/src/stores/ResumesStore'
+import { useRecords } from "@/src/db";import useResumesStore from '@/src/stores/ResumesStore'
 import { useCreditStore } from '@/src/stores/CreditsStore'
 import useConfigs from '@/src/hooks/useConfigs'
 import { useDataStore } from '@/src/stores'
 import styles from '@/src/styles/styles'
-import { useTableRepository } from '@/src/db'
 
 const TemplateTable = () => {
     const [selected, setSelected] = React.useState<RecordFormEntry | undefined>()
     const [openUpdate, setOpenUpdate] = React.useState<boolean>(false)
-    const { fetchRecords, handler: recordsHandler } = useRecords()
+    const { fetchRecords, deleteRecordWithCredit } = useRecords()
     const dateh = useDate()
     const { ToastContainer, showToast } = useToast()
     const { t } = useLanguage()
@@ -37,7 +35,6 @@ const TemplateTable = () => {
     const [creditRecords, setCreditRecords] = useState<RecordFormEntry[]>()
     const { configs: { paymentCreditType } } = useConfigs()
     const [fixedsToShow, setFixedsToShow] = useState<RecordFormEntry[]>([])
-    const creditsHandler = useTableRepository('PaidCredits')
 
     const selectePaymentCreditType = RecordTypes.find(e => e.id == paymentCreditType)
 
@@ -45,10 +42,7 @@ const TemplateTable = () => {
         if (!group?.id) return
         const toDelete = records[index]
         if (!toDelete?.id) return
-        await recordsHandler.deleteById(toDelete.id)
-        if (toDelete.paid_credit_id) {
-            await creditsHandler.deleteById(toDelete.paid_credit_id)
-        }
+        await deleteRecordWithCredit(toDelete.id, toDelete.paid_credit_id)
         const data = await fetchRecords(group.id)
         setRecords(data)
         showToast({ message: t("item.deleted"), type: "SUCCESS" })

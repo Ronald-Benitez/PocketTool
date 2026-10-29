@@ -14,7 +14,7 @@ import useDate from '@/src/hooks/useDate';
 import useBaseModal from '@/src/components/ui/base-modal';
 import styles from '@/src/styles/styles';
 import { Saving, SavingsHistoryWithRelations } from '@/src/interfaces/schema';
-import { useTableRepository } from '@/src/db';
+import { useSavings } from '@/src/db';
 import useColorStore from '@/src/stores/ColorsStore';
 import { formatMoney } from '@/src/utils';
 
@@ -24,8 +24,7 @@ const Index = () => {
     const [pinned, setPinned] = useState(saving?.id)
     const { CustomModal, showModal, hideModal } = useBaseModal(true)
     const [chartData, setChartData] = useState<lineDataItem[]>([])
-    const savingsHandler = useTableRepository("Savings")
-    const historyHandler = useTableRepository("SavingsHistory")
+    const { deleteSavings, fetchSavings } = useSavings()
     const date = useDate()
     const { colors } = useColorStore()
 
@@ -72,10 +71,9 @@ const Index = () => {
 
     const onConfirmDelete = async () => {
         if (!saving?.id) return
-        await savingsHandler.deleteById(saving.id)
-        await historyHandler.deleteWithWhere("savings_id", saving.id)
+        await deleteSavings(saving.id)
         setSaving(null)
-        const newSavings = await savingsHandler.fetchAll() as Saving[]
+        const newSavings = await fetchSavings() as Saving[]
         setSavings(newSavings)
         setSavingsHistory([])
         hideModal()
