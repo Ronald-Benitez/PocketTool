@@ -19,7 +19,7 @@ import {
     useRecords,
     useTableRepository,
 } from '@/src/db'
-import useConfigs from '@/src/hooks/useConfigs'
+import { useConfigs } from '@/src/hooks/useConfigs'
 
 const GroupSelector = () => {
     const { t } = useLanguage()

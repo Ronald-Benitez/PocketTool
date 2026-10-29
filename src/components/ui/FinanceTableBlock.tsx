@@ -17,7 +17,9 @@ interface props {
 
 const FinnanceTableBlock = ({ render, fixed, onSummarySelected }: props) => {
     const { t } = useLanguage()
-    const { balanceByCategory, balanceByPaymentMethod, balanceByPaymentType } = fixed ? useFixedsResumesStore() : useResumesStore()
+    const resumes = useResumesStore()
+    const fixedsResumes = useFixedsResumesStore()
+    const { balanceByCategory, balanceByPaymentMethod, balanceByPaymentType } = fixed ? fixedsResumes : resumes
 
     const renderCategories = (
         <View style={localStyles.container}>

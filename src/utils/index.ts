@@ -40,5 +40,5 @@ export const formatMoney = (cents: number | null | undefined): string => {
 export const formatMoneyWithSymbol = (cents: number | null | undefined): string =>
   `$${formatMoney(cents)}`;
 
-export const sumCents = (values: Array<number | null | undefined>): number =>
+export const sumCents = (values: (number | null | undefined)[]): number =>
   values.reduce<number>((total, value) => total + (Number(value) || 0), 0);

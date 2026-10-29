@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import useConfigs from "../hooks/useConfigs";
+import { useConfigs } from "../hooks/useConfigs";
 import useRecordsStore from "./RecordsStore";
 import type {
     Category,

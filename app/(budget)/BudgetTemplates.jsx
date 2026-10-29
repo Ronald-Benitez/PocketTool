@@ -11,7 +11,7 @@ import styles from '@/src/styles/styles'
 import useRecordsStore from '@/src/stores/RecordsStore';
 
 const Index = () => {
-    const [pinned, setPinned] = useState<number>(0)
+    const [pinned, setPinned] = useState(0)
     const setRecordsState = useRecordsStore((state) => state.setRecords)
     const { group, setRecords } = useRecordsStore()
 

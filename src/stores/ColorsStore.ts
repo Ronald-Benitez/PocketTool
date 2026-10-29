@@ -19,7 +19,7 @@ const useColorStore = create<ColorsState>()((set) => ({
 
       const updatedColors = { ...parsedColors };
 
-      for (const key of Object.keys(colorsJson) as Array<keyof ColorScheme>) {
+      for (const key of Object.keys(colorsJson) as (keyof ColorScheme)[]) {
         if (!(key in updatedColors)) {
           updatedColors[key] = colorsJson[key];
         }

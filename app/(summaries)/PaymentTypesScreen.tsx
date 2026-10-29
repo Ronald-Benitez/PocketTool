@@ -15,7 +15,7 @@ const PaymentTypesScreen = () => {
     const onSummarySelected = async (id: number | undefined, idRecordType: number | undefined) => {
         if (!id) return;
         try {
-            const filters: Array<{ column: string; value: string | number | null }> = [
+            const filters: { column: string; value: string | number | null }[] = [
                 { column: "PaymentMethods.payment_type_id", value: id },
                 { column: "Records.group_id", value: group?.id ?? null }
             ]

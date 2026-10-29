@@ -15,7 +15,7 @@ import useResumesStore from '@/src/stores/ResumesStore';
 import { useDataStore } from '@/src/stores';
 import type { FixedView, RecordFormEntry } from '@/src/interfaces/schema';
 import { formatMoney, formatMoneyWithSymbol } from '@/src/utils';
-import useConfigs from '@/src/hooks/useConfigs';
+import { useConfigs } from '@/src/hooks/useConfigs';
 
 const Index = () => {
     const { t } = useLanguage();

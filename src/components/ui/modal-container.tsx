@@ -14,7 +14,7 @@ export interface ModalContainerRef {
 interface AddGroupProps {
     children?: React.ReactNode,
     buttonOpen: React.JSX.Element | ReactNode,
-    title?: String,
+    title?: string,
     type?: "select" | "complete"
     onAccept?: () => void,
     closeOnAccept?: boolean,
@@ -138,5 +138,7 @@ const localStyles = StyleSheet.create({
         gap: 20,
     }
 })
+
+ModalContainer.displayName = 'ModalContainer';
 
 export default ModalContainer

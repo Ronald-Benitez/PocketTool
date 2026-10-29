@@ -22,6 +22,7 @@ export const RecordsModal = forwardRef<RecordsModalRef, {}>(
         const [isVisible, setIsVisible] = useState(false) 
         const { t } = useLanguage()
         const { colors } = useColorStore() 
+        const dateh = useDate()
 
         const handleClose = () => {
             setRecords([])
@@ -62,13 +63,13 @@ export const RecordsModal = forwardRef<RecordsModalRef, {}>(
                                                 <View style={localStyles.rowContainer}>
                                                     <View style={localStyles.dateContainer}>
                                                         <Text style={localStyles.dateText}>
-                                                            {useDate().getStringDay(String(item.date))}
+                                                            {dateh.getStringDay(String(item.date))}
                                                         </Text>
                                                         <Text style={localStyles.dateText}>
-                                                            {useDate().getDay(String(item.date))}
+                                                            {dateh.getDay(String(item.date))}
                                                         </Text>
                                                         <Text style={localStyles.dateText}>
-                                                            {useDate().getStringMonth(String(item.date))}
+                                                            {dateh.getStringMonth(String(item.date))}
                                                         </Text>
                                                     </View>
                                                     <Text style={localStyles.nameText}>{item.record_name}</Text>
@@ -91,6 +92,8 @@ export const RecordsModal = forwardRef<RecordsModalRef, {}>(
         )
     }
 )
+
+RecordsModal.displayName = 'RecordsModal';
 
 export default RecordsModal;
 

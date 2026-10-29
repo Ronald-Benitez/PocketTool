@@ -8,7 +8,7 @@ import ColorSettings from "@/src/components/settings/colors-settings"
 import IconButton from '@/src/components/ui/icon-button';
 import { useDBExport } from '@/src/db/utils';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import useConfigs from '@/src/hooks/useConfigs';
+import { useConfigs } from '@/src/hooks/useConfigs';
 import { useDataStore } from '@/src/stores';
 import BaseSelect from '@/src/components/ui/base-select';
 import BorderLeftBlock from '@/src/components/ui/BorderLeftBlock';

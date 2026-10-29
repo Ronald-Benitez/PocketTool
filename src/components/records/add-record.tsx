@@ -23,7 +23,7 @@ import type {
 } from "@/src/interfaces/schema";
 import styles from '@/src/styles/styles';
 import BorderLeftBlock from '@/src/components/ui/BorderLeftBlock';
-import useConfigs from "@/src/hooks/useConfigs";
+import { useConfigs } from "@/src/hooks/useConfigs";
 import { centsToInput, parseMoneyToCents } from "@/src/utils";
 
 interface AddItemProps {

@@ -44,7 +44,7 @@ export const seedReferenceData = async (db: SQLiteDatabase) => {
     );
   }
 
-  const paymentMethods: Array<[string, number, string]> = [
+  const paymentMethods: [string, number, string][] = [
     ['Visa', 15, 'Credit'],
     ['MasterCard', 20, 'Credit'],
     ['Cash', 0, 'Debit'],
@@ -107,7 +107,7 @@ export const seedSampleData = async (db: SQLiteDatabase) => {
   const cashId = await lookupId('PaymentMethods', 'method_name', 'Cash');
   const bankTransferId = await lookupId('PaymentMethods', 'method_name', 'Bank Transfer');
 
-  const records: Array<[number, string, number, number | null, number | null, number | null]> = [
+  const records: [number, string, number, number | null, number | null, number | null][] = [
     [100000, 'Salary for January', incomeId ?? 0, salaryId, visaId, groupId],
     [20000, 'Groceries', expenseId ?? 0, groceriesId, cashId, groupId],
     [15000, 'Gas', expenseId ?? 0, gasId, cashId, groupId],

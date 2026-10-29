@@ -32,7 +32,7 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
     };
 
     const t = (key: string) => {
-        const keys = key.split('.') as Array<keyof LanguageContent['groups']>;
+        const keys = key.split('.') as (keyof LanguageContent['groups'])[];
         let translation = language === 'en'
             ? { ...en, recordsFilters: recordsFiltersEn }
             : { ...es, recordsFilters: recordsFiltersEs };

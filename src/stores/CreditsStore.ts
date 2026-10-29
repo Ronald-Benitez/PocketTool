@@ -1,7 +1,7 @@
 import { create } from "zustand"
 import { useEffect, useState } from "react"
 import useRecordsStore from "./RecordsStore"
-import useConfigs from "../hooks/useConfigs"
+import { useConfigs } from "../hooks/useConfigs"
 import { useDataStore } from "."
 import { PaymentMethod } from "../interfaces/schema"
 import { useRecords } from "../db"

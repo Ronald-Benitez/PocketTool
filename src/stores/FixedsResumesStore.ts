@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { create } from "zustand";
 
-import useConfigs from "../hooks/useConfigs";
+import { useConfigs } from "../hooks/useConfigs";
 import type {
     RecordType as RecordTypes,
     PaymentType as PaymentTypes,

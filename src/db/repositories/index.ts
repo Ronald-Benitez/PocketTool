@@ -265,7 +265,7 @@ export const useRecordsRepository = () => {
     recordsOrm.where('group_id', group_id).count();
 
   const fetchRecordsWithMultipleWhere = async (
-    wheres: Array<{ column: string; value: string | number | null }>
+    wheres: { column: string; value: string | number | null }[]
   ): Promise<RecordView[] | undefined> => {
     if (wheres.length === 0) return;
     let query = recordsOrm.joinMany([...RECORD_JOINS]);

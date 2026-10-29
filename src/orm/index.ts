@@ -98,7 +98,7 @@ export type SqlOperator =
   | 'IS NOT'
   | 'BETWEEN';
 export type OrderDirection = 'ASC' | 'DESC';
-export type SqlValue = string | number | boolean | null | Array<string | number | boolean | null>;
+export type SqlValue = string | number | boolean | null | (string | number | boolean | null)[];
 
 export type WhereCondition<T extends TableOption> = {
   column: ColumnPath<T>;
@@ -293,7 +293,7 @@ export class ORM<T extends TableOption = TableOption> {
     return next;
   }
 
-  public whereMany(filters: Array<WhereCondition<T>>): ORM<T> {
+  public whereMany(filters: WhereCondition<T>[]): ORM<T> {
     return filters.reduce<ORM<T>>((query, filter) => query.where(filter), this);
   }
 
@@ -323,7 +323,7 @@ export class ORM<T extends TableOption = TableOption> {
     return next;
   }
 
-  public orderMany(filters: Array<OrderCondition<T>>): ORM<T> {
+  public orderMany(filters: OrderCondition<T>[]): ORM<T> {
     return filters.reduce<ORM<T>>((query, filter) => query.order(filter), this);
   }
 

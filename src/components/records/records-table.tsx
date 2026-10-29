@@ -19,7 +19,7 @@ import useColorStore from "@/src/stores/ColorsStore";
 import IconButton from "../ui/icon-button";
 import useResumesStore from "@/src/stores/ResumesStore";
 import { useCreditStore } from "@/src/stores/CreditsStore";
-import useConfigs from "@/src/hooks/useConfigs";
+import { useConfigs } from "@/src/hooks/useConfigs";
 import { useDataStore } from "@/src/stores";
 import styles from "@/src/styles/styles";
 import RecordsGroup from "./RecordsGroup";

@@ -25,7 +25,7 @@ import type {
 import { centsToInput, parseMoneyToCents } from "@/src/utils";
 import styles from '@/src/styles/styles';
 import BorderLeftBlock from '@/src/components/ui/BorderLeftBlock';
-import useConfigs from "@/src/hooks/useConfigs";
+import { useConfigs } from "@/src/hooks/useConfigs";
 
 interface AddItemProps {
     item?: RecordFormEntry

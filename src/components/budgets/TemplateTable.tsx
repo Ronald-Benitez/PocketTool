@@ -16,7 +16,7 @@ import type { RecordFormEntry, RecordView } from '@/src/interfaces/schema'
 import { formatMoney, formatMoneyWithSymbol } from '@/src/utils'
 import { useRecords } from "@/src/db";import useResumesStore from '@/src/stores/ResumesStore'
 import { useCreditStore } from '@/src/stores/CreditsStore'
-import useConfigs from '@/src/hooks/useConfigs'
+import { useConfigs } from '@/src/hooks/useConfigs'
 import { useDataStore } from '@/src/stores'
 import styles from '@/src/styles/styles'
 
