@@ -79,6 +79,7 @@ const AppDrawer = () => {
         drawerStyle: { backgroundColor: colors.surface },
         drawerActiveTintColor: colors.primary,
         drawerInactiveTintColor: colors.textMuted,
+        sceneStyle: { backgroundColor: colors.background },
       }}
     >
       <Drawer.Screen

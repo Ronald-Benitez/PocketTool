@@ -1,6 +1,6 @@
 import { View, ScrollView, StyleSheet } from 'react-native';
-import FinnanceTableBlock from '@/src/components/ui/FinanceTableBlock';
-import FinnanceTableChart from '@/src/components/ui/FinanceTableChart';
+import FinnanceTableBlock from '@/src/components/summaries/FinanceTableBlock';
+import FinnanceTableChart from '@/src/components/summaries/FinanceTableChart';
 import useRecordsStore from '@/src/stores/RecordsStore';
 import { useRecords } from '@/src/db';
 import { useRef, useState } from 'react';

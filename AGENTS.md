@@ -15,7 +15,7 @@ métodos de pago, créditos, ahorros y vehículo.
 - **Fase 2 — Repositorios y ORM robusto: FINALIZADA** (2026-10-28).
 - **Fase 3 — Calidad, pruebas y operación: FINALIZADA** (2026-10-28).
 - **Fase 4 — Sistema de UI reutilizable: EN PROGRESO**. UI-0, UI-0b, UI-1,
-  UI-2, UI-2b, UI-2c y UI-3 completadas; UI-4 pendiente.
+  UI-2, UI-2b, UI-2c y UI-3 completadas; UI-4 parcial (pendiente checklist visual).
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -58,6 +58,9 @@ commits relevantes, archivos tocados y verificaciones realizadas.
   `SummaryBlock`, `SummaryGroup` y `AccentRow`; `FinanceValue` recibe centavos y
   usa el tema.
 - `src/ui/index.ts`: barrel público del sistema de UI.
+- `src/styles/useThemedStyles.ts`: adapta los estilos legacy al tema activo.
+- `src/components/summaries/`: `FinanceTableBlock`/`FinanceTableChart` con
+  `SummaryGroup`.
 - `app/gallery.tsx`: galería de desarrollo, oculta del drawer.
 - No crear toasts o modales locales; usar `ToastProvider` y `src/ui`.
 - `eslint.config.js` bloquea `TextInput`, `Modal`, `Alert` y `ToastAndroid` de

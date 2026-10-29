@@ -3,50 +3,53 @@ import React from 'react'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
+import { useTheme } from '@/src/ui/theme/ThemeProvider'
 
-import styles from '@/src/styles/styles'
+import { useThemedStyles } from '@/src/styles/useThemedStyles'
 
 const Index = () => {
     const { t } = useLanguage()
+    const { colors } = useTheme()
+    const styles = useThemedStyles()
 
     return (
         <ScrollView>
             <View style={styles.container}>
-                <View style={localStyles.helpContainer}>
+                <View style={[localStyles.helpContainer, styles.surface]}>
                     <View style={localStyles.titleContainer}>
-                        <Text style={localStyles.helpTitle}>{t('help.title.financials')}</Text>
-                        <Ionicons name="wallet-outline" size={24} color={"#000"} />
+                        <Text style={[localStyles.helpTitle, styles.textPrimary]}>{t('help.title.financials')}</Text>
+                        <Ionicons name="wallet-outline" size={24} color={colors.text} />
                     </View>
-                    <Text style={localStyles.helpDescription}>{t('help.description.financials')}</Text>
+                    <Text style={[localStyles.helpDescription, styles.textMuted]}>{t('help.description.financials')}</Text>
                 </View>
-                <View style={localStyles.helpContainer}>
+                <View style={[localStyles.helpContainer, styles.surface]}>
                     <View style={localStyles.titleContainer}>
-                        <Text style={localStyles.helpTitle}>{t('help.title.summary')}</Text>
-                        <Ionicons name="stats-chart-outline" size={24} color={"#000"} />
+                        <Text style={[localStyles.helpTitle, styles.textPrimary]}>{t('help.title.summary')}</Text>
+                        <Ionicons name="stats-chart-outline" size={24} color={colors.text} />
                     </View>
-                    <Text style={localStyles.helpDescription}>{t('help.description.summary')}</Text>
+                    <Text style={[localStyles.helpDescription, styles.textMuted]}>{t('help.description.summary')}</Text>
                 </View>
-                <View style={localStyles.helpContainer}>
+                <View style={[localStyles.helpContainer, styles.surface]}>
                     <View style={localStyles.titleContainer}>
-                        <Text style={localStyles.helpTitle}>{t('help.title.budgets')}</Text>
+                        <Text style={[localStyles.helpTitle, styles.textPrimary]}>{t('help.title.budgets')}</Text>
 
-                        <Ionicons name="wallet-outline" size={24} color={"#000"} />
+                        <Ionicons name="wallet-outline" size={24} color={colors.text} />
                     </View>
-                    <Text style={localStyles.helpDescription}>{t('help.description.budgets')}</Text>
+                    <Text style={[localStyles.helpDescription, styles.textMuted]}>{t('help.description.budgets')}</Text>
                 </View>
-                <View style={localStyles.helpContainer}>
+                <View style={[localStyles.helpContainer, styles.surface]}>
                     <View style={localStyles.titleContainer}>
-                        <Text style={localStyles.helpTitle}>{t('help.title.credits')}</Text>
-                        <MaterialCommunityIcons name="bank-off-outline" size={24} color={"#000"} />
+                        <Text style={[localStyles.helpTitle, styles.textPrimary]}>{t('help.title.credits')}</Text>
+                        <MaterialCommunityIcons name="bank-off-outline" size={24} color={colors.text} />
                     </View>
-                    <Text style={localStyles.helpDescription}>{t('help.description.credits')}</Text>
+                    <Text style={[localStyles.helpDescription, styles.textMuted]}>{t('help.description.credits')}</Text>
                 </View>
-                <View style={localStyles.helpContainer}>
+                <View style={[localStyles.helpContainer, styles.surface]}>
                     <View style={localStyles.titleContainer}>
-                        <Text style={localStyles.helpTitle}>{t('help.title.savings')}</Text>
-                        <MaterialCommunityIcons name="piggy-bank-outline" size={24} color={"#000"} />
+                        <Text style={[localStyles.helpTitle, styles.textPrimary]}>{t('help.title.savings')}</Text>
+                        <MaterialCommunityIcons name="piggy-bank-outline" size={24} color={colors.text} />
                     </View>
-                    <Text style={localStyles.helpDescription}>{t('help.description.savings')}</Text>
+                    <Text style={[localStyles.helpDescription, styles.textMuted]}>{t('help.description.savings')}</Text>
                 </View>
 
             </View >
@@ -57,7 +60,6 @@ const Index = () => {
 const localStyles = StyleSheet.create({
     helpContainer: {
         padding: 10,
-        backgroundColor: 'white',
         borderRadius: 5,
         margin: 10,
         flex: 1,

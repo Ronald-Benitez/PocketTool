@@ -2,9 +2,10 @@ import { View, TouchableOpacity } from 'react-native'
 
 import Table from '@/src/components/budgets/budgets-table'
 import GroupSelector from '@/src/components/groups/group-selector'
-import styles from '@/src/styles/styles'
+import { useThemedStyles } from '@/src/styles/useThemedStyles'
 
 const Index = () => {
+    const styles = useThemedStyles()
 
     return (
         <View style={styles.container}>

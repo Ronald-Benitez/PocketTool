@@ -32,8 +32,9 @@ pero no se carga en el contexto diario.
   CI en `.github/workflows/ci.yml`.
 - **UI:** `src/ui/theme/` implementa tokens, paletas base bright/dark,
   `ThemeProvider`, modo `system`/`light`/`dark`, persistencia, migración y
-  contraste. Los componentes legacy de `src/components/ui` siguen en uso y se
-  migran incrementalmente en Fase 4.
+  contraste. `src/components/ui` fue retirado; los resúmenes viven en
+  `src/components/summaries` y los estilos legacy se adaptan con
+  `src/styles/useThemedStyles.ts`.
 
 ## Fase 4 — Sistema de UI reutilizable
 
@@ -200,11 +201,14 @@ Pendiente de UI-3: ninguno.
   usan directamente el `ToastProvider`.
 - Eliminados `icon-button`, `confirm-modal`, `modal-button`, `color-text`,
   `DetailedFinanceBlock`, `dropdown` y `shake-animation`.
+- `src/components/ui` retirado; `FinanceTableBlock`/`FinanceTableChart` movidos a
+  `src/components/summaries`.
+- `src/styles/useThemedStyles.ts` adapta los estilos legacy al tema activo;
+  `sceneStyle` del drawer usa el fondo del tema.
 - Tests de render ampliados con `SummaryGroup` y `AccentRow`.
 - Verificado: `npm run ci` y `npm run lint` con 0 errores.
 
-Pendiente de UI-4: revisar dark mode en estilos legacy y completar el checklist
-visual final.
+Pendiente de UI-4: completar el checklist visual en iOS/Android/web.
 
 ## Documentación
 

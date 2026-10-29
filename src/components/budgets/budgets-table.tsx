@@ -5,7 +5,7 @@ import { AntDesign } from '@expo/vector-icons'
 import { useLanguage } from '@/src/lang/LanguageContext'
 import type { BudgetItemView } from '@/src/interfaces/schema'
 import { formatMoneyWithSymbol } from '@/src/utils'
-import styles from '@/src/styles/styles'
+import { useThemedStyles } from '@/src/styles/useThemedStyles'
 import { SwipeAction } from '@/src/ui/actions/SwipeAction'
 import useDate from '@/src/hooks/useDate'
 import { useRecords, useBudget } from '@/src/db'
@@ -21,6 +21,7 @@ import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock'
 
 
 const ItemsTable = () => {
+    const styles = useThemedStyles()
     const [selected, setSelected] = React.useState<BudgetItemView | undefined>()
     const [openUpdate, setOpenUpdate] = React.useState<boolean>(false)
     const { showToast } = useToast()
@@ -178,16 +179,16 @@ const ItemsTable = () => {
                                     bottomColor={colors ? (Number(getPercentage(item)) > 100 ? colors.ExpenseColor : colors.GoalColor) : ""}
                                 >
                                     <View style={localStyles.rowContainer}>
-                                        <Text style={localStyles.nameText}>{getName(item.category_name ?? "")}</Text>
+                                        <Text style={[localStyles.nameText, styles.textPrimary]}>{getName(item.category_name ?? "")}</Text>
                                         <View style={localStyles.colContainer}>
-                                            <Text style={localStyles.typeText}>{t("budget.budget")}</Text>
-                                            <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.amount)}</Text>
+                                            <Text style={[localStyles.typeText, styles.textMuted]}>{t("budget.budget")}</Text>
+                                            <Text style={[localStyles.valueText, styles.textPrimary]}>{formatMoneyWithSymbol(item.amount)}</Text>
                                         </View>
                                         <View style={localStyles.colContainer}>
-                                            <Text style={localStyles.typeText}>{t("budget.current")}</Text>
-                                            <Text style={localStyles.valueText}>{formatMoneyWithSymbol(findInResume(item))}</Text>
+                                            <Text style={[localStyles.typeText, styles.textMuted]}>{t("budget.current")}</Text>
+                                            <Text style={[localStyles.valueText, styles.textPrimary]}>{formatMoneyWithSymbol(findInResume(item))}</Text>
                                         </View>
-                                        <Text style={localStyles.percentageText}>{getPercentage(item)}%</Text>
+                                        <Text style={[localStyles.percentageText, styles.textPrimary]}>{getPercentage(item)}%</Text>
                                     </View>
                                 </AccentRow>
                             </SwipeAction>

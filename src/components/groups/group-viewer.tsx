@@ -3,7 +3,8 @@ import React, { SetStateAction, useEffect, useState, useTransition } from "react
 
 import { Group, RecordView } from "@/src/interfaces/schema"
 import { formatMoney } from "@/src/utils"
-import styles from "@/src/styles/styles"
+import { useThemedStyles } from '@/src/styles/useThemedStyles'
+import { useTheme } from '@/src/ui/theme/ThemeProvider'
 import { SwipeAction } from '@/src/ui/actions/SwipeAction'
 import AddGroup from "./add-group"
 import { useRecords, useGroups } from "@/src/db"
@@ -17,6 +18,8 @@ interface GroupViewerProps {
 }
 
 const GroupViewer = ({ group, setGroup, recordsI }: GroupViewerProps) => {
+    const styles = useThemedStyles()
+    const { colors } = useTheme()
     const { t } = useLanguage()
     const [openUpdate, setOpenUpdate] = React.useState<boolean>(false)
     const [totalIncomes, setTotalIncomes] = useState(0)
@@ -25,9 +28,9 @@ const GroupViewer = ({ group, setGroup, recordsI }: GroupViewerProps) => {
     const records = useRecords()
     const { showToast } = useToast()
 
-    const ec = "#FF7B54"
-    const ic = "#798645"
-    const gc = "blue"
+    const ec = colors.expense
+    const ic = colors.income
+    const gc = colors.goal
 
     useEffect(() => {
         const load = async () => {
@@ -49,7 +52,6 @@ const GroupViewer = ({ group, setGroup, recordsI }: GroupViewerProps) => {
                     borderWidth: 2,
                     borderTopWidth: 0,
                     borderBottomWidth: 0,
-                    color: ic,
                 }
             case "e":
                 return {
@@ -57,13 +59,11 @@ const GroupViewer = ({ group, setGroup, recordsI }: GroupViewerProps) => {
                     borderWidth: 2,
                     borderTopWidth: 0,
                     borderBottomWidth: 0,
-                    color: ec,
                 }
             case "g": {
                 return {
                     borderBottomColor: gc,
                     borderBottomWidth: 2,
-                    color: gc
                 }
             }
         }

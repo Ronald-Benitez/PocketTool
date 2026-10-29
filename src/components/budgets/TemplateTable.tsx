@@ -17,9 +17,10 @@ import { useRecords } from "@/src/db";import useResumesStore from '@/src/stores/
 import { useCreditStore } from '@/src/stores/CreditsStore'
 import { useConfigs } from '@/src/hooks/useConfigs'
 import { useDataStore } from '@/src/stores'
-import styles from '@/src/styles/styles'
+import { useThemedStyles } from '@/src/styles/useThemedStyles'
 
 const TemplateTable = () => {
+    const styles = useThemedStyles()
     const [selected, setSelected] = React.useState<RecordFormEntry | undefined>()
     const [openUpdate, setOpenUpdate] = React.useState<boolean>(false)
     const { fetchRecords, deleteRecordWithCredit } = useRecords()
@@ -121,7 +122,7 @@ const TemplateTable = () => {
             <View
                 style={localStyles.rowContainer}
             >
-                <Text style={[localStyles.balanceText, color(balance < 0 ? "expense" : "income")]}>
+                <Text style={[localStyles.balanceText, styles.textPrimary, color(balance < 0 ? "expense" : "income")]}>
                     $ {formatMoney(balance)}
                 </Text>
                 <View style={[{ position: "absolute", right: 0, top: 0 }]}>
@@ -152,18 +153,18 @@ const TemplateTable = () => {
                                 >
                                     <View style={localStyles.rowContainer}>
                                         <View style={localStyles.dateContainer}>
-                                            <Text style={localStyles.dateText}>
+                                            <Text style={[localStyles.dateText, styles.textMuted]}>
                                                 {dateh.getStringDay(String(item.date))}
                                             </Text>
-                                            <Text style={localStyles.dateText}>
+                                            <Text style={[localStyles.dateText, styles.textMuted]}>
                                                 {dateh.getDay(String(item.date))}
                                             </Text>
-                                            <Text style={localStyles.dateText}>
+                                            <Text style={[localStyles.dateText, styles.textMuted]}>
                                                 {dateh.getStringMonth(String(item.date))}
                                             </Text>
                                         </View>
-                                        <Text style={localStyles.nameText}>{item.record_name}</Text>
-                                        <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.amount)}</Text>
+                                        <Text style={[localStyles.nameText, styles.textPrimary]}>{item.record_name}</Text>
+                                        <Text style={[localStyles.valueText, styles.textPrimary]}>{formatMoneyWithSymbol(item.amount)}</Text>
                                     </View>
                                 </AccentRow>
                             </SwipeAction>
@@ -185,18 +186,18 @@ const TemplateTable = () => {
                                 >
                                     <View style={localStyles.rowContainer}>
                                         <View style={localStyles.dateContainer}>
-                                            <Text style={localStyles.dateText}>
+                                            <Text style={[localStyles.dateText, styles.textMuted]}>
                                                 {dateh.getStringDay(String(item.date))}
                                             </Text>
-                                            <Text style={localStyles.dateText}>
+                                            <Text style={[localStyles.dateText, styles.textMuted]}>
                                                 {dateh.getDay(String(item.date))}
                                             </Text>
-                                            <Text style={localStyles.dateText}>
+                                            <Text style={[localStyles.dateText, styles.textMuted]}>
                                                 {dateh.getStringMonth(String(item.date))}
                                             </Text>
                                         </View>
-                                        <Text style={localStyles.nameText}>{item.record_name}</Text>
-                                        <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.amount)}</Text>
+                                        <Text style={[localStyles.nameText, styles.textPrimary]}>{item.record_name}</Text>
+                                        <Text style={[localStyles.valueText, styles.textPrimary]}>{formatMoneyWithSymbol(item.amount)}</Text>
                                     </View>
                                 </AccentRow>
                             </Pressable>
@@ -218,18 +219,18 @@ const TemplateTable = () => {
                                 >
                                     <View style={localStyles.rowContainer}>
                                         <View style={localStyles.dateContainer}>
-                                            <Text style={localStyles.dateText}>
+                                            <Text style={[localStyles.dateText, styles.textMuted]}>
                                                 {dateh.getStringDay(String(item.date))}
                                             </Text>
-                                            <Text style={localStyles.dateText}>
+                                            <Text style={[localStyles.dateText, styles.textMuted]}>
                                                 {dateh.getDay(String(item.date))}
                                             </Text>
-                                            <Text style={localStyles.dateText}>
+                                            <Text style={[localStyles.dateText, styles.textMuted]}>
                                                 {dateh.getStringMonth(String(item.date))}
                                             </Text>
                                         </View>
-                                        <Text style={localStyles.nameText}>{item.record_name}</Text>
-                                        <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.amount)}</Text>
+                                        <Text style={[localStyles.nameText, styles.textPrimary]}>{item.record_name}</Text>
+                                        <Text style={[localStyles.valueText, styles.textPrimary]}>{formatMoneyWithSymbol(item.amount)}</Text>
                                     </View>
                                 </AccentRow>
                             </Pressable>

@@ -1,13 +1,14 @@
 import { View, ScrollView, StyleSheet } from 'react-native';
 import GroupSelector from '@/src/components/groups/group-selector';
-import styles from '@/src/styles/styles';
-import FinnanceTableBlock from '@/src/components/ui/FinanceTableBlock';
+import { useThemedStyles } from '@/src/styles/useThemedStyles';
+import FinnanceTableBlock from '@/src/components/summaries/FinanceTableBlock';
 import RecordsModal, { RecordsModalRef } from '@/src/components/records/RecordsModal';
 import { useRef } from 'react';
 import { useRecords } from '@/src/db';
 import useRecordsStore from '@/src/stores/RecordsStore';
 
 const CategoriesScreen = () => {
+    const styles = useThemedStyles()
     const { group } = useRecordsStore()
     const { fetchRecordsWithMultipleWhere } = useRecords()
     const recordsModalRef = useRef<RecordsModalRef | null>(null);

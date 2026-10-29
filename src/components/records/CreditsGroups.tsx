@@ -1,7 +1,7 @@
 import { View, Text, Pressable, StyleSheet } from "react-native"
 import { AccentRow } from '@/src/ui/data-display/AccentRow'
 import type { RecordFormEntry, RecordType } from "@/src/interfaces/schema"
-import styles from '@/src/styles/styles'
+import { useThemedStyles } from '@/src/styles/useThemedStyles'
 import useDate from "@/src/hooks/useDate"
 import { useLanguage } from "@/src/lang/LanguageContext"
 import { formatMoneyWithSymbol } from "@/src/utils"
@@ -13,6 +13,7 @@ type CreditsGroupsProps = {
 }
 
 export const CreditsGroups = ({ credits, selectedPaymentCreditType, onCreditPayment }: CreditsGroupsProps) => {
+    const styles = useThemedStyles()
     const dateh = useDate()
     const { t } = useLanguage()
 
@@ -37,18 +38,18 @@ export const CreditsGroups = ({ credits, selectedPaymentCreditType, onCreditPaym
                             >
                                 <View style={localStyles.rowContainer}>
                                     <View style={localStyles.dateContainer}>
-                                        <Text style={localStyles.dateText}>
+                                        <Text style={[localStyles.dateText, styles.textMuted]}>
                                             {dateh.getStringDay(String(item.date))}
                                         </Text>
-                                        <Text style={localStyles.dateText}>
+                                        <Text style={[localStyles.dateText, styles.textMuted]}>
                                             {dateh.getDay(String(item.date))}
                                         </Text>
-                                        <Text style={localStyles.dateText}>
+                                        <Text style={[localStyles.dateText, styles.textMuted]}>
                                             {dateh.getStringMonth(String(item.date))}
                                         </Text>
                                     </View>
-                                    <Text style={localStyles.nameText}>{item.record_name}</Text>
-                                    <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.amount)}</Text>
+                                    <Text style={[localStyles.nameText, styles.textPrimary]}>{item.record_name}</Text>
+                                    <Text style={[localStyles.valueText, styles.textPrimary]}>{formatMoneyWithSymbol(item.amount)}</Text>
                                 </View>
                             </AccentRow>
                         </Pressable>

@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 
-import styles from '@/src/styles/styles';
+import { useThemedStyles } from '@/src/styles/useThemedStyles';
 import useColorStore from '@/src/stores/ColorsStore';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { useCreditStore } from '@/src/stores/CreditsStore';
@@ -10,6 +10,7 @@ import useDate from '@/src/hooks/useDate';
 import { formatMoney } from '@/src/utils';
 
 const Index = () => {
+    const styles = useThemedStyles();
     const { colors } = useColorStore();
     const { t } = useLanguage();
     const { credits } = useCreditStore();
@@ -68,49 +69,47 @@ const Index = () => {
                         const previousBalance = credit.totalPrevious;
                         const pendingCents = (previousBalance || 0) - (amountPaid || 0);
                         const pendingAmount = formatMoney(pendingCents);
-                        const isPendingNegative = pendingCents < 0;
-                        console.log("Card", credit)
                         return (
-                            <View key={credit.id} style={[localStyles.creditBlock, { backgroundColor: colors?.BGSimple }]}>
-                                <View style={localStyles.headerRow}>
-                                    <Text style={[localStyles.creditName]}>
+                            <View key={credit.id} style={[localStyles.creditBlock, { backgroundColor: colors?.surfaceMuted, shadowColor: colors?.shadow }]}>
+                                <View style={[localStyles.headerRow, { borderBottomColor: colors?.border }]}>
+                                    <Text style={[localStyles.creditName, { color: colors?.text }]}>
                                         {credit.method_name}
                                     </Text>
-                                    <Text style={[localStyles.currentValue]}>
-                                        {t("credits.current")}: <Text style={localStyles.amountValue}>${formatMoney(credit?.totalCurrent)}</Text>
+                                    <Text style={[localStyles.currentValue, { color: colors?.text }]}>
+                                        {t("credits.current")}: <Text style={[localStyles.amountValue, { color: colors?.text }]}>${formatMoney(credit?.totalCurrent)}</Text>
                                     </Text>
                                 </View>
 
                                 <View style={localStyles.detailRow}>
                                     <View style={localStyles.paymentSummary}>
                                         <View style={localStyles.detailItem}>
-                                            <Text style={localStyles.detailLabel}>{t("credits.previous")}:</Text>
-                                            <Text style={localStyles.amountValue}>${formatMoney(previousBalance)}</Text>
+                                            <Text style={[localStyles.detailLabel, { color: colors?.textMuted }]}>{t("credits.previous")}:</Text>
+                                            <Text style={[localStyles.amountValue, { color: colors?.text }]}>${formatMoney(previousBalance)}</Text>
                                         </View>
                                         <View style={localStyles.detailItem}>
-                                            <Text style={localStyles.detailLabel}>{t("credits.paid")}:</Text>
-                                            <Text style={[localStyles.amountValue, { color: colors?.IncomeColor }]}>${formatMoney(amountPaid)}</Text>
+                                            <Text style={[localStyles.detailLabel, { color: colors?.textMuted }]}>{t("credits.paid")}:</Text>
+                                            <Text style={[localStyles.amountValue, { color: colors?.text }]}>${formatMoney(amountPaid)}</Text>
                                         </View>
                                         <View style={localStyles.detailItem}>
-                                            <Text style={localStyles.detailLabel}>{t("credits.pending")}:</Text>
-                                            <Text style={[localStyles.amountValue, { color: isPendingNegative ? colors?.IncomeColor : colors?.ExpenseColor }]}>
+                                            <Text style={[localStyles.detailLabel, { color: colors?.textMuted }]}>{t("credits.pending")}:</Text>
+                                            <Text style={[localStyles.amountValue, { color: colors?.text }]}>
                                                 ${pendingAmount}
                                             </Text>
                                         </View>
                                     </View>
 
                                     <View style={localStyles.closingDateContainer}>
-                                        <Text style={localStyles.detailLabel}>{t("credits.closingDate")}:</Text>
-                                        <Text style={localStyles.amountValue}>
+                                        <Text style={[localStyles.detailLabel, { color: colors?.textMuted }]}>{t("credits.closingDate")}:</Text>
+                                        <Text style={[localStyles.amountValue, { color: colors?.text }]}>
                                             {credit.closing_date ? closingDateToShow(credit.closing_date) : 'N/A'}
                                         </Text>
                                     </View>
                                 </View>
-                                <View style={[localStyles.detailRow, { marginTop: 10, borderTopColor: '#eee', borderTopWidth: 1, paddingTop: 10 }]}>
-                                    <Text style={localStyles.detailLabel}>
+                                <View style={[localStyles.detailRow, { marginTop: 10, borderTopColor: colors?.border, borderTopWidth: 1, paddingTop: 10 }]}>
+                                    <Text style={[localStyles.detailLabel, { color: colors?.textMuted }]}>
                                         {t("credits.paidDate")}:
                                     </Text>
-                                    <Text style={localStyles.amountValue}>
+                                    <Text style={[localStyles.amountValue, { color: colors?.text }]}>
                                         {credit.payment_date ? nextPaymentDateToShow(credit.payment_date) : 'N/A'}
                                     </Text>
                                 </View>
@@ -139,7 +138,6 @@ const localStyles = StyleSheet.create({
     creditBlock: {
         borderRadius: 8,
         padding: 15,
-        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
@@ -151,7 +149,6 @@ const localStyles = StyleSheet.create({
         alignItems: "center",
         marginBottom: 10,
         borderBottomWidth: 1,
-        borderBottomColor: '#eee',
         paddingBottom: 8,
     },
     creditName: {
@@ -184,7 +181,6 @@ const localStyles = StyleSheet.create({
     detailLabel: {
         fontSize: 12,
         fontWeight: "400",
-        color: '#666',
         flex: 1,
     },
     amountValue: {

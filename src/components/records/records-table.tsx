@@ -20,7 +20,7 @@ import useResumesStore from "@/src/stores/ResumesStore";
 import { useCreditStore } from "@/src/stores/CreditsStore";
 import { useConfigs } from "@/src/hooks/useConfigs";
 import { useDataStore } from "@/src/stores";
-import styles from "@/src/styles/styles";
+import { useThemedStyles } from "@/src/styles/useThemedStyles";
 import RecordsGroup from "./RecordsGroup";
 import FixedsGroup from "./FixedsGroup";
 import CreditsGroups from "./CreditsGroups";
@@ -46,6 +46,7 @@ enum SHOW_OPTIONS {
 }
 
 const ItemsTable = () => {
+  const styles = useThemedStyles();
   const [selected, setSelected] = React.useState<RecordFormEntry>();
   const [openUpdate, setOpenUpdate] = React.useState<boolean>(false);
   const { showToast } = useToast();
@@ -225,6 +226,7 @@ const ItemsTable = () => {
           <Text
             style={[
               localStyles.balanceText,
+              styles.textPrimary,
               color(balance < 0 ? "expense" : "income"),
             ]}
           >

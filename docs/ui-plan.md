@@ -102,9 +102,9 @@ src/ui/
   index.ts
 ```
 
-Durante la transición, `src/components/ui/*` puede reexportar o adaptar los
-componentes nuevos con una marca `@deprecated`. No se eliminan hasta terminar la
-migración.
+`src/components/ui/*` fue retirado al terminar la migración. Los resúmenes que
+quedan viven en `src/components/summaries` y los estilos legacy se adaptan con
+`src/styles/useThemedStyles.ts`.
 
 ---
 
@@ -464,16 +464,18 @@ retirar.
 
 ### UI-4 — Limpieza y calidad (1–2 días)
 
-**Estado:** 🔄 Parcial — lint, ColorPicker y adaptadores de toast resueltos.
+**Estado:** 🔄 Parcial — lint, dark mode legacy y limpieza resueltos; queda el
+checklist visual.
 
-- Eliminar componentes legacy y adaptadores. 🔄 (quedan las tablas de resumen y
-  estilos legacy)
+- Eliminar componentes legacy y adaptadores. ✅
 - Regla de lint/prohibición de imports directos:
   - `TextInput`, `Modal`, `Alert`, `ToastAndroid` solo dentro de `src/ui`. ✅
 - Mover `ColorPicker` a `src/ui/forms`. ✅
 - Eliminar `useToast`/`useAndroidToast` legacy. ✅
 - Eliminar `icon-button`, `confirm-modal`, `modal-button`, `color-text`,
   `DetailedFinanceBlock`, `dropdown`, `shake-animation`. ✅
+- Retirar `src/components/ui` y mover resúmenes a `src/components/summaries`. ✅
+- Adaptar estilos legacy con `useThemedStyles` y `sceneStyle` del drawer. ✅
 - Tests de accesibilidad y variantes. ✅ (render de `SummaryGroup`/`AccentRow`;
   queda checklist visual)
 - Galería actualizada. ✅
