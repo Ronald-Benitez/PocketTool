@@ -13,7 +13,7 @@ métodos de pago, créditos, ahorros y vehículo.
 - **Fase 0 — Correcciones críticas: FINALIZADA** (2026-10-28).
 - **Fase 1 — Fuente única de verdad del esquema: FINALIZADA** (2026-10-28).
 - **Fase 2 — Repositorios y ORM robusto: FINALIZADA** (2026-10-28).
-- **Fase 3 — Calidad, pruebas y operación: PENDIENTE**.
+- **Fase 3 — Calidad, pruebas y operación: FINALIZADA** (2026-10-28).
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -43,8 +43,12 @@ commits relevantes, archivos tocados y verificaciones realizadas.
   `InvalidDataError`, `QueryError`).
 - `src/db/repositories/index.ts`: repositorios por agregado.
 - `src/db/repositories/fuel.ts`: consultas tipadas de combustible y viajes.
+- `src/db/utils/sql-dump.ts`: generación/validación del dump SQL.
+- `src/db/utils/backup.ts`: metadatos versionados del backup.
 - `src/validation/entities.ts`: esquemas zod para entradas de repositorio.
 - `src/db/index.ts`: barrel público; expone `useRecords`, `useGroups`, etc.
+- `.github/workflows/ci.yml`: typecheck, tests, artefactos de esquema y lint no
+  bloqueante.
 - `src/interfaces/schema.ts`: entidades generadas + relaciones/vistas.
 - `src/utils/index.ts`: helpers de dinero (`parseMoneyToCents`, `centsToInput`,
   `formatMoney`, `formatMoneyWithSymbol`).
@@ -70,17 +74,22 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 ## Comandos de verificación
 
 ```bash
-npx tsc --noEmit
+npm run typecheck
+npm run test:db
+npm test
 npm run db:generate
+npm run ci
 ```
 
 `npm run db:generate` debe ejecutarse después de editar
 `src/db/schema/tables.ts`. Los archivos de `src/db/schema/generated/` y
 `docs/schema.md` se sobrescriben.
 
-Las pruebas de migración/ORM se ejecutan con un harness de SQLite en Node
-(`node:sqlite`) durante el desarrollo. Si se agregan pruebas permanentes, deben
-documentarse aquí y en `docs/phases.md`.
+- `test:db`: suite de migraciones/ORM/backup con `node:sqlite`.
+- `test`: Jest.
+- `ci`: typecheck + tests de base de datos + Jest.
+- `lint`: ESLint; actualmente hay deuda preexistente, por eso el lint de CI es
+  no bloqueante.
 
 ## Documentación
 

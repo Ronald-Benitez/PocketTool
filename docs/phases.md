@@ -1,14 +1,14 @@
 # Plan de fases y bitácora
 
 **Última actualización:** 2026-10-28
-**Estado global:** Fase 2 finalizada. Fase 3 pendiente.
+**Estado global:** Fases 0–3 finalizadas.
 
 | Fase | Estado | Fecha |
 | --- | --- | --- |
 | Fase 0 — Correcciones críticas sin cambiar el modelo | ✅ Finalizada | 2026-10-28 |
 | Fase 1 — Fuente única de verdad del esquema | ✅ Finalizada | 2026-10-28 |
 | Fase 2 — Repositorios y ORM robusto | ✅ Finalizada | 2026-10-28 |
-| Fase 3 — Calidad, pruebas y operación | ⏳ Pendiente | — |
+| Fase 3 — Calidad, pruebas y operación | ✅ Finalizada | 2026-10-28 |
 
 ## Cómo mantener este documento
 
@@ -407,34 +407,80 @@ los aplican antes de escribir. El ORM sigue validando columnas y ahora lanza
 
 # Fase 3 — Calidad, pruebas y operación
 
-**Estado:** ⏳ PENDIENTE
+**Estado:** ✅ FINALIZADA — 2026-10-28
 
 ## 1. Tests
 
-- [ ] Migraciones desde base vacía y desde cada versión anterior.
-- [ ] Seed idempotente (ejecutarlo dos veces no duplica).
-- [ ] ORM: joins, soft delete, filtros, transacciones.
-- [ ] Export → import → export produce el mismo estado.
-- [ ] Usar `better-sqlite3` o `sql.js` en Node para tests rápidos de SQL, y
+- [x] Migraciones desde base vacía y desde cada versión anterior.
+- [x] Seed idempotente (ejecutarlo dos veces no duplica).
+- [x] ORM: joins, soft delete, filtros, transacciones.
+- [x] Export → import → export produce el mismo estado.
+- [x] Usar `better-sqlite3` o `sql.js` en Node para tests rápidos de SQL, y
   `jest-expo` para lo que dependa de Expo.
+
+**Resultado:** `scripts/db-tests.js` es la suite permanente con `node:sqlite`
+(alternativa nativa a `better-sqlite3`/`sql.js`). Cubre migraciones legacy,
+base vacía, auditoría incremental, seed idempotente, ORM (joins, soft delete,
+filtros, transacciones, concurrencia, limit/offset), backup con metadatos,
+validación zod, periodos de crédito y planes de consulta. Jest sigue cubriendo
+componentes.
 
 ## 2. Export/import v2
 
-- [ ] Formato con metadatos: `formatVersion`, `appVersion`, `schemaVersion`,
+- [x] Formato con metadatos: `formatVersion`, `appVersion`, `schemaVersion`,
   `exportedAt`, `tables`.
-- [ ] Mantener compatibilidad con el dump SQL actual.
-- [ ] Import con validación, backup y transacción.
+- [x] Mantener compatibilidad con el dump SQL actual.
+- [x] Import con validación, backup y transacción.
+
+**Resultado:** el export antepone una cabecera
+`-- POCKETTOOL_BACKUP {...}` con metadatos y mantiene el dump SQL estándar
+debajo, por lo que los backups antiguos siguen siendo importables. El import
+valida metadatos y tablas, crea backup previo, usa transacción exclusiva y
+restaura FKs.
 
 ## 3. Rendimiento
 
-- [ ] Revisar `EXPLAIN QUERY PLAN` de las consultas principales.
-- [ ] Paginar `Records`.
-- [ ] Evitar cargar todas las relaciones si no se usan.
+- [x] Revisar `EXPLAIN QUERY PLAN` de las consultas principales.
+- [x] Paginar `Records`.
+- [x] Evitar cargar todas las relaciones si no se usan.
+
+**Resultado:** `db-tests.js` verifica que las consultas principales usen
+índices. Se agregaron `fetchRecordsPage` y `countRecords` para paginación. La UI
+de registros todavía carga el grupo completo para filtros/resúmenes en memoria;
+cablear la paginación visual queda como mejora incremental.
 
 ## 4. CI
 
-- [ ] `tsc --noEmit`, `expo lint`, tests.
-- [ ] Verificar que no existan imports a handlers legacy.
+- [x] `tsc --noEmit`, `expo lint`, tests.
+- [x] Verificar que no existan imports a handlers legacy.
+
+**Resultado:** `.github/workflows/ci.yml` ejecuta typecheck, verifica que los
+artefactos generados estén actualizados, corre `test:db`, Jest y un lint no
+bloqueante. La suite escanea `src`/`app` para impedir imports a handlers legacy.
+El lint queda no bloqueante porque el proyecto arrastra deuda preexistente.
+
+## Commits
+
+- `38aadc7` — `feat(backup): add versioned metadata to SQL backups`
+- `666a88e` — `test(tooling): add database regression suite and CI`
+- `1407d0f` — `perf(records): expose paginated record queries`
+
+## Verificación
+
+- `npm run typecheck` → `TSC_EXIT=0`.
+- `npm run test:db` → toda la suite pasa.
+- `npm test` → Jest pasa.
+- `npm run db:generate` + `git diff --exit-code` en CI.
+- 13 grupos de pruebas de base de datos/ORM/backup en verde.
+
+## Pendientes/mejoras
+
+- Cablear `fetchRecordsPage` en la UI de registros (hoy los resúmenes y filtros
+  requieren el grupo completo en memoria).
+- Limpiar la deuda de ESLint para volver el lint bloqueante.
+- Prueba end-to-end del import con pickers nativos/web.
+- Rellenar automáticamente `created_at`/`updated_at` si se decide hacerlo en el
+  ORM o con triggers.
 
 ---
 
@@ -469,3 +515,10 @@ los aplican antes de escribir. El ORM sigue validando columnas y ahora lanza
   valida columnas/identificadores.
 - **2026-10-28 — Consultas de vehículo:** `gas.json` se reemplazó por métodos
   tipados en `useFuelRepository`.
+- **2026-10-28 — Fase 3:** `node:sqlite` es la base de la suite de regresión;
+  Jest cubre componentes. CI ejecuta typecheck, artefactos generados, tests y
+  lint no bloqueante.
+- **2026-10-28 — Backups v2:** cabecera `POCKETTOOL_BACKUP` con metadatos sobre
+  el dump SQL, manteniendo compatibilidad con backups antiguos.
+- **2026-10-28 — Paginación:** repositorio expone `fetchRecordsPage` y
+  `countRecords`; la UI mantiene carga completa para resúmenes/filtros.
