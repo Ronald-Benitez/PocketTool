@@ -12,6 +12,7 @@ import { Drawer } from 'expo-router/drawer';
 import CustomDrawer from '@/src/components/navigation/custom-drawer';
 import migrateDb from '@/src/db/migration';
 import { LanguageProvider, useLanguage } from '@/src/lang/LanguageContext';
+import { ToastProvider } from '@/src/ui/feedback/ToastProvider';
 import { ThemeProvider, useTheme } from '@/src/ui/theme/ThemeProvider';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -37,7 +38,9 @@ export default function RootLayout() {
       <ThemeProvider>
         <SQLiteProvider databaseName='db.db' onInit={migrateDb}>
           <LanguageProvider>
-            <AppShell />
+            <ToastProvider>
+              <AppShell />
+            </ToastProvider>
           </LanguageProvider>
         </SQLiteProvider>
       </ThemeProvider>
@@ -189,6 +192,14 @@ const AppDrawer = () => {
           drawerIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" size={size} color={color as string | undefined} />
           ),
+        }}
+      />
+      <Drawer.Screen
+        name="gallery"
+        options={{
+          drawerItemStyle: { display: 'none' },
+          title: 'UI gallery',
+          headerShown: true,
         }}
       />
     </Drawer>

@@ -14,9 +14,8 @@ métodos de pago, créditos, ahorros y vehículo.
 - **Fase 1 — Fuente única de verdad del esquema: FINALIZADA** (2026-10-28).
 - **Fase 2 — Repositorios y ORM robusto: FINALIZADA** (2026-10-28).
 - **Fase 3 — Calidad, pruebas y operación: FINALIZADA** (2026-10-28).
-- **Fase 4 — Sistema de UI reutilizable: EN PROGRESO**. Fundaciones de tema
-  (UI-0/UI-0b) completadas; faltan primitivas, formularios, feedback y migración
-  de pantallas.
+- **Fase 4 — Sistema de UI reutilizable: EN PROGRESO**. UI-0/UI-0b
+  completadas; UI-1 y UI-2 parciales (campos base, botones y toast global).
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -34,6 +33,15 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 - `src/ui/theme/settings.ts`: normalización, migración legacy, resolución de
   modo/paleta y merge; funciones puras testeables.
 - `src/ui/theme/contrast.ts`: contraste WCAG AA.
+- `src/ui/primitives/`: `AppText`, `Surface`, `Divider`, `Screen`, `Stack`/`Row`/
+  `Column`.
+- `src/ui/actions/`: `Button` e `IconButton` con variantes y estados.
+- `src/ui/forms/`: `FormField` y `TextField` con label/required/hint/error.
+- `src/ui/feedback/`: `ToastProvider` único y `ToastViewport` para modales.
+- `src/ui/index.ts`: barrel público del sistema de UI.
+- `app/gallery.tsx`: galería de desarrollo, oculta del drawer.
+- `src/hooks/useToast.tsx` y `src/hooks/useAndroidToast.ts` son adaptadores al
+  `ToastProvider`; no crear toasts/Modals locales nuevos.
 - Los componentes nuevos usan `useTheme()`; no leer `useColorStore` ni claves
   legacy.
 - `src/stores/ColorsStore.ts` es solo un adaptador de compatibilidad durante la

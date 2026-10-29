@@ -365,13 +365,13 @@ Checklist obligatorio por componente:
 
 ### UI-0 — Fundaciones y auditoría (1–2 días)
 
-**Estado:** 🔄 Parcial — tema/tokens listos; faltan primitivas base y galería.
+**Estado:** ✅ Completado (2026-10-28).
 
-- Inventario y mapa de reemplazo legacy → nuevo.
+- Inventario y mapa de reemplazo legacy → nuevo. ✅
 - Definir tokens y `ThemeProvider`. ✅
-- Crear `src/ui/primitives` y `src/ui/index.ts`. ⏳
-- Crear pantalla de galería de componentes (ruta de desarrollo). ⏳
-- Agregar tests de render/variantes base. ⏳
+- Crear `src/ui/primitives` y `src/ui/index.ts`. ✅
+- Crear pantalla de galería de componentes (ruta de desarrollo). ✅
+- Agregar tests de render/variantes base. ✅
 
 ### UI-0b — Tema, paletas y modo oscuro (2 días)
 
@@ -393,6 +393,9 @@ Checklist obligatorio por componente:
 
 ### UI-1 — Formularios y acciones (2–3 días)
 
+**Estado:** 🔄 Parcial — `FormField`, `TextField`, `Button` e `IconButton`
+listos; faltan campos especializados y adaptadores.
+
 - `FormField`, `TextField`, `MoneyField`, `SelectField`, `DateField`,
   `MonthField`, `SwitchField`, `ColorField`, `Button`, `IconButton`,
   `LinkButton`.
@@ -402,6 +405,9 @@ Checklist obligatorio por componente:
   `add-group`, `AddSaving`.
 
 ### UI-2 — Feedback y overlays (1–2 días)
+
+**Estado:** 🔄 Parcial — `ToastProvider` global y adaptadores listos; faltan
+estados y overlays.
 
 - `ToastProvider`, `InlineMessage`, `EmptyState`, `LoadingState`,
   `ConfirmDialog`.

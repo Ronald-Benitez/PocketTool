@@ -1,41 +1,45 @@
-import { ToastAndroid } from "react-native";
-import { useLanguage } from "../lang/LanguageContext";
+import { useLanguage } from '../lang/LanguageContext';
+import { useToast } from '@/src/ui/feedback/ToastProvider';
 
+/**
+ * Adaptador legacy de los avisos Android sobre el sistema global de toasts.
+ */
 const useAndroidToast = () => {
   const { t } = useLanguage();
+  const { showToast } = useToast();
 
-    const emptyMessage = ()=> {
-        ToastAndroid.show(t('toast.empty'), ToastAndroid.SHORT);
-    }
+  const emptyMessage = () => {
+    showToast({ message: t('toast.empty'), type: 'warning' });
+  };
 
-    const addedMessage = () =>{
-        ToastAndroid.show(t('toast.added'), ToastAndroid.SHORT);
-    }
+  const addedMessage = () => {
+    showToast({ message: t('toast.added'), type: 'success' });
+  };
 
-    const editedMessage = () =>{
-        ToastAndroid.show(t('toast.edited'), ToastAndroid.SHORT);
-    }
+  const editedMessage = () => {
+    showToast({ message: t('toast.edited'), type: 'success' });
+  };
 
-    const deletedMessage = () =>{
-        ToastAndroid.show(t('toast.deleted'), ToastAndroid.SHORT);
-    }
+  const deletedMessage = () => {
+    showToast({ message: t('toast.deleted'), type: 'success' });
+  };
 
-    const errorMessage = () =>{
-        ToastAndroid.show(t('toast.error'), ToastAndroid.SHORT);
-    }
+  const errorMessage = () => {
+    showToast({ message: t('toast.error'), type: 'error' });
+  };
 
-    const withMessage = (message: string) =>{
-        ToastAndroid.show(message, ToastAndroid.SHORT);
-    }
+  const withMessage = (message: string) => {
+    showToast({ message, type: 'info' });
+  };
 
-    return {
-        addedMessage,
-        deletedMessage,
-        editedMessage,
-        emptyMessage,
-        errorMessage,
-        withMessage
-    }
+  return {
+    addedMessage,
+    deletedMessage,
+    editedMessage,
+    emptyMessage,
+    errorMessage,
+    withMessage,
+  };
 };
 
 export default useAndroidToast;

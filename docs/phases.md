@@ -74,9 +74,28 @@ Incluye:
 - Tests en `src/ui/theme/__tests__/theme-settings.test.ts`.
 - Verificado: `npm run typecheck`, Jest y `npm run lint` con 0 errores.
 
-Pendiente de UI-0: primitivas base (`src/ui/primitives`), barrel `src/ui` y
-galería de componentes. Después siguen UI-1 (formularios/acciones), UI-2
-(feedback/overlays), UI-3 (datos/tablas) y UI-4 (limpieza).
+### UI-0 complemento — Primitivas, galería y primer bloque UI-1/UI-2 (✅ 2026-10-28)
+
+- `src/ui/primitives`: `AppText`, `Surface`, `Divider`, `Screen`, `Stack`/`Row`/
+  `Column`.
+- `src/ui/actions`: `Button` (primary, secondary, outline, ghost, danger; sm/md/lg;
+  loading/disabled/iconos) e `IconButton` (ghost/surface/primary; sm/md/lg).
+- `src/ui/forms`: `FormField` (label, required, hint, error accesible) y
+  `TextField` (tamaños, iconos, multiline, disabled, error).
+- `src/ui/feedback`: `ToastProvider` único con host global y `ToastViewport` para
+  modales.
+- `src/hooks/useToast.tsx` y `src/hooks/useAndroidToast.ts` ahora delegan al
+  `ToastProvider`; `ToastContainer` legacy queda como no-op.
+- `src/ui/index.ts` como barrel público.
+- Galería de desarrollo en `app/gallery.tsx` (ruta oculta en el drawer).
+- Tests de render en `src/ui/__tests__/primitives.test.tsx`.
+- Verificado: `npm run typecheck`, `npm test`, `npm run test:db` y `npm run lint`
+  con 0 errores.
+
+Pendiente de UI-1: `MoneyField`, `SelectField`, `DateField`, `MonthField`,
+`SwitchField`, `ColorField`, `LinkButton` y adaptadores de selects/date pickers.
+Pendiente de UI-2: `InlineMessage`, `EmptyState`, `LoadingState`,
+`ConfirmDialog`, nuevos `Modal`/`Dialog`/`BottomSheet` y migración de overlays.
 
 ## Documentación
 

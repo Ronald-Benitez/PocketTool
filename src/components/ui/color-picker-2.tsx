@@ -5,7 +5,7 @@ import Slider from "@react-native-community/slider";
 import { useEffect, useState } from "react";
 import { ScrollView } from "react-native-gesture-handler";
 
-import useToast from '../../hooks/useToast';
+import { ToastViewport, useToast } from '@/src/ui/feedback/ToastProvider';
 import ModalContainer from "./modal-container";
 import { useLanguage } from "@/src/lang/LanguageContext";
 import IconButton from "./icon-button";
@@ -57,7 +57,7 @@ const verifyNumber = (val: string) => {
 
 const ColorPicker2 = ({ color, onChange }: props) => {
     const { t } = useLanguage()
-    const { showToast, ToastContainer } = useToast();
+    const { showToast } = useToast();
     const { colors } = useTheme()
     const [inputColor, setInputColor] = useState(color)
     const [r, setR] = useState(0)
@@ -67,7 +67,7 @@ const ColorPicker2 = ({ color, onChange }: props) => {
 
     const handleCopy = async () => {
         await Clipboard.setStringAsync(color);
-        showToast({ message: t("colors.copied"), type: 'SUCCESS' });
+        showToast({ message: t("colors.copied"), type: 'success' });
     };
 
     const handlePaste = async () => {
@@ -76,7 +76,7 @@ const ColorPicker2 = ({ color, onChange }: props) => {
             setInputColor(value);
             onChange(value);
         } else {
-            showToast({ message: t("colors.invalid"), type: 'ERROR' });
+            showToast({ message: t("colors.invalid"), type: 'error' });
         }
     };
 
@@ -177,7 +177,7 @@ const ColorPicker2 = ({ color, onChange }: props) => {
                         {channelRow("B", b, "#0000ff", "b")}
                         {channelRow("A", a, colors.text, "a")}
                     </ScrollView>
-                    <ToastContainer />
+                    <ToastViewport />
                 </>
             </ModalContainer>
         </>

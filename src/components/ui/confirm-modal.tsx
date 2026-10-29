@@ -1,6 +1,6 @@
 import { View, Text, Modal, Pressable, StyleSheet } from 'react-native';
 import { ReactNode, useState } from 'react';
-import useToast from '@/src/hooks/useToast';
+import { useToast } from '@/src/ui/feedback/ToastProvider';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { useTheme } from '@/src/ui/theme/ThemeProvider';
 import ModalButton from './modal-button';
@@ -14,7 +14,7 @@ interface ConfirmModalProps {
 }
 
 const ConfirmModal = ({ children, message, title, onConfirm, onCancel }: ConfirmModalProps) => {
-  const { ToastContainer, showToast } = useToast();
+  const { showToast } = useToast();
   const [modalVisible, setModalVisible] = useState(false);
   const { t } = useLanguage();
   const { colors } = useTheme();
@@ -23,7 +23,7 @@ const ConfirmModal = ({ children, message, title, onConfirm, onCancel }: Confirm
     setModalVisible(false);
     if (onConfirm) {
       onConfirm();
-      showToast(t('confirmed'));
+      showToast({ message: t('confirmed'), type: 'success' });
     }
   };
 
@@ -68,7 +68,6 @@ const ConfirmModal = ({ children, message, title, onConfirm, onCancel }: Confirm
             </View>
           </Pressable>
         </Pressable>
-        <ToastContainer />
       </Modal>
     </>
   );
