@@ -26,7 +26,7 @@ import type {
   SoftDeletable,
   TimestampMs,
   TripLog,
-} from '@/src/db/schema/generated/types';
+} from '../db/schema/generated/types';
 
 export type {
   Budget,
@@ -49,7 +49,7 @@ export type {
   SoftDeletable,
   TimestampMs,
   TripLog,
-} from '@/src/db/schema/generated/types';
+} from '../db/schema/generated/types';
 
 export type RecordFormEntry = Partial<RecordWithRelations> & {
   paid_method_id?: number | null;

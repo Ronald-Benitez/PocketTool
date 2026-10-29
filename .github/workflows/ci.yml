@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Generate schema artifacts and verify they are current
+        run: |
+          npm run db:generate
+          git diff --exit-code -- src/db/schema/generated docs/schema.md
+
+      - name: Database and ORM tests
+        run: npm run test:db
+
+      - name: Jest tests
+        run: npm test
+
+      - name: Lint (non-blocking baseline)
+        continue-on-error: true
+        run: npm run lint

@@ -1,4 +1,4 @@
-import type { PaymentMethod } from '@/src/interfaces/schema';
+import type { PaymentMethod } from '../interfaces/schema';
 
 export const lastDayOfMonth = (year: number, month: number) =>
   new Date(year, month + 1, 0).getDate();
