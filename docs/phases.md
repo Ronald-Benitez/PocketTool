@@ -120,6 +120,19 @@ Pendiente de UI-2: migrar `ModalContainer`, `base-modal`, `confirm`,
 `HelpModal`, `RecordsFilterModal` y reemplazar `Alert`/`useAndroidToast` restantes
 por feedback global.
 
+### UI-3 — Datos y presentación (🔄 Parcial · 2026-10-28)
+
+- `src/ui/data-display`: `Card`, `ListItem`, `Badge`, `FinanceValue` y
+  `SummaryBlock`.
+- `FinanceValue` recibe centavos y resuelve el color/tamaño desde el tema.
+- `SummaryBlock` compone label, valor monetario/texto e icono.
+- Galería y tests actualizados.
+- Verificado: `npm run ci` y `npm run lint` con 0 errores.
+
+Pendiente de UI-3: `SwipeAction` y migrar `FinanceSimpleBlock`,
+`FinanceSmallBlock`, `FinanceTableBlock`, `FinanceTableChart`, `BalanceBlock`,
+`IndexBlock`, `BGSimpleBlock`, `BorderLeftBlock` y `BorderLeftButtonBlock`.
+
 ## Documentación
 
 - [`README.md`](README.md): índice de documentación.

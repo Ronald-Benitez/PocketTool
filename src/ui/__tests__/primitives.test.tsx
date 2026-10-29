@@ -3,6 +3,10 @@ import * as React from 'react';
 import renderer, { act } from 'react-test-renderer';
 
 import { Button } from '../actions/Button';
+import { Badge } from '../data-display/Badge';
+import { Card } from '../data-display/Card';
+import { FinanceValue } from '../data-display/FinanceValue';
+import { SummaryBlock } from '../data-display/SummaryBlock';
 import { DateField } from '../forms/DateField';
 import { InlineMessage } from '../feedback/InlineMessage';
 import { MoneyField } from '../forms/MoneyField';
@@ -107,5 +111,28 @@ describe('UI primitives', () => {
     const rendered = JSON.stringify(tree!.toJSON());
     expect(rendered).toContain('Invalid form');
     expect(rendered).toContain('Check the fields');
+  });
+
+  it('renders data display components', () => {
+    let tree: renderer.ReactTestRenderer;
+
+    act(() => {
+      tree = renderer.create(
+        <>
+          <Badge label='Active' tone='success' />
+          <Card title='Summary' subtitle='Monthly totals'>
+            <FinanceValue cents={-1250} />
+            <SummaryBlock label='Balance' cents={250000} />
+          </Card>
+        </>
+      );
+    });
+
+    const rendered = JSON.stringify(tree!.toJSON());
+    expect(rendered).toContain('Active');
+    expect(rendered).toContain('Summary');
+    expect(rendered).toContain('Monthly totals');
+    expect(rendered).toContain('Balance');
+    expect(rendered).toContain('-12.50');
   });
 });

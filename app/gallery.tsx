@@ -4,16 +4,20 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 import {
   AppText,
+  Badge,
   Button,
+  Card,
   ColorField,
   Column,
   DateField,
   Dialog,
   Divider,
   EmptyState,
+  FinanceValue,
   IconButton,
   InlineMessage,
   LinkButton,
+  ListItem,
   LoadingState,
   MoneyField,
   MonthField,
@@ -21,6 +25,7 @@ import {
   Screen,
   SelectField,
   Stack,
+  SummaryBlock,
   Surface,
   SwitchField,
   TextField,
@@ -262,6 +267,51 @@ const GalleryScreen = () => {
           }}
           onCancel={() => setDialogOpen(false)}
         />
+
+        <Divider inset={4} />
+
+        <Stack gap='md'>
+          <AppText variant='title'>Data display</AppText>
+          <Row gap='sm' wrap>
+            <Badge label='Neutral' />
+            <Badge label='Primary' tone='primary' />
+            <Badge label='Success' tone='success' dot />
+            <Badge label='Warning' tone='warning' />
+            <Badge label='Danger' tone='danger' />
+            <Badge label='Info' tone='info' size='sm' />
+          </Row>
+          <Card
+            title='Card title'
+            subtitle='A reusable surface with header and footer slots.'
+            footer={<Badge label='Updated' tone='info' size='sm' />}
+            onPress={() => showToast({ message: 'Card pressed', type: 'info' })}
+          >
+            <AppText color='muted'>Cards compose Surface, AppText and Badge.</AppText>
+          </Card>
+          <Surface variant='outlined' padding='none'>
+            <ListItem
+              title='Food'
+              subtitle='Category · 12 records'
+              leading={<MaterialIcons name='restaurant' size={22} color={colors.primary} />}
+              trailing={<FinanceValue cents={-1250} size='sm' />}
+              onPress={() => {}}
+              showDivider
+            />
+            <ListItem
+              title='Salary'
+              subtitle='Income · monthly'
+              leading={<MaterialIcons name='payments' size={22} color={colors.success} />}
+              trailing={<FinanceValue cents={250000} size='sm' />}
+              onPress={() => {}}
+            />
+          </Surface>
+          <Row gap='lg' wrap>
+            <SummaryBlock label='Income' cents={250000} size='lg' />
+            <SummaryBlock label='Expense' cents={-1250} size='lg' />
+            <SummaryBlock label='Balance' cents={248750} size='lg' tone='auto' />
+            <SummaryBlock label='Transfer' cents={5000} tone='transfer' size='lg' />
+          </Row>
+        </Stack>
 
         <Divider inset={4} />
 

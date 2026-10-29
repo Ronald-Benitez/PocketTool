@@ -421,11 +421,15 @@ migrar los overlays legacy.
 
 ### UI-3 — Datos, tarjetas y tablas (2 días)
 
-- `Card`, `ListItem`, `Badge`, `SwipeAction`, `FinanceValue`, `SummaryBlock`.
+**Estado:** 🔄 Parcial — componentes de presentación listos; faltan swipe y
+migración de bloques/tablas.
+
+- `Card`, `ListItem`, `Badge`, `FinanceValue`, `SummaryBlock`. ✅
+- `SwipeAction`. ⏳
 - Migrar `FinanceSimpleBlock`, `FinanceSmallBlock`, `FinanceTableBlock`,
   `FinanceTableChart`, `BalanceBlock`, `IndexBlock`, `BGSimpleBlock`,
-  `BorderLeftBlock`, `BorderLeftButtonBlock`.
-- Unificar estilos de listas, tablas y tarjetas.
+  `BorderLeftBlock`, `BorderLeftButtonBlock`. ⏳
+- Unificar estilos de listas, tablas y tarjetas. ⏳
 
 ### UI-4 — Limpieza y calidad (1–2 días)
 
