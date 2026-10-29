@@ -1,8 +1,10 @@
 export type ColumnType = 'TEXT' | 'INTEGER' | 'REAL' | 'BLOB';
+export type ColumnKind = 'money' | 'timestamp' | 'boolean';
 
 export interface ColumnDefinition {
   name: string;
   type: ColumnType;
+  kind?: ColumnKind;
   primaryKey?: boolean;
   autoIncrement?: boolean;
   notNull?: boolean;
@@ -25,6 +27,7 @@ export interface IndexDefinition {
 export interface TableDefinition {
   name: string;
   sqlName: string;
+  entity: string;
   columns: ColumnDefinition[];
   indexes?: IndexDefinition[];
 }

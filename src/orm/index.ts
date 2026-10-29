@@ -1,5 +1,5 @@
 import { useSQLiteContext, type SQLiteDatabase } from 'expo-sqlite';
-import relations from './relations.json';
+import relations from '../db/schema/generated/relations.json';
 import { APP_SCHEMA, type TableName } from '../db/schema';
 import type {
   Group,

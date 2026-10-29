@@ -5,6 +5,7 @@
   "scripts": {
     "start": "expo start --go -c",
     "reset-project": "node ./scripts/reset-project.js",
+    "db:generate": "node ./scripts/generate-db-artifacts.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",

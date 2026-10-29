@@ -1,6 +1,6 @@
-import type { TableDefinition, TableSchema } from './types';
+import type { TableDefinition, TableSchema } from '../types';
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export type TableName =
   | 'Groups'
@@ -20,18 +20,23 @@ export type TableName =
   | 'FuelRefills'
   | 'TripLogs';
 
-const softDelete = { name: 'deleted_at', type: 'INTEGER', defaultValue: null } as const;
+const softDelete = { name: 'deleted_at', type: 'INTEGER', kind: 'timestamp', defaultValue: null } as const;
+const createdAt = { name: 'created_at', type: 'INTEGER', kind: 'timestamp', defaultValue: null } as const;
+const updatedAt = { name: 'updated_at', type: 'INTEGER', kind: 'timestamp', defaultValue: null } as const;
+const timestamps = [createdAt, updatedAt] as const;
 
 export const APP_SCHEMA: Record<TableName, TableDefinition> = {
   Groups: {
     name: 'Groups',
     sqlName: 'groups',
+    entity: 'Group',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
       { name: 'group_name', type: 'TEXT', notNull: true },
-      { name: 'goal', type: 'INTEGER', notNull: true },
+      { name: 'goal', type: 'INTEGER', kind: 'money', notNull: true },
       { name: 'year', type: 'INTEGER', notNull: true },
       { name: 'month', type: 'INTEGER', notNull: true },
+      ...timestamps,
       softDelete,
     ],
     indexes: [
@@ -41,16 +46,19 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
   PaymentTypes: {
     name: 'PaymentTypes',
     sqlName: 'payment_types',
+    entity: 'PaymentType',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
       { name: 'payment_type_name', type: 'TEXT', unique: true },
       { name: 'payment_color', type: 'TEXT', defaultValue: '#000000' },
+      ...timestamps,
       softDelete,
     ],
   },
   PaymentMethods: {
     name: 'PaymentMethods',
     sqlName: 'payment_methods',
+    entity: 'PaymentMethod',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
       { name: 'method_name', type: 'TEXT', notNull: true, unique: true },
@@ -61,6 +69,7 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
         type: 'INTEGER',
         references: { table: 'PaymentTypes', column: 'id', onDelete: 'SET NULL' },
       },
+      ...timestamps,
       softDelete,
     ],
     indexes: [
@@ -70,29 +79,34 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
   Categories: {
     name: 'Categories',
     sqlName: 'categories',
+    entity: 'Category',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
       { name: 'category_name', type: 'TEXT', notNull: true, unique: true },
+      ...timestamps,
       softDelete,
     ],
   },
   RecordTypes: {
     name: 'RecordTypes',
     sqlName: 'record_types',
+    entity: 'RecordType',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
       { name: 'type_name', type: 'TEXT', notNull: true, unique: true },
       { name: 'effect', type: 'TEXT', defaultValue: '=' },
       { name: 'record_color', type: 'TEXT', defaultValue: '#000000' },
+      ...timestamps,
       softDelete,
     ],
   },
   Fixed: {
     name: 'Fixed',
     sqlName: 'fixed_records',
+    entity: 'FixedRecord',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
-      { name: 'fixed_amount', type: 'INTEGER', notNull: true },
+      { name: 'fixed_amount', type: 'INTEGER', kind: 'money', notNull: true },
       { name: 'fixed_name', type: 'TEXT', notNull: true },
       { name: 'fixed_day', type: 'INTEGER', notNull: true },
       {
@@ -110,6 +124,7 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
         type: 'INTEGER',
         references: { table: 'PaymentMethods', column: 'id', onDelete: 'SET NULL' },
       },
+      ...timestamps,
       softDelete,
     ],
     indexes: [
@@ -122,11 +137,12 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
   Records: {
     name: 'Records',
     sqlName: 'records',
+    entity: 'RecordEntry',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
-      { name: 'amount', type: 'INTEGER', notNull: true },
+      { name: 'amount', type: 'INTEGER', kind: 'money', notNull: true },
       { name: 'record_name', type: 'TEXT', notNull: true },
-      { name: 'date', type: 'INTEGER', notNull: true },
+      { name: 'date', type: 'INTEGER', kind: 'timestamp', notNull: true },
       {
         name: 'record_type_id',
         type: 'INTEGER',
@@ -157,6 +173,7 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
         type: 'INTEGER',
         references: { table: 'PaidCredits', column: 'id', onDelete: 'SET NULL' },
       },
+      ...timestamps,
       softDelete,
     ],
     indexes: [
@@ -171,10 +188,11 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
   PaidCredits: {
     name: 'PaidCredits',
     sqlName: 'paid_credits',
+    entity: 'PaidCredit',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
-      { name: 'amount', type: 'INTEGER', notNull: true },
-      { name: 'date', type: 'INTEGER', notNull: true },
+      { name: 'amount', type: 'INTEGER', kind: 'money', notNull: true },
+      { name: 'date', type: 'INTEGER', kind: 'timestamp', notNull: true },
       {
         name: 'group_id',
         type: 'INTEGER',
@@ -185,6 +203,7 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
         type: 'INTEGER',
         references: { table: 'PaymentMethods', column: 'id', onDelete: 'SET NULL' },
       },
+      ...timestamps,
       softDelete,
     ],
     indexes: [
@@ -196,16 +215,19 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
   BudgetTemplates: {
     name: 'BudgetTemplates',
     sqlName: 'budget_templates',
+    entity: 'BudgetTemplate',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
       { name: 'template_name', type: 'TEXT', notNull: true, unique: true },
       { name: 'description', type: 'TEXT' },
+      ...timestamps,
       softDelete,
     ],
   },
   BudgetTemplateItems: {
     name: 'BudgetTemplateItems',
     sqlName: 'budget_template_items',
+    entity: 'BudgetTemplateItem',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
       {
@@ -214,7 +236,7 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
         references: { table: 'BudgetTemplates', column: 'id', onDelete: 'CASCADE' },
         notNull: true,
       },
-      { name: 'amount', type: 'INTEGER', notNull: true },
+      { name: 'amount', type: 'INTEGER', kind: 'money', notNull: true },
       {
         name: 'record_type_id',
         type: 'INTEGER',
@@ -227,6 +249,7 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
         references: { table: 'Categories', column: 'id', onDelete: 'SET NULL' },
         notNull: true,
       },
+      ...timestamps,
       softDelete,
     ],
     indexes: [
@@ -238,9 +261,10 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
   Budgets: {
     name: 'Budgets',
     sqlName: 'budgets',
+    entity: 'Budget',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
-      { name: 'amount', type: 'INTEGER', notNull: true },
+      { name: 'amount', type: 'INTEGER', kind: 'money', notNull: true },
       {
         name: 'record_type_id',
         type: 'INTEGER',
@@ -256,6 +280,7 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
         type: 'INTEGER',
         references: { table: 'Categories', column: 'id', onDelete: 'SET NULL' },
       },
+      ...timestamps,
       softDelete,
     ],
     indexes: [
@@ -267,16 +292,19 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
   Savings: {
     name: 'Savings',
     sqlName: 'savings',
+    entity: 'Saving',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
       { name: 'saving_name', type: 'TEXT', notNull: true },
-      { name: 'amount', type: 'INTEGER', notNull: true },
+      { name: 'amount', type: 'INTEGER', kind: 'money', notNull: true },
+      ...timestamps,
       softDelete,
     ],
   },
   SavingsHistory: {
     name: 'SavingsHistory',
     sqlName: 'savings_history',
+    entity: 'SavingsHistoryEntry',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
       {
@@ -284,9 +312,10 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
         type: 'INTEGER',
         references: { table: 'Savings', column: 'id', onDelete: 'CASCADE' },
       },
-      { name: 'previous_amount', type: 'INTEGER', notNull: true },
-      { name: 'new_amount', type: 'INTEGER', notNull: true },
-      { name: 'change_date', type: 'INTEGER', notNull: true },
+      { name: 'previous_amount', type: 'INTEGER', kind: 'money', notNull: true },
+      { name: 'new_amount', type: 'INTEGER', kind: 'money', notNull: true },
+      { name: 'change_date', type: 'INTEGER', kind: 'timestamp', notNull: true },
+      ...timestamps,
       softDelete,
     ],
     indexes: [
@@ -296,24 +325,27 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
   Migrations: {
     name: 'Migrations',
     sqlName: 'migrations',
+    entity: 'Migration',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
       { name: 'migration_name', type: 'TEXT', notNull: true, unique: true },
-      { name: 'applied_at', type: 'INTEGER', notNull: true },
+      { name: 'applied_at', type: 'INTEGER', kind: 'timestamp', notNull: true },
     ],
   },
   FuelRefills: {
     name: 'FuelRefills',
     sqlName: 'fuel_refills',
+    entity: 'FuelRefill',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
-      { name: 'date', type: 'INTEGER', defaultValue: null },
+      { name: 'date', type: 'INTEGER', kind: 'timestamp', defaultValue: null },
       { name: 'odometer_reading', type: 'REAL', notNull: true },
-      { name: 'total_cost', type: 'INTEGER', notNull: true },
+      { name: 'total_cost', type: 'INTEGER', kind: 'money', notNull: true },
       { name: 'gallons', type: 'REAL', notNull: true },
-      { name: 'price_per_gallon', type: 'INTEGER', notNull: true },
-      { name: 'is_full_tank', type: 'INTEGER', notNull: true },
+      { name: 'price_per_gallon', type: 'INTEGER', kind: 'money', notNull: true },
+      { name: 'is_full_tank', type: 'INTEGER', kind: 'boolean', notNull: true },
       { name: 'notes', type: 'TEXT' },
+      ...timestamps,
       softDelete,
     ],
     indexes: [
@@ -323,14 +355,16 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
   TripLogs: {
     name: 'TripLogs',
     sqlName: 'trip_logs',
+    entity: 'TripLog',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
-      { name: 'date', type: 'INTEGER', defaultValue: null },
+      { name: 'date', type: 'INTEGER', kind: 'timestamp', defaultValue: null },
       { name: 'distance_traveled', type: 'REAL', notNull: true },
       { name: 'average_consumption', type: 'REAL' },
-      { name: 'is_counter_reset', type: 'INTEGER' },
+      { name: 'is_counter_reset', type: 'INTEGER', kind: 'boolean' },
       { name: 'trip_type', type: 'TEXT' },
       { name: 'notes', type: 'TEXT' },
+      ...timestamps,
       softDelete,
     ],
     indexes: [

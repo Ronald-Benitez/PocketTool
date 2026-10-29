@@ -1,0 +1,54 @@
+{
+  "Groups": {},
+  "PaymentTypes": {},
+  "PaymentMethods": {
+    "PaymentTypes": "PaymentTypes"
+  },
+  "Categories": {},
+  "RecordTypes": {},
+  "Fixed": {
+    "RecordTypes": "RecordTypes",
+    "Categories": "Categories",
+    "PaymentMethods": "PaymentMethods",
+    "PaymentMethods.PaymentTypes": "PaymentMethods.PaymentTypes"
+  },
+  "Records": {
+    "RecordTypes": "RecordTypes",
+    "Groups": "Groups",
+    "Categories": "Categories",
+    "PaymentMethods": "PaymentMethods",
+    "PaymentMethods.PaymentTypes": "PaymentMethods.PaymentTypes",
+    "Fixed": "Fixed",
+    "Fixed.RecordTypes": "Fixed.RecordTypes",
+    "Fixed.Categories": "Fixed.Categories",
+    "Fixed.PaymentMethods": "Fixed.PaymentMethods",
+    "Fixed.PaymentMethods.PaymentTypes": "Fixed.PaymentMethods.PaymentTypes",
+    "PaidCredits": "PaidCredits",
+    "PaidCredits.Groups": "PaidCredits.Groups",
+    "PaidCredits.PaymentMethods": "PaidCredits.PaymentMethods",
+    "PaidCredits.PaymentMethods.PaymentTypes": "PaidCredits.PaymentMethods.PaymentTypes"
+  },
+  "PaidCredits": {
+    "Groups": "Groups",
+    "PaymentMethods": "PaymentMethods",
+    "PaymentMethods.PaymentTypes": "PaymentMethods.PaymentTypes"
+  },
+  "BudgetTemplates": {},
+  "BudgetTemplateItems": {
+    "BudgetTemplates": "BudgetTemplates",
+    "RecordTypes": "RecordTypes",
+    "Categories": "Categories"
+  },
+  "Budgets": {
+    "RecordTypes": "RecordTypes",
+    "Groups": "Groups",
+    "Categories": "Categories"
+  },
+  "Savings": {},
+  "SavingsHistory": {
+    "Savings": "Savings"
+  },
+  "Migrations": {},
+  "FuelRefills": {},
+  "TripLogs": {}
+}
