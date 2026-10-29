@@ -158,7 +158,8 @@
         "toPay": "Payment method (card) to pay",
         "category": "Category",
         "selectCategory": "Select a category",
-        "selectPayment": "Select a payment method"
+        "selectPayment": "Select a payment method",
+        "dayHint": "Day of month (1-31)"
     },
     "credit": "Credit",
     "debit": "Debit",

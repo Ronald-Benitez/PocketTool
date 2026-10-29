@@ -1,21 +1,20 @@
-import React, { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { useCategories, useBudget } from "@/src/db";
-import { Budget, Insertable, RecordType } from "@/src/interfaces/schema";
-import { centsToInput, parseMoneyToCents } from "@/src/utils";
-import useToast from "@/src/hooks/useToast";
+import type { Budget, Insertable, RecordType } from "@/src/interfaces/schema";
 import useRecordsStore from "@/src/stores/RecordsStore";
 import useCategoriesStore from "@/src/stores/CategoriesStore";
-import useColorStore from "@/src/stores/ColorsStore";
-import ModalContainer from "../ui/modal-container";
-import InputLabel from "../ui/InputLabel";
-import PressableSwitch from "../ui/pressable-switch";
-import BaseSelect from "../ui/base-select";
 import useBudgetStore from "@/src/stores/BudgetStore";
 import useAndroidToast from "@/src/hooks/useAndroidToast";
 import { useLanguage } from "@/src/lang/LanguageContext";
 import { useDataStore } from "@/src/stores";
+import { Button } from "@/src/ui/actions/Button";
+import { ColoredSelectOption } from "@/src/ui/forms/ColoredSelectOption";
+import { MoneyField } from "@/src/ui/forms/MoneyField";
+import { SelectField } from "@/src/ui/forms/SelectField";
+import { Modal } from "@/src/ui/overlays/Modal";
+import { useTheme } from "@/src/ui/theme/ThemeProvider";
 
 interface AddItemProps {
   item?: Budget;
@@ -30,25 +29,34 @@ const effectToTranslation = (effect: string | null | undefined) => {
   return 'transfer';
 };
 
-const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
+const AddBudget = ({ item, children, openUpdate, open }: AddItemProps) => {
   const { group } = useRecordsStore();
   const { t } = useLanguage();
+  const { colors } = useTheme();
+  const [visible, setVisible] = useState(false);
   const [type, setType] = useState<RecordType | undefined>();
   const [category, setCategory] = useState<{ id?: number; category_name: string }>();
-  const [value, setValue] = useState<string>("");
+  const [amountCents, setAmountCents] = useState<number>(0);
   const [group_id, setGroupId] = useState<number>(group?.id || 0);
   const categoriesDB = useCategories();
-  const { colors } = useColorStore();
-  const { ToastContainer } = useToast();
   const { categories, setCategories } = useCategoriesStore();
   const { RecordTypes } = useDataStore();
   const budget = useBudget();
   const { setBudgets, setResumes } = useBudgetStore();
   const toast = useAndroidToast();
+  const firstOpenEffect = useRef(true);
 
-  const budgetTypes = RecordTypes.filter((recordType) =>
+  const budgetTypes = (RecordTypes ?? []).filter((recordType) =>
     ['+', '-', '='].includes(recordType.effect ?? '')
   );
+
+  useEffect(() => {
+    if (firstOpenEffect.current) {
+      firstOpenEffect.current = false;
+      return;
+    }
+    setVisible(true);
+  }, [open, openUpdate]);
 
   useEffect(() => {
     if (!group?.id) return;
@@ -62,22 +70,18 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
 
   useEffect(() => {
     if (!item) return;
-    setValue(centsToInput(item.amount));
+    setAmountCents(item.amount);
     setGroupId(item.group_id ?? group?.id ?? 0);
-    setCategory(categories?.find((cat) => cat.id == item.category_id));
-    setType(RecordTypes.find((recordType) => recordType.id === item.record_type_id));
+    setCategory(categories?.find((cat) => cat.id === item.category_id));
+    setType(RecordTypes?.find((recordType) => recordType.id === item.record_type_id));
   }, [item, categories, RecordTypes]);
 
-  const onTypeChange = () => {
-    if (budgetTypes.length === 0) return;
-    const currentIndex = budgetTypes.findIndex((recordType) => recordType.id === type?.id);
-    setType(budgetTypes[(currentIndex + 1) % budgetTypes.length]);
-  };
+  const closeModal = () => setVisible(false);
 
   const onSave = async () => {
     if (!group) return;
 
-    if (value === "" || !category?.id || !type?.id) {
+    if (amountCents <= 0 || !category?.id || !type?.id) {
       toast.emptyMessage();
       return;
     }
@@ -85,7 +89,7 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
     const newItem: Insertable<Budget> = {
       group_id,
       record_type_id: type.id,
-      amount: parseMoneyToCents(value),
+      amount: amountCents,
       category_id: category.id,
     };
 
@@ -96,87 +100,117 @@ const AddItem = ({ item, children, openUpdate, open }: AddItemProps) => {
       } else {
         await budget.addBudget(newItem);
         toast.addedMessage();
-        setValue("");
+        setAmountCents(0);
       }
       setBudgets((await budget.fetchBudget(group_id)) ?? []);
       setResumes(await budget.getAllResume(group_id));
-    } catch (e) {
+      closeModal();
+    } catch {
       toast.errorMessage();
     }
   };
 
-  const onChangeCategory = (index: number) => {
-    if (!categories) return;
-    setCategory(categories[index]);
+  const colorForType = (recordType?: RecordType) => {
+    if (recordType?.record_color) return recordType.record_color;
+    if (recordType?.effect === '+') return colors.income;
+    if (recordType?.effect === '-') return colors.expense;
+    return colors.transfer;
   };
 
-  const typeColor = () => {
-    if (type?.record_color) return type.record_color;
-    if (type?.effect === '+') return colors?.IncomeColor;
-    if (type?.effect === '-') return colors?.ExpenseColor;
-    return colors?.TransferColor;
-  };
+  const typeColor = () => colorForType(type);
+
+  const typeOptions = budgetTypes.flatMap((recordType) =>
+    typeof recordType.id === 'number'
+      ? [{
+        label: recordType.type_name || t(`item.${effectToTranslation(recordType.effect)}`),
+        value: recordType.id,
+      }]
+      : []
+  );
+  const categoryOptions = (categories ?? []).flatMap((cat) =>
+    typeof cat.id === 'number' ? [{ label: cat.category_name, value: cat.id }] : []
+  );
 
   return (
     <>
-      <ModalContainer
-        buttonOpen={children}
-        closeOnAccept={true}
-        type="complete"
-        onAccept={onSave}
+      {children ? (
+        <Pressable onPress={() => setVisible(true)}>{children}</Pressable>
+      ) : null}
+      <Modal
+        visible={visible}
+        onClose={closeModal}
         title={item ? t('item.edit') : t('item.add')}
-        open={open ?? openUpdate}
-      >
-        <ScrollView>
-          <View style={localStyles.colContainer}>
-            <View style={localStyles.inputContainer}>
-              <PressableSwitch
-                onClick={onTypeChange}
-                text={t(`item.${effectToTranslation(type?.effect)}`)}
-                label={t('item.type') + '*'}
-                textColor={typeColor() || "#000"}
-              />
-            </View>
-
-            <View style={localStyles.inputContainer}>
-              <BaseSelect
-                label={t('item.category')}
-                selected={category?.category_name}
-                onChange={onChangeCategory}
-                options={categories?.map((cat) => cat.category_name)}
-                title={t('item.selectCategory') + '*'}
-              />
-            </View>
-
-            <View style={localStyles.inputContainer}>
-              <InputLabel
-                value={value}
-                onChangeText={setValue}
-                placeholder={t('item.value') + '*'}
-                keyboardType="numeric"
-              />
-            </View>
+        closeLabel={t('cancel')}
+        scrollable
+        footer={
+          <View style={styles.footer}>
+            <Button
+              label={t('cancel')}
+              variant='outline'
+              onPress={closeModal}
+              style={styles.footerButton}
+            />
+            <Button
+              label={t('confirm')}
+              onPress={onSave}
+              style={styles.footerButton}
+            />
           </View>
-        </ScrollView>
-        <ToastContainer />
-      </ModalContainer>
+        }
+      >
+        <View style={styles.form}>
+          <SelectField<number>
+            label={t('item.type')}
+            required
+            value={type?.id}
+            title={t('item.type')}
+            options={typeOptions}
+            onChange={(id) => setType(budgetTypes.find((recordType) => recordType.id === id))}
+            renderValue={(option) => (
+              <ColoredSelectOption
+                color={typeColor()}
+                label={option?.label ?? t('item.type')}
+              />
+            )}
+            renderOption={(option) => (
+              <ColoredSelectOption
+                color={colorForType(budgetTypes.find((recordType) => recordType.id === option.value))}
+                label={option.label}
+              />
+            )}
+          />
+          <SelectField<number>
+            label={t('item.category')}
+            required
+            value={category?.id}
+            title={t('item.selectCategory')}
+            options={categoryOptions}
+            onChange={(id) => setCategory(categories?.find((cat) => cat.id === id))}
+          />
+          <MoneyField
+            label={t('item.value')}
+            required
+            value={amountCents}
+            onChangeCents={setAmountCents}
+          />
+        </View>
+      </Modal>
     </>
   );
 };
 
-const localStyles = StyleSheet.create({
-  colContainer: {
-    flexDirection: "column",
-    justifyContent: "center",
-    alignContent: "center",
-    paddingVertical: 20,
-    gap: 20,
+const styles = StyleSheet.create({
+  form: {
+    gap: 16,
   },
-  inputContainer: {
+  footer: {
     flex: 1,
-    flexDirection: "row",
-    justifyContent: "center",
+    flexDirection: 'row',
+    gap: 8,
+  },
+  footerButton: {
+    flex: 1,
   },
 });
 
-export default AddItem;
+export default AddBudget;

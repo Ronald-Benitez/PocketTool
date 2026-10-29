@@ -16,29 +16,19 @@ import type {
     RecordType
 } from "@/src/interfaces/schema";
 import { useConfigs } from "@/src/hooks/useConfigs";
-import { AppText } from "@/src/ui/primitives/AppText";
 import { Button } from "@/src/ui/actions/Button";
+import { ColoredSelectOption } from "@/src/ui/forms/ColoredSelectOption";
 import { DateField } from "@/src/ui/forms/DateField";
 import { MoneyField } from "@/src/ui/forms/MoneyField";
 import { SelectField } from "@/src/ui/forms/SelectField";
 import { TextField } from "@/src/ui/forms/TextField";
 import { Modal } from "@/src/ui/overlays/Modal";
-import { useTheme } from "@/src/ui/theme/ThemeProvider";
 
 interface AddItemProps {
     item?: RecordFormEntry
     children?: React.ReactNode
     openUpdate?: boolean
     open?: boolean
-}
-
-const ColoredOption = ({ color, label }: { color?: string | null; label: string }) => {
-    const { colors } = useTheme()
-    return (
-        <View style={[styles.colorOption, { borderLeftColor: color ?? colors.border, backgroundColor: colors.surfaceMuted }]}>
-            <AppText numberOfLines={1}>{label}</AppText>
-        </View>
-    )
 }
 
 const AddItem = ({ item, children, open }: AddItemProps) => {
@@ -238,13 +228,13 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                         options={typeOptions}
                         onChange={(id) => setType(recordTypes.find(val => val.id === id))}
                         renderValue={(option) => (
-                            <ColoredOption
+                            <ColoredSelectOption
                                 color={type?.record_color}
                                 label={option?.label ?? t('item.type')}
                             />
                         )}
                         renderOption={(option) => (
-                            <ColoredOption
+                            <ColoredSelectOption
                                 color={recordTypes.find(val => val.id === option.value)?.record_color}
                                 label={option.label}
                             />
@@ -266,13 +256,13 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                         options={paymentOptions}
                         onChange={(id) => setPaymentMethod(paymentMethods.find(pay => pay.id === id))}
                         renderValue={(option) => (
-                            <ColoredOption
+                            <ColoredSelectOption
                                 color={payment_method?.PaymentTypes?.payment_color}
                                 label={option?.label ?? t('item.selectPayment')}
                             />
                         )}
                         renderOption={(option) => (
-                            <ColoredOption
+                            <ColoredSelectOption
                                 color={paymentMethods.find(pay => pay.id === option.value)?.PaymentTypes?.payment_color}
                                 label={option.label}
                             />
@@ -287,13 +277,13 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                             options={paymentOptions}
                             onChange={(id) => setToPayMethod(paymentMethods.find(pay => pay.id === id))}
                             renderValue={(option) => (
-                                <ColoredOption
+                                <ColoredSelectOption
                                     color={to_pay_method?.PaymentTypes?.payment_color}
                                     label={option?.label ?? t('item.selectToPay')}
                                 />
                             )}
                             renderOption={(option) => (
-                                <ColoredOption
+                                <ColoredSelectOption
                                     color={paymentMethods.find(pay => pay.id === option.value)?.PaymentTypes?.payment_color}
                                     label={option.label}
                                 />
@@ -328,13 +318,6 @@ const styles = StyleSheet.create({
     },
     footerButton: {
         flex: 1
-    },
-    colorOption: {
-        flex: 1,
-        borderLeftWidth: 3,
-        borderRadius: 5,
-        paddingHorizontal: 8,
-        paddingVertical: 8,
     }
 })
 

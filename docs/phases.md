@@ -107,6 +107,9 @@ Incluye:
 - Piloto migrado: `src/components/records/add-record.tsx` usa `Modal`,
   `TextField`, `MoneyField`, `DateField`, `SelectField` y `Button`; conserva los
   bordes de color de tipos/métodos con `renderOption`/`renderValue`.
+- Migrados también: `AddFixed`, `AddTemplateItem`, `add-budget` y `AddSaving`
+  usan `Modal`, `TextField`/`MoneyField`/`SelectField`/`DateField` y `Button`.
+- `ColoredSelectOption` centraliza las filas de select con borde de color.
 - `Modal` incluye `KeyboardAvoidingView` para iOS y Android y auto-scroll al
   campo enfocado mediante `TextField`.
 - Modales legacy (`ModalContainer`, `base-modal`, `RecordsFilterModal`) también
@@ -117,9 +120,8 @@ Incluye:
 - Tests de render ampliados en `src/ui/__tests__/primitives.test.tsx`.
 - Verificado: `npm run ci` y `npm run lint` con 0 errores.
 
-Pendiente de UI-1: adaptar/migrar `AddFixed`, `AddTemplateItem`, `add-budget`,
-`AddSaving` y reemplazar `BaseSelect`/`DatePicker`/`PressableSwitch` en pantallas
-existentes.
+Pendiente de UI-1: reemplazar `BaseSelect`/`DatePicker`/`PressableSwitch` en
+pantallas de settings, filtros y selectores restantes.
 Pendiente de UI-2: migrar `ModalContainer`, `base-modal`, `confirm`,
 `HelpModal`, `RecordsFilterModal` y reemplazar `Alert`/`useAndroidToast` restantes
 por feedback global.

@@ -393,8 +393,8 @@ Checklist obligatorio por componente:
 
 ### UI-1 — Formularios y acciones (2–3 días)
 
-**Estado:** 🔄 Parcial avanzado — catálogo de campos y acciones completo; falta
-migrar pantallas y adaptadores legacy.
+**Estado:** 🔄 Parcial avanzado — catálogo de campos y acciones completo;
+formularios principales migrados; faltan adaptadores y pantallas legacy.
 
 - `FormField`, `TextField`, `MoneyField`, `SelectField`, `DateField`,
   `MonthField`, `SwitchField`, `ColorField`, `Button`, `IconButton`,
@@ -403,7 +403,9 @@ migrar pantallas y adaptadores legacy.
   `MonthSelector`, `PressableSwitch`, `ColorPicker2`. ⏳
 - Migrar como piloto: `add-group`. ✅
 - Migrar: `add-record`. ✅
-- Migrar: `AddFixed`, `AddTemplateItem`, `add-budget`, `AddSaving`. ⏳
+- Migrar: `AddFixed`, `AddTemplateItem`, `add-budget`, `AddSaving`. ✅
+- Reemplazar `BaseSelect`/`DatePicker`/`PressableSwitch` en settings, filtros y
+  selectores restantes. ⏳
 
 ### UI-2 — Feedback y overlays (1–2 días)
 

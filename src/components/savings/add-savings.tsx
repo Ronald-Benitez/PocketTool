@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { View, ScrollView, StyleSheet } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { useLanguage } from "@/src/lang/LanguageContext";
 import { useSavings, useSavingsHistory } from "@/src/db";
-import useToast from "@/src/hooks/useToast";
 import useRecordsStore from '@/src/stores/RecordsStore';
-import ModalContainer from "../ui/modal-container";
-import InputLabel from "../ui/InputLabel";
 import useSavingsStore from "@/src/stores/SavingsStore";
 import { Saving, SavingsHistoryEntry } from "@/src/interfaces/schema";
-import { centsToInput, parseMoneyToCents } from "@/src/utils";
+import { Button } from "@/src/ui/actions/Button";
+import { MoneyField } from "@/src/ui/forms/MoneyField";
+import { TextField } from "@/src/ui/forms/TextField";
+import { Modal } from "@/src/ui/overlays/Modal";
+import { useToast } from "@/src/ui/feedback/ToastProvider";
 
 interface AddItemProps {
     isEditing?: boolean
@@ -21,40 +22,49 @@ interface AddItemProps {
 const AddSaving = ({ isEditing = false, children, open }: AddItemProps) => {
     const { group } = useRecordsStore()
     const { t } = useLanguage()
+    const [visible, setVisible] = useState(false)
     const [name, setName] = useState<string>("")
-    const [value, setValue] = useState<string>("")
-    const { addSavings, fetchSavings, updateSavings, } = useSavings()
+    const [amountCents, setAmountCents] = useState<number>(0)
+    const { addSavings, fetchSavings, updateSavings } = useSavings()
     const { addHistory, fetchBySavingId } = useSavingsHistory()
-
-    const { ToastContainer, showToast } = useToast()
+    const { showToast } = useToast()
     const { saving, setSaving, setSavingsHistory, setSavings } = useSavingsStore()
+    const firstOpenEffect = useRef(true)
+
+    useEffect(() => {
+        if (firstOpenEffect.current) {
+            firstOpenEffect.current = false
+            return
+        }
+        setVisible(true)
+    }, [open])
 
     useEffect(() => {
         if (saving && isEditing) {
-            setValue(centsToInput(saving.amount))
+            setAmountCents(saving.amount)
             setName(saving.saving_name)
-        }else{
-            setValue("")
+        } else {
+            setAmountCents(0)
             setName("")
         }
     }, [saving, open])
 
+    const closeModal = () => setVisible(false)
 
     const onSave = async () => {
         if (!group) return
 
-        if (value === "" || name === "") {
-            showToast({ message: t("item.error"), type: "ERROR" })
+        if (amountCents <= 0 || name.trim() === "") {
+            showToast({ message: t("item.error"), type: "error" })
             return
         }
-        const amount = parseMoneyToCents(value);
 
         if (isEditing && saving?.id) {
-            await updateSavings(saving.id, name, amount)
-            showToast({ message: t("item.edited"), type: "SUCCESS" })
+            await updateSavings(saving.id, name.trim(), amountCents)
+            showToast({ message: t("item.edited"), type: "success" })
             const newHistory: SavingsHistoryEntry = {
                 savings_id: saving.id,
-                new_amount: amount,
+                new_amount: amountCents,
                 change_date: new Date().getTime(),
                 previous_amount: saving.amount,
             }
@@ -62,69 +72,79 @@ const AddSaving = ({ isEditing = false, children, open }: AddItemProps) => {
             const history = await fetchBySavingId(saving.id)
             setSaving({
                 ...saving,
-                amount,
-                saving_name: name
+                amount: amountCents,
+                saving_name: name.trim()
             })
             setSavingsHistory(history.reverse())
         } else {
-            await addSavings(name, amount)
-            showToast({ message: t("item.added"), type: "SUCCESS" })
+            await addSavings(name.trim(), amountCents)
+            showToast({ message: t("item.added"), type: "success" })
             setName("")
-            setValue("")
+            setAmountCents(0)
         }
         const savings = await fetchSavings() as Saving[]
         setSavings(savings)
+        closeModal()
     }
 
     return (
         <>
-            <ModalContainer
-                buttonOpen={children}
-                closeOnAccept={true}
-                type="complete"
-                onAccept={onSave}
+            {children ? (
+                <Pressable onPress={() => setVisible(true)}>{children}</Pressable>
+            ) : null}
+            <Modal
+                visible={visible}
+                onClose={closeModal}
                 title={isEditing ? t('savings.edit') : t('savings.add')}
-                open={open}
-            >
-                <ScrollView>
-                    <View style={localStyles.colContainer}>
-                        <View style={localStyles.inputContainer}>
-                            <InputLabel
-                                value={name}
-                                onChangeText={setName}
-                                placeholder={t('item.name')}
-                            />
-                        </View>
-                        <View style={localStyles.inputContainer}>
-                            <InputLabel
-                                value={value}
-                                onChangeText={setValue}
-                                placeholder={t('item.value')}
-                                keyboardType="numeric"
-                            />
-                        </View>
+                closeLabel={t('cancel')}
+                scrollable
+                footer={
+                    <View style={styles.footer}>
+                        <Button
+                            label={t('cancel')}
+                            variant='outline'
+                            onPress={closeModal}
+                            style={styles.footerButton}
+                        />
+                        <Button
+                            label={t('confirm')}
+                            onPress={onSave}
+                            style={styles.footerButton}
+                        />
                     </View>
-                </ScrollView>
-                <ToastContainer />
-            </ModalContainer>
+                }
+            >
+                <View style={styles.form}>
+                    <TextField
+                        label={t('item.name')}
+                        value={name}
+                        onChangeText={setName}
+                        placeholder={t('item.name')}
+                    />
+                    <MoneyField
+                        label={t('item.value')}
+                        required
+                        value={amountCents}
+                        onChangeCents={setAmountCents}
+                    />
+                </View>
+            </Modal>
         </>
     )
 
 }
 
-const localStyles = StyleSheet.create({
-    colContainer: {
-        flexDirection: "column",
-        justifyContent: "center",
-        alignContent: "center",
-        paddingVertical: 80,
-        gap: 80
+const styles = StyleSheet.create({
+    form: {
+        gap: 16
     },
-
-    inputContainer: {
+    footer: {
         flex: 1,
-        flexDirection: "row",
-        justifyContent: "center"
+        flexDirection: 'row',
+        gap: 8
+    },
+    footerButton: {
+        flex: 1
     }
 })
 

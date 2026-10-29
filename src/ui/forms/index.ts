@@ -1,4 +1,8 @@
 export { ColorField, type ColorFieldProps } from './ColorField';
+export {
+  ColoredSelectOption,
+  type ColoredSelectOptionProps,
+} from './ColoredSelectOption';
 export { DateField, type DateFieldProps } from './DateField';
 export { FormField, type FormFieldProps } from './FormField';
 export { MoneyField, type MoneyFieldProps } from './MoneyField';
