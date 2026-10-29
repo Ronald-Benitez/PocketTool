@@ -10,7 +10,7 @@
 | Fase 1 — Fuente única de verdad del esquema | ✅ Finalizada | 2026-10-28 |
 | Fase 2 — Repositorios y ORM robusto | ✅ Finalizada | 2026-10-28 |
 | Fase 3 — Calidad, pruebas y operación | ✅ Finalizada | 2026-10-28 |
-| Fase 4 — Sistema de UI reutilizable | 📝 Planificación | — |
+| Fase 4 — Sistema de UI reutilizable | 🔄 En progreso | — |
 
 El detalle histórico de las fases 0–3, sus checklists y commits vive en
 [`legacy/phase-history.md`](legacy/phase-history.md). Se conserva como registro,
@@ -30,12 +30,14 @@ pero no se carga en el contexto diario.
 - **Backups:** dump SQL con cabecera de metadatos y compatibilidad legacy.
 - **Calidad:** `test:db` con `node:sqlite`, Jest, typecheck, lint bloqueante y
   CI en `.github/workflows/ci.yml`.
-- **UI:** todavía usa los componentes legacy de `src/components/ui`; la
-  migración al sistema nuevo se planifica en Fase 4.
+- **UI:** `src/ui/theme/` implementa tokens, paletas base bright/dark,
+  `ThemeProvider`, modo `system`/`light`/`dark`, persistencia, migración y
+  contraste. Los componentes legacy de `src/components/ui` siguen en uso y se
+  migran incrementalmente en Fase 4.
 
 ## Fase 4 — Sistema de UI reutilizable
 
-**Estado:** 📝 Planificación
+**Estado:** 🔄 En progreso
 **Plan detallado:** [`ui-plan.md`](ui-plan.md)
 
 Objetivo: unificar inputs, selects, modales, botones, feedback, tema, modo
@@ -51,6 +53,30 @@ Incluye:
 - `Button`/`IconButton`, `Modal`/`Dialog`, `ToastProvider`.
 - Galería de componentes y migración incremental por pantalla.
 - Documentación de base de datos mejorada y concisa.
+
+### UI-0 / UI-0b — Fundaciones de tema (✅ 2026-10-28)
+
+- `src/ui/theme/tokens.ts`: espaciado, radios, alturas, tipografía, sombras y
+  z-index.
+- `src/ui/theme/palettes/bright.base.json` y `dark.base.json`: paletas base
+  versionadas.
+- `src/ui/theme/settings.ts`: normalización, migración legacy, resolución de
+  modo/paleta y merge de tokens.
+- `src/ui/theme/ThemeProvider.tsx`: `system`/`light`/`dark`, paletas bright/dark
+  editables, persistencia con debounce y migración desde la clave `colors`.
+- `src/ui/theme/contrast.ts`: contraste WCAG AA y advertencias.
+- `ColorScheme` ampliado con tokens semánticos y alias legacy derivados.
+- Editor de tema en Ajustes: modo, pestañas bright/dark, grupos de color,
+  restauración por color/paleta/todo, vista previa y contraste.
+- `app/_layout.tsx`: `ThemeProvider`, `StatusBar`, `SystemUI` y drawer temático.
+- `ColorsStore` convertido en adaptador de `useTheme`; eliminados
+  `colors.json`, `colorsDark.json` y `useColors`.
+- Tests en `src/ui/theme/__tests__/theme-settings.test.ts`.
+- Verificado: `npm run typecheck`, Jest y `npm run lint` con 0 errores.
+
+Pendiente de UI-0: primitivas base (`src/ui/primitives`), barrel `src/ui` y
+galería de componentes. Después siguen UI-1 (formularios/acciones), UI-2
+(feedback/overlays), UI-3 (datos/tablas) y UI-4 (limpieza).
 
 ## Documentación
 

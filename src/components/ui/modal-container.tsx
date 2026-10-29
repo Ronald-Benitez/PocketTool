@@ -74,9 +74,9 @@ const ModalContainer = React.forwardRef<ModalContainerRef, AddGroupProps>(
                         transparent={true}
                         animationType="fade"
                     >
-                        <Pressable onPress={handleClose} style={localStyles.modalBackdrop}>
+                        <Pressable onPress={handleClose} style={[localStyles.modalBackdrop, { backgroundColor: colors?.overlay }]}>
                             <Pressable onPress={() => { }} >
-                                <View style={[localStyles.modalContainer]}>
+                                <View style={[localStyles.modalContainer, { backgroundColor: colors?.surface }]}>
                                     <View style={[localStyles.modalHeader, { backgroundColor: colors?.ModalHeaderColor }]}>
                                         <ColorText backgroundColor={colors?.ModalHeaderColor || "#fff"} textAlign="center">
                                             {title}
@@ -118,13 +118,11 @@ const localStyles = StyleSheet.create({
         textAlign: "center"
     },
     modalContainer: {
-        backgroundColor: "#fff",
         width: 380,
         height: 600,
     },
     modalBackdrop: {
         flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
         justifyContent: "center",
         alignItems: "center",
     },

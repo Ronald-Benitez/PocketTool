@@ -22,8 +22,8 @@ const BaseSelect = ({ label, onChange, options, selected, title, blockWith, chil
     const [closeModal, setCloseModal] = useState(false)
 
     const buttonOpen = (
-        <View style={[localStyles.block, { borderColor: colors?.InputStroke }]} >
-            <Text style={[localStyles.text]}>
+        <View style={[localStyles.block, { borderColor: colors?.InputStroke, backgroundColor: colors?.inputBackground }]} >
+            <Text style={[localStyles.text, { color: colors?.text }]}>
                 {
                     Array.isArray(selected) ? selected.join(", ") : selected
                         || label}
@@ -39,7 +39,7 @@ const BaseSelect = ({ label, onChange, options, selected, title, blockWith, chil
     return (
         <>
             <View style={[localStyles.colContainer, { width: blockWith ? blockWith : "80%" }]}>
-                <Text style={localStyles.label}>{label}</Text>
+                <Text style={[localStyles.label, { color: colors?.textMuted }]}>{label}</Text>
                 <ModalContainer
                     buttonOpen={children ? children : buttonOpen}
                     close={closeModal}
@@ -59,7 +59,7 @@ const BaseSelect = ({ label, onChange, options, selected, title, blockWith, chil
                                                         transform: Array.isArray(selected) && (selected as (string | number)[])?.includes(val) ? [{ scale: 0.95 }] :
                                                             selected === val ? [{ scale: 0.95 }] : [{ scale: 1 }]
                                                     }}>
-                                                        <Text style={[localStyles.text]}>{val}</Text>
+                                                        <Text style={[localStyles.text, { color: colors?.text }]}>{val}</Text>
                                                     </BGSelectBlock>
                                                 )
                                         }
@@ -81,8 +81,7 @@ const localStyles = StyleSheet.create({
         borderWidth: 1,
         paddingHorizontal: 5,
         justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#fff"
+        alignItems: "center"
     },
     text: {
         fontWeight: "200",

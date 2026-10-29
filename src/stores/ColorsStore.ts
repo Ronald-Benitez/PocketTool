@@ -1,48 +1,34 @@
-import { create } from "zustand";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import colorsJson from "@/src/colors/colors.json";
-import { ColorScheme } from "../interfaces";
+import { useCallback } from 'react';
 
-interface ColorsState {
-  colors: ColorScheme | null;
-  saveColors: (newColors: ColorScheme) => Promise<void>;
-  initializeColors: () => Promise<void>;
-  resetColors: () => Promise<void>;
-}
+import type { ColorScheme } from '@/src/interfaces/colors';
+import { useTheme } from '@/src/ui/theme/ThemeProvider';
+import { modeToPalette } from '@/src/ui/theme/settings';
 
-const useColorStore = create<ColorsState>()((set) => ({
-  colors: null,
-  initializeColors: async () => {
-    const storedColors = await AsyncStorage.getItem("colors");
-    if (storedColors) {
-      const parsedColors = JSON.parse(storedColors);
+/**
+ * Adaptador de compatibilidad para el código heredado que todavía consume
+ * `useColorStore`. El estado real vive en `ThemeProvider`; este hook solo
+ * expone `colors` y conserva la API anterior durante la migración a `useTheme`.
+ */
+const useColorStore = () => {
+  const { colors, resolvedMode, isReady, replacePalette, resetPalette } = useTheme();
 
-      const updatedColors = { ...parsedColors };
+  const initializeColors = useCallback(async () => {
+    // ThemeProvider carga y migra la configuración al montarse.
+    if (!isReady) return;
+  }, [isReady]);
 
-      for (const key of Object.keys(colorsJson) as (keyof ColorScheme)[]) {
-        if (!(key in updatedColors)) {
-          updatedColors[key] = colorsJson[key];
-        }
-      }
-      if (JSON.stringify(updatedColors) !== storedColors) {
-        await AsyncStorage.setItem("colors", JSON.stringify(updatedColors));
-        set({ colors: updatedColors });
-      } else {
-        set({ colors: parsedColors });
-      }
-    } else {
-      await AsyncStorage.setItem("colors", JSON.stringify(colorsJson));
-      set({ colors: colorsJson });
-    }
-  },
-  saveColors: async (newColors: ColorScheme) => {
-    set({ colors: newColors });
-    await AsyncStorage.setItem("colors", JSON.stringify(newColors));
-  },
-  resetColors: async () => {
-    await AsyncStorage.setItem("colors", JSON.stringify(colorsJson));
-    set({ colors: colorsJson });
-  },
-}));
+  const saveColors = useCallback(
+    async (newColors: ColorScheme) => {
+      replacePalette(modeToPalette(resolvedMode), newColors);
+    },
+    [replacePalette, resolvedMode]
+  );
+
+  const resetColors = useCallback(async () => {
+    resetPalette(modeToPalette(resolvedMode));
+  }, [resetPalette, resolvedMode]);
+
+  return { colors, initializeColors, saveColors, resetColors };
+};
 
 export default useColorStore;

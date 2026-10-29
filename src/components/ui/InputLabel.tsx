@@ -1,13 +1,14 @@
-import { StyleSheet, TextInput, TextInputProps, View, Text } from "react-native";
+import { StyleSheet, TextInputProps, View, Text } from "react-native";
 
 import useColorStore from '@/src/stores/ColorsStore';
 import Input from "./Input";
 
 const InputLabel = (props: TextInputProps) => {
+    const { colors } = useColorStore()
     return (
         <>
             <View style={localStyles.colContainer}>
-                <Text style={localStyles.label}>{props.placeholder}</Text>
+                <Text style={[localStyles.label, { color: colors.textMuted }]}>{props.placeholder}</Text>
                 <Input
                     {...props}
                 />

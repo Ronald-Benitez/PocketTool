@@ -2,6 +2,7 @@ import { View, Text, Modal, Pressable, StyleSheet } from 'react-native';
 import { ReactNode, useState } from 'react';
 import useToast from '@/src/hooks/useToast';
 import { useLanguage } from '@/src/lang/LanguageContext';
+import { useTheme } from '@/src/ui/theme/ThemeProvider';
 import ModalButton from './modal-button';
 
 interface ConfirmModalProps {
@@ -16,6 +17,7 @@ const ConfirmModal = ({ children, message, title, onConfirm, onCancel }: Confirm
   const { ToastContainer, showToast } = useToast();
   const [modalVisible, setModalVisible] = useState(false);
   const { t } = useLanguage();
+  const { colors } = useTheme();
 
   const handleConfirm = () => {
     setModalVisible(false);
@@ -43,14 +45,21 @@ const ConfirmModal = ({ children, message, title, onConfirm, onCancel }: Confirm
         transparent={true}
         animationType="slide"
       >
-        <Pressable onPress={handleCancel} style={localStyles.modalBackdrop}>
+        <Pressable
+          onPress={handleCancel}
+          style={[localStyles.modalBackdrop, { backgroundColor: colors.overlay }]}
+        >
           <Pressable onPress={() => { }} style={localStyles.modalInner}>
-            <View style={localStyles.modalContainer}>
-              <View style={localStyles.modalHeader}>
-                <Text style={localStyles.modalHeaderText}>{title || t('confirmTitle')}</Text>
+            <View style={[localStyles.modalContainer, { backgroundColor: colors.surface }]}>
+              <View style={[localStyles.modalHeader, { backgroundColor: colors.modalHeaderBg }]}>
+                <Text style={[localStyles.modalHeaderText, { color: colors.modalHeaderText }]}>
+                  {title || t('confirmTitle')}
+                </Text>
               </View>
               <View style={localStyles.modalContent}>
-                <Text style={localStyles.modalMessage}>{message || t('confirmMessage')}</Text>
+                <Text style={[localStyles.modalMessage, { color: colors.text }]}>
+                  {message || t('confirmMessage')}
+                </Text>
               </View>
               <View style={localStyles.modalFooter}>
                 <ModalButton onClick={handleCancel} text={t('cancel')} type="base" />
@@ -67,25 +76,21 @@ const ConfirmModal = ({ children, message, title, onConfirm, onCancel }: Confirm
 
 const localStyles = StyleSheet.create({
   modalHeader: {
-    backgroundColor: '#497679',
     justifyContent: 'center',
     height: 65,
   },
   modalHeaderText: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#fff',
     textAlign: 'center',
   },
   modalContainer: {
-    backgroundColor: '#fff',
     width: 350,
     borderRadius: 10,
     overflow: 'hidden',
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -98,7 +103,6 @@ const localStyles = StyleSheet.create({
   modalMessage: {
     fontSize: 16,
     textAlign: 'center',
-    color: '#333',
   },
   modalFooter: {
     height: 65,

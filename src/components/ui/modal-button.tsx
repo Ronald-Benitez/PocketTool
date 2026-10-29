@@ -1,7 +1,6 @@
 import { StyleSheet, Pressable, Text, ViewStyle, View } from "react-native";
 
-import ColorText from "./color-text";
-import useColorStore from "@/src/stores/ColorsStore";
+import { useTheme } from "@/src/ui/theme/ThemeProvider";
 
 interface props {
     text: string,
@@ -11,27 +10,26 @@ interface props {
 }
 
 const ModalButton = ({ text, onClick, type, isButton = true }: props) => {
-    const { colors } = useColorStore()
+    const { colors } = useTheme()
 
-    const color = colors?.ConfirmColor || "#8FC0C3"
-    const textBg =  type == "base" ? "#fff" : color
+    const backgroundColor = type === "base" ? colors.surface : colors.primary
+    const textColor = type === "base" ? colors.primary : colors.onPrimary
 
-    const styles = type == "base" ? {
+    const buttonStyle = {
+        backgroundColor,
         borderWidth: 1,
-        borderColor: color,
-    } as ViewStyle : {
-        backgroundColor: color
+        borderColor: colors.primary,
     } as ViewStyle
 
     return (
         <>
             {isButton ? (
-                <Pressable onPress={onClick} style={[localStyles.button, styles]}>
-                    <ColorText backgroundColor={textBg} fontSize={14} textAlign="center">{text}</ColorText>
+                <Pressable onPress={onClick} style={[localStyles.button, buttonStyle]}>
+                    <Text style={[localStyles.text, { color: textColor }]}>{text}</Text>
                 </Pressable>
             ) : (
-                <View style={[localStyles.button, styles]}>
-                    <ColorText backgroundColor={textBg} fontSize={14} textAlign="center">{text}</ColorText>
+                <View style={[localStyles.button, buttonStyle]}>
+                    <Text style={[localStyles.text, { color: textColor }]}>{text}</Text>
                 </View>
             )}
         </>

@@ -209,6 +209,49 @@
         "creditColor": "Color de crédito",
         "debitColor": "Color de débito"
     },
+    "theme": {
+        "title": "Tema",
+        "appearance": "Apariencia",
+        "mode": {
+            "system": "Sistema",
+            "light": "Claro",
+            "dark": "Oscuro"
+        },
+        "palette": {
+            "bright": "Brillante",
+            "dark": "Oscura",
+            "base": "Base",
+            "custom": "Personalizada"
+        },
+        "paletteHint": "Lo que edites aquí se guarda solo para esta paleta.",
+        "useBase": "Usar paleta base",
+        "resetColor": "Restablecer color",
+        "resetPalette": "Restablecer paleta",
+        "resetAll": "Restablecer todo",
+        "confirmResetPalette": "¿Quieres restaurar la paleta base {palette}? Se perderán tus colores personalizados de esta paleta.",
+        "confirmResetAll": "¿Quieres restaurar ambas paletas base? Se perderán todos los colores personalizados.",
+        "colorsEdited": "Los colores personalizados se guardan automáticamente.",
+        "preview": {
+            "title": "Vista previa",
+            "primary": "Acción principal",
+            "income": "Ingreso",
+            "expense": "Gasto",
+            "surface": "Superficie",
+            "text": "Texto de ejemplo"
+        },
+        "contrast": {
+            "title": "Advertencias de contraste",
+            "ok": "Todos los pares verificados cumplen WCAG AA.",
+            "textBackground": "Texto sobre fondo",
+            "textSurface": "Texto sobre superficie",
+            "mutedSurface": "Texto secundario sobre superficie",
+            "onPrimary": "Texto sobre primario",
+            "onDanger": "Texto sobre peligro",
+            "onSuccess": "Texto sobre éxito",
+            "onWarning": "Texto sobre advertencia",
+            "onInfo": "Texto sobre información"
+        }
+    },
     "resume": {
         "incomes": "Ingresos",
         "expenses": "Gastos",

@@ -205,6 +205,49 @@
         "Credit": "Credit color",
         "Debit": "Debit color"
     },
+    "theme": {
+        "title": "Theme",
+        "appearance": "Appearance",
+        "mode": {
+            "system": "System",
+            "light": "Light",
+            "dark": "Dark"
+        },
+        "palette": {
+            "bright": "Bright",
+            "dark": "Dark",
+            "base": "Base",
+            "custom": "Custom"
+        },
+        "paletteHint": "What you edit here is saved only for this palette.",
+        "useBase": "Use base palette",
+        "resetColor": "Reset color",
+        "resetPalette": "Reset palette",
+        "resetAll": "Reset all",
+        "confirmResetPalette": "Do you want to restore the base {palette} palette? Your custom colors for this palette will be lost.",
+        "confirmResetAll": "Do you want to restore both base palettes? All custom colors will be lost.",
+        "colorsEdited": "Custom colors are saved automatically.",
+        "preview": {
+            "title": "Preview",
+            "primary": "Primary action",
+            "income": "Income",
+            "expense": "Expense",
+            "surface": "Surface",
+            "text": "Sample text"
+        },
+        "contrast": {
+            "title": "Contrast warnings",
+            "ok": "All checked pairs meet WCAG AA.",
+            "textBackground": "Text on background",
+            "textSurface": "Text on surface",
+            "mutedSurface": "Muted text on surface",
+            "onPrimary": "Text on primary",
+            "onDanger": "Text on danger",
+            "onSuccess": "Text on success",
+            "onWarning": "Text on warning",
+            "onInfo": "Text on info"
+        }
+    },
     "resume": {
         "incomes": "Incomes",
         "expenses": "Expenses",

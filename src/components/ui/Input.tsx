@@ -6,7 +6,18 @@ const Input = (props: TextInputProps) => {
     const { colors } = useColorStore()
     return (
         <>
-            <TextInput style={[localStyles.block, { borderColor: colors?.InputStroke }]} {...props}>
+            <TextInput
+                placeholderTextColor={colors.placeholder}
+                style={[
+                    localStyles.block,
+                    {
+                        borderColor: colors.InputStroke,
+                        backgroundColor: colors.inputBackground,
+                        color: colors.text,
+                    },
+                ]}
+                {...props}
+            >
             </TextInput >
         </>
     )
@@ -21,4 +32,4 @@ const localStyles = StyleSheet.create({
     },
 })
 
-export default Input
+export default Input;

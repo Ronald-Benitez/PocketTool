@@ -1,6 +1,7 @@
 import { StyleSheet, Pressable, View } from "react-native";
 import { ReactNode } from "react";
 
+import { useTheme } from "@/src/ui/theme/ThemeProvider";
 import ShakeAnimation from "./animations/shake-animation";
 
 interface props {
@@ -11,14 +12,20 @@ interface props {
 }
 
 const IconButton = ({ children, onClick, isButton = true, shake = false }: props) => {
+    const { colors } = useTheme()
+    const buttonStyle = {
+        backgroundColor: colors.surface,
+        shadowColor: colors.shadow,
+    }
+
     return (
         <ShakeAnimation shake={false}>
             {isButton ? (
-                <Pressable onPress={onClick} style={[localStyles.button]}>
+                <Pressable onPress={onClick} style={[localStyles.button, buttonStyle]}>
                     {children}
                 </Pressable>
             ) : (
-                <View style={[localStyles.button]}>
+                <View style={[localStyles.button, buttonStyle]}>
                     {children}
                 </View>
             )}
@@ -32,8 +39,6 @@ const localStyles = StyleSheet.create({
         height: 50,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#fff",
-        shadowColor: "black",
         shadowOffset: {
             width: 0,
             height: 2,

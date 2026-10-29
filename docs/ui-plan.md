@@ -365,27 +365,31 @@ Checklist obligatorio por componente:
 
 ### UI-0 — Fundaciones y auditoría (1–2 días)
 
+**Estado:** 🔄 Parcial — tema/tokens listos; faltan primitivas base y galería.
+
 - Inventario y mapa de reemplazo legacy → nuevo.
-- Definir tokens y `ThemeProvider`.
-- Crear `src/ui/primitives` y `src/ui/index.ts`.
-- Crear pantalla de galería de componentes (ruta de desarrollo).
-- Agregar tests de render/variantes base.
+- Definir tokens y `ThemeProvider`. ✅
+- Crear `src/ui/primitives` y `src/ui/index.ts`. ⏳
+- Crear pantalla de galería de componentes (ruta de desarrollo). ⏳
+- Agregar tests de render/variantes base. ⏳
 
 ### UI-0b — Tema, paletas y modo oscuro (2 días)
 
-- Crear `bright.base.json` y `dark.base.json`.
-- Ampliar `ColorScheme` con todos los tokens semánticos y de componentes.
+**Estado:** ✅ Completado (2026-10-28). `ToastProvider` queda en UI-2.
+
+- Crear `bright.base.json` y `dark.base.json`. ✅
+- Ampliar `ColorScheme` con todos los tokens semánticos y de componentes. ✅
 - Implementar `ThemeProvider` con `system`/`light`/`dark`, persistencia y
-  migración desde la clave legacy `colors`.
-- Implementar el editor de tema en Ajustes:
+  migración desde la clave legacy `colors`. ✅
+- Implementar el editor de tema en Ajustes: ✅
   - modo sistema/claro/oscuro;
   - pestañas bright/dark;
   - edición por grupos de color;
   - restaurar color individual, paleta y todo;
   - usar base bright/dark;
   - vista previa y advertencias de contraste.
-- Actualizar `StatusBar`/`SystemUI` y revisar modales, toasts e inputs en dark.
-- Tests de migración, reset, merge de tokens y contraste.
+- Actualizar `StatusBar`/`SystemUI` y revisar modales, toasts e inputs en dark. ✅
+- Tests de migración, reset, merge de tokens y contraste. ✅
 
 ### UI-1 — Formularios y acciones (2–3 días)
 

@@ -14,12 +14,35 @@ métodos de pago, créditos, ahorros y vehículo.
 - **Fase 1 — Fuente única de verdad del esquema: FINALIZADA** (2026-10-28).
 - **Fase 2 — Repositorios y ORM robusto: FINALIZADA** (2026-10-28).
 - **Fase 3 — Calidad, pruebas y operación: FINALIZADA** (2026-10-28).
-- **Fase 4 — Sistema de UI reutilizable: PLANIFICADA**.
+- **Fase 4 — Sistema de UI reutilizable: EN PROGRESO**. Fundaciones de tema
+  (UI-0/UI-0b) completadas; faltan primitivas, formularios, feedback y migración
+  de pantallas.
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
 que actualizar ese documento y marcar la fase como finalizada**, incluyendo fecha,
 commits relevantes, archivos tocados y verificaciones realizadas.
+
+## Arquitectura de UI
+
+- `src/ui/theme/tokens.ts`: tokens de espaciado, radios, alturas, tipografía,
+  sombras y z-index.
+- `src/ui/theme/palettes/bright.base.json` y `dark.base.json`: paletas base
+  versionadas. No editar valores base sin actualizar tests de contraste.
+- `src/ui/theme/ThemeProvider.tsx`: fuente del tema. Expone `colors`,
+  `palettes`, `mode`, `resolvedMode`, setters y resets.
+- `src/ui/theme/settings.ts`: normalización, migración legacy, resolución de
+  modo/paleta y merge; funciones puras testeables.
+- `src/ui/theme/contrast.ts`: contraste WCAG AA.
+- Los componentes nuevos usan `useTheme()`; no leer `useColorStore` ni claves
+  legacy.
+- `src/stores/ColorsStore.ts` es solo un adaptador de compatibilidad durante la
+  migración.
+- Persistencia del tema: clave `themeSettings`; migra desde `colors` y elimina
+  la clave legacy al migrar.
+- La UI no debe hardcodear colores nuevos; usar tokens semánticos.
+- Los colores personalizados viven por paleta (`bright`/`dark`) y se completan
+  con la base al agregar tokens nuevos.
 
 ## Arquitectura de datos
 
