@@ -1,4 +1,5 @@
 import * as SQLite from 'expo-sqlite';
+import Constants from 'expo-constants';
 import { File, Paths } from 'expo-file-system';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
@@ -6,7 +7,10 @@ import { Alert, Platform } from 'react-native';
 
 import migrateDb from '@/src/db/migration';
 import { withExclusiveTransaction } from '@/src/db/transaction';
-import { buildSqlDump, validateSqlDump } from './sql-dump';
+import { createBackupSql, parseBackupMetadata } from './backup';
+import { validateSqlDump } from './sql-dump';
+
+const appVersion = () => Constants.expoConfig?.version ?? 'unknown';
 
 const writeDumpFile = (fileName: string, sqlDump: string): File => {
   const cacheDir = Paths.cache.uri;
@@ -40,7 +44,7 @@ const pickSqlFile = async (): Promise<string | null> => {
 };
 
 const createBackup = async (db: SQLite.SQLiteDatabase): Promise<string> => {
-  const sqlDump = await buildSqlDump(db);
+  const sqlDump = await createBackupSql(db, appVersion());
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const file = writeDumpFile(`backup-before-import-${timestamp}.sql`, sqlDump);
   return file.uri;
@@ -54,7 +58,7 @@ export const useDBExport = function () {
 
   const exportDatabase = async () => {
     try {
-      const sqlDump = await buildSqlDump(db);
+      const sqlDump = await createBackupSql(db, appVersion());
       const dumpFile = writeDumpFile('backup.sql', sqlDump);
 
       if (await Sharing.isAvailableAsync()) {
@@ -75,6 +79,8 @@ export const useDBExport = function () {
       const sqlContent = await pickSqlFile();
       if (sqlContent === null) return;
 
+      // JSON metadata is optional for backwards compatibility with SQL dumps.
+      parseBackupMetadata(sqlContent);
       validateSqlDump(sqlContent);
 
       // Keep a restorable copy before touching the current database.

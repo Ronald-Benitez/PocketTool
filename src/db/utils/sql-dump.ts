@@ -1,6 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import { APP_SCHEMA, type TableName } from '@/src/db/schema';
+import { APP_SCHEMA, type TableName } from '../schema';
 
 const REQUIRED_IMPORT_TABLES: TableName[] = [
   'Groups',
