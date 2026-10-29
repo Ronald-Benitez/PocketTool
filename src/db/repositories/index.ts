@@ -246,6 +246,24 @@ export const useRecordsRepository = () => {
     return rows.map(flattenRecord);
   };
 
+  const fetchRecordsPage = async (
+    group_id: number,
+    limit: number,
+    offset = 0
+  ): Promise<RecordView[]> => {
+    const rows = await recordsOrm
+      .joinMany([...RECORD_JOINS])
+      .where('group_id', group_id)
+      .order('date', 'ASC')
+      .limit(limit)
+      .offset(offset)
+      .getAll();
+    return rows.map(flattenRecord);
+  };
+
+  const countRecords = async (group_id: number): Promise<number> =>
+    recordsOrm.where('group_id', group_id).count();
+
   const fetchRecordsWithMultipleWhere = async (
     wheres: Array<{ column: string; value: string | number | null }>
   ): Promise<RecordView[] | undefined> => {
@@ -337,6 +355,8 @@ export const useRecordsRepository = () => {
 
   return {
     fetchRecords,
+    fetchRecordsPage,
+    countRecords,
     fetchRecordsWithMultipleWhere,
     fetchCredits,
     fetchPaidCredits,
