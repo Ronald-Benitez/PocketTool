@@ -10,3 +10,4 @@ export {
   type LinkButtonProps,
   type LinkButtonTone,
 } from './LinkButton';
+export { SwipeAction, type SwipeActionProps } from './SwipeAction';

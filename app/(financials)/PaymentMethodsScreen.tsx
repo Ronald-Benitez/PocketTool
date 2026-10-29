@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
-import SwipeItem from '@/src/components/ui/swipe-item';
+import { SwipeAction } from '@/src/ui/actions/SwipeAction';
 import useAndroidToast from '@/src/hooks/useAndroidToast';
 import { PaymentType, PaymentMethod, Insertable } from '@/src/interfaces/schema';
 import { useDataStore } from '@/src/stores';
@@ -148,7 +148,7 @@ const PaymentMethodsScreen = () => {
 
                 <View style={{ gap: 8 }}>
                     {PaymentMethods?.map((item) => (
-                        <SwipeItem
+                        <SwipeAction
                             key={item.id}
                             handleDelete={() => handleDeletePaymentMethod(item.id)}
                             handleUpdate={() => handleEditPaymentMethod(item)}
@@ -167,7 +167,7 @@ const PaymentMethodsScreen = () => {
                                 }
                                 showDivider
                             />
-                        </SwipeItem>
+                        </SwipeAction>
                     ))}
                 </View>
             </Stack>

@@ -6,7 +6,7 @@ import { useLanguage } from '@/src/lang/LanguageContext'
 import type { BudgetItemView } from '@/src/interfaces/schema'
 import { formatMoneyWithSymbol } from '@/src/utils'
 import styles from '@/src/styles/styles'
-import SwipeItem from '../ui/swipe-item'
+import { SwipeAction } from '@/src/ui/actions/SwipeAction'
 import useDate from '@/src/hooks/useDate'
 import { useRecords, useBudget } from '@/src/db'
 import { ScrollView } from 'react-native-gesture-handler'
@@ -14,7 +14,7 @@ import useToast from '@/src/hooks/useToast'
 import AddItem from './add-budget'
 import useRecordsStore from '@/src/stores/RecordsStore';
 import useColorStore from '@/src/stores/ColorsStore'
-import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
+import { AccentRow } from '@/src/ui/data-display/AccentRow'
 
 import useBudgetStore from '@/src/stores/BudgetStore'
 import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock'
@@ -168,13 +168,13 @@ const ItemsTable = () => {
                 <View style={{ gap: 5, paddingHorizontal: 30, }}>
                     {budgets?.map((item, index) => {
                         return (
-                            <SwipeItem
+                            <SwipeAction
                                 handleDelete={() => handleDelete(index)}
                                 handleUpdate={() => handleUpdate(index)}
                                 key={index}
                             >
-                                <BorderLeftBottomBlock
-                                    letfColor={colors ? typeColor(effectToType(item.effect ?? item.RecordTypes?.effect)) : ""}
+                                <AccentRow
+                                    accentColor={colors ? typeColor(effectToType(item.effect ?? item.RecordTypes?.effect)) : ""}
                                     bottomColor={colors ? (Number(getPercentage(item)) > 100 ? colors.ExpenseColor : colors.GoalColor) : ""}
                                 >
                                     <View style={localStyles.rowContainer}>
@@ -189,8 +189,8 @@ const ItemsTable = () => {
                                         </View>
                                         <Text style={localStyles.percentageText}>{getPercentage(item)}%</Text>
                                     </View>
-                                </BorderLeftBottomBlock>
-                            </SwipeItem>
+                                </AccentRow>
+                            </SwipeAction>
                         )
                     })}
                 </View>

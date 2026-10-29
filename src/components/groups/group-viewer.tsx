@@ -5,7 +5,7 @@ import { Group, RecordView } from "@/src/interfaces/schema"
 import { formatMoney } from "@/src/utils"
 import styles from "@/src/styles/styles"
 import Dropdown from "../ui/dropdown"
-import SwipeItem from "../ui/swipe-item"
+import { SwipeAction } from '@/src/ui/actions/SwipeAction'
 import AddGroup from "./add-group"
 import { useRecords, useGroups } from "@/src/db"
 import { useLanguage } from "@/src/lang/LanguageContext"
@@ -126,11 +126,10 @@ const GroupViewer = ({ group, setGroup, recordsI }: GroupViewerProps) => {
     return (
         <>
             <View style={[{ marginHorizontal: 30 }]}>
-                <SwipeItem
+                <SwipeAction
                     handleDelete={onDelete}
                     handleUpdate={onUpdate}
-                    style={[{ backgroundColor: "#fff", borderWidth: 0 }]}
-                    top={50}>
+                >
                     <View style={[{ width: "100%", gap: 10 }]}>
                         <View style={[styles.row, { paddingHorizontal: 10, paddingBottom: 5, justifyContent: "center", gap: 10 }]}>
                             <Block type="b" />
@@ -141,7 +140,7 @@ const GroupViewer = ({ group, setGroup, recordsI }: GroupViewerProps) => {
                             <Block type="e" />
                         </View> */}
                     </View>
-                </SwipeItem>
+                </SwipeAction>
             </View>
             <AddGroup
                 openUpdate={openUpdate}

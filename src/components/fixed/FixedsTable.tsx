@@ -3,11 +3,11 @@ import React, { useEffect, useState } from 'react'
 import { AntDesign } from '@expo/vector-icons'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
-import SwipeItem from '../ui/swipe-item'
+import { SwipeAction } from '@/src/ui/actions/SwipeAction'
 import { ScrollView } from 'react-native-gesture-handler'
 import useToast from '@/src/hooks/useToast'
 import AddItem from './AddFixed'
-import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
+import { AccentRow } from '@/src/ui/data-display/AccentRow'
 import IconButton from '../ui/icon-button'
 import type { FixedRecord, FixedView } from '@/src/interfaces/schema'
 import { formatMoneyWithSymbol } from '@/src/utils'
@@ -54,14 +54,14 @@ const FixedsTable = () => {
                 <View style={{ gap: 5, paddingHorizontal: 30, }}>
                     {Fixeds?.map((item, index) => {
                         return (
-                            <SwipeItem
+                            <SwipeAction
                                 handleDelete={() => handleDelete(index)}
                                 handleUpdate={() => handleUpdate(index)}
                                 key={item.id}
                             >
-                                <BorderLeftBottomBlock
+                                <AccentRow
                                     bottomColor={item.RecordTypes?.record_color ?? undefined}
-                                    letfColor={item.PaymentMethods?.PaymentTypes?.payment_color ?? undefined}
+                                    accentColor={item.PaymentMethods?.PaymentTypes?.payment_color ?? undefined}
                                 >
                                     <View style={localStyles.rowContainer}>
                                         <Text style={[localStyles.dayText, item.fixed_day > 9 ? {
@@ -76,8 +76,8 @@ const FixedsTable = () => {
                                         <Text style={localStyles.nameText}>{item.fixed_name}</Text>
                                         <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.fixed_amount)}</Text>
                                     </View>
-                                </BorderLeftBottomBlock>
-                            </SwipeItem>
+                                </AccentRow>
+                            </SwipeAction>
                         )
                     })}
                 </View>

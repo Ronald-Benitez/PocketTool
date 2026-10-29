@@ -1,8 +1,8 @@
 import { View, Text, StyleSheet } from 'react-native'
 
-import SwipeItem from '../ui/swipe-item'
+import { SwipeAction } from '@/src/ui/actions/SwipeAction'
 import useDate from '@/src/hooks/useDate'
-import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
+import { AccentRow } from '@/src/ui/data-display/AccentRow'
 import type { RecordWithRelations } from '@/src/interfaces/schema'
 import { formatMoneyWithSymbol } from '@/src/utils'
 
@@ -19,14 +19,14 @@ const RecordsGroup = ({ records, handleDelete, handleUpdate }: RecordsGroupProps
             <View style={{ gap: 5, paddingHorizontal: 30, }}>
                 {records?.map(item => {
                     return (
-                        <SwipeItem
+                        <SwipeAction
                             handleDelete={() => handleDelete(item)}
                             handleUpdate={() => handleUpdate(item)}
                             key={item.id}
                         >
-                            <BorderLeftBottomBlock
+                            <AccentRow
                                 bottomColor={item.PaymentMethods?.PaymentTypes?.payment_color ?? "#000"}
-                                letfColor={item.RecordTypes?.record_color ?? "#000"}
+                                accentColor={item.RecordTypes?.record_color ?? "#000"}
                             >
                                 <View style={localStyles.rowContainer}>
                                     <View style={localStyles.dateContainer}>
@@ -43,8 +43,8 @@ const RecordsGroup = ({ records, handleDelete, handleUpdate }: RecordsGroupProps
                                     <Text style={localStyles.nameText}>{item.record_name}</Text>
                                     <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.amount)}</Text>
                                 </View>
-                            </BorderLeftBottomBlock>
-                        </SwipeItem>
+                            </AccentRow>
+                        </SwipeAction>
                     )
                 })}
             </View>

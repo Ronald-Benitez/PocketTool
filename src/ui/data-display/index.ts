@@ -1,4 +1,5 @@
 export { Badge, type BadgeProps, type BadgeTone } from './Badge';
+export { AccentRow, type AccentRowProps } from './AccentRow';
 export { Card, type CardProps } from './Card';
 export {
   FinanceValue,

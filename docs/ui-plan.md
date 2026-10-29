@@ -449,18 +449,18 @@ retirar.
 
 ### UI-3 — Datos, tarjetas y tablas (2 días)
 
-**Estado:** 🔄 Parcial avanzado — componentes de presentación y migración de
-bloques financieros principales completados.
+**Estado:** ✅ Completado (2026-10-28).
 
-- `Card`, `ListItem`, `Badge`, `FinanceValue`, `SummaryBlock`, `SummaryGroup`. ✅
+- `Card`, `ListItem`, `Badge`, `FinanceValue`, `SummaryBlock`, `SummaryGroup`,
+  `AccentRow`. ✅
 - `FinanceValue`/`SummaryBlock` con color override y tipografía mayor. ✅
 - Migrar home, Summary, fixeds, créditos y presupuestos a
   `SummaryBlock`/`SummaryGroup`/`Surface`. ✅
-- `FinanceSimpleBlock`, `FinanceSmallBlock`, `BalanceBlock`, `IndexBlock`
-  eliminados. ✅
+- `FinanceSimpleBlock`, `FinanceSmallBlock`, `BalanceBlock`, `IndexBlock`,
+  `BGSimpleBlock` y `BorderLeftButtonBlock` eliminados. ✅
+- `SwipeAction` reemplaza a `SwipeItem`. ✅
 - `FinanceTableBlock`/`FinanceTableChart` agrupan con `SummaryGroup`. ✅
-- `SwipeAction` (renombrar/mover `SwipeItem`). ⏳
-- Migrar `BGSimpleBlock` y `BorderLeftButtonBlock`. ⏳
+- Galería actualizada. ✅
 
 ### UI-4 — Limpieza y calidad (1–2 días)
 

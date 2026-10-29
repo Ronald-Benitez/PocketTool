@@ -2,7 +2,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
 import useDate from '@/src/hooks/useDate'
-import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
+import { AccentRow } from '@/src/ui/data-display/AccentRow'
 import type { RecordFormEntry } from '@/src/interfaces/schema'
 import styles from '@/src/styles/styles'
 import { formatMoneyWithSymbol } from '@/src/utils'
@@ -31,9 +31,9 @@ const FixedsGroup = ({ fixeds, onCreditPayment }: FixedsGroupProps) => {
                 {fixeds?.map((item, index) => {
                     return (
                         <Pressable key={index} onPress={() => onCreditPayment(item)}>
-                            <BorderLeftBottomBlock
+                            <AccentRow
                                 bottomColor={item.PaymentMethods?.PaymentTypes?.payment_color || "#000"}
-                                letfColor={item.RecordTypes?.record_color || "#000"}
+                                accentColor={item.RecordTypes?.record_color || "#000"}
                             >
                                 <View style={localStyles.rowContainer}>
                                     <View style={localStyles.dateContainer}>
@@ -50,7 +50,7 @@ const FixedsGroup = ({ fixeds, onCreditPayment }: FixedsGroupProps) => {
                                     <Text style={localStyles.nameText}>{item.record_name}</Text>
                                     <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.amount)}</Text>
                                 </View>
-                            </BorderLeftBottomBlock>
+                            </AccentRow>
                         </Pressable>
                     )
                 })}

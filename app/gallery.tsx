@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import {
+  AccentRow,
   AppText,
   Badge,
   Button,
@@ -26,8 +27,10 @@ import {
   SelectField,
   Stack,
   SummaryBlock,
+  SummaryGroup,
   Surface,
   SwitchField,
+  SwipeAction,
   TextField,
   useTheme,
   useToast,
@@ -267,6 +270,41 @@ const GalleryScreen = () => {
           }}
           onCancel={() => setDialogOpen(false)}
         />
+
+        <Divider inset={4} />
+
+        <Stack gap='md'>
+          <AppText variant='title'>Rows and groups</AppText>
+          <AccentRow accentColor={colors.primary} bottomColor={colors.success}>
+            <Row justify='space-between' align='center' style={{ flex: 1 }}>
+              <Column gap='xs'>
+                <AppText variant='label'>Accent row</AppText>
+                <AppText variant='caption' color='muted'>
+                  Colored accent and bottom border
+                </AppText>
+              </Column>
+              <FinanceValue cents={1250} size='md' color={colors.text} />
+            </Row>
+          </AccentRow>
+          <SwipeAction
+            handleDelete={() => showToast({ message: 'Delete action', type: 'warning' })}
+            handleUpdate={() => showToast({ message: 'Edit action', type: 'info' })}
+          >
+            <ListItem
+              title='Swipe row'
+              subtitle='Swipe left to delete, right to edit'
+              showDivider
+            />
+          </SwipeAction>
+          <SummaryGroup
+            title='Food & beverages'
+            totalCents={-1250}
+            items={[
+              { key: 'expense', label: 'Expense', cents: -1250, color: colors.expense },
+              { key: 'transfer', label: 'Transfer', cents: 0, color: colors.transfer },
+            ]}
+          />
+        </Stack>
 
         <Divider inset={4} />
 

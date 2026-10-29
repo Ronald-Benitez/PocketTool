@@ -9,13 +9,13 @@ import IconButton from '@/src/components/ui/icon-button';
 import SavingsSelector from '@/src/components/savings/saving-selector';
 import AddSaving from '@/src/components/savings/add-savings';
 import useSavingsStore from '@/src/stores/SavingsStore';
-import BGSimpleBlock from '@/src/components/ui/BGSimpleBlock';
 import useDate from '@/src/hooks/useDate';
-import { Saving, SavingsHistoryWithRelations } from '@/src/interfaces/schema';
+import { Saving } from '@/src/interfaces/schema';
 import { useSavings } from '@/src/db';
 import useColorStore from '@/src/stores/ColorsStore';
 import { formatMoney } from '@/src/utils';
 import { Dialog } from '@/src/ui/overlays/Dialog';
+import { Surface } from '@/src/ui/primitives/Surface';
 
 const Index = () => {
     const { t } = useLanguage();
@@ -142,7 +142,7 @@ const Index = () => {
                         savingsHistory?.map(e => {
                             const minus = (e.new_amount - e.previous_amount) < 0
                             return (
-                                <BGSimpleBlock key={e.id}>
+                                <Surface key={e.id} variant='muted' padding='sm' style={{ marginBottom: 5 }}>
                                     <View style={[localStyles.rowContainer, { justifyContent: "space-between", flex: 1 }]}>
                                         <Text style={localStyles.dateText}>
                                             {
@@ -156,7 +156,7 @@ const Index = () => {
                                             <Feather name={minus ? "arrow-down" : "arrow-up"} size={20} color={minus ? colors?.ExpenseColor : colors?.IncomeColor} />
                                         </View>
                                     </View>
-                                </BGSimpleBlock>
+                                </Surface>
                             )
                         })
                     }

@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
-import SwipeItem from '@/src/components/ui/swipe-item';
+import { SwipeAction } from '@/src/ui/actions/SwipeAction';
 import useAndroidToast from '@/src/hooks/useAndroidToast';
 import { Category } from '@/src/interfaces/schema';
 import { useDataStore } from '@/src/stores';
@@ -102,7 +102,7 @@ const CategoriesScreen = () => {
 
                 <View style={{ gap: 8 }}>
                     {Categories?.map((item, index) => (
-                        <SwipeItem
+                        <SwipeAction
                             key={item.id ?? index}
                             handleDelete={() => handleDelete(item.id)}
                             handleUpdate={() => handleEdit(item)}
@@ -111,7 +111,7 @@ const CategoriesScreen = () => {
                                 title={item.category_name}
                                 showDivider
                             />
-                        </SwipeItem>
+                        </SwipeAction>
                     ))}
                 </View>
             </Stack>

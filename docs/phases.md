@@ -181,13 +181,15 @@ resumen (fuera del alcance de esta fase).
   resumen de fixeds, créditos y cabecera de presupuestos.
 - `FinanceTableBlock` y `FinanceTableChart` usan `SummaryGroup` para agrupar
   categorías/métodos con sus tipos.
-- Eliminados `FinanceSimpleBlock`, `FinanceSmallBlock`, `BalanceBlock` e
-  `IndexBlock`.
-- Galería y tests actualizados.
+- `SwipeAction` reemplaza a `SwipeItem`; `AccentRow` reemplaza a
+  `BGSimpleBlock`/`BorderLeftButtonBlock`.
+- Galería ampliada con `AccentRow`, `SwipeAction` y `SummaryGroup`.
+- Eliminados `FinanceSimpleBlock`, `FinanceSmallBlock`, `BalanceBlock`,
+  `IndexBlock`, `SwipeItem`, `BGSimpleBlock` y `BorderLeftButtonBlock`.
+- Tests actualizados.
 - Verificado: `npm run ci` y `npm run lint` con 0 errores.
 
-Pendiente de UI-3: mover/renombrar `SwipeItem` a `SwipeAction` en `src/ui` y
-migrar `BGSimpleBlock`/`BorderLeftButtonBlock`.
+Pendiente de UI-3: ninguno.
 
 ## Documentación
 

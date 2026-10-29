@@ -15,7 +15,7 @@ métodos de pago, créditos, ahorros y vehículo.
 - **Fase 2 — Repositorios y ORM robusto: FINALIZADA** (2026-10-28).
 - **Fase 3 — Calidad, pruebas y operación: FINALIZADA** (2026-10-28).
 - **Fase 4 — Sistema de UI reutilizable: EN PROGRESO**. UI-0, UI-0b, UI-1,
-  UI-2, UI-2b y UI-2c completadas; UI-3 parcial y UI-4 pendiente.
+  UI-2, UI-2b, UI-2c y UI-3 completadas; UI-4 pendiente.
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -35,8 +35,8 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 - `src/ui/theme/contrast.ts`: contraste WCAG AA.
 - `src/ui/primitives/`: `AppText`, `Surface`, `Divider`, `Screen`, `Stack`/`Row`/
   `Column`.
-- `src/ui/actions/`: `Button`, `IconButton` y `LinkButton` con variantes y
-  estados.
+- `src/ui/actions/`: `Button`, `IconButton`, `LinkButton` y `SwipeAction` con
+  variantes y estados.
 - `src/ui/forms/`: `FormField`, `TextField`, `MoneyField`, `SelectField`,
   `MultiSelectField`, `DateField`, `MonthField`, `SwitchField` y `ColorField`
   con label/required/hint/error.
@@ -55,7 +55,8 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 - `src/ui/feedback/`: `ToastProvider` único, `InlineMessage`, `EmptyState`,
   `LoadingState` y `ToastViewport` para modales.
 - `src/ui/data-display/`: `Card`, `ListItem`, `Badge`, `FinanceValue`,
-  `SummaryBlock` y `SummaryGroup`; `FinanceValue` recibe centavos y usa el tema.
+  `SummaryBlock`, `SummaryGroup` y `AccentRow`; `FinanceValue` recibe centavos y
+  usa el tema.
 - `src/ui/index.ts`: barrel público del sistema de UI.
 - `app/gallery.tsx`: galería de desarrollo, oculta del drawer.
 - `src/hooks/useToast.tsx` y `src/hooks/useAndroidToast.ts` son adaptadores al

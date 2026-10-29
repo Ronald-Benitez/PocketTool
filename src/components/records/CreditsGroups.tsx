@@ -1,5 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from "react-native"
-import BorderLeftBottomBlock from "../ui/BorderLeftButtonBlock"
+import { AccentRow } from '@/src/ui/data-display/AccentRow'
 import type { RecordFormEntry, RecordType } from "@/src/interfaces/schema"
 import styles from '@/src/styles/styles'
 import useDate from "@/src/hooks/useDate"
@@ -31,9 +31,9 @@ export const CreditsGroups = ({ credits, selectedPaymentCreditType, onCreditPaym
                 {credits?.map((item, index) => {
                     return (
                         <Pressable key={index} onPress={() => onCreditPayment(item)}>
-                            <BorderLeftBottomBlock
+                            <AccentRow
                                 bottomColor={selectedPaymentCreditType?.record_color || "#000"}
-                                letfColor={selectedPaymentCreditType?.record_color || "#000"}
+                                accentColor={selectedPaymentCreditType?.record_color || "#000"}
                             >
                                 <View style={localStyles.rowContainer}>
                                     <View style={localStyles.dateContainer}>
@@ -50,7 +50,7 @@ export const CreditsGroups = ({ credits, selectedPaymentCreditType, onCreditPaym
                                     <Text style={localStyles.nameText}>{item.record_name}</Text>
                                     <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.amount)}</Text>
                                 </View>
-                            </BorderLeftBottomBlock>
+                            </AccentRow>
                         </Pressable>
                     )
                 })}

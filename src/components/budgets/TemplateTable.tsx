@@ -3,14 +3,14 @@ import React, { useEffect, useState } from 'react'
 import { AntDesign } from '@expo/vector-icons'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
-import SwipeItem from '../ui/swipe-item'
+import { SwipeAction } from '@/src/ui/actions/SwipeAction'
 import useDate from '@/src/hooks/useDate'
 import { ScrollView } from 'react-native-gesture-handler'
 import useToast from '@/src/hooks/useToast'
 import AddItem from './AddTemplateItem'
 import useRecordsStore from '@/src/stores/RecordsStore';
 import useColorStore from '@/src/stores/ColorsStore'
-import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
+import { AccentRow } from '@/src/ui/data-display/AccentRow'
 import IconButton from '../ui/icon-button'
 import type { RecordFormEntry, RecordView } from '@/src/interfaces/schema'
 import { formatMoney, formatMoneyWithSymbol } from '@/src/utils'
@@ -142,14 +142,14 @@ const TemplateTable = () => {
                 <View style={{ gap: 5, paddingHorizontal: 30, }}>
                     {records?.map((item, index) => {
                         return (
-                            <SwipeItem
+                            <SwipeAction
                                 handleDelete={() => handleDelete(index)}
                                 handleUpdate={() => handleUpdate(index)}
                                 key={item.id}
                             >
-                                <BorderLeftBottomBlock
+                                <AccentRow
                                     bottomColor={item.RecordTypes?.record_color ?? undefined}
-                                    letfColor={item.PaymentMethods?.PaymentTypes?.payment_color ?? undefined}
+                                    accentColor={item.PaymentMethods?.PaymentTypes?.payment_color ?? undefined}
                                 >
                                     <View style={localStyles.rowContainer}>
                                         <View style={localStyles.dateContainer}>
@@ -166,8 +166,8 @@ const TemplateTable = () => {
                                         <Text style={localStyles.nameText}>{item.record_name}</Text>
                                         <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.amount)}</Text>
                                     </View>
-                                </BorderLeftBottomBlock>
-                            </SwipeItem>
+                                </AccentRow>
+                            </SwipeAction>
                         )
                     })}
                 </View>
@@ -180,9 +180,9 @@ const TemplateTable = () => {
                     {creditRecords?.map((item, index) => {
                         return (
                             <Pressable key={index} onPress={() => onCreditPayment(item)}>
-                                <BorderLeftBottomBlock
+                                <AccentRow
                                     bottomColor={selectePaymentCreditType?.record_color || "#000"}
-                                    letfColor={selectePaymentCreditType?.record_color || "#000"}
+                                    accentColor={selectePaymentCreditType?.record_color || "#000"}
                                 >
                                     <View style={localStyles.rowContainer}>
                                         <View style={localStyles.dateContainer}>
@@ -199,7 +199,7 @@ const TemplateTable = () => {
                                         <Text style={localStyles.nameText}>{item.record_name}</Text>
                                         <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.amount)}</Text>
                                     </View>
-                                </BorderLeftBottomBlock>
+                                </AccentRow>
                             </Pressable>
                         )
                     })}
@@ -213,9 +213,9 @@ const TemplateTable = () => {
                     {fixedsToShow?.map((item, index) => {
                         return (
                             <Pressable key={index} onPress={() => onCreditPayment(item)}>
-                                <BorderLeftBottomBlock
+                                <AccentRow
                                     bottomColor={selectePaymentCreditType?.record_color ?? "#000"}
-                                    letfColor={selectePaymentCreditType?.record_color ?? "#000"}
+                                    accentColor={selectePaymentCreditType?.record_color ?? "#000"}
                                 >
                                     <View style={localStyles.rowContainer}>
                                         <View style={localStyles.dateContainer}>
@@ -232,7 +232,7 @@ const TemplateTable = () => {
                                         <Text style={localStyles.nameText}>{item.record_name}</Text>
                                         <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.amount)}</Text>
                                     </View>
-                                </BorderLeftBottomBlock>
+                                </AccentRow>
                             </Pressable>
                         )
                     })}
