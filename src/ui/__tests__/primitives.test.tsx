@@ -3,6 +3,12 @@ import * as React from 'react';
 import renderer, { act } from 'react-test-renderer';
 
 import { Button } from '../actions/Button';
+import { DateField } from '../forms/DateField';
+import { InlineMessage } from '../feedback/InlineMessage';
+import { MoneyField } from '../forms/MoneyField';
+import { MonthField } from '../forms/MonthField';
+import { SelectField } from '../forms/SelectField';
+import { SwitchField } from '../forms/SwitchField';
 import { TextField } from '../forms/TextField';
 
 jest.mock('../theme/ThemeProvider', () => {
@@ -19,6 +25,15 @@ jest.mock('@expo/vector-icons', () => {
     MaterialIcons: ({ name }: { name: string }) => React.createElement(Text, null, name),
   };
 });
+
+jest.mock('@/src/lang/LanguageContext', () => ({
+  useLanguage: () => ({
+    language: 'en',
+    t: (key: string) => key,
+    getMonths: () =>
+      Array.from({ length: 12 }, (_, index) => `Month ${index + 1}`),
+  }),
+}));
 
 describe('UI primitives', () => {
   it('renders a button with its label', () => {
@@ -49,5 +64,48 @@ describe('UI primitives', () => {
     const rendered = JSON.stringify(tree!.toJSON());
     expect(rendered).toContain('Name');
     expect(rendered).toContain('This field is required');
+  });
+
+  it('renders specialized fields with their labels', () => {
+    let tree: renderer.ReactTestRenderer;
+
+    act(() => {
+      tree = renderer.create(
+        <>
+          <MoneyField label='Amount' value={1250} onChangeCents={() => {}} />
+          <SelectField
+            label='Category'
+            placeholder='Pick one'
+            value={undefined}
+            options={[{ label: 'Food', value: 'food' }]}
+            onChange={() => {}}
+          />
+          <DateField label='Date' value={Date.now()} onChange={() => {}} />
+          <MonthField label='Month' value={0} onChange={() => {}} />
+          <SwitchField label='Notifications' value onChange={() => {}} />
+        </>
+      );
+    });
+
+    const rendered = JSON.stringify(tree!.toJSON());
+    expect(rendered).toContain('Amount');
+    expect(rendered).toContain('Category');
+    expect(rendered).toContain('Date');
+    expect(rendered).toContain('Month');
+    expect(rendered).toContain('Notifications');
+  });
+
+  it('renders inline messages with their content', () => {
+    let tree: renderer.ReactTestRenderer;
+
+    act(() => {
+      tree = renderer.create(
+        <InlineMessage variant='error' title='Invalid form' message='Check the fields' />
+      );
+    });
+
+    const rendered = JSON.stringify(tree!.toJSON());
+    expect(rendered).toContain('Invalid form');
+    expect(rendered).toContain('Check the fields');
   });
 });

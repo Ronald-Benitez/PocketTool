@@ -393,28 +393,31 @@ Checklist obligatorio por componente:
 
 ### UI-1 — Formularios y acciones (2–3 días)
 
-**Estado:** 🔄 Parcial — `FormField`, `TextField`, `Button` e `IconButton`
-listos; faltan campos especializados y adaptadores.
+**Estado:** 🔄 Parcial avanzado — catálogo de campos y acciones completo; falta
+migrar pantallas y adaptadores legacy.
 
 - `FormField`, `TextField`, `MoneyField`, `SelectField`, `DateField`,
   `MonthField`, `SwitchField`, `ColorField`, `Button`, `IconButton`,
-  `LinkButton`.
+  `LinkButton`. ✅
 - Adaptadores para `InputLabel`, `Input`, `BaseSelect`, `DatePicker`,
-  `MonthSelector`, `PressableSwitch`, `ColorPicker2`.
-- Migrar como piloto: `add-record`, `AddFixed`, `AddTemplateItem`, `add-budget`,
-  `add-group`, `AddSaving`.
+  `MonthSelector`, `PressableSwitch`, `ColorPicker2`. ⏳
+- Migrar como piloto: `add-group`. ✅
+- Migrar: `add-record`, `AddFixed`, `AddTemplateItem`, `add-budget`,
+  `AddSaving`. ⏳
 
 ### UI-2 — Feedback y overlays (1–2 días)
 
-**Estado:** 🔄 Parcial — `ToastProvider` global y adaptadores listos; faltan
-estados y overlays.
+**Estado:** 🔄 Parcial avanzado — sistema de feedback y overlays creado; falta
+migrar los overlays legacy.
 
 - `ToastProvider`, `InlineMessage`, `EmptyState`, `LoadingState`,
-  `ConfirmDialog`.
-- `Modal`, `Dialog`, `BottomSheet`, `ModalHeader/Body/Footer`.
-- Reemplazar `useToast`/`useAndroidToast`/`Alert` en pantallas.
-- Migrar `ModalContainer`, `base-modal`, `confirm`, `confirm-modal`,
-  `HelpModal`, `RecordsFilterModal`.
+  `ConfirmDialog`. ✅
+- `Modal`, `Dialog`, `BottomSheet`, `ModalHeader/Body/Footer`. ✅ (header/body/
+  footer integrados en `Modal`)
+- Reemplazar `useToast`/`useAndroidToast`/`Alert` en pantallas. ⏳
+- Migrar `confirm-modal`. ✅
+- Migrar `ModalContainer`, `base-modal`, `confirm`, `HelpModal`,
+  `RecordsFilterModal`. ⏳
 
 ### UI-3 — Datos, tarjetas y tablas (2 días)
 

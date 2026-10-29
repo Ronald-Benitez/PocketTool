@@ -1,6 +1,7 @@
 export * from './actions';
 export * from './feedback';
 export * from './forms';
+export * from './overlays';
 export * from './primitives';
 export * from './theme/ThemeProvider';
 export type { ThemeColorTokens } from '@/src/interfaces/colors';

@@ -92,10 +92,29 @@ Incluye:
 - Verificado: `npm run typecheck`, `npm test`, `npm run test:db` y `npm run lint`
   con 0 errores.
 
-Pendiente de UI-1: `MoneyField`, `SelectField`, `DateField`, `MonthField`,
-`SwitchField`, `ColorField`, `LinkButton` y adaptadores de selects/date pickers.
-Pendiente de UI-2: `InlineMessage`, `EmptyState`, `LoadingState`,
-`ConfirmDialog`, nuevos `Modal`/`Dialog`/`BottomSheet` y migración de overlays.
+### UI-1 / UI-2 — Campos especializados, overlays y feedback (✅ 2026-10-28)
+
+- `src/ui/forms`: `MoneyField` (centavos), `SelectField` value-based, `DateField`
+  con calendario, `MonthField`, `SwitchField` y `ColorField`.
+- `src/ui/actions`: `LinkButton`.
+- `src/ui/overlays`: `Modal` center/bottom, `BottomSheet`, `Dialog` y
+  `ConfirmDialog`.
+- `src/ui/feedback`: `InlineMessage`, `EmptyState` y `LoadingState`.
+- `ConfirmModal` legacy ahora usa `Dialog` y los botones/textos del tema.
+- Piloto migrado: `src/components/groups/add-group.tsx` usa `Modal`,
+  `TextField`, `MoneyField`, `MonthField` y `Button`; ya no usa
+  `ModalContainer`, `InputLabel` ni `MonthSelector`.
+- Galería ampliada con campos especializados, feedback, loading, empty state y
+  diálogo.
+- Tests de render ampliados en `src/ui/__tests__/primitives.test.tsx`.
+- Verificado: `npm run ci` y `npm run lint` con 0 errores.
+
+Pendiente de UI-1: adaptar/migrar `add-record`, `AddFixed`, `AddTemplateItem`,
+`add-budget`, `AddSaving` y reemplazar `BaseSelect`/`DatePicker`/
+`PressableSwitch` en pantallas existentes.
+Pendiente de UI-2: migrar `ModalContainer`, `base-modal`, `confirm`,
+`HelpModal`, `RecordsFilterModal` y reemplazar `Alert`/`useAndroidToast` restantes
+por feedback global.
 
 ## Documentación
 

@@ -35,9 +35,15 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 - `src/ui/theme/contrast.ts`: contraste WCAG AA.
 - `src/ui/primitives/`: `AppText`, `Surface`, `Divider`, `Screen`, `Stack`/`Row`/
   `Column`.
-- `src/ui/actions/`: `Button` e `IconButton` con variantes y estados.
-- `src/ui/forms/`: `FormField` y `TextField` con label/required/hint/error.
-- `src/ui/feedback/`: `ToastProvider` único y `ToastViewport` para modales.
+- `src/ui/actions/`: `Button`, `IconButton` y `LinkButton` con variantes y
+  estados.
+- `src/ui/forms/`: `FormField`, `TextField`, `MoneyField`, `SelectField`,
+  `DateField`, `MonthField`, `SwitchField` y `ColorField` con label/required/
+  hint/error.
+- `src/ui/overlays/`: `Modal` (center/bottom), `BottomSheet`, `Dialog` y
+  `ConfirmDialog`.
+- `src/ui/feedback/`: `ToastProvider` único, `InlineMessage`, `EmptyState`,
+  `LoadingState` y `ToastViewport` para modales.
 - `src/ui/index.ts`: barrel público del sistema de UI.
 - `app/gallery.tsx`: galería de desarrollo, oculta del drawer.
 - `src/hooks/useToast.tsx` y `src/hooks/useAndroidToast.ts` son adaptadores al

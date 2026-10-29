@@ -122,7 +122,12 @@
     },
     "datePicker": {
         "today": "Today",
-        "cancel": "Close"
+        "cancel": "Close",
+        "previousMonth": "Previous month",
+        "nextMonth": "Next month",
+        "previousYear": "Previous year",
+        "nextYear": "Next year",
+        "openCalendar": "Open calendar"
     },
     "confirm": "Accept",
     "cancel": "Cancel",

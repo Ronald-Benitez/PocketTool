@@ -5,3 +5,8 @@ export {
   type IconButtonSize,
   type IconButtonVariant,
 } from './IconButton';
+export {
+  LinkButton,
+  type LinkButtonProps,
+  type LinkButtonTone,
+} from './LinkButton';

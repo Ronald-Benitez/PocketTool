@@ -5,13 +5,24 @@ import { MaterialIcons } from '@expo/vector-icons';
 import {
   AppText,
   Button,
+  ColorField,
   Column,
+  DateField,
+  Dialog,
   Divider,
+  EmptyState,
   IconButton,
+  InlineMessage,
+  LinkButton,
+  LoadingState,
+  MoneyField,
+  MonthField,
   Row,
   Screen,
+  SelectField,
   Stack,
   Surface,
+  SwitchField,
   TextField,
   useTheme,
   useToast,
@@ -23,6 +34,13 @@ const GalleryScreen = () => {
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [notes, setNotes] = useState('');
+  const [cents, setCents] = useState(0);
+  const [category, setCategory] = useState<string | undefined>(undefined);
+  const [date, setDate] = useState<number>(() => Date.now());
+  const [month, setMonth] = useState<number>(new Date().getMonth());
+  const [enabled, setEnabled] = useState(true);
+  const [color, setColor] = useState(colors.primary);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
     <Screen scroll>
@@ -164,6 +182,86 @@ const GalleryScreen = () => {
             hint='Multiline fields grow vertically.'
           />
         </Stack>
+
+        <Divider inset={4} />
+
+        <Stack gap='md'>
+          <AppText variant='title'>Specialized fields</AppText>
+          <MoneyField
+            label='Money'
+            value={cents}
+            onChangeCents={setCents}
+            hint='Stored as integer cents.'
+          />
+          <SelectField
+            label='Category'
+            placeholder='Pick a category'
+            value={category}
+            onChange={setCategory}
+            options={[
+              { label: 'Food', value: 'food' },
+              { label: 'Transport', value: 'transport' },
+              { label: 'Health', value: 'health' },
+            ]}
+          />
+          <DateField label='Date' value={date} onChange={setDate} />
+          <MonthField label='Month' value={month} onChange={setMonth} />
+          <SwitchField
+            label='Notifications'
+            description='Receive reminders for fixed transactions.'
+            value={enabled}
+            onChange={setEnabled}
+            onLabel='On'
+            offLabel='Off'
+          />
+          <ColorField
+            label='Accent color'
+            value={color}
+            onChange={setColor}
+            hint='Uses the existing color picker while the new overlay is migrated.'
+          />
+          <LinkButton
+            label='Learn more about fields'
+            onPress={() => showToast({ message: 'Link pressed', type: 'info' })}
+            underline
+          />
+        </Stack>
+
+        <Divider inset={4} />
+
+        <Stack gap='md'>
+          <AppText variant='title'>Feedback</AppText>
+          <InlineMessage
+            variant='info'
+            title='Information'
+            message='Inline messages follow the same semantic tokens as toasts.'
+            onDismiss={() => showToast({ message: 'Dismissed', type: 'info' })}
+          />
+          <InlineMessage variant='success' message='Saved successfully.' />
+          <InlineMessage variant='warning' message='Review the amount before continuing.' />
+          <InlineMessage variant='error' title='Invalid form' message='Check the highlighted fields.' />
+          <LoadingState message='Loading sample data...' />
+          <EmptyState
+            title='Nothing here yet'
+            description='Empty states share the same text hierarchy and spacing.'
+            action={<Button label='Create item' size='sm' onPress={() => {}} />}
+          />
+          <Button label='Open dialog' variant='outline' onPress={() => setDialogOpen(true)} />
+        </Stack>
+
+        <Dialog
+          visible={dialogOpen}
+          title='Confirm action'
+          message='Dialogs use the shared overlay, buttons and text tokens.'
+          confirmLabel='Confirm'
+          cancelLabel='Cancel'
+          closeLabel='Cancel'
+          onConfirm={() => {
+            setDialogOpen(false);
+            showToast({ message: 'Confirmed', type: 'success' });
+          }}
+          onCancel={() => setDialogOpen(false)}
+        />
 
         <Divider inset={4} />
 
