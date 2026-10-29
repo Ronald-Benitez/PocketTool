@@ -1,5 +1,8 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
+import baseline from './0001_baseline';
+import auditTimestamps from './0002_audit_timestamps';
+
 export interface Migration {
   version: number;
   name: string;
@@ -7,9 +10,7 @@ export interface Migration {
 }
 
 /**
- * Incremental migrations that run after the normalized baseline schema.
- *
- * The baseline itself is handled by `src/db/migration.ts` because it must
- * rebuild legacy PascalCase tables and convert money/dates in place.
+ * Migrations are the single source of schema evolution after the baseline.
+ * `0001_baseline` creates the consolidated schema; later migrations only alter.
  */
-export const migrations: Migration[] = [];
+export const migrations: Migration[] = [baseline, auditTimestamps];
