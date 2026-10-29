@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react"
 import {
+    KeyboardAvoidingView,
     Modal,
     Alert,
+    Platform,
     Pressable,
     ScrollView,
     StyleSheet,
@@ -149,16 +151,20 @@ const RecordsFilterModal = ({
             animationType="fade"
             onRequestClose={onClose}
         >
-            <View style={localStyles.backdrop}>
-                <Pressable
-                    style={StyleSheet.absoluteFill}
-                    onPress={onClose}
-                />
-                <View style={[localStyles.modal, { borderColor: colors?.InputStroke }]}>
-                    <Text style={[localStyles.title, { backgroundColor: colors?.ModalHeaderColor }]}>
-                        {t("recordsFilters.title")}
-                    </Text>
-                    <ScrollView style={localStyles.content} keyboardShouldPersistTaps="handled">
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}
+            >
+                <View style={localStyles.backdrop}>
+                    <Pressable
+                        style={StyleSheet.absoluteFill}
+                        onPress={onClose}
+                    />
+                    <View style={[localStyles.modal, { borderColor: colors?.InputStroke }]}>
+                        <Text style={[localStyles.title, { backgroundColor: colors?.ModalHeaderColor }]}>
+                            {t("recordsFilters.title")}
+                        </Text>
+                        <ScrollView style={localStyles.content} keyboardShouldPersistTaps="handled">
                         <Text style={localStyles.sectionTitle}>{t("recordsFilters.sortBy")}</Text>
                         {draftOrder.map((condition, index) => (
                             <View key={`order-${index}`} style={localStyles.optionRow}>
@@ -252,8 +258,9 @@ const RecordsFilterModal = ({
                             type="bg"
                         />
                     </View>
+                    </View>
                 </View>
-            </View>
+            </KeyboardAvoidingView>
         </Modal>
     )
 }

@@ -1,4 +1,4 @@
-import { View, Text, Modal, TouchableOpacity, Pressable, TextInput, StyleSheet } from 'react-native'
+import { View, Text, Modal, KeyboardAvoidingView, Platform, Pressable, TextInput, StyleSheet } from 'react-native'
 import React, { ReactNode, useEffect, useState, useImperativeHandle } from 'react'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
@@ -74,28 +74,33 @@ const ModalContainer = React.forwardRef<ModalContainerRef, AddGroupProps>(
                         transparent={true}
                         animationType="fade"
                     >
-                        <Pressable onPress={handleClose} style={[localStyles.modalBackdrop, { backgroundColor: colors?.overlay }]}>
-                            <Pressable onPress={() => { }} >
-                                <View style={[localStyles.modalContainer, { backgroundColor: colors?.surface }]}>
-                                    <View style={[localStyles.modalHeader, { backgroundColor: colors?.ModalHeaderColor }]}>
-                                        <ColorText backgroundColor={colors?.ModalHeaderColor || "#fff"} textAlign="center">
-                                            {title}
-                                        </ColorText>
-                                    </View>
-                                    <View style={localStyles.modalContent}>
-                                        {children}
-                                    </View>
-                                    <View style={localStyles.modalFooter}>
-                                        <ModalButton onClick={handleClose} text={t("close")} type='base' />
-                                        {
-                                            type == "complete" && onAccept && (
-                                                <ModalButton onClick={handleAccept} text={t("confirm")} type='bg' />
-                                            )
-                                        }
-                                    </View>
+                        <KeyboardAvoidingView
+                            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                            style={localStyles.keyboard}
+                        >
+                            <Pressable onPress={handleClose} style={[localStyles.modalBackdrop, { backgroundColor: colors?.overlay }]}>
+                                <View style={localStyles.modalInner} pointerEvents="box-none">
+                                    <Pressable onPress={() => { }} style={[localStyles.modalContainer, { backgroundColor: colors?.surface }]}>
+                                        <View style={[localStyles.modalHeader, { backgroundColor: colors?.ModalHeaderColor }]}>
+                                            <ColorText backgroundColor={colors?.ModalHeaderColor || "#fff"} textAlign="center">
+                                                {title}
+                                            </ColorText>
+                                        </View>
+                                        <View style={localStyles.modalContent}>
+                                            {children}
+                                        </View>
+                                        <View style={localStyles.modalFooter}>
+                                            <ModalButton onClick={handleClose} text={t("close")} type='base' />
+                                            {
+                                                type == "complete" && onAccept && (
+                                                    <ModalButton onClick={handleAccept} text={t("confirm")} type='bg' />
+                                                )
+                                            }
+                                        </View>
+                                    </Pressable>
                                 </View>
                             </Pressable>
-                        </Pressable>
+                        </KeyboardAvoidingView>
                     </Modal>
                 </View>
             </>
@@ -104,6 +109,9 @@ const ModalContainer = React.forwardRef<ModalContainerRef, AddGroupProps>(
 )
 
 const localStyles = StyleSheet.create({
+    keyboard: {
+        flex: 1,
+    },
     buttonOpen: {
         justifyContent: "center"
     },
@@ -118,11 +126,19 @@ const localStyles = StyleSheet.create({
         textAlign: "center"
     },
     modalContainer: {
-        width: 380,
-        height: 600,
+        width: "90%",
+        maxWidth: 420,
+        height: "85%",
+        maxHeight: 650,
     },
     modalBackdrop: {
         flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    modalInner: {
+        flex: 1,
+        width: "100%",
         justifyContent: "center",
         alignItems: "center",
     },

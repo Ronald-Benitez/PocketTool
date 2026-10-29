@@ -418,6 +418,11 @@ migrar los overlays legacy.
 - Migrar `confirm-modal`. ✅
 - Migrar `ModalContainer`, `base-modal`, `confirm`, `HelpModal`,
   `RecordsFilterModal`. ⏳
+- Teclado: `Modal` usa `KeyboardAvoidingView` (padding iOS, height Android),
+  auto-scroll al input enfocado y `softwareKeyboardLayoutMode: "resize"` en
+  Android. ✅
+- Modales legacy `ModalContainer`, `base-modal` y `RecordsFilterModal` reciben
+  `KeyboardAvoidingView` mientras se migran. ✅
 
 ### UI-3 — Datos, tarjetas y tablas (2 días)
 

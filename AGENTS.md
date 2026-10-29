@@ -41,7 +41,8 @@ commits relevantes, archivos tocados y verificaciones realizadas.
   `DateField`, `MonthField`, `SwitchField` y `ColorField` con label/required/
   hint/error.
 - `src/ui/overlays/`: `Modal` (center/bottom), `BottomSheet`, `Dialog` y
-  `ConfirmDialog`.
+  `ConfirmDialog`. `Modal` maneja el teclado con `KeyboardAvoidingView`, insets
+  y auto-scroll al `TextField` enfocado.
 - `src/ui/feedback/`: `ToastProvider` único, `InlineMessage`, `EmptyState`,
   `LoadingState` y `ToastViewport` para modales.
 - `src/ui/data-display/`: `Card`, `ListItem`, `Badge`, `FinanceValue` y

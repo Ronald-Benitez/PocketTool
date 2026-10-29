@@ -1,5 +1,6 @@
-import React, { forwardRef, useState } from 'react';
+import React, { forwardRef, useRef, useState } from 'react';
 import {
+  findNodeHandle,
   StyleSheet,
   TextInput,
   type TextInputProps,
@@ -11,6 +12,7 @@ import {
 
 import { useTheme } from '../theme/ThemeProvider';
 import { controlHeight, radii, spacing } from '../theme/tokens';
+import { useModalScrollToInput } from '../overlays/ModalBodyContext';
 import { FormField } from './FormField';
 
 export type TextFieldSize = 'sm' | 'md' | 'lg';
@@ -52,6 +54,17 @@ export const TextField = forwardRef<React.ComponentRef<typeof TextInput>, TextFi
   ) => {
     const { colors } = useTheme();
     const [focused, setFocused] = useState(false);
+    const inputRef = useRef<React.ComponentRef<typeof TextInput>>(null);
+    const scrollToInput = useModalScrollToInput();
+
+    const setInputRef = (node: React.ComponentRef<typeof TextInput> | null) => {
+      inputRef.current = node;
+      if (typeof ref === 'function') {
+        ref(node);
+      } else if (ref) {
+        ref.current = node;
+      }
+    };
 
     const borderColor = error
       ? colors.danger
@@ -83,7 +96,7 @@ export const TextField = forwardRef<React.ComponentRef<typeof TextInput>, TextFi
           {leftIcon}
           <TextInput
             {...rest}
-            ref={ref}
+            ref={setInputRef}
             editable={editable ?? !disabled}
             multiline={multiline}
             placeholderTextColor={colors.placeholder}
@@ -92,6 +105,11 @@ export const TextField = forwardRef<React.ComponentRef<typeof TextInput>, TextFi
             accessibilityHint={error ?? hint}
             onFocus={(event) => {
               setFocused(true);
+              const node = inputRef.current;
+              if (scrollToInput && node) {
+                const handle = findNodeHandle(node);
+                if (handle) scrollToInput(handle);
+              }
               onFocus?.(event);
             }}
             onBlur={(event) => {

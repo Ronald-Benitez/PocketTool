@@ -16,7 +16,8 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.empanada.PoketTool",
-      "version": "9"
+      "version": "9",
+      "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
       "bundler": "metro",

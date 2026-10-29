@@ -107,7 +107,11 @@ Incluye:
 - Piloto migrado: `src/components/records/add-record.tsx` usa `Modal`,
   `TextField`, `MoneyField`, `DateField`, `SelectField` y `Button`; conserva los
   bordes de color de tipos/métodos con `renderOption`/`renderValue`.
-- `Modal` incluye `KeyboardAvoidingView` para iOS.
+- `Modal` incluye `KeyboardAvoidingView` para iOS y Android y auto-scroll al
+  campo enfocado mediante `TextField`.
+- Modales legacy (`ModalContainer`, `base-modal`, `RecordsFilterModal`) también
+  usan `KeyboardAvoidingView`; `app.json` fija
+  `android.softwareKeyboardLayoutMode: "resize"`.
 - Galería ampliada con campos especializados, feedback, loading, empty state y
   diálogo.
 - Tests de render ampliados en `src/ui/__tests__/primitives.test.tsx`.

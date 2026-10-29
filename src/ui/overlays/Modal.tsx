@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   KeyboardAvoidingView,
   Modal as RNModal,
@@ -16,6 +16,7 @@ import { useTheme } from '../theme/ThemeProvider';
 import { radii, shadows, spacing } from '../theme/tokens';
 import { AppText } from '../primitives/AppText';
 import { IconButton } from '../actions/IconButton';
+import { ModalBodyContext } from './ModalBodyContext';
 
 export type ModalPlacement = 'center' | 'bottom';
 
@@ -50,17 +51,32 @@ export const Modal = ({
 }: ModalProps) => {
   const { colors } = useTheme();
   const isBottom = placement === 'bottom';
+  const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
 
-  const body = scrollable ? (
+  const scrollToInput = useCallback((nodeHandle: number) => {
+    setTimeout(() => {
+      scrollRef.current?.scrollResponderScrollNativeHandleToKeyboard(nodeHandle, 96, true);
+    }, 250);
+  }, []);
+
+  const bodyContent = scrollable ? (
     <ScrollView
+      ref={scrollRef}
       keyboardShouldPersistTaps='handled'
+      keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
       style={styles.body}
-      contentContainerStyle={[styles.bodyContent, contentStyle]}
+      contentContainerStyle={[styles.bodyContent, styles.bodyContentGrow, contentStyle]}
     >
       {children}
     </ScrollView>
   ) : (
     <View style={[styles.bodyContent, contentStyle]}>{children}</View>
+  );
+
+  const body = (
+    <ModalBodyContext.Provider value={scrollToInput}>
+      {bodyContent}
+    </ModalBodyContext.Provider>
   );
 
   return (
@@ -72,7 +88,7 @@ export const Modal = ({
       statusBarTranslucent
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboard}
       >
         <Pressable
@@ -177,6 +193,9 @@ const styles = StyleSheet.create({
   bodyContent: {
     padding: spacing.lg,
     gap: spacing.md,
+  },
+  bodyContentGrow: {
+    flexGrow: 1,
   },
   body: {
     flexShrink: 1,

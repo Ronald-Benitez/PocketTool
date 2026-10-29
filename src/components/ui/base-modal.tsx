@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Modal as Base, Pressable, TouchableOpacity, StyleSheet } from 'react-native';
+import { KeyboardAvoidingView, Platform, View, Text, Modal as Base, Pressable, TouchableOpacity, StyleSheet } from 'react-native';
 
 import styles from '@/src/styles/styles';
 
@@ -37,12 +37,17 @@ const useBaseModal = (hideOnBackdropPress: BaseModalProps["hideOnBackdropPress"]
                 transparent={true}
                 animationType="slide"
             >
-                <Pressable onPress={backdropPress} style={styles?.modalBackdrop}>
-                    <Pressable onPress={() => { }} style={[styles?.modalContent, { maxHeight: maxHeight }]}>
-                        <Text style={styles?.title}>{title && title}</Text>
-                        {children}
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    style={{ flex: 1 }}
+                >
+                    <Pressable onPress={backdropPress} style={styles?.modalBackdrop}>
+                        <Pressable onPress={() => { }} style={[styles?.modalContent, { maxHeight: maxHeight ?? '85%' }]}>
+                            <Text style={styles?.title}>{title && title}</Text>
+                            {children}
+                        </Pressable>
                     </Pressable>
-                </Pressable>
+                </KeyboardAvoidingView>
             </Base>
         </>
     );
