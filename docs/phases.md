@@ -486,12 +486,12 @@ El lint es bloqueante: la deuda de errores quedó en cero.
 
 - `created_at` y `updated_at` ahora se llenan automáticamente con triggers de
   SQLite en todas las tablas de negocio. Se agregó `0003_timestamp_triggers` y
-  `SCHEMA_VERSION = 3`.
+  `SCHEMA_VERSION = 3`. La migración también rellena timestamps nulos existentes.
 - El generador incluye los triggers en `schema.sql` y `docs/schema.md`.
 - Se limpiaron los errores bloqueantes de ESLint: hooks condicionales, hooks en
   callbacks, JSX sin escapar, globals de scripts, tipos de array e imports.
 - `npm run lint` termina en 0 errores y CI lo ejecuta como paso bloqueante.
-- Commits: `9f7a32f` (triggers) y `e8a0167` (ESLint).
+- Commits: `9f7a32f` (triggers), `e8a0167` (ESLint) y `fdc5de0` (backfill).
 
 ---
 
