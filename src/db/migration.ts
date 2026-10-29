@@ -3,7 +3,7 @@ import { type SQLiteDatabase } from 'expo-sqlite';
 import { APP_SCHEMA, SCHEMA_VERSION } from './schema';
 import { migrations } from './migrations';
 import { withExclusiveTransaction } from './transaction';
-import { ensureIndexes, ensureSchema } from './schema/apply';
+import { ensureIndexes, ensureSchema, ensureTimestampTriggers } from './schema/apply';
 import { seedDefaults } from './schema/seed';
 import { createTableSql, quoteIdent } from './schema/sql';
 
@@ -57,6 +57,7 @@ async function migrateDb(db: SQLiteDatabase) {
 
     await runMigrations(db);
     await ensureIndexes(db);
+    await ensureTimestampTriggers(db);
     await seedDefaults(db);
   } finally {
     await db.execAsync('PRAGMA foreign_keys = ON;');

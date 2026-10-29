@@ -3,7 +3,7 @@
 > Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.
 > Fuente de verdad: `src/db/schema/tables.ts`.
 
-Versión de esquema: **2**
+Versión de esquema: **3**
 
 ## Convenciones
 
@@ -51,6 +51,8 @@ Entidad TypeScript: `Group`
 Índices:
 - `idx_groups_active` (year, month) WHERE deleted_at IS NULL
 
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
 ## PaymentTypes (`payment_types`)
 
 Entidad TypeScript: `PaymentType`
@@ -63,6 +65,8 @@ Entidad TypeScript: `PaymentType`
 | `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
 
 ## PaymentMethods (`payment_methods`)
 
@@ -84,6 +88,8 @@ Relaciones navegables: `PaymentTypes`
 Índices:
 - `idx_payment_methods_type` (payment_type_id) WHERE deleted_at IS NULL
 
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
 ## Categories (`categories`)
 
 Entidad TypeScript: `Category`
@@ -95,6 +101,8 @@ Entidad TypeScript: `Category`
 | `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
 
 ## RecordTypes (`record_types`)
 
@@ -109,6 +117,8 @@ Entidad TypeScript: `RecordType`
 | `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
 
 ## Fixed (`fixed_records`)
 
@@ -134,6 +144,8 @@ Relaciones navegables: `RecordTypes`, `Categories`, `PaymentMethods`, `PaymentMe
 - `idx_fixed_category` (category_id) WHERE deleted_at IS NULL
 - `idx_fixed_payment_method` (payment_method_id) WHERE deleted_at IS NULL
 - `idx_fixed_record_type` (record_type_id) WHERE deleted_at IS NULL
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
 
 ## Records (`records`)
 
@@ -165,6 +177,8 @@ Relaciones navegables: `RecordTypes`, `Groups`, `Categories`, `PaymentMethods`, 
 - `idx_records_fixed` (fixed_id) WHERE deleted_at IS NULL
 - `idx_records_paid_credit` (paid_credit_id) WHERE deleted_at IS NULL
 
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
 ## PaidCredits (`paid_credits`)
 
 Entidad TypeScript: `PaidCredit`
@@ -187,6 +201,8 @@ Relaciones navegables: `Groups`, `PaymentMethods`, `PaymentMethods.PaymentTypes`
 - `idx_paid_credits_payment_method` (payment_method_id) WHERE deleted_at IS NULL
 - `idx_paid_credits_date` (date) WHERE deleted_at IS NULL
 
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
 ## BudgetTemplates (`budget_templates`)
 
 Entidad TypeScript: `BudgetTemplate`
@@ -199,6 +215,8 @@ Entidad TypeScript: `BudgetTemplate`
 | `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
 
 ## BudgetTemplateItems (`budget_template_items`)
 
@@ -222,6 +240,8 @@ Relaciones navegables: `BudgetTemplates`, `RecordTypes`, `Categories`
 - `idx_budget_template_items_category` (category_id) WHERE deleted_at IS NULL
 - `idx_budget_template_items_record_type` (record_type_id) WHERE deleted_at IS NULL
 
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
 ## Budgets (`budgets`)
 
 Entidad TypeScript: `Budget`
@@ -244,6 +264,8 @@ Relaciones navegables: `RecordTypes`, `Groups`, `Categories`
 - `idx_budgets_category` (category_id) WHERE deleted_at IS NULL
 - `idx_budgets_record_type` (record_type_id) WHERE deleted_at IS NULL
 
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
 ## Savings (`savings`)
 
 Entidad TypeScript: `Saving`
@@ -256,6 +278,8 @@ Entidad TypeScript: `Saving`
 | `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
 
 ## SavingsHistory (`savings_history`)
 
@@ -276,6 +300,8 @@ Relaciones navegables: `Savings`
 
 Índices:
 - `idx_savings_history_saving` (savings_id) WHERE deleted_at IS NULL
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
 
 ## Migrations (`migrations`)
 
@@ -308,6 +334,8 @@ Entidad TypeScript: `FuelRefill`
 Índices:
 - `idx_fuel_refills_active` (odometer_reading) WHERE deleted_at IS NULL
 
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
 ## TripLogs (`trip_logs`)
 
 Entidad TypeScript: `TripLog`
@@ -327,4 +355,6 @@ Entidad TypeScript: `TripLog`
 
 Índices:
 - `idx_trip_logs_active` (date) WHERE deleted_at IS NULL
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
 

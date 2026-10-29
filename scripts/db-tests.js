@@ -360,10 +360,13 @@ async function testEmptyDatabase() {
   assert.strictEqual(q(raw, 'SELECT goal FROM groups')[0].goal, 500000);
   assert.strictEqual(q(raw, 'SELECT amount FROM records ORDER BY id')[0].amount, 100000);
   assert.strictEqual(q(raw, 'SELECT migration_name FROM migrations')[0].migration_name, '0001_baseline');
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 2);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 3);
   const recordColumns = q(raw, 'PRAGMA table_info(records)').map(c => c.name);
   assert.ok(recordColumns.includes('created_at'));
   assert.ok(recordColumns.includes('updated_at'));
+  const triggers = q(raw, "SELECT name FROM sqlite_master WHERE type='trigger'").map(row => row.name);
+  assert.ok(triggers.includes('trg_records_timestamps_insert'));
+  assert.ok(triggers.includes('trg_records_timestamps_update'));
 
   const counts = {};
   for (const t of tables) counts[t] = q(raw, `SELECT COUNT(*) AS c FROM "${t}"`)[0].c;
@@ -394,7 +397,7 @@ async function testExportImport() {
   assert.ok(metadata);
   assert.strictEqual(metadata.formatVersion, BACKUP_FORMAT_VERSION);
   assert.strictEqual(metadata.appVersion, 'test-version');
-  assert.strictEqual(metadata.schemaVersion, 2);
+  assert.strictEqual(metadata.schemaVersion, 3);
   assert.ok(metadata.tables.includes('records'));
   assert.doesNotThrow(() => validateSqlDump(backupSql));
   assert.strictEqual(parseBackupMetadata(dump), null);
@@ -432,6 +435,8 @@ async function testAuditTimestampMigration() {
   const db = shim(raw);
   await migrateDb(db);
 
+  raw.exec('DROP TRIGGER IF EXISTS trg_records_timestamps_insert;');
+  raw.exec('DROP TRIGGER IF EXISTS trg_records_timestamps_update;');
   raw.exec('ALTER TABLE records DROP COLUMN created_at;');
   raw.exec('ALTER TABLE records DROP COLUMN updated_at;');
   raw.exec("DELETE FROM migrations WHERE migration_name = '0002_audit_timestamps';");
@@ -442,7 +447,7 @@ async function testAuditTimestampMigration() {
   const columns = q(raw, 'PRAGMA table_info(records)').map((column) => column.name);
   assert.ok(columns.includes('created_at'));
   assert.ok(columns.includes('updated_at'));
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 2);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 3);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,
     1
@@ -641,6 +646,43 @@ function testNoLegacyHandlerImports() {
   console.log('legacy handler imports: OK');
 }
 
+async function testTimestampTriggers() {
+  const raw = new DatabaseSync(':memory:');
+  const db = shim(raw);
+  await migrateDb(db);
+
+  const id = await new ORM(db, 'Records').insert({
+    amount: 1234,
+    record_name: 'Trigger insert',
+    date: Date.now(),
+    group_id: 1,
+  });
+
+  const inserted = q(raw, 'SELECT created_at, updated_at FROM records WHERE id = ?', [id])[0];
+  assert.ok(inserted.created_at > 0);
+  assert.ok(inserted.updated_at >= inserted.created_at);
+  assert.ok(Math.abs(inserted.created_at - Date.now()) < 60_000);
+
+  await new Promise((resolve) => setTimeout(resolve, 5));
+
+  await new ORM(db, 'Records').update(id, { record_name: 'Trigger update' });
+  const updated = q(raw, 'SELECT created_at, updated_at FROM records WHERE id = ?', [id])[0];
+  assert.strictEqual(updated.created_at, inserted.created_at);
+  assert.ok(updated.updated_at > inserted.updated_at);
+
+  // Raw inserts must also receive timestamps from the trigger.
+  raw.exec(`
+    INSERT INTO records (amount, record_name, date, group_id)
+    VALUES (77, 'Raw insert', ${Date.now()}, 1);
+  `);
+  const rawRow = q(raw, "SELECT created_at, updated_at FROM records WHERE record_name = 'Raw insert'")[0];
+  assert.ok(rawRow.created_at > 0);
+  assert.ok(rawRow.updated_at > 0);
+
+  raw.close();
+  console.log('timestamp triggers: OK');
+}
+
 async function testInterruptedRebuild() {
   const raw = new DatabaseSync(':memory:');
   raw.exec(legacySchema);
@@ -665,6 +707,7 @@ async function testInterruptedRebuild() {
   await testEmptyDatabase();
   await testExportImport();
   await testAuditTimestampMigration();
+  await testTimestampTriggers();
   await testValidationSchemas();
   await testCreditPeriods();
   await testCreditTotalsWithPeriods();

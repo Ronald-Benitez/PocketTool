@@ -11,6 +11,7 @@ import { seedReferenceData } from './seed';
 import {
   createIndexSql,
   createTableSql,
+  createTimestampTriggerSql,
   escapeSqlString,
   quoteIdent,
 } from './sql';
@@ -263,6 +264,14 @@ export const ensureSchema = async (db: SQLiteDatabase) => {
 export const ensureIndexes = async (db: SQLiteDatabase) => {
   for (const tableName of TABLE_NAMES) {
     for (const sql of createIndexSql(APP_SCHEMA[tableName])) {
+      await db.execAsync(sql);
+    }
+  }
+};
+
+export const ensureTimestampTriggers = async (db: SQLiteDatabase) => {
+  for (const tableName of TABLE_NAMES) {
+    for (const sql of createTimestampTriggerSql(APP_SCHEMA[tableName])) {
       await db.execAsync(sql);
     }
   }

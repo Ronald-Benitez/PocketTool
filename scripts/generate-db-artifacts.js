@@ -28,7 +28,7 @@ require.extensions['.ts'] = function (module, filename) {
 const { APP_SCHEMA, SCHEMA_VERSION, TABLE_NAMES } = require(
   path.join(ROOT, 'src', 'db', 'schema', 'tables.ts')
 );
-const { createTableSql, createIndexSql } = require(
+const { createTableSql, createIndexSql, createTimestampTriggerSql } = require(
   path.join(ROOT, 'src', 'db', 'schema', 'sql.ts')
 );
 
@@ -157,6 +157,9 @@ const generateSql = () => {
     for (const indexSql of createIndexSql(table)) {
       lines.push(indexSql);
     }
+    for (const triggerSql of createTimestampTriggerSql(table)) {
+      lines.push(triggerSql);
+    }
     lines.push('');
   }
 
@@ -239,6 +242,12 @@ const generateDocs = (relations) => {
           `- \`${index.name}\` (${index.columns.join(', ')})${index.unique ? ' UNIQUE' : ''}${index.where ? ` WHERE ${index.where}` : ''}`
         );
       }
+    }
+
+    const triggerSql = createTimestampTriggerSql(table);
+    if (triggerSql.length > 0) {
+      lines.push('');
+      lines.push('Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.');
     }
 
     lines.push('');

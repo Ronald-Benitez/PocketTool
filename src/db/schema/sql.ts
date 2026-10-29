@@ -48,3 +48,59 @@ export const createIndexSql = (table: TableDefinition) => {
     return `CREATE ${unique}INDEX IF NOT EXISTS ${quoteIdent(index.name)} ON ${quoteIdent(table.sqlName)} (${columns})${where};`;
   });
 };
+
+export const nowMsSql = "CAST((julianday('now') - 2440587.5) * 86400000 AS INTEGER)";
+
+export const timestampTriggerNames = (table: TableDefinition) => ({
+  insert: `trg_${table.sqlName}_timestamps_insert`,
+  update: `trg_${table.sqlName}_timestamps_update`,
+});
+
+export const createTimestampTriggerSql = (table: TableDefinition): string[] => {
+  const hasCreated = table.columns.some((column) => column.name === 'created_at');
+  const hasUpdated = table.columns.some((column) => column.name === 'updated_at');
+
+  if (!hasCreated && !hasUpdated) return [];
+
+  const names = timestampTriggerNames(table);
+  const statements: string[] = [];
+
+  const insertSet = [
+    hasCreated ? `"created_at" = COALESCE(NEW."created_at", ${nowMsSql})` : null,
+    hasUpdated ? `"updated_at" = COALESCE(NEW."updated_at", ${nowMsSql})` : null,
+  ].filter(Boolean);
+
+  const insertWhen = [
+    hasCreated ? 'NEW."created_at" IS NULL' : null,
+    hasUpdated ? 'NEW."updated_at" IS NULL' : null,
+  ].filter(Boolean);
+
+  if (insertSet.length > 0) {
+    statements.push(`DROP TRIGGER IF EXISTS ${quoteIdent(names.insert)};`);
+    statements.push(`CREATE TRIGGER ${quoteIdent(names.insert)}
+AFTER INSERT ON ${quoteIdent(table.sqlName)}
+FOR EACH ROW
+WHEN ${insertWhen.join(' OR ')}
+BEGIN
+  UPDATE ${quoteIdent(table.sqlName)}
+  SET ${insertSet.join(', ')}
+  WHERE "id" = NEW."id";
+END;`);
+  }
+
+  if (hasUpdated) {
+    statements.push(`DROP TRIGGER IF EXISTS ${quoteIdent(names.update)};`);
+    statements.push(`CREATE TRIGGER ${quoteIdent(names.update)}
+AFTER UPDATE ON ${quoteIdent(table.sqlName)}
+FOR EACH ROW
+WHEN NEW."updated_at" IS OLD."updated_at"
+BEGIN
+  UPDATE ${quoteIdent(table.sqlName)}
+  SET "updated_at" = ${nowMsSql}
+  WHERE "id" = NEW."id";
+END;`);
+  }
+
+  return statements;
+};
+
