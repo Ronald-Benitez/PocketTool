@@ -8,6 +8,7 @@ import {
 } from './schema';
 import type { ColumnDefinition } from './types';
 import { migrations } from './migrations';
+import { withExclusiveTransaction } from './transaction';
 
 type ColumnInfo = {
   name: string;
@@ -326,13 +327,10 @@ const seedReferenceData = async (db: SQLiteDatabase) => {
   ];
   for (const [name, color] of paymentTypes) {
     await db.runAsync(
-      `INSERT INTO ${quoteIdent(APP_SCHEMA.PaymentTypes.sqlName)} (payment_type_name, payment_color)
-       SELECT ?, ? WHERE NOT EXISTS (
-         SELECT 1 FROM ${quoteIdent(APP_SCHEMA.PaymentTypes.sqlName)} WHERE lower(payment_type_name) = lower(?)
-       )`,
+      `INSERT OR IGNORE INTO ${quoteIdent(APP_SCHEMA.PaymentTypes.sqlName)} (payment_type_name, payment_color)
+       VALUES (?, ?)`,
       name,
-      color,
-      name
+      color
     );
   }
 
@@ -345,25 +343,19 @@ const seedReferenceData = async (db: SQLiteDatabase) => {
   ];
   for (const [name, effect, color] of recordTypes) {
     await db.runAsync(
-      `INSERT INTO ${quoteIdent(APP_SCHEMA.RecordTypes.sqlName)} (type_name, effect, record_color)
-       SELECT ?, ?, ? WHERE NOT EXISTS (
-         SELECT 1 FROM ${quoteIdent(APP_SCHEMA.RecordTypes.sqlName)} WHERE lower(type_name) = lower(?)
-       )`,
+      `INSERT OR IGNORE INTO ${quoteIdent(APP_SCHEMA.RecordTypes.sqlName)} (type_name, effect, record_color)
+       VALUES (?, ?, ?)`,
       name,
       effect,
-      color,
-      name
+      color
     );
   }
 
   const categories = ['Groceries', 'Gas', 'Entertainment', 'Utilities', 'Rent', 'Salary'];
   for (const name of categories) {
     await db.runAsync(
-      `INSERT INTO ${quoteIdent(APP_SCHEMA.Categories.sqlName)} (category_name)
-       SELECT ? WHERE NOT EXISTS (
-         SELECT 1 FROM ${quoteIdent(APP_SCHEMA.Categories.sqlName)} WHERE lower(category_name) = lower(?)
-       )`,
-      name,
+      `INSERT OR IGNORE INTO ${quoteIdent(APP_SCHEMA.Categories.sqlName)} (category_name)
+       VALUES (?)`,
       name
     );
   }
@@ -380,14 +372,11 @@ const seedReferenceData = async (db: SQLiteDatabase) => {
       [typeName]
     );
     await db.runAsync(
-      `INSERT INTO ${quoteIdent(APP_SCHEMA.PaymentMethods.sqlName)} (method_name, closing_date, payment_type_id)
-       SELECT ?, ?, ? WHERE NOT EXISTS (
-         SELECT 1 FROM ${quoteIdent(APP_SCHEMA.PaymentMethods.sqlName)} WHERE lower(method_name) = lower(?)
-       )`,
+      `INSERT OR IGNORE INTO ${quoteIdent(APP_SCHEMA.PaymentMethods.sqlName)} (method_name, closing_date, payment_type_id)
+       VALUES (?, ?, ?)`,
       name,
       closingDate,
-      typeRow?.id ?? null,
-      name
+      typeRow?.id ?? null
     );
   }
 };
@@ -459,9 +448,9 @@ const seedSampleData = async (db: SQLiteDatabase) => {
 };
 
 const seedDefaults = async (db: SQLiteDatabase) => {
-  await db.withTransactionAsync(async () => {
-    await seedReferenceData(db);
-    await seedSampleData(db);
+  await withExclusiveTransaction(db, async (txn) => {
+    await seedReferenceData(txn);
+    await seedSampleData(txn);
   });
 };
 
@@ -476,14 +465,23 @@ export const runMigrations = async (db: SQLiteDatabase) => {
   for (const migration of migrations) {
     if (migration.version <= version) continue;
 
-    await db.withTransactionAsync(async () => {
-      await migration.up(db);
-      await db.runAsync(
+    await withExclusiveTransaction(db, async (txn) => {
+      await txn.execAsync('PRAGMA legacy_alter_table = ON;');
+      try {
+        await migration.up(txn);
+      } finally {
+        await txn.execAsync('PRAGMA legacy_alter_table = OFF;');
+      }
+    });
+
+    // Only record the migration after its transaction has committed.
+    await withExclusiveTransaction(db, async (txn) => {
+      await txn.runAsync(
         `INSERT OR IGNORE INTO ${quoteIdent(APP_SCHEMA.Migrations.sqlName)} (migration_name, applied_at) VALUES (?, ?)`,
         migration.name,
         Date.now()
       );
-      await db.execAsync(`PRAGMA user_version = ${migration.version}`);
+      await txn.execAsync(`PRAGMA user_version = ${migration.version}`);
     });
 
     version = migration.version;
@@ -491,18 +489,28 @@ export const runMigrations = async (db: SQLiteDatabase) => {
 };
 
 async function migrateDb(db: SQLiteDatabase) {
+  try {
+    await db.execAsync('PRAGMA journal_mode = WAL;');
+  } catch (error) {
+    // WAL is not available on every platform (for example some web builds).
+    console.warn('No se pudo activar journal_mode=WAL:', error);
+  }
+
   await db.execAsync('PRAGMA foreign_keys = OFF;');
-  // Prevent ALTER TABLE ... RENAME from rewriting foreign keys in other
-  // tables while a legacy table is being rebuilt.
-  await db.execAsync('PRAGMA legacy_alter_table = ON;');
 
   try {
-    await db.withTransactionAsync(async () => {
-      await prepareReferenceTables(db);
-      await normalizeSchema(db);
+    await withExclusiveTransaction(db, async (txn) => {
+      // Prevent ALTER TABLE ... RENAME from rewriting foreign keys in other
+      // tables while a legacy table is being rebuilt.
+      await txn.execAsync('PRAGMA legacy_alter_table = ON;');
+      try {
+        await prepareReferenceTables(txn);
+        await normalizeSchema(txn);
+      } finally {
+        await txn.execAsync('PRAGMA legacy_alter_table = OFF;');
+      }
     });
   } finally {
-    await db.execAsync('PRAGMA legacy_alter_table = OFF;');
     await db.execAsync('PRAGMA foreign_keys = ON;');
   }
 
