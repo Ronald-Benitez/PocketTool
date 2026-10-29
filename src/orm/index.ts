@@ -180,29 +180,32 @@ export class ORM<T extends TableOption = TableOption> {
     this.availableColumns = buildAvailableColumns(table);
   }
 
-  private reset() {
-    this.joinedTables = [];
-    this.joinedColumns = [];
-    this.whereClauses = [];
-    this.whereValues = [];
-    this.orderClauses = [];
-    this.limitValue = undefined;
-    this.offsetValue = undefined;
+  private clone(): ORM<T> {
+    const next = new ORM<T>(this.db, this.table);
+    next.joinedTables = [...this.joinedTables];
+    next.joinedColumns = [...this.joinedColumns];
+    next.whereClauses = [...this.whereClauses];
+    next.whereValues = [...this.whereValues];
+    next.orderClauses = [...this.orderClauses];
+    next.limitValue = this.limitValue;
+    next.offsetValue = this.offsetValue;
+    return next;
   }
 
-  private ensureJoined(path: string) {
-    if (!path) return;
+  private ensureJoined(path: string): ORM<T> {
+    if (!path) return this;
     if (!Object.prototype.hasOwnProperty.call(this.availableJoins, path)) {
       throw new InvalidIdentifierError(`Table path "${path}" is not a valid join for "${this.table}"`);
     }
-    this.join(path as JoinPath<T>);
+    return this.join(path as JoinPath<T>);
   }
 
-  public join<Path extends JoinPath<T>>(tablePath: Path): this {
+  public join<Path extends JoinPath<T>>(tablePath: Path): ORM<T> {
     if (!Object.prototype.hasOwnProperty.call(this.availableJoins, tablePath)) {
       throw new InvalidIdentifierError(`Table path "${tablePath}" is not a valid join for "${this.table}"`);
     }
 
+    const next = this.clone();
     const segments = String(tablePath).split('.');
     let prevAlias = this.table as string;
     let currentPath = '';
@@ -223,38 +226,35 @@ export class ORM<T extends TableOption = TableOption> {
 
       const joinStr = `LEFT JOIN ${target.sqlName} AS "${currentPath}" ON "${currentPath}"."${base.references!.column}" = "${prevAlias}"."${base.name}"${softDeleteFilter}`;
 
-      if (!this.joinedTables.includes(joinStr)) {
-        this.joinedTables.push(joinStr);
+      if (!next.joinedTables.includes(joinStr)) {
+        next.joinedTables.push(joinStr);
       }
 
       const cols = target.columns
         .map((column) => `"${currentPath}"."${column.name}" AS "${currentPath}.${column.name}"`)
         .join(', ');
 
-      if (cols && !this.joinedColumns.includes(cols)) {
-        this.joinedColumns.push(cols);
+      if (cols && !next.joinedColumns.includes(cols)) {
+        next.joinedColumns.push(cols);
       }
 
       prevAlias = currentPath;
     }
 
-    return this;
+    return next;
   }
 
-  public joinMany(paths: JoinPath<T>[]) {
-    for (const path of paths) {
-      this.join(path);
-    }
-    return this;
+  public joinMany(paths: JoinPath<T>[]): ORM<T> {
+    return paths.reduce<ORM<T>>((query, path) => query.join(path), this);
   }
 
-  public where<Path extends ColumnPath<T>>(column: Path, value: SqlValue, operator?: SqlOperator): this;
-  public where<Path extends ColumnPath<T>>(filter: WhereCondition<T>): this;
+  public where<Path extends ColumnPath<T>>(column: Path, value: SqlValue, operator?: SqlOperator): ORM<T>;
+  public where<Path extends ColumnPath<T>>(filter: WhereCondition<T>): ORM<T>;
   public where<Path extends ColumnPath<T>>(
     columnOrFilter: Path | WhereCondition<T>,
     value?: SqlValue,
     operator: SqlOperator = '='
-  ) {
+  ): ORM<T> {
     const condition = typeof columnOrFilter === 'string'
       ? { column: columnOrFilter, value: value ?? null, operator }
       : columnOrFilter;
@@ -263,47 +263,46 @@ export class ORM<T extends TableOption = TableOption> {
       throw new InvalidIdentifierError(`Column "${condition.column}" is not valid for table "${this.table}"`);
     }
 
+    let query: ORM<T> = this;
     if (condition.column.includes('.')) {
       const prefix = condition.column.split('.').slice(0, -1).join('.');
-      if (prefix !== this.table) this.ensureJoined(prefix);
+      if (prefix !== this.table) query = query.ensureJoined(prefix);
     }
 
+    const next = query.clone();
     const columnRef = resolveColumnReference(this.table, condition.column);
     const normalizedOperator = normalizeOperator(condition.operator ?? '=');
 
     if (normalizedOperator === 'IN') {
       const values = Array.isArray(condition.value) ? condition.value : [condition.value];
       const placeholders = values.map(() => '?').join(', ');
-      this.whereClauses.push(`${columnRef} IN (${placeholders})`);
-      this.whereValues.push(...values);
-      return this;
+      next.whereClauses.push(`${columnRef} IN (${placeholders})`);
+      next.whereValues.push(...values);
+      return next;
     }
 
     if (normalizedOperator === 'BETWEEN') {
       const values = Array.isArray(condition.value) ? condition.value : [condition.value, null];
-      this.whereClauses.push(`${columnRef} BETWEEN ? AND ?`);
-      this.whereValues.push(values[0], values[1]);
-      return this;
+      next.whereClauses.push(`${columnRef} BETWEEN ? AND ?`);
+      next.whereValues.push(values[0], values[1]);
+      return next;
     }
 
-    this.whereClauses.push(`${columnRef} ${normalizedOperator} ?`);
-    this.whereValues.push(condition.value);
-    return this;
+    next.whereClauses.push(`${columnRef} ${normalizedOperator} ?`);
+    next.whereValues.push(condition.value);
+    return next;
   }
 
-  public whereMany(filters: Array<WhereCondition<T>>) {
-    for (const filter of filters) {
-      this.where(filter);
-    }
-    return this;
+  public whereMany(filters: Array<WhereCondition<T>>): ORM<T> {
+    return filters.reduce<ORM<T>>((query, filter) => query.where(filter), this);
   }
 
-  public order<Path extends ColumnPath<T>>(column: Path, direction: OrderDirection): this;
-  public order<Path extends ColumnPath<T>>(filter: OrderCondition<T>): this;
+  public order<Path extends ColumnPath<T>>(column: Path, direction: OrderDirection): ORM<T>;
+  public order<Path extends ColumnPath<T>>(filter: OrderCondition<T>): ORM<T>;
   public order<Path extends ColumnPath<T>>(
     columnOrFilter: Path | OrderCondition<T>,
     direction: OrderDirection = 'ASC'
-  ) {
+  ): ORM<T> {
     const condition = typeof columnOrFilter === 'string'
       ? { column: columnOrFilter, direction }
       : columnOrFilter;
@@ -312,37 +311,38 @@ export class ORM<T extends TableOption = TableOption> {
       throw new InvalidIdentifierError(`Column "${condition.column}" is not valid for table "${this.table}"`);
     }
 
+    let query: ORM<T> = this;
     if (condition.column.includes('.')) {
       const prefix = condition.column.split('.').slice(0, -1).join('.');
-      if (prefix !== this.table) this.ensureJoined(prefix);
+      if (prefix !== this.table) query = query.ensureJoined(prefix);
     }
 
+    const next = query.clone();
     const columnRef = resolveColumnReference(this.table, condition.column);
-    this.orderClauses.push(`${columnRef} ${condition.direction ?? 'ASC'}`);
-    return this;
+    next.orderClauses.push(`${columnRef} ${condition.direction ?? 'ASC'}`);
+    return next;
   }
 
-  public orderMany(filters: Array<OrderCondition<T>>) {
-    for (const filter of filters) {
-      this.order(filter);
-    }
-    return this;
+  public orderMany(filters: Array<OrderCondition<T>>): ORM<T> {
+    return filters.reduce<ORM<T>>((query, filter) => query.order(filter), this);
   }
 
-  public limit(value: number) {
+  public limit(value: number): ORM<T> {
     if (!Number.isInteger(value) || value < 0) {
       throw new InvalidDataError(`Limit must be a non-negative integer, received "${value}"`);
     }
-    this.limitValue = value;
-    return this;
+    const next = this.clone();
+    next.limitValue = value;
+    return next;
   }
 
-  public offset(value: number) {
+  public offset(value: number): ORM<T> {
     if (!Number.isInteger(value) || value < 0) {
       throw new InvalidDataError(`Offset must be a non-negative integer, received "${value}"`);
     }
-    this.offsetValue = value;
-    return this;
+    const next = this.clone();
+    next.offsetValue = value;
+    return next;
   }
 
   public async getAll(options?: { includeDeleted?: boolean }): Promise<RelationsSchemaMap[T][]> {
@@ -373,8 +373,6 @@ export class ORM<T extends TableOption = TableOption> {
       return rows.map(this.mapRow) as RelationsSchemaMap[T][];
     } catch (error) {
       throw new QueryError(`Error en getAll() para ${this.table}`, error);
-    } finally {
-      this.reset();
     }
   }
 
@@ -414,8 +412,6 @@ export class ORM<T extends TableOption = TableOption> {
       return row?.total ?? 0;
     } catch (error) {
       throw new QueryError(`Error en count() para ${this.table}`, error);
-    } finally {
-      this.reset();
     }
   }
 

@@ -5,25 +5,7 @@ import useConfigs from "../hooks/useConfigs"
 import { useDataStore } from "."
 import { PaymentMethod } from "../interfaces/schema"
 import { useRecords } from "../db"
-
-const getPeriods = (card: PaymentMethod, month: number, year: number) => {
-    if(!card?.closing_date) return [0,0]
-    let localMonth = month;
-    let localYear = year;
-
-    if (card.closing_date < new Date().getDate()) {
-        localMonth += 1;
-        if (localMonth > 12) {
-            localMonth = 1;
-            localYear += 1;
-        }
-    }
-
-    const periodStart = new Date(localYear, localMonth - 1, card.closing_date + 1, 0, 0, 0, 0).getTime();
-    const periodEnd = new Date(localYear, localMonth, card.closing_date + 1, 0, 0, 0, 0).getTime() - 1;
-
-    return [periodStart, periodEnd];
-};
+import { getCreditPeriods } from "../utils/creditPeriods"
 
 export interface Credit extends PaymentMethod {
     totalCurrent?: number
@@ -48,10 +30,6 @@ export const useCreditStore = () => {
 
     const calculatePaymentTotal = async () => {
         const filteredPayments = PaymentMethods.filter(p => (p?.closing_date || 0) > 0)
-        let today = new Date();
-        const month = today.getMonth();
-        const year = today.getFullYear()
-
         
         const credits = await Promise.all(filteredPayments.map(async payment => {
             if (!payment.id) return {
@@ -59,16 +37,13 @@ export const useCreditStore = () => {
                 totalCurrent: 0,
                 totalPrevious: 0
             }
-            const [currentPeriodStart, currentPeriodEnd] = getPeriods(
-                payment,
-                month,
-                year
-            );
-            const [previousPeriodStart, previousPeriodEnd] = getPeriods(
-                payment,
-                month - 1,
-                year
-            );
+
+            const {
+                currentPeriodStart,
+                currentPeriodEnd,
+                previousPeriodStart,
+                previousPeriodEnd,
+            } = getCreditPeriods(payment)
 
             const currentTotals = await fetchCreditPeriodTotals(
                 payment.id,
