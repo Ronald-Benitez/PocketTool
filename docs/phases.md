@@ -393,6 +393,16 @@ los aplican antes de escribir. El ORM sigue validando columnas y ahora lanza
   repo y añadir CI.
 - Falta prueba end-to-end del import con pickers nativos/web.
 
+## Fix posterior — cálculo de créditos (2026-10-28)
+
+- Se corrigió el cálculo de periodos actual/anterior cuando la fecha está antes
+  o después del corte, incluyendo meses con menos días que `closing_date`.
+- El builder del ORM ahora es inmutable, evitando que consultas concurrentes
+  compartan filtros y devuelvan resultados mezclados.
+- Cálculo extraído a `src/utils/creditPeriods.ts` y cubierto por pruebas de
+  periodos y totales.
+- Commit: `d519960`.
+
 ---
 
 # Fase 3 — Calidad, pruebas y operación
