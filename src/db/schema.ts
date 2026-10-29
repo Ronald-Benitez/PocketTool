@@ -114,6 +114,9 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
     ],
     indexes: [
       { name: 'idx_fixed_active', columns: ['fixed_day'], where: 'deleted_at IS NULL' },
+      { name: 'idx_fixed_category', columns: ['category_id'], where: 'deleted_at IS NULL' },
+      { name: 'idx_fixed_payment_method', columns: ['payment_method_id'], where: 'deleted_at IS NULL' },
+      { name: 'idx_fixed_record_type', columns: ['record_type_id'], where: 'deleted_at IS NULL' },
     ],
   },
   Records: {
@@ -161,6 +164,8 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
       { name: 'idx_records_category', columns: ['category_id'], where: 'deleted_at IS NULL' },
       { name: 'idx_records_payment_method', columns: ['payment_method_id'], where: 'deleted_at IS NULL' },
       { name: 'idx_records_record_type', columns: ['record_type_id'], where: 'deleted_at IS NULL' },
+      { name: 'idx_records_fixed', columns: ['fixed_id'], where: 'deleted_at IS NULL' },
+      { name: 'idx_records_paid_credit', columns: ['paid_credit_id'], where: 'deleted_at IS NULL' },
     ],
   },
   PaidCredits: {
@@ -184,6 +189,8 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
     ],
     indexes: [
       { name: 'idx_paid_credits_group', columns: ['group_id'], where: 'deleted_at IS NULL' },
+      { name: 'idx_paid_credits_payment_method', columns: ['payment_method_id'], where: 'deleted_at IS NULL' },
+      { name: 'idx_paid_credits_date', columns: ['date'], where: 'deleted_at IS NULL' },
     ],
   },
   BudgetTemplates: {
@@ -224,6 +231,8 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
     ],
     indexes: [
       { name: 'idx_budget_template_items_template', columns: ['budget_template_id'], where: 'deleted_at IS NULL' },
+      { name: 'idx_budget_template_items_category', columns: ['category_id'], where: 'deleted_at IS NULL' },
+      { name: 'idx_budget_template_items_record_type', columns: ['record_type_id'], where: 'deleted_at IS NULL' },
     ],
   },
   Budgets: {
@@ -251,6 +260,8 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
     ],
     indexes: [
       { name: 'idx_budgets_group', columns: ['group_id'], where: 'deleted_at IS NULL' },
+      { name: 'idx_budgets_category', columns: ['category_id'], where: 'deleted_at IS NULL' },
+      { name: 'idx_budgets_record_type', columns: ['record_type_id'], where: 'deleted_at IS NULL' },
     ],
   },
   Savings: {

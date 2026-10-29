@@ -133,7 +133,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                     }
                 }
             } else if (paidCreditId !== null) {
-                await paidCreditsOrm.forceDelete(paidCreditId)
+                await paidCreditsOrm.delete(paidCreditId)
                 paidCreditId = null
             }
 
