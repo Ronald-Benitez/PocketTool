@@ -35,27 +35,3 @@ export interface TableDefinition {
 export type TableSchema = {
   [tableName: string]: TableDefinition;
 };
-
-export interface Entity {
-  id?: number;
-}
-
-export type SqlValue = string | number | boolean | null;
-
-export type QueryWhereClause = {
-  [key: string]: SqlValue | QueryComparisonOperator;
-};
-
-export interface QueryComparisonOperator {
-  _eq?: SqlValue;
-  _ne?: SqlValue;
-  _gt?: number;
-  _gte?: number;
-  _lt?: number;
-  _lte?: number;
-  _like?: string;
-  _in?: (string | number)[];
-  _nin?: (string | number)[];
-  _is_null?: boolean;
-  _is_not_null?: boolean;
-}

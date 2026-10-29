@@ -1,6 +1,12 @@
 import { useSQLiteContext, type SQLiteDatabase } from 'expo-sqlite';
 import relations from '../db/schema/generated/relations.json';
 import { APP_SCHEMA, type TableName } from '../db/schema';
+import { withExclusiveTransaction } from '../db/transaction';
+import {
+  InvalidDataError,
+  InvalidIdentifierError,
+  QueryError,
+} from './errors';
 import type {
   Group,
   PaymentType,
@@ -27,6 +33,7 @@ import type {
   FuelRefill,
   TripLog,
   Insertable,
+  UpdateEntity,
 } from '../interfaces/schema';
 
 export type BaseSchemaMap = {
@@ -107,7 +114,7 @@ export type OrderCondition<T extends TableOption> = {
 const tableOf = (name: string) => {
   const table = APP_SCHEMA[name as TableName];
   if (!table) {
-    throw new Error(`Unknown table "${name}"`);
+    throw new InvalidIdentifierError(`Unknown table "${name}"`);
   }
   return table;
 };
@@ -186,14 +193,14 @@ export class ORM<T extends TableOption = TableOption> {
   private ensureJoined(path: string) {
     if (!path) return;
     if (!Object.prototype.hasOwnProperty.call(this.availableJoins, path)) {
-      throw new Error(`Table path "${path}" is not a valid join for "${this.table}"`);
+      throw new InvalidIdentifierError(`Table path "${path}" is not a valid join for "${this.table}"`);
     }
     this.join(path as JoinPath<T>);
   }
 
   public join<Path extends JoinPath<T>>(tablePath: Path): this {
     if (!Object.prototype.hasOwnProperty.call(this.availableJoins, tablePath)) {
-      throw new Error(`Table path "${tablePath}" is not a valid join for "${this.table}"`);
+      throw new InvalidIdentifierError(`Table path "${tablePath}" is not a valid join for "${this.table}"`);
     }
 
     const segments = String(tablePath).split('.');
@@ -253,7 +260,7 @@ export class ORM<T extends TableOption = TableOption> {
       : columnOrFilter;
 
     if (!Object.prototype.hasOwnProperty.call(this.availableColumns, condition.column)) {
-      throw new Error(`Column "${condition.column}" is not valid for table "${this.table}"`);
+      throw new InvalidIdentifierError(`Column "${condition.column}" is not valid for table "${this.table}"`);
     }
 
     if (condition.column.includes('.')) {
@@ -302,7 +309,7 @@ export class ORM<T extends TableOption = TableOption> {
       : columnOrFilter;
 
     if (!Object.prototype.hasOwnProperty.call(this.availableColumns, condition.column)) {
-      throw new Error(`Column "${condition.column}" is not valid for table "${this.table}"`);
+      throw new InvalidIdentifierError(`Column "${condition.column}" is not valid for table "${this.table}"`);
     }
 
     if (condition.column.includes('.')) {
@@ -323,11 +330,17 @@ export class ORM<T extends TableOption = TableOption> {
   }
 
   public limit(value: number) {
+    if (!Number.isInteger(value) || value < 0) {
+      throw new InvalidDataError(`Limit must be a non-negative integer, received "${value}"`);
+    }
     this.limitValue = value;
     return this;
   }
 
   public offset(value: number) {
+    if (!Number.isInteger(value) || value < 0) {
+      throw new InvalidDataError(`Offset must be a non-negative integer, received "${value}"`);
+    }
     this.offsetValue = value;
     return this;
   }
@@ -359,8 +372,7 @@ export class ORM<T extends TableOption = TableOption> {
       const rows = (await this.db.getAllAsync(query, params)) as Record<string, any>[];
       return rows.map(this.mapRow) as RelationsSchemaMap[T][];
     } catch (error) {
-      console.error(`Error en getAll() para ${this.table}:`, error);
-      return [];
+      throw new QueryError(`Error en getAll() para ${this.table}`, error);
     } finally {
       this.reset();
     }
@@ -369,6 +381,22 @@ export class ORM<T extends TableOption = TableOption> {
   public async first(options?: { includeDeleted?: boolean }): Promise<RelationsSchemaMap[T] | null> {
     const rows = await this.limit(1).getAll(options);
     return rows[0] ?? null;
+  }
+
+  public async getById(id: number, options?: { includeDeleted?: boolean }) {
+    return this.where('id' as never, id).first(options);
+  }
+
+  public async exists(options?: { includeDeleted?: boolean }): Promise<boolean> {
+    return (await this.count(options)) > 0;
+  }
+
+  public async transaction<R>(task: (orm: ORM<T>) => Promise<R>): Promise<R> {
+    let result: R | undefined;
+    await withExclusiveTransaction(this.db, async (txn) => {
+      result = await task(new ORM<T>(txn, this.table));
+    });
+    return result as R;
   }
 
   public async count(options?: { includeDeleted?: boolean }): Promise<number> {
@@ -385,8 +413,7 @@ export class ORM<T extends TableOption = TableOption> {
       const row = await this.db.getFirstAsync<{ total: number }>(query, this.whereValues as any[]);
       return row?.total ?? 0;
     } catch (error) {
-      console.error(`Error en count() para ${this.table}:`, error);
-      return 0;
+      throw new QueryError(`Error en count() para ${this.table}`, error);
     } finally {
       this.reset();
     }
@@ -419,8 +446,7 @@ export class ORM<T extends TableOption = TableOption> {
     try {
       return (await this.db.getAllAsync(query, params as any[])) as R[];
     } catch (error) {
-      console.error(`Error en raw() para ${this.table}:`, error);
-      return [];
+      throw new QueryError(`Error en raw() para ${this.table}`, error);
     }
   }
 
@@ -430,13 +456,12 @@ export class ORM<T extends TableOption = TableOption> {
     for (const key of Object.keys(data)) {
       if (!allowId && key === 'id') continue;
       if (!valid.has(key)) {
-        throw new Error(`Column "${key}" is not valid for table "${this.table}"`);
+        throw new InvalidDataError(`Column "${key}" is not valid for table "${this.table}"`);
       }
     }
   }
 
-  public async insert(data: Insertable<BaseSchemaMap[T]>): Promise<number> {
-    const table = tableOf(this.table);
+  public async insert(data: Insertable<BaseSchemaMap[T]>): Promise<number> {    const table = tableOf(this.table);
     const payload = Object.fromEntries(
       Object.entries(data as Record<string, unknown>).filter(([, value]) => value !== undefined)
     );
@@ -446,14 +471,18 @@ export class ORM<T extends TableOption = TableOption> {
     const placeholders = Object.keys(payload).map(() => '?').join(', ');
     const values = Object.values(payload);
 
-    const result = await this.db.runAsync(
-      `INSERT INTO ${table.sqlName} (${columns}) VALUES (${placeholders})`,
-      values as any[]
-    );
-    return result.lastInsertRowId;
+    try {
+      const result = await this.db.runAsync(
+        `INSERT INTO ${table.sqlName} (${columns}) VALUES (${placeholders})`,
+        values as any[]
+      );
+      return result.lastInsertRowId;
+    } catch (error) {
+      throw new QueryError(`Error inserting into ${this.table}`, error);
+    }
   }
 
-  public async update(id: number, data: Partial<BaseSchemaMap[T]>): Promise<void> {
+  public async update(id: number, data: UpdateEntity<BaseSchemaMap[T]>): Promise<void> {
     const table = tableOf(this.table);
     const payload = Object.fromEntries(
       Object.entries(data as Record<string, unknown>).filter(([key, value]) => key !== 'id' && value !== undefined)
@@ -469,57 +498,85 @@ export class ORM<T extends TableOption = TableOption> {
       ? ' AND deleted_at IS NULL'
       : '';
 
-    await this.db.runAsync(
-      `UPDATE ${table.sqlName} SET ${setClause} WHERE id = ?${softDeleteFilter}`,
-      [...values, id] as any[]
-    );
+    try {
+      await this.db.runAsync(
+        `UPDATE ${table.sqlName} SET ${setClause} WHERE id = ?${softDeleteFilter}`,
+        [...values, id] as any[]
+      );
+    } catch (error) {
+      throw new QueryError(`Error updating ${this.table} with id ${id}`, error);
+    }
   }
 
   public async delete(id: number, column: string = 'id'): Promise<void> {
     const table = tableOf(this.table);
     if (!table.columns.some((item) => item.name === column)) {
-      throw new Error(`Column "${column}" is not valid for table "${this.table}"`);
+      throw new InvalidIdentifierError(`Column "${column}" is not valid for table "${this.table}"`);
     }
 
     if (!table.columns.some((item) => item.name === 'deleted_at')) {
-      await this.db.runAsync(`DELETE FROM ${table.sqlName} WHERE "${column}" = ?`, [id]);
+      try {
+        await this.db.runAsync(`DELETE FROM ${table.sqlName} WHERE "${column}" = ?`, [id]);
+      } catch (error) {
+        throw new QueryError(`Error deleting from ${this.table}`, error);
+      }
       return;
     }
 
-    await this.db.runAsync(
-      `UPDATE ${table.sqlName} SET deleted_at = ? WHERE "${column}" = ? AND deleted_at IS NULL`,
-      [Date.now(), id]
-    );
+    try {
+      await this.db.runAsync(
+        `UPDATE ${table.sqlName} SET deleted_at = ? WHERE "${column}" = ? AND deleted_at IS NULL`,
+        [Date.now(), id]
+      );
+    } catch (error) {
+      throw new QueryError(`Error soft-deleting from ${this.table}`, error);
+    }
   }
 
   public async deleteWhere(column: string, value: string | number | boolean | null): Promise<void> {
     const table = tableOf(this.table);
     if (!table.columns.some((item) => item.name === column)) {
-      throw new Error(`Column "${column}" is not valid for table "${this.table}"`);
+      throw new InvalidIdentifierError(`Column "${column}" is not valid for table "${this.table}"`);
     }
 
     if (!table.columns.some((item) => item.name === 'deleted_at')) {
-      await this.db.runAsync(`DELETE FROM ${table.sqlName} WHERE "${column}" = ?`, [value]);
+      try {
+        await this.db.runAsync(`DELETE FROM ${table.sqlName} WHERE "${column}" = ?`, [value]);
+      } catch (error) {
+        throw new QueryError(`Error deleting from ${this.table}`, error);
+      }
       return;
     }
 
-    await this.db.runAsync(
-      `UPDATE ${table.sqlName} SET deleted_at = ? WHERE "${column}" = ? AND deleted_at IS NULL`,
-      [Date.now(), value]
-    );
+    try {
+      await this.db.runAsync(
+        `UPDATE ${table.sqlName} SET deleted_at = ? WHERE "${column}" = ? AND deleted_at IS NULL`,
+        [Date.now(), value]
+      );
+    } catch (error) {
+      throw new QueryError(`Error soft-deleting from ${this.table}`, error);
+    }
   }
 
   public async restore(id: number): Promise<void> {
     const table = tableOf(this.table);
-    await this.db.runAsync(
-      `UPDATE ${table.sqlName} SET deleted_at = NULL WHERE id = ?`,
-      [id]
-    );
+    try {
+      await this.db.runAsync(
+        `UPDATE ${table.sqlName} SET deleted_at = NULL WHERE id = ?`,
+        [id]
+      );
+    } catch (error) {
+      throw new QueryError(`Error restoring ${this.table} with id ${id}`, error);
+    }
   }
 
   public async forceDelete(id: number): Promise<void> {
     const table = tableOf(this.table);
-    await this.db.runAsync(`DELETE FROM ${table.sqlName} WHERE id = ?`, [id]);
+    try {
+      await this.db.runAsync(`DELETE FROM ${table.sqlName} WHERE id = ?`, [id]);
+    } catch (error) {
+      throw new QueryError(`Error force-deleting ${this.table} with id ${id}`, error);
+    }
   }
 }
 

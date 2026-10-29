@@ -55,7 +55,10 @@ export type RecordFormEntry = Partial<RecordWithRelations> & {
   paid_method_id?: number | null;
 };
 
-export type Insertable<T> = Omit<T, 'id' | 'deleted_at'>;
+export type NewEntity<T> = Omit<T, 'id' | 'deleted_at'>;
+export type UpdateEntity<T> = Partial<T>;
+export type WithRelations<T, R> = T & R;
+export type Insertable<T> = NewEntity<T>;
 
 ///                 Relations               ///
 
