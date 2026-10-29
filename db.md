@@ -1,7 +1,20 @@
 # Resumen de la base de datos
 
-Basado en el esquema definido en [src/db/schema.ts](src/db/schema.ts) y en el
-motor de normalización/migración [src/db/migration.ts](src/db/migration.ts).
+Basado en el esquema declarativo de [src/db/schema/tables.ts](src/db/schema/tables.ts)
+y en el motor de normalización/migración [src/db/migration.ts](src/db/migration.ts).
+La versión generada y detallada del esquema está en
+[docs/schema.md](docs/schema.md).
+
+## Artefactos generados
+
+No editar a mano los archivos de `src/db/schema/generated/`. Se generan con:
+
+```bash
+npm run db:generate
+```
+
+Eso produce SQL, tipos TypeScript, relaciones, columnas y documentación a partir
+de `APP_SCHEMA`.
 
 ## Tipos de datos usados
 
@@ -21,8 +34,9 @@ motor de normalización/migración [src/db/migration.ts](src/db/migration.ts).
 - Los montos se guardan como enteros en centavos (`Cents`).
 - Las fechas (`date`, `change_date`, `applied_at`) y `deleted_at` se guardan
   como timestamps Unix en milisegundos.
-- Las tablas de negocio incluyen `deleted_at` para soft delete. Las consultas
-  del ORM y los repositorios excluyen las filas borradas por defecto.
+- Las tablas de negocio incluyen `deleted_at` para soft delete y `created_at` /
+  `updated_at` para auditoría. Las consultas del ORM y los repositorios excluyen
+  las filas borradas por defecto.
 
 ## Tablas principales
 

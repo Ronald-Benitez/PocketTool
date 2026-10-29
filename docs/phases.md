@@ -1,12 +1,12 @@
 # Plan de fases y bitácora
 
 **Última actualización:** 2026-10-28
-**Estado global:** Fase 0 finalizada. Fase 1 pendiente.
+**Estado global:** Fase 1 finalizada. Fase 2 pendiente.
 
 | Fase | Estado | Fecha |
 | --- | --- | --- |
 | Fase 0 — Correcciones críticas sin cambiar el modelo | ✅ Finalizada | 2026-10-28 |
-| Fase 1 — Fuente única de verdad del esquema | ⏳ Pendiente | — |
+| Fase 1 — Fuente única de verdad del esquema | ✅ Finalizada | 2026-10-28 |
 | Fase 2 — Repositorios y ORM robusto | ⏳ Pendiente | — |
 | Fase 3 — Calidad, pruebas y operación | ⏳ Pendiente | — |
 
@@ -184,56 +184,114 @@ archivos del import. La lógica SQL, validación y transacción sí están cubie
 
 # Fase 1 — Fuente única de verdad del esquema
 
-**Estado:** ⏳ PENDIENTE
+**Estado:** ✅ FINALIZADA — 2026-10-28
 
 **Objetivo:** un solo esquema declarativo del que se generen SQL, tipos,
 relaciones, columnas y documentación.
 
 ## 1. Definir el esquema declarativo
 
-- [ ] Un solo `schema/tables.ts` con:
+- [x] Un solo `schema/tables.ts` con:
   - nombre de tabla;
   - columnas, tipos, nullabilidad, defaults;
   - PK, FKs con `ON DELETE`/`ON UPDATE`;
   - `UNIQUE`, `CHECK`;
   - índices.
-- [ ] Incluir `deleted_at`, `created_at`, `updated_at` de forma consistente.
+- [x] Incluir `deleted_at`, `created_at`, `updated_at` de forma consistente.
+
+**Resultado:** `src/db/schema/tables.ts` es la fuente única. Cada tabla declara
+`name`, `sqlName`, `entity`, columnas con `kind` semántico (`money`,
+`timestamp`, `boolean`), PK/FK, defaults, `UNIQUE` e índices. Las tablas de
+negocio incluyen `deleted_at`, `created_at` y `updated_at`.
 
 ## 2. Generar derivados
 
-- [ ] Script que produzca:
+- [x] Script que produzca:
   - SQL de creación;
   - `generated/types.ts`;
   - `relations.json`;
   - `columns.json`;
   - documentación de esquema.
-- [ ] El ORM deja de depender de JSON editado a mano.
+- [x] El ORM deja de depender de JSON editado a mano.
+
+**Resultado:** `npm run db:generate` ejecuta
+`scripts/generate-db-artifacts.js` y produce:
+
+- `src/db/schema/generated/schema.sql`
+- `src/db/schema/generated/types.ts`
+- `src/db/schema/generated/relations.json`
+- `src/db/schema/generated/columns.json`
+- `docs/schema.md`
+
+El ORM consume `generated/relations.json`; `src/interfaces/schema.ts` reutiliza
+los tipos generados. El antiguo `src/orm/relations.json` fue eliminado.
 
 ## 3. Definir migraciones como única fuente de evolución
 
-- [ ] `0001_baseline` crea todo el esquema actual consolidado.
-- [ ] Las migraciones posteriores solo alteran.
-- [ ] `client.ts` crea la tabla `Migrations` antes de correr el runner.
-- [ ] Usar `PRAGMA user_version` como versión rápida y `Migrations` como
+- [x] `0001_baseline` crea todo el esquema actual consolidado.
+- [x] Las migraciones posteriores solo alteran.
+- [x] `client.ts` crea la tabla `Migrations` antes de correr el runner.
+- [x] Usar `PRAGMA user_version` como versión rápida y `Migrations` como
   historial detallado.
+
+**Resultado:** `migrateDb` crea `migrations` antes del runner.
+`0001_baseline` aplica el esquema consolidado y
+`0002_audit_timestamps` agrega `created_at`/`updated_at` a bases existentes.
+`SCHEMA_VERSION = 2`. Cada migración se ejecuta en transacción exclusiva y se
+registra solo después del commit.
 
 ## 4. Normalizar nombres y tipos
 
-- [ ] Elegir una convención: tablas y columnas en snake_case.
-- [ ] Si se mantiene PascalCase, renombrar las tablas de vehículo para que
+- [x] Elegir una convención: tablas y columnas en snake_case.
+- [x] Si se mantiene PascalCase, renombrar las tablas de vehículo para que
   coincidan.
-- [ ] Unificar fechas: `INTEGER` ms en todas las tablas, o `TEXT` ISO en todas.
-- [ ] Evaluar migrar dinero de `REAL` a `INTEGER` en centavos.
+- [x] Unificar fechas: `INTEGER` ms en todas las tablas, o `TEXT` ISO en todas.
+- [x] Evaluar migrar dinero de `REAL` a `INTEGER` en centavos.
+
+**Resultado:** nombres lógicos PascalCase para el ORM, nombres físicos y
+columnas snake_case. Fechas en milisegundos y dinero en centavos. Las tablas de
+vehículo ya usan nombres físicos snake_case.
 
 ## 5. Separar seed de migraciones
 
-- [ ] `schema/seed.ts` idempotente, ejecutado solo en bootstrap.
-- [ ] Los defaults de la app referencian nombres/slugs estables, no IDs.
+- [x] `schema/seed.ts` idempotente, ejecutado solo en bootstrap.
+- [x] Los defaults de la app referencian nombres/slugs estables, no IDs.
+
+**Resultado:** el seed vive en `src/db/schema/seed.ts`, se ejecuta en el
+bootstrap y es idempotente. La configuración por defecto se resuelve por nombre
+(`Income`, `Expense`, `Credit expenses`, `Payments`).
 
 ## Criterio de aceptación
 
-Agregar una tabla o columna requiere editar un solo archivo de esquema y
-generar; no hay JSON ni tipos duplicados.
+- [x] Agregar una tabla o columna requiere editar un solo archivo de esquema y
+  generar.
+- [x] No hay JSON ni tipos duplicados mantenidos a mano: `types.ts`,
+  `relations.json`, `columns.json` y `schema.sql` son generados.
+
+## Commits
+
+- `608aea9` — `refactor(schema): generate schema artifacts from declarative tables`
+- `6804160` — `refactor(migrations): add consolidated baseline and audit timestamp migration`
+
+## Verificación
+
+- `npx tsc --noEmit` → `TSC_EXIT=0`.
+- `npm run db:generate` regenera los artefactos sin cambios inesperados.
+- Harness SQLite:
+  - arranque desde base vacía con baseline + migración de auditoría;
+  - migración desde base legacy;
+  - seed idempotente y export/import;
+  - `user_version = 2` y fila `0001_baseline` en `Migrations`.
+
+## Notas para Fase 2
+
+- `created_at`/`updated_at` existen pero todavía no se actualizan
+  automáticamente desde el ORM. Decidir en Fase 2 si se llenan en inserts/updates
+  o mediante triggers.
+- La UI aún usa `useORM` directo en varias pantallas; Fase 2 consolida los
+  repositorios.
+- Las pruebas de migración/ORM siguen siendo un harness de desarrollo; Fase 3
+  las vuelve permanentes.
 
 ---
 
@@ -329,3 +387,13 @@ se definen una sola vez.
   resuelven por nombre para no depender de IDs fijos.
 - **2026-10-28 — Import seguro:** validación + backup + transacción exclusiva +
   restauración de FKs + renormalización posterior.
+- **2026-10-28 — Fase 1:** `schema/tables.ts` es la fuente única; los artefactos
+  de `schema/generated/` y `docs/schema.md` se generan con
+  `npm run db:generate` y no se editan a mano.
+- **2026-10-28 — Tipos generados:** las entidades TypeScript se derivan de las
+  columnas y de `kind` (`money` → `Cents`, `timestamp` → `TimestampMs`).
+- **2026-10-28 — Relaciones generadas:** `relations.json` se deriva del grafo de
+  FKs; el ORM dejó de usar el JSON editado a mano.
+- **2026-10-28 — Migraciones:** `0001_baseline` consolida el esquema y
+  `0002_audit_timestamps` agrega `created_at`/`updated_at` a bases existentes.
+  `SCHEMA_VERSION = 2`.

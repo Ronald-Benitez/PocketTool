@@ -11,7 +11,7 @@ métodos de pago, créditos, ahorros y vehículo.
 ## Estado actual
 
 - **Fase 0 — Correcciones críticas: FINALIZADA** (2026-10-28).
-- **Fase 1 — Fuente única de verdad del esquema: PENDIENTE**.
+- **Fase 1 — Fuente única de verdad del esquema: FINALIZADA** (2026-10-28).
 - **Fase 2 — Repositorios y ORM robusto: PENDIENTE**.
 - **Fase 3 — Calidad, pruebas y operación: PENDIENTE**.
 
@@ -22,17 +22,26 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 
 ## Arquitectura de datos
 
-- `src/db/schema.ts`: `APP_SCHEMA`, única fuente de verdad del esquema. Nombres
-  lógicos PascalCase (`Records`, `PaymentMethods`, `Fixed`, etc.) y nombres
-  físicos snake_case (`records`, `payment_methods`, `fixed_records`, etc.).
-- `src/db/migration.ts`: normalización de bases legacy, conversión de dinero a
-  centavos, fechas a milisegundos, soft delete, índices y seed.
-- `src/db/migrations/`: migraciones incrementales posteriores al baseline.
-- `src/orm/index.ts`: ORM tipado, joins automáticos desde `relations.json`,
-  filtros de soft delete y CRUD.
+- `src/db/schema/tables.ts`: `APP_SCHEMA`, única fuente de verdad del esquema.
+  Nombres lógicos PascalCase (`Records`, `PaymentMethods`, `Fixed`, etc.) y
+  nombres físicos snake_case (`records`, `payment_methods`, `fixed_records`, etc.).
+  Incluye metadatos semánticos (`kind: 'money' | 'timestamp' | 'boolean'`) y el
+  nombre de la entidad TypeScript.
+- `src/db/schema/generated/`: artefactos generados desde `tables.ts`
+  (`schema.sql`, `types.ts`, `relations.json`, `columns.json`). **No editar a
+  mano.**
+- `scripts/generate-db-artifacts.js`: generador de artefactos (`npm run db:generate`).
+- `src/db/schema/seed.ts`: seed idempotente de datos de referencia y ejemplo.
+- `src/db/schema/apply.ts`: normalización/rebuild de tablas, conversiones legacy
+  e índices.
+- `src/db/migration.ts`: bootstrap, pragmas y runner de migraciones.
+- `src/db/migrations/0001_baseline.ts`: baseline consolidado.
+- `src/db/migrations/0002_audit_timestamps.ts`: migración incremental de ejemplo.
+- `src/orm/index.ts`: ORM tipado; usa las relaciones generadas, filtros de soft
+  delete y CRUD.
 - `src/db/repositories/index.ts`: repositorios por agregado.
 - `src/db/index.ts`: barrel público; expone `useRecords`, `useGroups`, etc.
-- `src/interfaces/schema.ts`: entidades canónicas y vistas aplanadas.
+- `src/interfaces/schema.ts`: entidades generadas + relaciones/vistas.
 - `src/utils/index.ts`: helpers de dinero (`parseMoneyToCents`, `centsToInput`,
   `formatMoney`, `formatMoneyWithSymbol`).
 
@@ -56,7 +65,12 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 
 ```bash
 npx tsc --noEmit
+npm run db:generate
 ```
+
+`npm run db:generate` debe ejecutarse después de editar
+`src/db/schema/tables.ts`. Los archivos de `src/db/schema/generated/` y
+`docs/schema.md` se sobrescriben.
 
 Las pruebas de migración/ORM se ejecutan con un harness de SQLite en Node
 (`node:sqlite`) durante el desarrollo. Si se agregan pruebas permanentes, deben
@@ -66,5 +80,6 @@ documentarse aquí y en `docs/phases.md`.
 
 - [`docs/README.md`](docs/README.md): índice de documentación.
 - [`docs/phases.md`](docs/phases.md): plan de fases, estado y bitácora.
+- [`docs/schema.md`](docs/schema.md): esquema generado.
 - [`db.md`](db.md): resumen de tablas, relaciones y convenciones de la base.
 - [`README.md`](README.md): descripción general y ejecución del proyecto.

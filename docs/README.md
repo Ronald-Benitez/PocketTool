@@ -7,6 +7,8 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 
 - [`phases.md`](phases.md): plan completo de fases, estado y bitácora de lo
   ejecutado. **Es el documento que debe actualizarse al terminar cada fase.**
+- [`schema.md`](schema.md): esquema generado desde
+  `src/db/schema/tables.ts` (tablas, columnas, tipos, índices y relaciones).
 - [`../AGENTS.md`](../AGENTS.md): contexto e instrucciones para agentes.
 - [`../db.md`](../db.md): tablas, relaciones y convenciones de la base de datos.
 - [`../README.md`](../README.md): descripción general del proyecto.
@@ -16,7 +18,7 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 | Fase | Estado |
 | --- | --- |
 | Fase 0 — Correcciones críticas | ✅ Finalizada (2026-10-28) |
-| Fase 1 — Fuente única de verdad del esquema | ⏳ Pendiente |
+| Fase 1 — Fuente única de verdad del esquema | ✅ Finalizada (2026-10-28) |
 | Fase 2 — Repositorios y ORM robusto | ⏳ Pendiente |
 | Fase 3 — Calidad, pruebas y operación | ⏳ Pendiente |
 
