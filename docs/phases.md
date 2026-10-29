@@ -272,6 +272,8 @@ bootstrap y es idempotente. La configuración por defecto se resuelve por nombre
 
 - `608aea9` — `refactor(schema): generate schema artifacts from declarative tables`
 - `6804160` — `refactor(migrations): add consolidated baseline and audit timestamp migration`
+- `fce7ae4` — `fix(migrations): skip audit columns for missing tables`
+- `06e9de6` — `docs: mark phase 1 complete`
 
 ## Verificación
 
