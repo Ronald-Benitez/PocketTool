@@ -2,110 +2,119 @@ import * as SQLite from 'expo-sqlite';
 import { File, Paths } from 'expo-file-system';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
-import { Platform } from 'react-native';
+import { Alert, Platform } from 'react-native';
+
+import migrateDb from '@/src/db/migration';
+import { withExclusiveTransaction } from '@/src/db/transaction';
+import { buildSqlDump, validateSqlDump } from './sql-dump';
+
+const writeDumpFile = (fileName: string, sqlDump: string): File => {
+  const cacheDir = Paths.cache.uri;
+  const separator = cacheDir.endsWith('/') ? '' : '/';
+  const file = new File(`${cacheDir}${separator}${fileName}`);
+
+  file.write(sqlDump);
+  return file;
+};
+
+const pickSqlFile = async (): Promise<string | null> => {
+  if (Platform.OS === 'web') {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: ['application/x-sql', 'text/plain'],
+    });
+
+    if (result.canceled || !result.assets) return null;
+
+    const selectedFile = result.assets[0].file;
+    if (!selectedFile) throw new Error('No se pudo leer el archivo seleccionado');
+
+    return selectedFile.text();
+  }
+
+  const result = await File.pickFileAsync({
+    mimeTypes: ['application/x-sql', 'text/plain'],
+  });
+
+  if (result.canceled) return null;
+  return result.result.text();
+};
+
+const createBackup = async (db: SQLite.SQLiteDatabase): Promise<string> => {
+  const sqlDump = await buildSqlDump(db);
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const file = writeDumpFile(`backup-before-import-${timestamp}.sql`, sqlDump);
+  return file.uri;
+};
+
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
 
 export const useDBExport = function () {
   const db = SQLite.useSQLiteContext();
 
   const exportDatabase = async () => {
-    let sqlDump = "";
-  
     try {
-      const tables = await db.getAllAsync<{ name: string; sql: string }>(
-        "SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'expo_%';"
-      );
-  
-      for (const table of tables) {
-        if (!table.sql) continue;
-  
-        sqlDump += `-- Tabla: ${table.name}\n`;
-        sqlDump += `${table.sql};\n`;
-  
-        const rows = await db.getAllAsync<any>(`SELECT * FROM "${table.name}";`);
-  
-        for (const row of rows) {
-          const columns = Object.keys(row).map(col => `"${col}"`).join(', ');
-          const values = Object.values(row).map(val => {
-            if (val === null) return 'NULL';
-            if (typeof val === 'number') return val;
-            return `'${String(val).replace(/'/g, "''")}'`;
-          }).join(', ');
-  
-          sqlDump += `INSERT INTO "${table.name}" (${columns}) VALUES (${values});\n`;
-        }
-        sqlDump += "\n";
-      }
-  
-  
-      const cacheDir = Paths.cache.uri;
-      const separator = cacheDir.endsWith('/') ? '' : '/';
-      const fullUri = `${cacheDir}${separator}backup.sql`;
-  
-      const dumpFile = new File(fullUri);
-      
-      dumpFile.write(sqlDump);
-  
+      const sqlDump = await buildSqlDump(db);
+      const dumpFile = writeDumpFile('backup.sql', sqlDump);
+
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(dumpFile.uri);
+      } else {
+        Alert.alert('Exportación lista', dumpFile.uri);
       }
     } catch (error) {
-      console.error("Error detallado en dump:", error);
+      console.error('Error detallado en dump:', error);
+      Alert.alert('Error al exportar', getErrorMessage(error));
     }
   };
 
   const importDatabase = async () => {
-  try {
-    let sqlContent: string;
+    let backupUri: string | null = null;
 
-    if (Platform.OS === 'web') {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: ['application/x-sql', 'text/plain'],
-      });
+    try {
+      const sqlContent = await pickSqlFile();
+      if (sqlContent === null) return;
 
-      if (result.canceled || !result.assets) return;
+      validateSqlDump(sqlContent);
 
-      const selectedFile = result.assets[0].file;
-      if (!selectedFile) throw new Error('No se pudo leer el archivo seleccionado');
+      // Keep a restorable copy before touching the current database.
+      backupUri = await createBackup(db);
 
-      sqlContent = await selectedFile.text();
-    } else {
-      const result = await File.pickFileAsync({
-        mimeTypes: ['application/x-sql', 'text/plain'],
-      });
+      await db.execAsync('PRAGMA foreign_keys = OFF;');
+      try {
+        await withExclusiveTransaction(db, async (txn) => {
+          const tables = await txn.getAllAsync<{ name: string }>(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'expo_%';"
+          );
 
-      if (result.canceled) return;
+          for (const table of tables) {
+            await txn.execAsync(`DROP TABLE IF EXISTS "${table.name}";`);
+          }
 
-      sqlContent = await result.result.text();
+          await txn.execAsync(sqlContent);
+        });
+      } finally {
+        await db.execAsync('PRAGMA foreign_keys = ON;');
+      }
+
+      // Normalize legacy dumps and create any missing canonical tables.
+      await migrateDb(db);
+
+      Alert.alert(
+        'Importación exitosa',
+        `Los datos han sido restaurados.\n\nBackup previo:\n${backupUri}`
+      );
+    } catch (error) {
+      console.error('Error detallado en importación:', error);
+      Alert.alert(
+        'Error al importar',
+        `${getErrorMessage(error)}${backupUri ? `\n\nBackup previo:\n${backupUri}` : ''}`
+      );
     }
+  };
 
-    if (!sqlContent) throw new Error("El archivo está vacío");
-
-    const tables = await db.getAllAsync<{ name: string }>(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'expo_%';"
-    );
-
-    
-    await db.execAsync("PRAGMA foreign_keys = OFF;");
-    for (const table of tables) {
-      await db.execAsync(`DROP TABLE IF EXISTS "${table.name}";`);
-    }
-
-    await db.execAsync(sqlContent);
-    
-    await db.execAsync("PRAGMA foreign_keys = ON;");
-
-    alert("Importación exitosa. Los datos han sido restaurados.");
-    
-  } catch (error) {
-    console.error("Error detallado en importación:", error);
-    try { await db.execAsync("ROLLBACK;"); } catch (e) { /* ignore */ }
-    alert("Error al importar: " + error);
-  }
-
-};
-
-  return{
+  return {
     exportDatabase,
-    importDatabase
-  }
-}
+    importDatabase,
+  };
+};
