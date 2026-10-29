@@ -495,6 +495,45 @@ El lint es bloqueante: la deuda de errores quedó en cero.
 
 ---
 
+# Fase 4 — Sistema de UI reutilizable
+
+**Estado:** 📝 PLANIFICACIÓN
+**Documento detallado:** [`ui-plan.md`](ui-plan.md)
+
+**Objetivo:** unificar inputs, selects, modales, botones, feedback y estilos en
+un sistema de componentes con variantes, labels, errores, accesibilidad y un
+único `ToastProvider`.
+
+## Alcance
+
+- Tokens de tema (spacing, radii, tipografía, tamaños, colores semánticos).
+- Componentes de formulario con `label`, `required`, `hint`, `error` y
+  `disabled`: `TextField`, `MoneyField`, `SelectField`, `DateField`,
+  `MonthField`, `SwitchField`, `ColorField`.
+- Acciones: `Button`, `IconButton`, `LinkButton`.
+- Feedback: `ToastProvider`, `InlineMessage`, `EmptyState`, `LoadingState`,
+  `ConfirmDialog`.
+- Overlays: `Modal`, `Dialog`, `BottomSheet`.
+- Datos: `Card`, `ListItem`, `Badge`, `SwipeAction`, `FinanceValue`.
+- Adaptadores legacy y migración incremental por pantalla.
+- Galería de componentes y tests de variantes/accesibilidad.
+
+## Fases
+
+- **UI-0:** tokens, theme, primitivas y galería.
+- **UI-1:** formularios, botones y pilotos (`add-record`, `AddFixed`, etc.).
+- **UI-2:** toast, overlays y confirmaciones.
+- **UI-3:** tarjetas, listas, tablas y finanzas.
+- **UI-4:** limpieza, reglas de lint, accesibilidad y QA visual.
+
+## Criterio de aceptación
+
+No hay `TextInput`, `Modal`, `Alert` ni `ToastAndroid` directos en pantallas de
+negocio; todos los formularios muestran label/error; hay un solo toast global;
+todos los controles tienen variantes y aparecen en la galería.
+
+---
+
 # Registro de decisiones
 
 - **2026-10-28 — Esquema normalizado:** nombres lógicos PascalCase, nombres

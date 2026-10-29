@@ -9,6 +9,8 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
   ejecutado. **Es el documento que debe actualizarse al terminar cada fase.**
 - [`schema.md`](schema.md): esquema generado desde
   `src/db/schema/tables.ts` (tablas, columnas, tipos, índices y relaciones).
+- [`ui-plan.md`](ui-plan.md): plan del sistema de componentes de UI
+  reutilizables, variantes, labels, errores y toast.
 - [`../AGENTS.md`](../AGENTS.md): contexto e instrucciones para agentes.
 - [`../db.md`](../db.md): tablas, relaciones y convenciones de la base de datos.
 - [`../README.md`](../README.md): descripción general del proyecto.
@@ -21,6 +23,7 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 | Fase 1 — Fuente única de verdad del esquema | ✅ Finalizada (2026-10-28) |
 | Fase 2 — Repositorios y ORM robusto | ✅ Finalizada (2026-10-28) |
 | Fase 3 — Calidad, pruebas y operación | ✅ Finalizada (2026-10-28) |
+| Fase 4 — Sistema de UI reutilizable | 📝 Planificación |
 
 ## Regla de mantenimiento
 

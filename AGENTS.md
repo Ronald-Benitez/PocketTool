@@ -14,6 +14,7 @@ métodos de pago, créditos, ahorros y vehículo.
 - **Fase 1 — Fuente única de verdad del esquema: FINALIZADA** (2026-10-28).
 - **Fase 2 — Repositorios y ORM robusto: FINALIZADA** (2026-10-28).
 - **Fase 3 — Calidad, pruebas y operación: FINALIZADA** (2026-10-28).
+- **Fase 4 — Sistema de UI reutilizable: PLANIFICADA**.
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -69,6 +70,9 @@ commits relevantes, archivos tocados y verificaciones realizadas.
   inexistentes con errores tipados.
 - `created_at` y `updated_at` se llenan con triggers; no asignarlos manualmente
   salvo que se requiera un valor histórico explícito.
+- UI: los componentes nuevos van en `src/ui`; las pantallas no deben usar
+  `TextInput`, `Modal`, `Alert` ni `ToastAndroid` directos. Mantener adaptadores
+  legacy solo durante la migración.
 - Export/import: usar validación, backup previo y transacción. No dropear tablas
   fuera de una transacción.
 - Migraciones: no capturar errores internamente; deben propagarse al runner.
@@ -98,5 +102,6 @@ npm run ci
 - [`docs/README.md`](docs/README.md): índice de documentación.
 - [`docs/phases.md`](docs/phases.md): plan de fases, estado y bitácora.
 - [`docs/schema.md`](docs/schema.md): esquema generado.
+- [`docs/ui-plan.md`](docs/ui-plan.md): plan del sistema de componentes de UI.
 - [`db.md`](db.md): resumen de tablas, relaciones y convenciones de la base.
 - [`README.md`](README.md): descripción general y ejecución del proyecto.
