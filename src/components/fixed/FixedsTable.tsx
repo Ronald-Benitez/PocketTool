@@ -5,7 +5,7 @@ import { AntDesign } from '@expo/vector-icons'
 import { useLanguage } from '@/src/lang/LanguageContext'
 import { SwipeAction } from '@/src/ui/actions/SwipeAction'
 import { ScrollView } from 'react-native-gesture-handler'
-import useToast from '@/src/hooks/useToast'
+import { useToast } from '@/src/ui/feedback/ToastProvider'
 import AddItem from './AddFixed'
 import { AccentRow } from '@/src/ui/data-display/AccentRow'
 import IconButton from '../ui/icon-button'
@@ -17,7 +17,7 @@ import { useFixeds } from '@/src/db'
 const FixedsTable = () => {
     const [selected, setSelected] = useState<FixedView | FixedRecord | undefined>()
     const [openUpdate, setOpenUpdate] = useState<boolean>(false)
-    const { ToastContainer, showToast } = useToast()
+    const { showToast } = useToast()
     const { t } = useLanguage()
     const { Fixeds, setFixeds } = useDataStore()
     const { fetchFixeds, handler: fixedsHandler } = useFixeds()
@@ -29,7 +29,7 @@ const FixedsTable = () => {
         await fixedsHandler.deleteById(toDelete.id)
         const data = await fetchFixeds()
         setFixeds(data)
-        showToast({ message: t("item.deleted"), type: "SUCCESS" })
+        showToast({ message: t("item.deleted"), type: "success" })
     }
 
     const handleUpdate = (index: number) => {
@@ -81,7 +81,6 @@ const FixedsTable = () => {
                         )
                     })}
                 </View>
-                <ToastContainer />
                 <AddItem
                     openUpdate={openUpdate}
                     open={openUpdate}

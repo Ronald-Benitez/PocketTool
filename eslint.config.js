@@ -16,8 +16,27 @@ module.exports = defineConfig([
       'react-hooks/set-state-in-effect': 'off',
       'react-hooks/static-components': 'off',
       // Display names are provided where needed; this rule is too noisy for
-      // inline render helpers used by BaseSelect.
+      // inline render helpers used by legacy selectors.
       'react/display-name': 'off',
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'react-native',
+              importNames: ['TextInput', 'Modal', 'Alert', 'ToastAndroid'],
+              message:
+                'Usa src/ui (TextField, Modal, Dialog, ToastProvider) en lugar de primitivas nativas fuera de src/ui.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/ui/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': 'off',
     },
   },
   {

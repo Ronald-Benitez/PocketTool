@@ -10,7 +10,7 @@ import { SwipeAction } from '@/src/ui/actions/SwipeAction'
 import useDate from '@/src/hooks/useDate'
 import { useRecords, useBudget } from '@/src/db'
 import { ScrollView } from 'react-native-gesture-handler'
-import useToast from '@/src/hooks/useToast'
+import { useToast } from '@/src/ui/feedback/ToastProvider'
 import AddItem from './add-budget'
 import useRecordsStore from '@/src/stores/RecordsStore';
 import useColorStore from '@/src/stores/ColorsStore'
@@ -23,7 +23,7 @@ import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock'
 const ItemsTable = () => {
     const [selected, setSelected] = React.useState<BudgetItemView | undefined>()
     const [openUpdate, setOpenUpdate] = React.useState<boolean>(false)
-    const { ToastContainer, showToast } = useToast()
+    const { showToast } = useToast()
     const { t } = useLanguage()
     const { group, records } = useRecordsStore()
     const { colors } = useColorStore()
@@ -39,7 +39,7 @@ const ItemsTable = () => {
         const resume = await budget.getAllResume(group.id)
         setBudgets(i)
         setResumes(resume)
-        showToast({ message: t("item.deleted"), type: "SUCCESS" })
+        showToast({ message: t("item.deleted"), type: "success" })
     }
 
     const handleUpdate = (index: number) => {
@@ -194,7 +194,6 @@ const ItemsTable = () => {
                         )
                     })}
                 </View>
-                <ToastContainer />
                 <AddItem
                     openUpdate={openUpdate}
                     open={openUpdate}

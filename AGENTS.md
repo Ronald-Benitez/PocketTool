@@ -38,8 +38,8 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 - `src/ui/actions/`: `Button`, `IconButton`, `LinkButton` y `SwipeAction` con
   variantes y estados.
 - `src/ui/forms/`: `FormField`, `TextField`, `MoneyField`, `SelectField`,
-  `MultiSelectField`, `DateField`, `MonthField`, `SwitchField` y `ColorField`
-  con label/required/hint/error.
+  `MultiSelectField`, `DateField`, `MonthField`, `SwitchField`, `ColorField` y
+  `ColorPicker` con label/required/hint/error.
 - `src/ui/overlays/`: `Modal` (center/bottom), `BottomSheet`, `Dialog` y
   `ConfirmDialog`. `Modal` maneja el teclado con `KeyboardAvoidingView`, insets
   y auto-scroll al `TextField` enfocado.
@@ -59,8 +59,10 @@ commits relevantes, archivos tocados y verificaciones realizadas.
   usa el tema.
 - `src/ui/index.ts`: barrel público del sistema de UI.
 - `app/gallery.tsx`: galería de desarrollo, oculta del drawer.
-- `src/hooks/useToast.tsx` y `src/hooks/useAndroidToast.ts` son adaptadores al
+- `src/hooks/useAndroidToast.ts` es un adaptador semántico sobre el
   `ToastProvider`; no crear toasts/Modals locales nuevos.
+- `eslint.config.js` bloquea `TextInput`, `Modal`, `Alert` y `ToastAndroid` de
+  `react-native` fuera de `src/ui`.
 - Los componentes nuevos usan `useTheme()`; no leer `useColorStore` ni claves
   legacy.
 - `src/stores/ColorsStore.ts` es solo un adaptador de compatibilidad durante la

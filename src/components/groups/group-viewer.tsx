@@ -9,7 +9,7 @@ import { SwipeAction } from '@/src/ui/actions/SwipeAction'
 import AddGroup from "./add-group"
 import { useRecords, useGroups } from "@/src/db"
 import { useLanguage } from "@/src/lang/LanguageContext"
-import useToast from "@/src/hooks/useToast"
+import { useToast } from "@/src/ui/feedback/ToastProvider"
 
 interface GroupViewerProps {
     group: Group | null
@@ -24,7 +24,7 @@ const GroupViewer = ({ group, setGroup, recordsI }: GroupViewerProps) => {
     const [totalExpenses, setTotalExpenses] = useState(0)
     const groups = useGroups()
     const records = useRecords()
-    const { ToastContainer, showToast } = useToast()
+    const { showToast } = useToast()
 
     const ec = "#FF7B54"
     const ic = "#798645"
@@ -84,7 +84,7 @@ const GroupViewer = ({ group, setGroup, recordsI }: GroupViewerProps) => {
         await groups.deleteGroup(group.id)
         setGroup(null)
         await records.deleteRecordByGroup(group.id)
-        showToast({ message: t("group.deleted"), type: "SUCCESS" })
+        showToast({ message: t("group.deleted"), type: "success" })
     }
 
     const onUpdate = () => {
@@ -145,7 +145,6 @@ const GroupViewer = ({ group, setGroup, recordsI }: GroupViewerProps) => {
             <AddGroup
                 openUpdate={openUpdate}
             />
-            <ToastContainer />
         </>
     )
 

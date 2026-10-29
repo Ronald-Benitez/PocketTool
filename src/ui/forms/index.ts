@@ -1,4 +1,5 @@
 export { ColorField, type ColorFieldProps } from './ColorField';
+export { default as ColorPicker } from './ColorPicker';
 export {
   ColoredSelectOption,
   type ColoredSelectOptionProps,

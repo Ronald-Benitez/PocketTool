@@ -6,7 +6,7 @@ import { useLanguage } from '@/src/lang/LanguageContext'
 import { SwipeAction } from '@/src/ui/actions/SwipeAction'
 import useDate from '@/src/hooks/useDate'
 import { ScrollView } from 'react-native-gesture-handler'
-import useToast from '@/src/hooks/useToast'
+import { useToast } from '@/src/ui/feedback/ToastProvider'
 import AddItem from './AddTemplateItem'
 import useRecordsStore from '@/src/stores/RecordsStore';
 import useColorStore from '@/src/stores/ColorsStore'
@@ -25,7 +25,7 @@ const TemplateTable = () => {
     const [openUpdate, setOpenUpdate] = React.useState<boolean>(false)
     const { fetchRecords, deleteRecordWithCredit } = useRecords()
     const dateh = useDate()
-    const { ToastContainer, showToast } = useToast()
+    const { showToast } = useToast()
     const { t } = useLanguage()
     const { records, group, setRecords } = useRecordsStore()
     const { colors } = useColorStore()
@@ -45,7 +45,7 @@ const TemplateTable = () => {
         await deleteRecordWithCredit(toDelete.id, toDelete.paid_credit_id)
         const data = await fetchRecords(group.id)
         setRecords(data)
-        showToast({ message: t("item.deleted"), type: "SUCCESS" })
+        showToast({ message: t("item.deleted"), type: "success" })
     }
 
     const handleUpdate = (index: number) => {
@@ -237,7 +237,6 @@ const TemplateTable = () => {
                         )
                     })}
                 </View>
-                <ToastContainer />
                 <AddItem
                     openUpdate={openUpdate}
                     open={openUpdate}

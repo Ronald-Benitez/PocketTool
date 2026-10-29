@@ -464,13 +464,17 @@ retirar.
 
 ### UI-4 — Limpieza y calidad (1–2 días)
 
-- Eliminar componentes legacy y adaptadores.
+**Estado:** 🔄 Parcial — lint y adaptador `useToast` resueltos.
+
+- Eliminar componentes legacy y adaptadores. 🔄 (`useToast` eliminado;
+  `useAndroidToast` y algunos componentes legacy siguen)
 - Regla de lint/prohibición de imports directos:
-  - `TextInput`, `Modal`, `Alert`, `ToastAndroid` solo dentro de `src/ui`.
-- Tests de accesibilidad y variantes.
-- Galería actualizada.
-- Checklist visual en iOS/Android/web.
-- Actualizar `AGENTS.md`, `docs/phases.md` y `docs/schema.md` si aplica.
+  - `TextInput`, `Modal`, `Alert`, `ToastAndroid` solo dentro de `src/ui`. ✅
+- Mover `ColorPicker` a `src/ui/forms`. ✅
+- Tests de accesibilidad y variantes. ⏳
+- Galería actualizada. ✅
+- Checklist visual en iOS/Android/web. ⏳
+- Actualizar `AGENTS.md`, `docs/phases.md` y `docs/schema.md` si aplica. ✅
 
 ---
 

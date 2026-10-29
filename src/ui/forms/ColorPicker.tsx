@@ -55,7 +55,7 @@ const verifyNumber = (val: string) => {
     return isNaN(number) ? 0 : number > 255 ? 255 : number
 }
 
-const ColorPicker2 = ({ color, onChange }: props) => {
+const ColorPicker = ({ color, onChange }: props) => {
     const { t } = useLanguage()
     const { showToast } = useToast();
     const { colors } = useTheme()
@@ -251,4 +251,4 @@ const localStyles = StyleSheet.create({
     }
 })
 
-export default ColorPicker2
+export default ColorPicker

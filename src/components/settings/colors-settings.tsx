@@ -15,7 +15,7 @@ import {
   type PaletteName,
   type ThemeMode,
 } from '@/src/ui/theme/ThemeProvider';
-import ColorPicker2 from '../ui/color-picker-2';
+import ColorPicker from '@/src/ui/forms/ColorPicker';
 import ConfirmModal from '../ui/confirm-modal';
 import ModalButton from '../ui/modal-button';
 
@@ -316,7 +316,7 @@ const ColorRow = ({
         <Text style={{ color: colors.text, fontSize: 14 }}>{label}</Text>
         <Text style={{ color: colors.textMuted, fontSize: 11 }}>{value}</Text>
       </View>
-      <ColorPicker2 color={value} onChange={onChange} />
+      <ColorPicker color={value} onChange={onChange} />
       <Pressable
         accessibilityRole='button'
         accessibilityLabel={t('theme.resetColor')}

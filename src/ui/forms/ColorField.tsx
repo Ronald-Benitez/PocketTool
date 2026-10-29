@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { radii, spacing } from '../theme/tokens';
 import { AppText } from '../primitives/AppText';
-import ColorPicker2 from '@/src/components/ui/color-picker-2';
+import ColorPicker from './ColorPicker';
 import { FormField } from './FormField';
 
 export type ColorFieldProps = {
@@ -39,7 +39,7 @@ export const ColorField = ({
             ]}
           />
         ) : (
-          <ColorPicker2 color={value} onChange={onChange} />
+          <ColorPicker color={value} onChange={onChange} />
         )}
         <View style={styles.textBlock}>
           <AppText variant='body'>{value.toUpperCase()}</AppText>

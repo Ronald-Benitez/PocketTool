@@ -12,7 +12,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { useLanguage } from "@/src/lang/LanguageContext";
 import { ScrollView } from "react-native-gesture-handler";
-import useToast from "@/src/hooks/useToast";
+import { useToast } from "@/src/ui/feedback/ToastProvider";
 import AddItem from "./add-record";
 import useRecordsStore from "@/src/stores/RecordsStore";
 import useColorStore from "@/src/stores/ColorsStore";
@@ -49,7 +49,7 @@ enum SHOW_OPTIONS {
 const ItemsTable = () => {
   const [selected, setSelected] = React.useState<RecordFormEntry>();
   const [openUpdate, setOpenUpdate] = React.useState<boolean>(false);
-  const { ToastContainer, showToast } = useToast();
+  const { showToast } = useToast();
   const { t } = useLanguage();
   const { records, group, setRecords } = useRecordsStore();
   const { colors } = useColorStore();
@@ -92,7 +92,7 @@ const ItemsTable = () => {
         if (isMounted) setRecordOrder(validOrder)
       } catch (error) {
         console.error("Error al cargar el orden de los registros:", error)
-        if (isMounted) showToast({ message: t("toast.error"), type: "ERROR" })
+        if (isMounted) showToast({ message: t("toast.error"), type: "error" })
       }
     }
     void loadSavedOrder()
@@ -105,7 +105,7 @@ const ItemsTable = () => {
       .then((records) => setRecords(records ?? []))
       .catch(error => {
         console.error("Error al cargar los registros y sus relaciones:", error)
-        showToast({ message: t("toast.error"), type: "ERROR" })
+        showToast({ message: t("toast.error"), type: "error" })
       })
   }, [group?.id])
 
@@ -125,7 +125,7 @@ const ItemsTable = () => {
     await deleteRecordWithCredit(toDelete.id, toDelete.paid_credit_id);
     const data = await fetchRecords(group.id);
     setRecords(data ?? []);
-    showToast({ message: t("item.deleted"), type: "SUCCESS" });
+    showToast({ message: t("item.deleted"), type: "success" });
   };
 
   const handleUpdate = (record: RecordWithRelations) => {
@@ -400,7 +400,6 @@ const ItemsTable = () => {
             onCreditPayment={onCreditPayment}
           />
         )}
-        <ToastContainer />
         <AddItem openUpdate={openUpdate} open={openUpdate} item={selected} />
       </ScrollView>
       <RecordsFilterModal
