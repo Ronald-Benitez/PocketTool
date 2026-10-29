@@ -125,9 +125,31 @@ Incluye:
 
 Pendiente de UI-1: migrar `RecordsFilterModal`, que es el último consumidor de
 `BaseSelect`.
-Pendiente de UI-2: migrar `ModalContainer`, `base-modal`, `confirm`,
-`HelpModal`, `RecordsFilterModal` y reemplazar `Alert`/`useAndroidToast` restantes
-por feedback global.
+Pendiente de UI-2: migrar `ModalContainer`, `base-modal`, `confirm` y
+`HelpModal`, y reemplazar `Alert`/`useAndroidToast` restantes por feedback
+global.
+
+### UI-2b — Filtros tipados y reutilizables (✅ 2026-10-28)
+
+- `src/db/schema/metadata.ts`: resolución de columnas, tipos, `kind` y
+  referencias sin ejecutar SQL.
+- `src/domain/filters/types.ts`: tipos de campo, operador, opciones y valores.
+- `src/domain/records/filtering.ts`: matcher y orden compartidos, con soporte
+  para fechas, dinero, booleanos `0/1`, `BETWEEN`, `IN`, `IS` e `IS NOT`.
+- `src/domain/records/filterFields.ts`: campos curados de Records, opciones de
+  relaciones y sección `advanced`.
+- `src/ui/filters/`: `FilterModal`, `FilterRow`, `OrderRow` y
+  `FilterValueInput`.
+- `SelectField` y `MultiSelectField` aceptan `searchable` y filtran opciones.
+- `RecordsFilterModal` ahora es un wrapper del modal genérico.
+- `records-table` usa los filtros compartidos y muestra el contador de filtros.
+- `RecordsModal` de Summary usa el mismo modal, filtra solo su detalle y no
+  persiste el orden.
+- Tests en `src/domain/records/__tests__/filtering.test.ts`.
+- Verificado: `npm run ci` y `npm run lint` con 0 errores.
+
+Pendiente de UI-2b: filtros persistidos por vista y filtros en las tablas
+resumen (fuera del alcance de esta fase).
 
 ### UI-3 — Datos y presentación (🔄 Parcial · 2026-10-28)
 

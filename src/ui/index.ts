@@ -1,6 +1,7 @@
 export * from './actions';
 export * from './data-display';
 export * from './feedback';
+export * from './filters';
 export * from './forms';
 export * from './overlays';
 export * from './primitives';

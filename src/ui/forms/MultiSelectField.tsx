@@ -14,6 +14,7 @@ import { AppText } from '../primitives/AppText';
 import { Button } from '../actions/Button';
 import { BottomSheet } from '../overlays/Modal';
 import { FormField } from './FormField';
+import { TextField } from './TextField';
 import type { SelectOption } from './SelectField';
 
 export type MultiSelectFieldProps<T extends string | number = string> = {
@@ -33,6 +34,8 @@ export type MultiSelectFieldProps<T extends string | number = string> = {
   containerStyle?: StyleProp<ViewStyle>;
   renderValue?: (selected: SelectOption<T>[]) => React.ReactNode;
   renderOption?: (option: SelectOption<T>, selected: boolean) => React.ReactNode;
+  searchable?: boolean;
+  searchPlaceholder?: string;
 };
 
 export const MultiSelectField = <T extends string | number,>({
@@ -52,11 +55,23 @@ export const MultiSelectField = <T extends string | number,>({
   containerStyle,
   renderValue,
   renderOption,
+  searchable = false,
+  searchPlaceholder = 'Search',
 }: MultiSelectFieldProps<T>) => {
   const { colors } = useTheme();
   const [visible, setVisible] = useState(false);
+  const [search, setSearch] = useState('');
 
   const selectedOptions = options.filter((option) => values.includes(option.value));
+  const normalizedSearch = search.trim().toLowerCase();
+  const visibleOptions = searchable && normalizedSearch
+    ? options.filter((option) => option.label.toLowerCase().includes(normalizedSearch))
+    : options;
+
+  const close = () => {
+    setVisible(false);
+    setSearch('');
+  };
 
   const toggle = (option: SelectOption<T>) => {
     if (option.disabled) return;
@@ -110,7 +125,7 @@ export const MultiSelectField = <T extends string | number,>({
 
       <BottomSheet
         visible={visible}
-        onClose={() => setVisible(false)}
+        onClose={close}
         title={title ?? label ?? placeholder}
         closeLabel={closeLabel}
         scrollable
@@ -118,19 +133,29 @@ export const MultiSelectField = <T extends string | number,>({
           <View style={styles.footer}>
             <Button
               label={doneLabel}
-              onPress={() => setVisible(false)}
+              onPress={close}
               style={styles.doneButton}
             />
           </View>
         }
       >
-        {options.length === 0 ? (
+        {searchable ? (
+          <TextField
+            value={search}
+            onChangeText={setSearch}
+            placeholder={searchPlaceholder}
+            autoCapitalize='none'
+            autoCorrect={false}
+            leftIcon={<MaterialIcons name='search' size={18} color={colors.textMuted} />}
+          />
+        ) : null}
+        {visibleOptions.length === 0 ? (
           <AppText color='muted' align='center'>
             {emptyMessage}
           </AppText>
         ) : (
           <View style={styles.options}>
-            {options.map((option) => {
+            {visibleOptions.map((option) => {
               const isSelected = values.includes(option.value);
               return (
                 <Pressable

@@ -405,7 +405,7 @@ formularios principales migrados; faltan adaptadores y pantallas legacy.
 - Migrar: `add-record`. ✅
 - Migrar: `AddFixed`, `AddTemplateItem`, `add-budget`, `AddSaving`. ✅
 - Migrar selects de Ajustes, métodos de pago, grupo y ahorros. ✅
-- Migrar `RecordsFilterModal` y retirar `BaseSelect`. ⏳
+- `RecordsFilterModal` migrado en UI-2b; `BaseSelect` queda sin consumidores. ✅
 
 ### UI-2 — Feedback y overlays (1–2 días)
 
@@ -418,13 +418,32 @@ migrar los overlays legacy.
   footer integrados en `Modal`)
 - Reemplazar `useToast`/`useAndroidToast`/`Alert` en pantallas. ⏳
 - Migrar `confirm-modal`. ✅
-- Migrar `ModalContainer`, `base-modal`, `confirm`, `HelpModal`,
-  `RecordsFilterModal`. ⏳
+- Migrar `ModalContainer`, `base-modal`, `confirm`, `HelpModal`. ⏳
+- `RecordsModal` migrado a `Modal` en UI-2b. ✅
 - Teclado: `Modal` usa `KeyboardAvoidingView` (padding iOS, height Android),
   auto-scroll al input enfocado y `softwareKeyboardLayoutMode: "resize"` en
   Android. ✅
 - Modales legacy `ModalContainer`, `base-modal` y `RecordsFilterModal` reciben
   `KeyboardAvoidingView` mientras se migran. ✅
+
+### UI-2b — Filtros tipados y reutilizables (1 día)
+
+**Estado:** ✅ Completado (2026-10-28).
+
+- Metadatos de columnas en `src/db/schema/metadata.ts`.
+- Tipos de filtro y operadores por tipo en `src/domain/filters/types.ts`.
+- Matcher y orden compartidos en `src/domain/records/filtering.ts`.
+- Campos curados de Records y columnas avanzadas en
+  `src/domain/records/filterFields.ts`.
+- `FilterModal`, `FilterRow`, `OrderRow` y `FilterValueInput` en
+  `src/ui/filters`.
+- `SelectField`/`MultiSelectField` con buscador de opciones.
+- `records-table` usa el filtro compartido y muestra contador de filtros.
+- `RecordsModal` de Summary usa el mismo filtro sobre su detalle.
+- Fechas con `DateField`, dinero con `MoneyField`, BETWEEN con dos controles,
+  relaciones por id con select buscable.
+- Filtros de sesión; el orden de la tabla principal sigue persistiendo.
+- Tests de matcher, metadatos y campos.
 
 ### UI-3 — Datos, tarjetas y tablas (2 días)
 

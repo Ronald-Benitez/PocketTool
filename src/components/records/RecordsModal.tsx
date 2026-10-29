@@ -1,37 +1,61 @@
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native'
-import React, { useImperativeHandle, useState, forwardRef } from 'react';
+import React, {
+    forwardRef,
+    useImperativeHandle,
+    useMemo,
+    useState,
+} from 'react';
+import { View } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 
-// Import local components and hooks
-import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock';
 import useDate from '@/src/hooks/useDate';
-import useColorStore from '@/src/stores/ColorsStore';
-import ColorText from '../ui/color-text'; // Assuming this component exists
-import ModalButton from '../ui/modal-button'; // Assuming this component exists
 import { useLanguage } from '@/src/lang/LanguageContext';
-import { formatMoneyWithSymbol } from '@/src/utils';
+import type { OrderCondition } from '@/src/orm';
 import type { RecordView } from '@/src/interfaces/schema';
+import {
+    matchesRecordFilters,
+    sortRecords,
+    type RecordFilter,
+} from '@/src/domain/records/filtering';
+import { Button } from '@/src/ui/actions/Button';
+import { LinkButton } from '@/src/ui/actions/LinkButton';
+import { Badge } from '@/src/ui/data-display/Badge';
+import { FinanceValue } from '@/src/ui/data-display/FinanceValue';
+import { ListItem } from '@/src/ui/data-display/ListItem';
+import { EmptyState } from '@/src/ui/feedback/EmptyState';
+import { Modal } from '@/src/ui/overlays/Modal';
+import { Row, Stack } from '@/src/ui/primitives/Stack';
+import { useTheme } from '@/src/ui/theme/ThemeProvider';
+import RecordsFilterModal from './RecordsFilterModal';
 
 export interface RecordsModalRef {
     open: (filteredRecords: RecordView[]) => void;
     close: () => void;
 }
 
-export const RecordsModal = forwardRef<RecordsModalRef, {}>(
-    ({ }, ref) => {
+export const RecordsModal = forwardRef<RecordsModalRef, Record<string, unknown>>(
+    (_, ref) => {
         const [records, setRecords] = useState<RecordView[]>([])
-        const [isVisible, setIsVisible] = useState(false) 
+        const [visible, setVisible] = useState(false)
+        const [filterVisible, setFilterVisible] = useState(false)
+        const [filters, setFilters] = useState<RecordFilter[]>([])
+        const [order, setOrder] = useState<OrderCondition<'Records'>[]>([])
         const { t } = useLanguage()
-        const { colors } = useColorStore() 
+        const { colors } = useTheme()
         const dateh = useDate()
 
         const handleClose = () => {
-            setRecords([])
-            setIsVisible(false);
+            setVisible(false);
+            setFilterVisible(false);
+            setRecords([]);
+            setFilters([]);
+            setOrder([]);
         }
 
         const onOpen = (filteredRecords: RecordView[]) => {
             setRecords(filteredRecords)
-            setIsVisible(true);
+            setFilters([])
+            setOrder([])
+            setVisible(true);
         }
 
         useImperativeHandle(ref, () => ({
@@ -39,56 +63,93 @@ export const RecordsModal = forwardRef<RecordsModalRef, {}>(
             close: handleClose,
         }));
 
-        if (!isVisible) return null;
+        const filteredRecords = useMemo(() => {
+            const filtered = records.filter(record => matchesRecordFilters(record, filters))
+            return sortRecords(filtered, order)
+        }, [records, filters, order])
 
         return (
-            <View style={localStyles.simulatedModalContainer}>
-                <View style={localStyles.modalBackdrop}>
-                    <View style={localStyles.pressableContainer}>
-                        <View style={localStyles.modalContainer}>
-                            <View style={[localStyles.modalHeader, { backgroundColor: colors?.ModalHeaderColor }]}>
-                                <ColorText backgroundColor={colors?.ModalHeaderColor || "#fff"} textAlign="center">
-                                    {t("resume.recordsDetail")} 
-                                </ColorText>
-                            </View>
-                            <View style={localStyles.modalContent}>
-                                <ScrollView style={{ flex: 1 }}>
-                                    <View style={localStyles.colContainer}>
-                                        {records?.map((item, index) => (
-                                            <BorderLeftBottomBlock
-                                                key={item.record_id}
-                                                bottomColor={item.PaymentMethods?.PaymentTypes?.payment_color ?? undefined}
-                                                letfColor={item.RecordTypes?.record_color ?? undefined}
-                                            >
-                                                <View style={localStyles.rowContainer}>
-                                                    <View style={localStyles.dateContainer}>
-                                                        <Text style={localStyles.dateText}>
-                                                            {dateh.getStringDay(String(item.date))}
-                                                        </Text>
-                                                        <Text style={localStyles.dateText}>
-                                                            {dateh.getDay(String(item.date))}
-                                                        </Text>
-                                                        <Text style={localStyles.dateText}>
-                                                            {dateh.getStringMonth(String(item.date))}
-                                                        </Text>
-                                                    </View>
-                                                    <Text style={localStyles.nameText}>{item.record_name}</Text>
-                                                    <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.amount)}</Text>
-                                                </View>
-                                            </BorderLeftBottomBlock>
-                                        ))}
-                                    </View>
-                                </ScrollView>
-                            </View>
+            <>
+                <Modal
+                    visible={visible}
+                    onClose={handleClose}
+                    title={t("resume.recordsDetail")}
+                    closeLabel={t('close')}
+                    scrollable
+                    footer={
+                        <Button
+                            label={t('close')}
+                            variant='outline'
+                            onPress={handleClose}
+                            style={{ flex: 1 }}
+                        />
+                    }
+                >
+                    <Stack gap='md'>
+                        <Row justify='space-between' align='center'>
+                            <Row gap='sm' align='center'>
+                                <Button
+                                    label={t('recordsFilters.title')}
+                                    variant='outline'
+                                    size='sm'
+                                    leftIcon={<MaterialIcons name='filter-list' size={18} color={colors.primary} />}
+                                    onPress={() => setFilterVisible(true)}
+                                />
+                                {filters.length > 0 ? (
+                                    <Badge label={String(filters.length)} tone='primary' />
+                                ) : null}
+                            </Row>
+                            {filters.length > 0 ? (
+                                <LinkButton
+                                    label={t('recordsFilters.clearFilters')}
+                                    onPress={() => setFilters([])}
+                                />
+                            ) : null}
+                        </Row>
 
-                            <View style={localStyles.modalFooter}>
-                                <ModalButton onClick={handleClose} text={t("close")} type='base' />
+                        {filteredRecords.length === 0 ? (
+                            <EmptyState title={t('recordsFilters.noResults')} />
+                        ) : (
+                            <View>
+                                {filteredRecords.map((item, index) => (
+                                    <ListItem
+                                        key={item.id ?? item.record_id ?? index}
+                                        title={item.record_name}
+                                        subtitle={dateh.getStringDate(item.date)}
+                                        leading={
+                                            <View
+                                                style={{
+                                                    width: 4,
+                                                    height: 32,
+                                                    borderRadius: 2,
+                                                    backgroundColor: item.RecordTypes?.record_color ?? colors.primary,
+                                                }}
+                                            />
+                                        }
+                                        trailing={<FinanceValue cents={item.amount} size='sm' />}
+                                        showDivider
+                                    />
+                                ))}
                             </View>
+                        )}
+                    </Stack>
+                </Modal>
 
-                        </View>
-                    </View>
-                </View>
-            </View>
+                <RecordsFilterModal
+                    visible={filterVisible}
+                    filters={filters}
+                    order={order}
+                    title={t('recordsFilters.filterTitle')}
+                    onClose={() => setFilterVisible(false)}
+                    onApply={async (nextFilters, nextOrder) => {
+                        setFilters(nextFilters)
+                        setOrder(nextOrder)
+                        setFilterVisible(false)
+                    }}
+                    allowOrder={false}
+                    storageKey={null}
+                />
+            </>
         )
     }
 )
@@ -96,84 +157,3 @@ export const RecordsModal = forwardRef<RecordsModalRef, {}>(
 RecordsModal.displayName = 'RecordsModal';
 
 export default RecordsModal;
-
-const localStyles = StyleSheet.create({
-    simulatedModalContainer: {
-        position: 'absolute',
-        top: 0,
-        bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 999,
-    },
-    modalBackdrop: {
-        flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    pressableContainer: {
-    },
-    modalContainer: {
-        backgroundColor: "#fff",
-        width: 380,
-        height: 600,
-        flexDirection: 'column',
-    },
-    modalHeader: {
-        justifyContent: "center",
-        height: 65
-    },
-    modalContent: {
-        flex: 1,
-    },
-    modalFooter: {
-        height: 65,
-        flexDirection: "row",
-        justifyContent: "center",
-        alignItems: 'center',
-        gap: 20,
-    },
-    rowContainer: {
-        width: "100%",
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center"
-    },
-    colContainer: {
-        flexDirection: "column",
-        alignContent: "center",
-        paddingVertical: 20,
-        paddingHorizontal: 20,
-        marginHorizontal: 10,
-        gap: 10
-    },
-    dateContainer: {
-        width: 50
-    },
-    dateText: {
-        fontWeight: "100",
-        fontSize: 8,
-        textAlign: "center"
-    },
-    nameText: {
-        fontSize: 12,
-        textAlign: "left",
-        maxWidth: 200
-    },
-    valueText: {
-        fontSize: 12,
-        textAlign: "center",
-        fontWeight: "300",
-    },
-    balanceText: {
-        width: "80%",
-        borderTopWidth: 4,
-        height: 60,
-        paddingTop: 10,
-        textAlign: "center",
-        marginLeft: 5,
-        fontWeight: "300",
-        fontSize: 18
-    }
-})

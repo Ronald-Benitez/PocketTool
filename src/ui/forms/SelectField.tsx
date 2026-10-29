@@ -13,6 +13,7 @@ import { controlHeight, radii, spacing } from '../theme/tokens';
 import { AppText } from '../primitives/AppText';
 import { BottomSheet } from '../overlays/Modal';
 import { FormField } from './FormField';
+import { TextField } from './TextField';
 
 export type SelectOption<T extends string | number = string> = {
   label: string;
@@ -41,6 +42,8 @@ export type SelectFieldProps<T extends string | number = string> = {
     selected: SelectOption<T> | undefined
   ) => React.ReactNode;
   extra?: React.ReactNode;
+  searchable?: boolean;
+  searchPlaceholder?: string;
 };
 
 export const SelectField = <T extends string | number,>({
@@ -61,15 +64,28 @@ export const SelectField = <T extends string | number,>({
   renderOption,
   renderTrigger,
   extra,
+  searchable = false,
+  searchPlaceholder = 'Search',
 }: SelectFieldProps<T>) => {
   const { colors } = useTheme();
   const [visible, setVisible] = useState(false);
+  const [search, setSearch] = useState('');
   const selected = options.find((option) => option.value === value);
+  const normalizedSearch = search.trim().toLowerCase();
+  const visibleOptions = searchable && normalizedSearch
+    ? options.filter((option) => option.label.toLowerCase().includes(normalizedSearch))
+    : options;
 
   const handleSelect = (option: SelectOption<T>) => {
     if (option.disabled) return;
     onChange(option.value);
     setVisible(false);
+    setSearch('');
+  };
+
+  const open = () => {
+    setSearch('');
+    setVisible(true);
   };
 
   return (
@@ -81,7 +97,7 @@ export const SelectField = <T extends string | number,>({
       style={containerStyle}
     >
       <Pressable
-        onPress={disabled ? undefined : () => setVisible(true)}
+        onPress={disabled ? undefined : open}
         disabled={disabled}
         accessibilityRole='button'
         accessibilityLabel={label}
@@ -101,7 +117,7 @@ export const SelectField = <T extends string | number,>({
         }
       >
         {renderTrigger ? (
-          renderTrigger(() => setVisible(true), selected)
+          renderTrigger(open, selected)
         ) : (
           <>
             <View style={styles.value}>
@@ -123,19 +139,32 @@ export const SelectField = <T extends string | number,>({
 
       <BottomSheet
         visible={visible}
-        onClose={() => setVisible(false)}
+        onClose={() => {
+          setVisible(false);
+          setSearch('');
+        }}
         title={title ?? label ?? placeholder}
         closeLabel={closeLabel}
         scrollable
       >
+        {searchable ? (
+          <TextField
+            value={search}
+            onChangeText={setSearch}
+            placeholder={searchPlaceholder}
+            autoCapitalize='none'
+            autoCorrect={false}
+            leftIcon={<MaterialIcons name='search' size={18} color={colors.textMuted} />}
+          />
+        ) : null}
         {extra ? <View style={{ paddingBottom: spacing.md }}>{extra}</View> : null}
-        {options.length === 0 ? (
+        {visibleOptions.length === 0 ? (
           <AppText color='muted' align='center'>
             {emptyMessage}
           </AppText>
         ) : (
           <View style={styles.options}>
-            {options.map((option) => {
+            {visibleOptions.map((option) => {
               const isSelected = option.value === value;
               return (
                 <Pressable

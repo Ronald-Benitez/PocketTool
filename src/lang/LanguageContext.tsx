@@ -28,7 +28,7 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
     };
 
     const getMonths = () => {
-        return language === 'en' ? en.months : es.months;
+        return Object.values(language === 'en' ? en.months : es.months);
     };
 
     const t = (key: string) => {

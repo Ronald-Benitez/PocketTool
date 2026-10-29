@@ -7,7 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 import React, { useEffect, useMemo, useState } from "react";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { useLanguage } from "@/src/lang/LanguageContext";
@@ -32,94 +32,18 @@ import type { RecordFormEntry, RecordType, RecordWithRelations } from "@/src/int
 import { formatMoney } from "@/src/utils";
 import RecordsFilterModal, { RECORDS_ORDER_STORAGE_KEY } from "./RecordsFilterModal";
 import type { RecordFilter } from "./RecordsFilterModal";
+import {
+  matchesRecordFilters,
+  sortRecords,
+} from "@/src/domain/records/filtering";
+import { IconButton as AppIconButton } from "@/src/ui/actions/IconButton";
+import { Badge } from "@/src/ui/data-display/Badge";
 
 enum SHOW_OPTIONS {
   ALL = 0,
   RECORDS = 1,
   CREDITS = 2,
   FIXEDS = 3,
-}
-
-const getRecordColumnValue = (record: RecordWithRelations, column: string): unknown => {
-  return column.split(".").reduce<unknown>((value, part) => {
-    if (!value || typeof value !== "object") return undefined
-    return (value as Record<string, unknown>)[part]
-  }, record)
-}
-
-const parseFilterValue = (value: string): string | number | boolean | null => {
-  const normalized = value.trim()
-  if (normalized.toLowerCase() === "null") return null
-  if (normalized.toLowerCase() === "true") return true
-  if (normalized.toLowerCase() === "false") return false
-  if (/^-?(?:\d+\.?\d*|\.\d+)$/.test(normalized)) return Number(normalized)
-  return normalized
-}
-
-const normalizeFilterValue = (
-  value: string | number | boolean | null,
-  actual: unknown
-): string | number | boolean | null => {
-  if (typeof actual === "number" && typeof value === "string" && value.trim() !== "") {
-    const number = Number(value)
-    return Number.isNaN(number) ? value : number
-  }
-  if (typeof actual === "boolean" && typeof value === "string") {
-    if (value.toLowerCase() === "true" || value === "1") return true
-    if (value.toLowerCase() === "false" || value === "0") return false
-  }
-  return value
-}
-
-const compareRecordValue = (left: unknown, right: unknown): number => {
-  if (left == null && right == null) return 0
-  if (left == null) return -1
-  if (right == null) return 1
-  if (typeof left === "number" && typeof right === "number") return left - right
-  return String(left).localeCompare(String(right), undefined, { numeric: true, sensitivity: "base" })
-}
-
-const matchesRecordFilter = (record: RecordWithRelations, filter: RecordFilter): boolean => {
-  const actual = getRecordColumnValue(record, filter.column)
-  const rawValues = filter.operator === "IN" || filter.operator === "BETWEEN"
-    ? filter.value.split(",").map(value => parseFilterValue(value))
-    : [parseFilterValue(filter.value)]
-  const values = rawValues.map(value => normalizeFilterValue(value, actual))
-
-  if (filter.operator === "IN") {
-    return values.some(value => compareRecordValue(actual, value) === 0)
-  }
-  if (filter.operator === "BETWEEN") {
-    return values.length === 2 &&
-      compareRecordValue(actual, values[0]) >= 0 &&
-      compareRecordValue(actual, values[1]) <= 0
-  }
-  if (filter.operator === "IS") return compareRecordValue(actual, values[0]) === 0
-  if (filter.operator === "IS NOT") return compareRecordValue(actual, values[0]) !== 0
-  if (actual == null || values[0] == null) return false
-
-  if (filter.operator === "LIKE") {
-    const pattern = `%${filter.value}%`
-      .split("")
-      .map(character => character === "%"
-        ? ".*"
-        : character === "_"
-          ? "."
-          : character.replace(/[|\\{}()[\]^$+?.]/g, "\\$&"))
-      .join("")
-    return new RegExp(`^${pattern}$`, "i").test(String(actual))
-  }
-
-  const comparison = compareRecordValue(actual, values[0])
-  switch (filter.operator) {
-    case "=": return comparison === 0
-    case "!=": return comparison !== 0
-    case ">": return comparison > 0
-    case ">=": return comparison >= 0
-    case "<": return comparison < 0
-    case "<=": return comparison <= 0
-    default: return true
-  }
 }
 
 const ItemsTable = () => {
@@ -186,19 +110,8 @@ const ItemsTable = () => {
   }, [group?.id])
 
   const visibleRecords = useMemo(() => {
-    const filtered = records.filter(record =>
-      filters.every(filter => matchesRecordFilter(record, filter))
-    )
-    return [...filtered].sort((left, right) => {
-      for (const condition of recordOrder) {
-        const comparison = compareRecordValue(
-          getRecordColumnValue(left, condition.column),
-          getRecordColumnValue(right, condition.column)
-        )
-        if (comparison !== 0) return condition.direction === "DESC" ? -comparison : comparison
-      }
-      return 0
-    })
+    const filtered = records.filter(record => matchesRecordFilters(record, filters))
+    return sortRecords(filtered, recordOrder)
   }, [records, filters, recordOrder])
 
   const { balance } = useResumesStore(visibleRecords);
@@ -318,10 +231,22 @@ const ItemsTable = () => {
           >
             $ {formatMoney(balance)}
           </Text>
-          <View style={[{ position: "absolute", right: 0, top: 0, flexDirection: "row", gap: 2 }]}>
-            <IconButton onClick={() => setFilterModalVisible(true)}>
-              <AntDesign size={20} name="filter" color={"#000"} />
-            </IconButton>
+          <View style={[{ position: "absolute", right: 0, top: 0, flexDirection: "row", gap: 2, alignItems: "center" }]}>
+            <AppIconButton
+              label={t("recordsFilters.title")}
+              variant="surface"
+              icon={
+                <MaterialIcons
+                  name="filter-list"
+                  size={20}
+                  color={filters.length > 0 ? colors.primary : colors.text}
+                />
+              }
+              onPress={() => setFilterModalVisible(true)}
+            />
+            {filters.length > 0 ? (
+              <Badge label={String(filters.length)} tone="primary" size="sm" />
+            ) : null}
             {group && (
               <AddItem>
                 <IconButton isButton={false}>

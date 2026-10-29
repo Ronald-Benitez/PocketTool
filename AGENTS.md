@@ -43,6 +43,15 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 - `src/ui/overlays/`: `Modal` (center/bottom), `BottomSheet`, `Dialog` y
   `ConfirmDialog`. `Modal` maneja el teclado con `KeyboardAvoidingView`, insets
   y auto-scroll al `TextField` enfocado.
+- `src/db/schema/metadata.ts`: resolución de columnas, tipos, `kind` y
+  referencias del esquema para construir UI tipada sin ejecutar SQL.
+- `src/domain/filters/types.ts` y `src/domain/records/filtering.ts`: tipos de
+  filtro, matcher y orden compartidos.
+- `src/domain/records/filterFields.ts`: campos curados de Records, opciones de
+  relaciones y columnas avanzadas.
+- `src/ui/filters/`: `FilterModal`, `FilterRow`, `OrderRow` y
+  `FilterValueInput`; `RecordsFilterModal` es el wrapper de Records.
+- `SelectField` y `MultiSelectField` aceptan `searchable` para buscar opciones.
 - `src/ui/feedback/`: `ToastProvider` único, `InlineMessage`, `EmptyState`,
   `LoadingState` y `ToastViewport` para modales.
 - `src/ui/data-display/`: `Card`, `ListItem`, `Badge`, `FinanceValue` y
