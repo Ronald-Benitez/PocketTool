@@ -17,6 +17,12 @@ const up = async (db: SQLiteDatabase) => {
 
     if (auditColumns.length === 0) continue;
 
+    const tableRow = await db.getFirstAsync<{ name: string }>(
+      `SELECT name FROM sqlite_master WHERE type = 'table' AND lower(name) = lower(?)`,
+      [table.sqlName]
+    );
+    if (!tableRow) continue;
+
     const existing = await db.getAllAsync<{ name: string }>(
       `PRAGMA table_info(${quoteIdent(table.sqlName)})`
     );

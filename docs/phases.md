@@ -280,6 +280,7 @@ bootstrap y es idempotente. La configuración por defecto se resuelve por nombre
 - Harness SQLite:
   - arranque desde base vacía con baseline + migración de auditoría;
   - migración desde base legacy;
+  - migración incremental `0002_audit_timestamps` sobre una base v1;
   - seed idempotente y export/import;
   - `user_version = 2` y fila `0001_baseline` en `Migrations`.
 
