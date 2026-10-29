@@ -4,7 +4,7 @@ import { AntDesign } from '@expo/vector-icons'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
 import type { BudgetItemView } from '@/src/interfaces/schema'
-import { formatMoney, formatMoneyWithSymbol } from '@/src/utils'
+import { formatMoneyWithSymbol } from '@/src/utils'
 import styles from '@/src/styles/styles'
 import SwipeItem from '../ui/swipe-item'
 import useDate from '@/src/hooks/useDate'
@@ -17,9 +17,7 @@ import useColorStore from '@/src/stores/ColorsStore'
 import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
 
 import useBudgetStore from '@/src/stores/BudgetStore'
-import FinanceSimpleBlock from '../ui/FinanceSimpleBlock'
-import FinanceSmallBlock from '../ui/FinanceSmallBlock'
-import BalanceBlock from '../ui/BalanceBlock'
+import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock'
 
 
 const ItemsTable = () => {
@@ -110,19 +108,19 @@ const ItemsTable = () => {
             <View style={localStyles.rowContainer}>
                 <View style={[localStyles.rowContainer, { gap: 20 }]}>
                     <View style={{ flex: 1 }}>
-                        <BalanceBlock
-                            bottom={true}
-                            text={t("budget.budget")}
-                            value={formatMoney(Math.abs(resumes?.balance || 0))}
-                            color={resumes ? (resumes?.balance < 0 ? colors?.ExpenseColor : colors?.GoalColor) : ""}
+                        <SummaryBlock
+                            label={t("budget.budget")}
+                            cents={Math.abs(resumes?.balance || 0)}
+                            valueColorOverride={resumes ? (resumes?.balance < 0 ? colors?.ExpenseColor : colors?.GoalColor) : undefined}
+                            size='lg'
                         />
                     </View>
                     <View style={{ flex: 1 }}>
-                        <BalanceBlock
-                            bottom={true}
-                            text={t("budget.current")}
-                            value={formatMoney(Math.abs(currentBalance))}
-                            color={currentBalance < 0 ? colors?.ExpenseColor : colors?.IncomeColor}
+                        <SummaryBlock
+                            label={t("budget.current")}
+                            cents={Math.abs(currentBalance)}
+                            valueColorOverride={currentBalance < 0 ? colors?.ExpenseColor : colors?.IncomeColor}
+                            size='lg'
                         />
                     </View>
                 </View>
@@ -139,20 +137,26 @@ const ItemsTable = () => {
                 </View>
             </View>
             <View style={localStyles.rowContainer}>
-                <FinanceSmallBlock
-                    text={t("resume.incomes")}
-                    value={formatMoney(Math.abs(resumes?.incomesTotal || 0))}
-                    color={colors?.IncomeColor}
+                <SummaryBlock
+                    style={{ flex: 1 }}
+                    label={t("resume.incomes")}
+                    cents={Math.abs(resumes?.incomesTotal || 0)}
+                    valueColorOverride={colors?.IncomeColor}
+                    size='sm'
                 />
-                <FinanceSmallBlock
-                    text={t("resume.expenses")}
-                    value={formatMoney(Math.abs(resumes?.expensesTotal || 0))}
-                    color={colors?.ExpenseColor}
+                <SummaryBlock
+                    style={{ flex: 1 }}
+                    label={t("resume.expenses")}
+                    cents={Math.abs(resumes?.expensesTotal || 0)}
+                    valueColorOverride={colors?.ExpenseColor}
+                    size='sm'
                 />
-                <FinanceSmallBlock
-                    text={t("resume.transfers")}
-                    value={formatMoney(Math.abs(resumes?.transferTotal || 0))}
-                    color={colors?.TransferColor}
+                <SummaryBlock
+                    style={{ flex: 1 }}
+                    label={t("resume.transfers")}
+                    cents={Math.abs(resumes?.transferTotal || 0)}
+                    valueColorOverride={colors?.TransferColor}
+                    size='sm'
                 />
             </View>
             <ScrollView style={{ flex: 1 }}>

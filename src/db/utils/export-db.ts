@@ -3,10 +3,11 @@ import Constants from 'expo-constants';
 import { File, Paths } from 'expo-file-system';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
-import { Alert, Platform } from 'react-native';
+import { Platform } from 'react-native';
 
 import migrateDb from '@/src/db/migration';
 import { withExclusiveTransaction } from '@/src/db/transaction';
+import { useToast } from '@/src/ui/feedback/ToastProvider';
 import { createBackupSql, parseBackupMetadata } from './backup';
 import { validateSqlDump } from './sql-dump';
 
@@ -55,6 +56,7 @@ const getErrorMessage = (error: unknown): string =>
 
 export const useDBExport = function () {
   const db = SQLite.useSQLiteContext();
+  const { showToast } = useToast();
 
   const exportDatabase = async () => {
     try {
@@ -63,12 +65,23 @@ export const useDBExport = function () {
 
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(dumpFile.uri);
+        showToast({ message: 'Exportación lista', type: 'success' });
       } else {
-        Alert.alert('Exportación lista', dumpFile.uri);
+        showToast({
+          title: 'Exportación lista',
+          message: dumpFile.uri,
+          type: 'success',
+          duration: 6000,
+        });
       }
     } catch (error) {
       console.error('Error detallado en dump:', error);
-      Alert.alert('Error al exportar', getErrorMessage(error));
+      showToast({
+        title: 'Error al exportar',
+        message: getErrorMessage(error),
+        type: 'error',
+        duration: 6000,
+      });
     }
   };
 
@@ -106,16 +119,22 @@ export const useDBExport = function () {
       // Normalize legacy dumps and create any missing canonical tables.
       await migrateDb(db);
 
-      Alert.alert(
-        'Importación exitosa',
-        `Los datos han sido restaurados.\n\nBackup previo:\n${backupUri}`
-      );
+      showToast({
+        title: 'Importación exitosa',
+        message: backupUri
+          ? `Los datos han sido restaurados.\nBackup previo:\n${backupUri}`
+          : 'Los datos han sido restaurados.',
+        type: 'success',
+        duration: 7000,
+      });
     } catch (error) {
       console.error('Error detallado en importación:', error);
-      Alert.alert(
-        'Error al importar',
-        `${getErrorMessage(error)}${backupUri ? `\n\nBackup previo:\n${backupUri}` : ''}`
-      );
+      showToast({
+        title: 'Error al importar',
+        message: `${getErrorMessage(error)}${backupUri ? `\nBackup previo:\n${backupUri}` : ''}`,
+        type: 'error',
+        duration: 7000,
+      });
     }
   };
 

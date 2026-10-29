@@ -409,19 +409,20 @@ Checklist obligatorio por componente:
 
 ### UI-2 — Feedback y overlays (1–2 días)
 
-**Estado:** ✅ Completado (2026-10-28), salvo el `Alert` de export/import.
+**Estado:** ✅ Completado (2026-10-28), con adaptadores de toast pendientes de
+retirar.
 
 - `ToastProvider`, `InlineMessage`, `EmptyState`, `LoadingState`,
   `ConfirmDialog`. ✅
 - `Modal`, `Dialog`, `BottomSheet`, `ModalHeader/Body/Footer`. ✅ (header/body/
   footer integrados en `Modal`)
-- Reemplazar `useToast`/`useAndroidToast`/`Alert` en pantallas. ✅ (los
-  adaptadores de toast siguen disponibles; `export-db` conserva `Alert`)
+- Reemplazar `useToast`/`useAndroidToast`/`Alert` en pantallas. ✅
 - Migrar `confirm-modal`. ✅
 - Migrar `ModalContainer`, `base-modal`, `confirm`, `HelpModal`. ✅
 - `RecordsModal` migrado a `Modal`. ✅
 - `SwipeItem` y ahorros usan `Dialog` para eliminar. ✅
 - `ColorPicker2` migrado al `Modal` compartido. ✅
+- `export-db` usa toasts en lugar de `Alert`. ✅
 - Eliminados los overlays legacy y componentes sin consumidores. ✅
 - Teclado: `Modal` usa `KeyboardAvoidingView` (padding iOS, height Android),
   auto-scroll al input enfocado y `softwareKeyboardLayoutMode: "resize"` en
@@ -448,15 +449,19 @@ Checklist obligatorio por componente:
 
 ### UI-3 — Datos, tarjetas y tablas (2 días)
 
-**Estado:** 🔄 Parcial — componentes de presentación listos; faltan swipe y
-migración de bloques/tablas.
+**Estado:** 🔄 Parcial avanzado — componentes de presentación y migración de
+bloques financieros principales completados.
 
 - `Card`, `ListItem`, `Badge`, `FinanceValue`, `SummaryBlock`. ✅
-- `SwipeAction`. ⏳
-- Migrar `FinanceSimpleBlock`, `FinanceSmallBlock`, `FinanceTableBlock`,
-  `FinanceTableChart`, `BalanceBlock`, `IndexBlock`, `BGSimpleBlock`,
-  `BorderLeftButtonBlock`. ⏳
-- Unificar estilos de listas, tablas y tarjetas. ⏳
+- `FinanceValue`/`SummaryBlock` con color override. ✅
+- Migrar home, Summary, fixeds, créditos y presupuestos a
+  `SummaryBlock`/`Surface`. ✅
+- `FinanceSimpleBlock`, `FinanceSmallBlock`, `BalanceBlock`, `IndexBlock`
+  eliminados. ✅
+- `FinanceTableBlock`/`FinanceTableChart` usan `SummaryBlock`. ✅
+- `SwipeAction` (renombrar/mover `SwipeItem`). ⏳
+- Migrar `BGSimpleBlock`, `BorderLeftButtonBlock` y terminar el estilo de
+  tablas. ⏳
 
 ### UI-4 — Limpieza y calidad (1–2 días)
 

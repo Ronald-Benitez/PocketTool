@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import styles from '@/src/styles/styles';
 import useColorStore from '@/src/stores/ColorsStore';
 import { useLanguage } from '@/src/lang/LanguageContext';
-import BalanceBlock from '@/src/components/ui/BalanceBlock';
 import { useCreditStore } from '@/src/stores/CreditsStore';
+import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock';
 
 import useDate from '@/src/hooks/useDate';
 import { formatMoney } from '@/src/utils';
@@ -42,19 +42,19 @@ const Index = () => {
         <View style={styles.container}>
             <View style={[localStyles.summaryRow, { gap: 20 }]}>
                 <View style={{ flex: 1 }}>
-                    <BalanceBlock
-                        bottom={true}
-                        text={t("credits.previousTotal")}
-                        value={formatMoney(totalPrevious)}
-                        color={colors?.GoalColor}
+                    <SummaryBlock
+                        label={t("credits.previousTotal")}
+                        cents={totalPrevious}
+                        valueColorOverride={colors?.GoalColor}
+                        size='lg'
                     />
                 </View>
                 <View style={{ flex: 1 }}>
-                    <BalanceBlock
-                        bottom={true}
-                        text={t("credits.currentTotal")}
-                        value={formatMoney(totalCurrent)}
-                        color={colors?.GoalColor}
+                    <SummaryBlock
+                        label={t("credits.currentTotal")}
+                        cents={totalCurrent}
+                        valueColorOverride={colors?.GoalColor}
+                        size='lg'
                     />
                 </View>
             </View>

@@ -6,16 +6,16 @@ import { useLanguage } from '@/src/lang/LanguageContext';
 import styles from '@/src/styles/styles';
 import useColorStore from '@/src/stores/ColorsStore';
 import GroupSelector from '@/src/components/groups/group-selector';
-import IndexBlock from '@/src/components/ui/IndexBlock';
-import FinanceSimpleBlock from '@/src/components/ui/FinanceSimpleBlock';
 import useRecordsStore from '@/src/stores/RecordsStore';
 import AddItem from '@/src/components/records/add-record';
 import ColorText from '@/src/components/ui/color-text';
 import useResumesStore from '@/src/stores/ResumesStore';
 import { useDataStore } from '@/src/stores';
 import type { FixedView, RecordFormEntry } from '@/src/interfaces/schema';
-import { formatMoney, formatMoneyWithSymbol } from '@/src/utils';
+import { formatMoneyWithSymbol } from '@/src/utils';
 import { useConfigs } from '@/src/hooks/useConfigs';
+import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock';
+import { Surface } from '@/src/ui/primitives/Surface';
 
 const Index = () => {
     const { t } = useLanguage();
@@ -128,20 +128,21 @@ const Index = () => {
                                 </View>
                             ) : null
                         }
-                        <IndexBlock>
-                            <FinanceSimpleBlock
-                                text={t("resume.balance")}
-                                value={formatMoney(balance)}
-                                color={balance < 0 ? colors?.ExpenseColor : colors?.IncomeColor}
+                        <Surface variant='outlined' padding='sm'>
+                            <SummaryBlock
+                                label={t("resume.balance")}
+                                cents={balance}
+                                size='lg'
                             />
-                        </IndexBlock>
-                        <IndexBlock>
-                            <FinanceSimpleBlock
-                                text={t("resume.goal")}
-                                value={formatMoney(group?.goal)}
-                                color={colors?.GoalColor}
+                        </Surface>
+                        <Surface variant='outlined' padding='sm'>
+                            <SummaryBlock
+                                label={t("resume.goal")}
+                                cents={group?.goal}
+                                valueColorOverride={colors?.GoalColor}
+                                size='lg'
                             />
-                        </IndexBlock>
+                        </Surface>
 
                         <View style={[localStyles.rowContainer, { position: "relative", backgroundColor: colors?.BGSimple, paddingVertical: 10, paddingTop: 30 }]}>
                             <ScrollView>
@@ -149,11 +150,12 @@ const Index = () => {
                                 <View style={localStyles.colContainer}>
                                     {
                                         todayBalanceByRecordType?.map((item) => (
-                                            <FinanceSimpleBlock
+                                            <SummaryBlock
                                                 key={item.id}
-                                                text={item.type_name}
-                                                value={formatMoney(item.total)}
-                                                color={item.record_color ?? undefined}
+                                                label={item.type_name}
+                                                cents={item.total}
+                                                valueColorOverride={item.record_color ?? undefined}
+                                                size='sm'
                                             />
                                         ))
                                     }

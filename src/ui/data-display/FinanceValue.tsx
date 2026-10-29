@@ -22,6 +22,8 @@ export type FinanceValueProps = {
   size?: FinanceValueSize;
   showSymbol?: boolean;
   signed?: boolean;
+  /** Color explícito; tiene prioridad sobre `tone`. */
+  color?: string;
   style?: StyleProp<TextStyle>;
 };
 
@@ -38,6 +40,7 @@ export const FinanceValue = ({
   size = 'md',
   showSymbol = true,
   signed = false,
+  color: colorOverride,
   style,
 }: FinanceValueProps) => {
   const { colors } = useTheme();
@@ -52,7 +55,7 @@ export const FinanceValue = ({
           : 'neutral'
       : tone;
 
-  const color = {
+  const color = colorOverride ?? {
     income: colors.income,
     expense: colors.expense,
     neutral: colors.neutral,

@@ -2,8 +2,8 @@ import { useRef, useState } from "react";
 import { StyleSheet, Text, View, TextStyle, ViewStyle, StyleProp, Pressable } from "react-native";
 
 import { useLanguage } from "@/src/lang/LanguageContext";
-import FinanceSimpleBlock from "./FinanceSimpleBlock";
 import ColorText from "./color-text";
+import { SummaryBlock } from "@/src/ui/data-display/SummaryBlock";
 import useResumesStore, { Resumes } from "@/src/stores/ResumesStore";
 import useFixedsResumesStore from "@/src/stores/FixedsResumesStore";
 import { useDataStore } from "@/src/stores";
@@ -126,12 +126,13 @@ const RecordTypeBlock = ({
                             if (item.total <= 0) return null
                             return (
                                 <Pressable key={item.id} onPress={() => onSummarySelected(val.id, item.id)}>
-                                    <FinanceSimpleBlock
+                                    <SummaryBlock
                                         key={item.id}
-                                        text={item.type_name}
-                                        value={formatMoney(item.total)}
-                                        color={item.record_color ?? undefined}
-                                        blockwidth={170}
+                                        label={item.type_name}
+                                        cents={item.total}
+                                        valueColorOverride={item.record_color ?? undefined}
+                                        size='sm'
+                                        style={{ width: 170 }}
                                     />
                                 </Pressable>
                             )

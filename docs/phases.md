@@ -126,8 +126,8 @@ Incluye:
 Pendiente de UI-1: ninguno dentro del alcance actual; `BaseSelect`, `Input`,
 `InputLabel`, `DatePicker`, `MonthSelector` y `PressableSwitch` fueron
 eliminados.
-Pendiente de UI-2: reemplazar el `Alert` de `src/db/utils/export-db.ts` y retirar
-los adaptadores `useToast`/`useAndroidToast` cuando ya no queden llamadas.
+Pendiente de UI-2: retirar los adaptadores `useToast`/`useAndroidToast` cuando ya
+no queden llamadas; el `Alert` de export/import fue reemplazado por toasts.
 
 ### UI-2c — Migración de overlays y limpieza legacy (✅ 2026-10-28)
 
@@ -141,8 +141,8 @@ los adaptadores `useToast`/`useAndroidToast` cuando ya no queden llamadas.
   `color-picker` y `tap-block`.
 - Verificado: `npm run ci` y `npm run lint` con 0 errores.
 
-Pendiente de UI-2c: `Alert` de export/import y limpieza de los adaptadores de
-toast.
+Pendiente de UI-2c: retirar los adaptadores de toast cuando ya no queden
+llamadas.
 
 ### UI-2b — Filtros tipados y reutilizables (✅ 2026-10-28)
 
@@ -170,14 +170,20 @@ resumen (fuera del alcance de esta fase).
 
 - `src/ui/data-display`: `Card`, `ListItem`, `Badge`, `FinanceValue` y
   `SummaryBlock`.
-- `FinanceValue` recibe centavos y resuelve el color/tamaño desde el tema.
+- `FinanceValue` recibe centavos y resuelve el color/tamaño desde el tema, con
+  override explícito de color.
 - `SummaryBlock` compone label, valor monetario/texto e icono.
+- Migrados a `SummaryBlock`/`Surface`/`Screen`: home, Summary, resumen de
+  fixeds, créditos y cabecera de presupuestos.
+- `FinanceTableBlock` y `FinanceTableChart` usan `SummaryBlock` para sus filas.
+- Eliminados `FinanceSimpleBlock`, `FinanceSmallBlock`, `BalanceBlock` e
+  `IndexBlock`.
 - Galería y tests actualizados.
 - Verificado: `npm run ci` y `npm run lint` con 0 errores.
 
-Pendiente de UI-3: `SwipeAction` y migrar `FinanceSimpleBlock`,
-`FinanceSmallBlock`, `FinanceTableBlock`, `FinanceTableChart`, `BalanceBlock`,
-`IndexBlock`, `BGSimpleBlock` y `BorderLeftButtonBlock`.
+Pendiente de UI-3: mover/renombrar `SwipeItem` a `SwipeAction` en `src/ui`,
+migrar `BGSimpleBlock` y `BorderLeftButtonBlock`, y terminar de unificar el
+estilo interno de `FinanceTableBlock`/`FinanceTableChart`.
 
 ## Documentación
 

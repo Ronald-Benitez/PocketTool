@@ -17,6 +17,7 @@ export type SummaryBlockProps = {
   value?: React.ReactNode;
   tone?: FinanceTone;
   valueColor?: TextColor;
+  valueColorOverride?: string;
   size?: FinanceValueSize;
   icon?: React.ReactNode;
   hint?: string;
@@ -30,6 +31,7 @@ export const SummaryBlock = ({
   value,
   tone = 'auto',
   valueColor = 'default',
+  valueColorOverride,
   size = 'md',
   icon,
   hint,
@@ -48,9 +50,19 @@ export const SummaryBlock = ({
         </AppText>
       </View>
       {cents !== undefined && cents !== null ? (
-        <FinanceValue cents={cents} tone={tone} size={size} />
+        <FinanceValue
+          cents={cents}
+          tone={tone}
+          size={size}
+          color={valueColorOverride}
+        />
       ) : (
-        <AppText variant={size === 'xl' ? 'title' : size === 'lg' ? 'subtitle' : 'body'} color={valueColor} weight='600'>
+        <AppText
+          variant={size === 'xl' ? 'title' : size === 'lg' ? 'subtitle' : 'body'}
+          color={valueColor}
+          weight='600'
+          style={valueColorOverride ? { color: valueColorOverride } : undefined}
+        >
           {value}
         </AppText>
       )}
