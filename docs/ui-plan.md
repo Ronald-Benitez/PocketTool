@@ -27,6 +27,10 @@ inconsistente:
   parcialmente; no hay un `Button` estándar con variantes y loading.
 - Hay estilos hardcodeados y valores de color/espaciado repetidos; no existe una
   capa de tokens semánticos.
+- El modo oscuro no está resuelto de forma integral: hay colores claros fijos y
+  componentes que no respetan una paleta oscura.
+- La personalización de colores actual cubre pocos tokens y no permite restaurar
+  paletas base bright/dark ni editar todos los colores de la app.
 - `color-picker` y `color-picker-2`, `Input`/`InputLabel`, `confirm`/
   `confirm-modal` son parejas que deberían consolidarse.
 - Varias pantallas usan `TextInput`, `Modal`, `Alert` o `ToastAndroid` directo.
@@ -104,9 +108,9 @@ migración.
 
 ---
 
-## 4. Design tokens
+## 4. Tema, color y modo oscuro
 
-### Tokens estáticos
+### 4.1 Tokens estáticos
 
 - `spacing`: 2, 4, 8, 12, 16, 24, 32, 48.
 - `radii`: sm, md, lg, pill.
@@ -115,20 +119,107 @@ migración.
 - `shadows`: none, card, floating.
 - `zIndex`: base, dropdown, modal, toast.
 
-### Tokens semánticos de color
+### 4.2 Paletas base bright/dark
 
-Se construyen a partir de `useColorStore` y `ColorScheme`, agregando lo que
-falte:
+El tema parte de dos paletas base versionadas:
 
-- `background`, `surface`, `surfaceMuted`
-- `text`, `textMuted`, `textInverse`
-- `border`, `focus`, `overlay`
-- `primary`, `onPrimary`
-- `success`, `danger`, `warning`, `info`
-- `income`, `expense`, `transfer`, `goal`
+```text
+src/ui/theme/palettes/
+  bright.base.json
+  dark.base.json
+```
 
-`IncomeColor`, `ExpenseColor`, `TransferColor`, `GoalColor`, `InputStroke` y
-`BGSimple` se mapean a tokens semánticos con fallback.
+- `bright.base.json` y `dark.base.json` son los valores por defecto.
+- El usuario puede editar una copia personalizada de **bright** y otra de
+  **dark**.
+- Cada paleta personalizada puede volver a su base con “Restaurar bright base” o
+  “Restaurar dark base”, sin afectar a la otra.
+- También existe “Restaurar todo” y “Usar base” por paleta.
+- La app conserva la personalización del usuario entre actualizaciones; los
+  tokens nuevos se agregan con su valor base si faltan.
+
+### 4.3 Tokens semánticos de color
+
+`ColorScheme` se amplía para cubrir todos los colores de la app. Cada token
+existe en bright y dark y es editable en ajustes.
+
+| Grupo | Tokens |
+| --- | --- |
+| Base | `background`, `surface`, `surfaceMuted`, `surfaceElevated`, `overlay`, `shadow` |
+| Texto | `text`, `textMuted`, `textDisabled`, `textInverse`, `link` |
+| Bordes/inputs | `border`, `borderStrong`, `inputStroke`, `inputBackground`, `placeholder`, `focusRing` |
+| Acciones | `primary`, `primaryPressed`, `onPrimary`, `secondary`, `onSecondary`, `danger`, `onDanger`, `success`, `onSuccess`, `warning`, `onWarning`, `info`, `onInfo` |
+| Finanzas | `income`, `expense`, `transfer`, `goal`, `balancePositive`, `balanceNegative`, `credit`, `saving`, `neutral` |
+| Componentes | `buttonPrimaryBg/Text`, `buttonSecondaryBg/Text`, `buttonGhostText`, `modalHeaderBg/Text`, `toastSuccessBg/Text`, `toastErrorBg/Text`, `toastWarningBg/Text`, `toastInfoBg/Text`, `switchOn/Off`, `chipBg/Text`, `tableHeaderBg`, `rowAltBg`, `badgeBg/Text`, `skeleton` |
+
+Reglas:
+
+- Los componentes **nunca** leen `useColorStore` directo; usan `useTheme()`.
+- Los estados derivados (pressed, disabled) usan opacidad o tokens calculados,
+  salvo que el usuario defina un override.
+- Los colores de datos financieros se usan por semántica (`income`, `expense`,
+  `transfer`), no por nombre de componente.
+- `InputStroke`, `BGSimple`, `IncomeColor`, `ExpenseColor`, `TransferColor` y
+  `GoalColor` se migran a los nuevos tokens con fallback.
+
+### 4.4 Modo claro/oscuro/sistema
+
+- `ThemeProvider` expone:
+  ```ts
+  type ThemeMode = 'system' | 'light' | 'dark';
+  const { mode, resolvedMode, colors, setMode } = useTheme();
+  ```
+- `mode = 'system'` usa `useColorScheme()`; `light`/`dark` fuerzan la paleta.
+- El modo elegido se persiste en AsyncStorage.
+- `StatusBar` y `SystemUI` se actualizan según `resolvedMode`.
+- Modales, toasts, inputs, sombras, iconos y estados de error usan la paleta
+  resuelta; no hay blancos/negros hardcodeados.
+- Las pantallas de ajustes permiten:
+  - seleccionar `Sistema`, `Claro`, `Oscuro`;
+  - previsualizar la paleta bright/dark;
+  - editar colores por grupo;
+  - restaurar un color, una paleta completa o todas;
+  - volver a la base bright/dark.
+
+### 4.5 Persistencia y migración de colores
+
+Se propone una versión de configuración de tema:
+
+```ts
+type ThemeSettings = {
+  version: 2;
+  mode: ThemeMode;
+  useBase: { bright: boolean; dark: boolean };
+  bright: Partial<ColorScheme>;
+  dark: Partial<ColorScheme>;
+};
+```
+
+- Clave AsyncStorage nueva: `themeSettings`.
+- Migración desde la clave legacy `colors`:
+  - los colores existentes pasan a `bright` personalizado;
+  - `dark` parte de `dark.base.json`;
+  - `mode` inicia en `system`.
+- Los tokens faltantes se completan con la base correspondiente.
+- “Restaurar todo” borra los overrides y deja `useBase` en true para ambas.
+- Tests: migración legacy, merge de tokens nuevos, reset por paleta/total.
+
+### 4.6 Accesibilidad y contraste
+
+- Validación de contraste WCAG AA:
+  - texto normal ≥ 4.5:1;
+  - texto grande ≥ 3:1;
+  - controles/íconos ≥ 3:1.
+- Ajustes muestra advertencias de contraste, sin bloquear necesariamente.
+- Los estados de error/success no dependen solo del color: incluyen icono y
+  texto.
+- Las paletas personalizadas se prueban en `system`, `light` y `dark`.
+
+### 4.7 Galería de tema
+
+La galería de componentes incluye un selector de paleta bright/dark y modo
+claro/oscuro para revisar todos los estados: normal, focus, error, disabled,
+loading, toast, modal y tablas.
 
 ---
 
@@ -280,6 +371,22 @@ Checklist obligatorio por componente:
 - Crear pantalla de galería de componentes (ruta de desarrollo).
 - Agregar tests de render/variantes base.
 
+### UI-0b — Tema, paletas y modo oscuro (2 días)
+
+- Crear `bright.base.json` y `dark.base.json`.
+- Ampliar `ColorScheme` con todos los tokens semánticos y de componentes.
+- Implementar `ThemeProvider` con `system`/`light`/`dark`, persistencia y
+  migración desde la clave legacy `colors`.
+- Implementar el editor de tema en Ajustes:
+  - modo sistema/claro/oscuro;
+  - pestañas bright/dark;
+  - edición por grupos de color;
+  - restaurar color individual, paleta y todo;
+  - usar base bright/dark;
+  - vista previa y advertencias de contraste.
+- Actualizar `StatusBar`/`SystemUI` y revisar modales, toasts e inputs en dark.
+- Tests de migración, reset, merge de tokens y contraste.
+
 ### UI-1 — Formularios y acciones (2–3 días)
 
 - `FormField`, `TextField`, `MoneyField`, `SelectField`, `DateField`,
@@ -342,6 +449,9 @@ Checklist obligatorio por componente:
 | `SwipeItem` | `SwipeAction` |
 | `Dropdown` | `SelectField`/`Menu` |
 | `HelpModal` | `Modal` |
+| `useColorStore` directo | `useTheme` |
+| `colors.json`/`colorsDark.json` | paletas base bright/dark + `ThemeProvider` |
+| `ColorSettings` | editor de tema/color bright/dark |
 
 ---
 
@@ -368,11 +478,19 @@ Checklist obligatorio por componente:
   pantalla.
 - [ ] Todas las acciones usan `Button` o `IconButton` con variantes.
 - [ ] No hay colores/espaciados hardcodeados fuera de tokens y datos dinámicos.
+- [ ] El tema soporta `system`, `light` y `dark` y se persiste entre sesiones.
+- [ ] Existen paletas base bright/dark y el usuario puede personalizar ambas.
+- [ ] El usuario puede restaurar un color, una paleta o todas las paletas.
+- [ ] Todos los colores semánticos y de componentes son editables desde Ajustes.
+- [ ] La migración desde la configuración de colores anterior conserva la
+  personalización existente.
+- [ ] Los componentes leen colores solo vía `useTheme()`, no `useColorStore`.
+- [ ] Hay advertencias de contraste y checklist visual en claro/oscuro.
 - [ ] Todos los componentes tienen variantes documentadas y aparecen en la
   galería.
 - [ ] Checklist de accesibilidad aprobado.
 - [ ] Lint, typecheck y tests en verde.
-- [ ] Documentación de UI actualizada.
+- [ ] Documentación de UI y base de datos actualizada.
 
 ---
 
@@ -380,8 +498,14 @@ Checklist obligatorio por componente:
 
 - **Select index-based vs value-based:** el nuevo `SelectField` será value-based;
   el adaptador legacy mantendrá el índice mientras se migra.
-- **Colores personalizados:** los tokens semánticos deben respetar
-  `useColorStore`; definir fallbacks y tokens nuevos en `ColorScheme`.
+- **Colores personalizados:** la paleta nueva debe migrar la clave legacy
+  `colors` y completar tokens faltantes sin perder overrides del usuario.
+- **Contraste:** una paleta personalizada puede quedar ilegible; mostrar
+  advertencias y ofrecer restaurar base.
+- **Base bright/dark:** las paletas base son versionadas; al agregar tokens
+  nuevos se completan con el valor base de la versión actual.
+- **Modo oscuro:** revisar `StatusBar`/`SystemUI`, modales, toasts, inputs,
+  sombras e iconos; no asumir fondos blancos.
 - **Toast sobre modales:** el host debe quedar por encima de overlays; evaluar
   `Modal` transparente con `pointerEvents="box-none"` o portal.
 - **Modales y teclado:** migrar a `KeyboardAvoidingView`/safe area para evitar
@@ -397,9 +521,30 @@ Checklist obligatorio por componente:
 
 ## 14. Próximos pasos
 
-1. Aprobar catálogo y arquitectura.
+1. Aprobar catálogo, arquitectura y sistema de tema/color.
 2. Implementar UI-0: tokens, `ThemeProvider`, primitivas, galería.
-3. Implementar UI-1 con `TextField`, `MoneyField`, `SelectField`, `Button` y
+3. Implementar UI-0b: paletas base bright/dark, modo oscuro, editor de colores y
+   migración de la configuración legacy.
+4. Implementar UI-1 con `TextField`, `MoneyField`, `SelectField`, `Button` y
    migrar `add-record` como piloto.
-4. Implementar `ToastProvider` y migrar feedback.
-5. Medir resultados con checklist visual y tests antes de continuar con el resto.
+5. Implementar `ToastProvider` y migrar feedback.
+6. Medir resultados con checklist visual y tests antes de continuar con el resto.
+
+---
+
+## 15. Trabajo paralelo — documentación de base de datos
+
+- Mantener [`database.md`](database.md) como referencia actual y concisa:
+  convenciones, tablas, relaciones, migraciones, triggers, backups y acceso a
+  datos.
+- Mantener [`schema.md`](schema.md) como referencia generada y no editarla a
+  mano.
+- Conservar [`legacy/db-summary.md`](legacy/db-summary.md) solo como archivo
+  histórico.
+- Mantener `db.md` como puntero a `database.md`.
+- Actualizar `database.md` cuando cambie una migración, un trigger, el formato
+  de backup o una relación.
+- No duplicar el detalle de implementación en `phases.md`; moverlo a `legacy/`
+  cuando una fase termine.
+- Verificar en CI que `docs/schema.md` esté actualizado con
+  `npm run db:generate`.

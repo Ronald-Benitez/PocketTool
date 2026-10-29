@@ -100,8 +100,10 @@ npm run ci
 ## Documentación
 
 - [`docs/README.md`](docs/README.md): índice de documentación.
-- [`docs/phases.md`](docs/phases.md): plan de fases, estado y bitácora.
+- [`docs/phases.md`](docs/phases.md): estado actual y fases activas.
 - [`docs/schema.md`](docs/schema.md): esquema generado.
-- [`docs/ui-plan.md`](docs/ui-plan.md): plan del sistema de componentes de UI.
-- [`db.md`](db.md): resumen de tablas, relaciones y convenciones de la base.
+- [`docs/database.md`](docs/database.md): documentación de la base de datos.
+- [`docs/ui-plan.md`](docs/ui-plan.md): plan de UI, tema, color y modo oscuro.
+- [`docs/legacy/phase-history.md`](docs/legacy/phase-history.md): historial de
+  fases completadas.
 - [`README.md`](README.md): descripción general y ejecución del proyecto.
