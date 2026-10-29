@@ -196,6 +196,8 @@
     },
     "colors": {
         "set": "Set a color",
+        "copy": "Copy color",
+        "paste": "Paste color",
         "reset": "Reset colors",
         "confirmMessage": "Do you confirm to reset the colors?",
         "invalid": "Invalid color",

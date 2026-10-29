@@ -123,11 +123,26 @@ Incluye:
 - Tests de render ampliados en `src/ui/__tests__/primitives.test.tsx`.
 - Verificado: `npm run ci` y `npm run lint` con 0 errores.
 
-Pendiente de UI-1: migrar `RecordsFilterModal`, que es el último consumidor de
-`BaseSelect`.
-Pendiente de UI-2: migrar `ModalContainer`, `base-modal`, `confirm` y
-`HelpModal`, y reemplazar `Alert`/`useAndroidToast` restantes por feedback
-global.
+Pendiente de UI-1: ninguno dentro del alcance actual; `BaseSelect`, `Input`,
+`InputLabel`, `DatePicker`, `MonthSelector` y `PressableSwitch` fueron
+eliminados.
+Pendiente de UI-2: reemplazar el `Alert` de `src/db/utils/export-db.ts` y retirar
+los adaptadores `useToast`/`useAndroidToast` cuando ya no queden llamadas.
+
+### UI-2c — Migración de overlays y limpieza legacy (✅ 2026-10-28)
+
+- `PaymentTypesScreen`, `RecordTypesScreen` y `CategoriesScreen` migrados a
+  `Screen`, `TextField`, `ColorField`, `SelectField`, `Button` y `ListItem`.
+- `SwipeItem` y el detalle de ahorros usan `Dialog` para confirmar borrados.
+- `ColorPicker2` migrado al `Modal` compartido.
+- Eliminados: `ModalContainer`, `base-modal`, `base-select`, `Input`,
+  `InputLabel`, `LabelBlock`, `BGSelectBlock`, `BorderLeftBlock`, `HelpModal`,
+  `confirm`, `date-picker`, `month-selector`, `pressable-switch`, `picker`,
+  `color-picker` y `tap-block`.
+- Verificado: `npm run ci` y `npm run lint` con 0 errores.
+
+Pendiente de UI-2c: `Alert` de export/import y limpieza de los adaptadores de
+toast.
 
 ### UI-2b — Filtros tipados y reutilizables (✅ 2026-10-28)
 
@@ -162,7 +177,7 @@ resumen (fuera del alcance de esta fase).
 
 Pendiente de UI-3: `SwipeAction` y migrar `FinanceSimpleBlock`,
 `FinanceSmallBlock`, `FinanceTableBlock`, `FinanceTableChart`, `BalanceBlock`,
-`IndexBlock`, `BGSimpleBlock`, `BorderLeftBlock` y `BorderLeftButtonBlock`.
+`IndexBlock`, `BGSimpleBlock` y `BorderLeftButtonBlock`.
 
 ## Documentación
 

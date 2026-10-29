@@ -1,13 +1,13 @@
-import { View, Text, StyleSheet, TouchableOpacity, ViewStyle, TextStyle, StyleProp } from 'react-native'
-import React from 'react'
+import { View, ViewStyle, StyleProp } from 'react-native'
+import React, { useState } from 'react'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, runOnJS } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
-import BaseModal from './base-modal';
 import styles from '@/src/styles/styles'
 import useAndroidToast from '@/src/hooks/useAndroidToast';
+import { Dialog } from '@/src/ui/overlays/Dialog';
 
 export interface SwipeItemProps {
     children: React.ReactNode;
@@ -22,9 +22,11 @@ const SwipeItem = ({ children, handleDelete, handleUpdate, deleteContent, style,
     const translationX = useSharedValue(0)
     const deleteColor = 'red'
     const editColor = '#edaf02'
-    const { CustomModal, showModal, hideModal } = BaseModal(true)
+    const [confirmVisible, setConfirmVisible] = useState(false)
     const { t } = useLanguage()
     const toast = useAndroidToast()
+
+    const showDeleteDialog = () => setConfirmVisible(true)
 
     const pan = Gesture.Pan().onUpdate(e => {
         const val = e.translationX
@@ -33,7 +35,7 @@ const SwipeItem = ({ children, handleDelete, handleUpdate, deleteContent, style,
         }
     }).onEnd(e => {
         if (e.translationX < -90) {
-            runOnJS(showModal)()
+            runOnJS(showDeleteDialog)()
         }
         if (e.translationX > 90 && handleUpdate) {
             runOnJS(handleUpdate)()
@@ -51,45 +53,41 @@ const SwipeItem = ({ children, handleDelete, handleUpdate, deleteContent, style,
 
     const onConfirmDelete = () => {
         handleDelete()
-        hideModal()
+        setConfirmVisible(false)
         toast.deletedMessage()
     }
 
     return (
-        <View>
+        <View style={style}>
             <GestureDetector gesture={pan}>
                 <Animated.View style={[animatedStyle]}>
                     {children}
                 </Animated.View>
             </GestureDetector>
-            <Animated.View style={[styles.backgroundButton, styles.fixedBackground, animatedOpacity, { right: 0, top:8 }]}>
+            <Animated.View style={[styles.backgroundButton, styles.fixedBackground, animatedOpacity, { right: 0, top: 8 }]}>
                 <Feather name="trash" size={24} color={deleteColor} />
             </Animated.View>
             {
                 handleUpdate && (
-                    <Animated.View style={[styles.backgroundButton, styles.fixedBackground, animatedOpacity, { left: 0, top:8 }]}>
+                    <Animated.View style={[styles.backgroundButton, styles.fixedBackground, animatedOpacity, { left: 0, top: 8 }]}>
                         <Feather name="edit-2" size={24} color={editColor} />
                     </Animated.View>
                 )
             }
-            <View style={{position: "absolute"}}>
-            <CustomModal title={t("delete")}>
-                {deleteContent || (
-                    <View style={styles.col}>
-                        <Text style={styles.text}>{t("confirmDelete")}</Text>
-                        <View style={[styles.row, { justifyContent: "space-around" }]}>
-                            <TouchableOpacity style={styles.button} onPress={hideModal}>
-                                <Text style={styles.text}>{t("cancel")}</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.enfasizedButton} onPress={onConfirmDelete}>
-                                <Text style={styles.text}>{t("confirm")}</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                )}
-            </CustomModal>
-            </View>
 
+            <Dialog
+                visible={confirmVisible}
+                title={t("delete")}
+                message={deleteContent ? undefined : t("confirmDelete")}
+                confirmLabel={t("confirm")}
+                cancelLabel={t("cancel")}
+                closeLabel={t("cancel")}
+                tone='danger'
+                onConfirm={onConfirmDelete}
+                onCancel={() => setConfirmVisible(false)}
+            >
+                {deleteContent}
+            </Dialog>
         </View>
     )
 }

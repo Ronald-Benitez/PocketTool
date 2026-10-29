@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AntDesign, Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
@@ -11,18 +11,17 @@ import AddSaving from '@/src/components/savings/add-savings';
 import useSavingsStore from '@/src/stores/SavingsStore';
 import BGSimpleBlock from '@/src/components/ui/BGSimpleBlock';
 import useDate from '@/src/hooks/useDate';
-import useBaseModal from '@/src/components/ui/base-modal';
-import styles from '@/src/styles/styles';
 import { Saving, SavingsHistoryWithRelations } from '@/src/interfaces/schema';
 import { useSavings } from '@/src/db';
 import useColorStore from '@/src/stores/ColorsStore';
 import { formatMoney } from '@/src/utils';
+import { Dialog } from '@/src/ui/overlays/Dialog';
 
 const Index = () => {
     const { t } = useLanguage();
     const { saving, savingsHistory, setSaving, setSavingsHistory, setSavings } = useSavingsStore()
     const [pinned, setPinned] = useState(saving?.id)
-    const { CustomModal, showModal, hideModal } = useBaseModal(true)
+    const [deleteVisible, setDeleteVisible] = useState(false)
     const [chartData, setChartData] = useState<lineDataItem[]>([])
     const { deleteSavings, fetchSavings } = useSavings()
     const date = useDate()
@@ -76,7 +75,7 @@ const Index = () => {
         const newSavings = await fetchSavings() as Saving[]
         setSavings(newSavings)
         setSavingsHistory([])
-        hideModal()
+        setDeleteVisible(false)
     }
 
     return (
@@ -166,25 +165,23 @@ const Index = () => {
             <View style={[localStyles.rowContainer, { justifyContent: "center" }]}>
                 {
                     saving && (
-                        <IconButton onClick={showModal}>
+                        <IconButton onClick={() => setDeleteVisible(true)}>
                             <MaterialIcons name='delete-outline' size={20} color={"#000"}></MaterialIcons>
                         </IconButton>
                     )
                 }
             </View>
-            <CustomModal title={t("delete")}>
-                <View style={styles.col}>
-                    <Text style={styles.text}>{t("confirmDelete")}</Text>
-                    <View style={[styles.row, { justifyContent: "space-around" }]}>
-                        <TouchableOpacity style={styles.button} onPress={hideModal}>
-                            <Text style={styles.text}>{t("cancel")}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.enfasizedButton} onPress={onConfirmDelete}>
-                            <Text style={styles.text}>{t("confirm")}</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </CustomModal>
+            <Dialog
+                visible={deleteVisible}
+                title={t("delete")}
+                message={t("confirmDelete")}
+                confirmLabel={t("confirm")}
+                cancelLabel={t("cancel")}
+                closeLabel={t("cancel")}
+                tone='danger'
+                onConfirm={onConfirmDelete}
+                onCancel={() => setDeleteVisible(false)}
+            />
         </>
     );
 };

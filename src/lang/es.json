@@ -195,6 +195,8 @@
     },
     "colors": {
         "set": "Establecer un color",
+        "copy": "Copiar color",
+        "paste": "Pegar color",
         "reset": "Restablecer colores",
         "confirmMessage": "¿Confirmas restablecer los colores?",
         "invalid": "Color inválido",

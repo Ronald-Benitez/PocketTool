@@ -44,7 +44,7 @@ export const ColorField = ({
         <View style={styles.textBlock}>
           <AppText variant='body'>{value.toUpperCase()}</AppText>
           <AppText variant='caption' color='muted'>
-            {label ?? ''}
+            HEX
           </AppText>
         </View>
       </View>

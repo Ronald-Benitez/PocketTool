@@ -1,15 +1,15 @@
-import { Text, StyleSheet, View, TextInput } from "react-native";
+import { Text, StyleSheet, View, TextInput, Pressable } from "react-native";
 import * as Clipboard from 'expo-clipboard';
 import { MaterialIcons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { useEffect, useState } from "react";
-import { ScrollView } from "react-native-gesture-handler";
 
-import { ToastViewport, useToast } from '@/src/ui/feedback/ToastProvider';
-import ModalContainer from "./modal-container";
 import { useLanguage } from "@/src/lang/LanguageContext";
-import IconButton from "./icon-button";
 import { useTheme } from "@/src/ui/theme/ThemeProvider";
+import { useToast, ToastViewport } from "@/src/ui/feedback/ToastProvider";
+import { Button } from "@/src/ui/actions/Button";
+import { IconButton } from "@/src/ui/actions/IconButton";
+import { Modal } from "@/src/ui/overlays/Modal";
 
 interface props {
     color: string,
@@ -59,6 +59,7 @@ const ColorPicker2 = ({ color, onChange }: props) => {
     const { t } = useLanguage()
     const { showToast } = useToast();
     const { colors } = useTheme()
+    const [visible, setVisible] = useState(false)
     const [inputColor, setInputColor] = useState(color)
     const [r, setR] = useState(0)
     const [g, setG] = useState(0)
@@ -112,11 +113,6 @@ const ColorPicker2 = ({ color, onChange }: props) => {
         onChange(toHex(next.r, next.g, next.b, next.a))
     }
 
-    const pickButton = () => (
-        <View style={[localStyles.colorBlock, { backgroundColor: color, borderColor: colors.border }]}>
-        </View>
-    )
-
     const channelRow = (
         label: string,
         value: number,
@@ -148,38 +144,59 @@ const ColorPicker2 = ({ color, onChange }: props) => {
 
     return (
         <>
-            <ModalContainer buttonOpen={pickButton()} title={t("colors.set")} >
-                <>
-                    <View style={localStyles.headBlock}>
-                        <IconButton onClick={handleCopy}>
-                            <MaterialIcons name="content-copy" size={24} color={colors.text} />
-                        </IconButton>
-                        <View style={[localStyles.colorViewer, { backgroundColor: color, borderColor: colors.border }]}>
-                        </View>
-                        <IconButton onClick={handlePaste}>
-                            <MaterialIcons name="content-paste" size={24} color={colors.text} />
-                        </IconButton>
-                    </View>
-                    <View style={localStyles.rowCentered}>
-                        <TextInput
-                            onChangeText={handleHexChange}
-                            value={inputColor}
-                            autoCapitalize="characters"
-                            style={[
-                                localStyles.colorInput,
-                                { borderColor: colors.border, backgroundColor: colors.inputBackground, color: colors.text },
-                            ]}
-                        />
-                    </View>
-                    <ScrollView >
-                        {channelRow("R", r, "#ff0000", "r")}
-                        {channelRow("G", g, "#00ff00", "g")}
-                        {channelRow("B", b, "#0000ff", "b")}
-                        {channelRow("A", a, colors.text, "a")}
-                    </ScrollView>
-                    <ToastViewport />
-                </>
-            </ModalContainer>
+            <Pressable
+                accessibilityRole='button'
+                accessibilityLabel={t("colors.set")}
+                onPress={() => setVisible(true)}
+                style={[localStyles.colorBlock, { backgroundColor: color, borderColor: colors.border }]}
+            />
+            <Modal
+                visible={visible}
+                onClose={() => setVisible(false)}
+                title={t("colors.set")}
+                closeLabel={t('cancel')}
+                scrollable
+                footer={
+                    <Button
+                        label={t('close')}
+                        variant='outline'
+                        onPress={() => setVisible(false)}
+                        style={{ flex: 1 }}
+                    />
+                }
+            >
+                <View style={localStyles.headBlock}>
+                    <IconButton
+                        label={t('colors.copy')}
+                        variant='surface'
+                        icon={<MaterialIcons name="content-copy" size={24} color={colors.text} />}
+                        onPress={handleCopy}
+                    />
+                    <View style={[localStyles.colorViewer, { backgroundColor: color, borderColor: colors.border }]} />
+                    <IconButton
+                        label={t('colors.paste')}
+                        variant='surface'
+                        icon={<MaterialIcons name="content-paste" size={24} color={colors.text} />}
+                        onPress={handlePaste}
+                    />
+                </View>
+                <View style={localStyles.rowCentered}>
+                    <TextInput
+                        onChangeText={handleHexChange}
+                        value={inputColor}
+                        autoCapitalize="characters"
+                        style={[
+                            localStyles.colorInput,
+                            { borderColor: colors.border, backgroundColor: colors.inputBackground, color: colors.text },
+                        ]}
+                    />
+                </View>
+                {channelRow("R", r, "#ff0000", "r")}
+                {channelRow("G", g, "#00ff00", "g")}
+                {channelRow("B", b, "#0000ff", "b")}
+                {channelRow("A", a, colors.text, "a")}
+                <ToastViewport />
+            </Modal>
         </>
     )
 }

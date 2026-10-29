@@ -1,29 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
-import styles from '@/src/styles/styles';
 import SwipeItem from '@/src/components/ui/swipe-item';
-import BorderLeftBlock from '@/src/components/ui/BorderLeftBlock';
-import IconButton from '@/src/components/ui/icon-button';
-import ModalContainer from '@/src/components/ui/modal-container';
-import { MaterialIcons } from '@expo/vector-icons';
-import InputLabel from '@/src/components/ui/InputLabel';
 import useAndroidToast from '@/src/hooks/useAndroidToast';
 import { RecordType, Insertable } from '@/src/interfaces/schema';
 import { useDataStore } from '@/src/stores';
-import ColorPicker2 from '@/src/components/ui/color-picker-2';
 import { useTableRepository } from '@/src/db';
+import { Button } from '@/src/ui/actions/Button';
+import { ColorField } from '@/src/ui/forms/ColorField';
+import { SelectField } from '@/src/ui/forms/SelectField';
+import { TextField } from '@/src/ui/forms/TextField';
+import { ListItem } from '@/src/ui/data-display/ListItem';
+import { Modal } from '@/src/ui/overlays/Modal';
+import { Row, Stack } from '@/src/ui/primitives/Stack';
+import { Screen } from '@/src/ui/primitives/Screen';
+import { useTheme } from '@/src/ui/theme/ThemeProvider';
 
 type EffectType = "-" | "=" | "+";
 
 const RecordTypesScreen = () => {
     const { t } = useLanguage();
+    const { colors } = useTheme();
+    const [visible, setVisible] = useState(false);
     const [name, setName] = useState('');
     const [color, setColor] = useState('#000000');
     const [effect, setEffect] = useState<EffectType>('=');
     const [editingId, setEditingId] = useState<number | undefined>(undefined);
-    const [openModal, setOpenModal] = useState(false)
     const toast = useAndroidToast()
     const { RecordTypes, setRecordTypes } = useDataStore();
     const repository = useTableRepository("RecordTypes");
@@ -36,12 +40,28 @@ const RecordTypesScreen = () => {
         loadData();
     }, []);
 
+    const resetForm = () => {
+        setName('');
+        setColor('#000000');
+        setEffect('=');
+        setEditingId(undefined);
+    }
+
+    const openCreate = () => {
+        resetForm();
+        setVisible(true);
+    }
+
     const handleAdd = async () => {
-        if (!name || !color || effect === null) {
+        if (!name.trim() || !color || effect === null) {
             toast.emptyMessage()
             return;
         }
-        const newData: Insertable<RecordType>  = { type_name: name, effect, record_color: color };
+        const newData: Insertable<RecordType> = {
+            type_name: name.trim(),
+            effect,
+            record_color: color,
+        };
         try {
             if (editingId) {
                 await repository.edit({ ...newData, id: editingId });
@@ -52,10 +72,8 @@ const RecordTypesScreen = () => {
             }
             const methods = await repository.fetchAll();
             setRecordTypes(methods);
-            setName('');
-            setColor('#000000');
-            setEffect('=');
-            setEditingId(undefined);
+            resetForm();
+            setVisible(false);
         } catch (error) {
             toast.errorMessage()
             console.error(error);
@@ -77,104 +95,104 @@ const RecordTypesScreen = () => {
 
     const handleEdit = (item: RecordType) => {
         setName(item.type_name);
-        setColor(item.record_color || "");
-        setEffect(item.effect as EffectType);
+        setColor(item.record_color || "#000000");
+        setEffect((item.effect as EffectType) || '=');
         setEditingId(item.id);
-        setOpenModal(!openModal)
+        setVisible(true)
     };
 
-    const buttonOpen = (
-        <View style={localStyles.buttonOpenContainer}>
-            <IconButton isButton={false}>
-                <MaterialIcons name='add' size={20}></MaterialIcons>
-            </IconButton >
-        </View>
-    )
-
-    const onCloseModal = () => {
-        setName('');
-        setColor('#000000');
-        setEffect('=');
-        setEditingId(undefined);
-    };
+    const effectOptions: { label: string; value: EffectType }[] = [
+        { label: t('item.expense'), value: '-' },
+        { label: t('item.transfer'), value: '=' },
+        { label: t('item.income'), value: '+' },
+    ];
 
     return (
-        <View style={[styles.container, { flex: 1 }]}>
-            <ModalContainer
-                buttonOpen={buttonOpen}
+        <Screen scroll edges={['left', 'right']}>
+            <Stack gap='lg'>
+                <Button
+                    label={t('add.recordType')}
+                    size='sm'
+                    onPress={openCreate}
+                    leftIcon={<MaterialIcons name='add' size={18} color={colors.onPrimary} />}
+                    style={{ alignSelf: 'flex-start' }}
+                />
+
+                <View style={{ gap: 8 }}>
+                    {RecordTypes?.map((item, index) => (
+                        <SwipeItem
+                            key={item.id ?? index}
+                            handleDelete={() => handleDelete(item.id)}
+                            handleUpdate={() => handleEdit(item)}
+                        >
+                            <ListItem
+                                title={item.type_name}
+                                leading={
+                                    <View
+                                        style={{
+                                            width: 4,
+                                            height: 32,
+                                            borderRadius: 2,
+                                            backgroundColor: item.record_color || colors.primary,
+                                        }}
+                                    />
+                                }
+                                showDivider
+                            />
+                        </SwipeItem>
+                    ))}
+                </View>
+            </Stack>
+
+            <Modal
+                visible={visible}
+                onClose={() => setVisible(false)}
                 title={editingId ? t('edit.recordType') : t('add.recordType')}
-                type='complete'
-                onAccept={handleAdd}
-                closeOnAccept={true}
-                open={openModal}
-                onClose={onCloseModal}
+                closeLabel={t('cancel')}
+                scrollable
+                footer={
+                    <Row gap='sm' style={{ flex: 1 }}>
+                        <Button
+                            label={t('cancel')}
+                            variant='outline'
+                            onPress={() => setVisible(false)}
+                            style={{ flex: 1 }}
+                        />
+                        <Button
+                            label={t('confirm')}
+                            onPress={handleAdd}
+                            style={{ flex: 1 }}
+                        />
+                    </Row>
+                }
             >
-                <View style={localStyles.modalContent}>
-                    <InputLabel
-                        placeholder={t('recordTypes.name') + "*"}
+                <Stack gap='lg'>
+                    <TextField
+                        label={t('recordTypes.name')}
+                        required
                         value={name}
                         onChangeText={setName}
+                        placeholder={t('recordTypes.name')}
                     />
-                    <View style={{ width: '100%', paddingHorizontal: 40, flexDirection: "row", justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Text style={[styles.label, { marginBottom: 10 }]}>
-                            {t('recordTypes.effect') + "*"}
-                        </Text>
-                        <View style={{ flexDirection: 'row', gap: 10, justifyContent: 'space-between', alignItems: 'center' }}>
-                            {['-', '=', '+'].map((eff) => (
-                                <Pressable
-                                    key={eff}
-                                    onPress={() => setEffect(eff as EffectType)}
-                                    style={effect === eff ? styles.enfasizedButton : styles.button}
-                                >
-                                    <Text style={styles.text}>{eff}</Text>
-                                </Pressable>
-                            ))}
-                        </View>
-                    </View>
-                    <View style={{ width: '100%', paddingHorizontal: 40, flexDirection: "row", justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Text style={[styles.label, { marginBottom: 10 }]}>
-                            {t('recordTypes.color') + "*"}
-                        </Text>
-
-                        <ColorPicker2
-                            color={color}
-                            onChange={(c) => setColor(c)}
-                        />
-                    </View>
-                </View>
-            </ModalContainer>
-            <ScrollView style={{ flex: 1, paddingRight: 40 }}>
-                {RecordTypes?.map((item, index) => (
-                    <SwipeItem
-                        key={index}
-                        handleDelete={() => handleDelete(item.id)}
-                        handleUpdate={() => handleEdit(item)}
-                        style={[styles.horizontalBlock]}
-                    >
-                        <BorderLeftBlock color={item?.record_color || "#000"}>
-                            <Text style={[styles.text]}>{item.type_name}</Text>
-                        </BorderLeftBlock>
-                    </SwipeItem>
-                ))}
-            </ScrollView>
-        </View >
+                    <SelectField<EffectType>
+                        label={t('recordTypes.effect')}
+                        required
+                        value={effect}
+                        options={effectOptions}
+                        onChange={setEffect}
+                        title={t('recordTypes.effect')}
+                        closeLabel={t('cancel')}
+                    />
+                    <ColorField
+                        label={t('recordTypes.color')}
+                        required
+                        value={color}
+                        onChange={setColor}
+                    />
+                </Stack>
+            </Modal>
+        </Screen>
     );
 };
-
-const localStyles = StyleSheet.create({
-    buttonOpenContainer: {
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center"
-    },
-    modalContent: {
-        paddingTop: 40,
-        flexDirection: "column",
-        justifyContent: "center",
-        gap: 60,
-        alignItems: "center",
-        height: "90%"
-    }
-})
 
 export default RecordTypesScreen;

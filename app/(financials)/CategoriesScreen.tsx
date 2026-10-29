@@ -1,23 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Alert, StyleSheet, ScrollView } from 'react-native';
+import { View } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 
-import styles from '@/src/styles/styles';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import SwipeItem from '@/src/components/ui/swipe-item';
-import BGSimpleBlock from '@/src/components/ui/BGSimpleBlock';
-import IconButton from '@/src/components/ui/icon-button';
-import { MaterialIcons } from '@expo/vector-icons';
-import InputLabel from '@/src/components/ui/InputLabel';
 import useAndroidToast from '@/src/hooks/useAndroidToast';
 import { Category } from '@/src/interfaces/schema';
 import { useDataStore } from '@/src/stores';
 import { useTableRepository } from '@/src/db';
+import { Button } from '@/src/ui/actions/Button';
+import { ListItem } from '@/src/ui/data-display/ListItem';
+import { TextField } from '@/src/ui/forms/TextField';
+import { Row, Stack } from '@/src/ui/primitives/Stack';
+import { Screen } from '@/src/ui/primitives/Screen';
+import { useTheme } from '@/src/ui/theme/ThemeProvider';
 
-const PaymentTypesScreen = () => {
+const CategoriesScreen = () => {
     const { t } = useLanguage();
-    const [category_name, setCategoryName ] = useState('');
+    const { colors } = useTheme();
+    const [category_name, setCategoryName] = useState('');
     const [editingId, setEditingId] = useState<number | undefined>(undefined);
-    const {Categories, setCategories} = useDataStore()
+    const { Categories, setCategories } = useDataStore()
     const toast = useAndroidToast()
     const repository = useTableRepository("Categories");
 
@@ -30,11 +33,11 @@ const PaymentTypesScreen = () => {
     }, []);
 
     const handleAddOrUpdate = async () => {
-        if (!category_name) {
+        if (!category_name.trim()) {
             toast.emptyMessage()
             return;
         }
-        const newData: Category = { category_name };
+        const newData: Category = { category_name: category_name.trim() };
 
         try {
             if (editingId) {
@@ -61,7 +64,7 @@ const PaymentTypesScreen = () => {
     };
 
     const handleDelete = async (id: number | undefined) => {
-        if(!id) return;
+        if (!id) return;
         try {
             await repository.deleteById(id);
             const result = await repository.fetchAll();
@@ -71,52 +74,49 @@ const PaymentTypesScreen = () => {
             console.error(error);
         }
     };
+
     return (
-        <View style={styles.container}>
-            <View style={localStyles.rowContainer}>
-                <InputLabel
-                    placeholder={t('categories.categoryName') + '*'}
-                    value={category_name}
-                    onChangeText={setCategoryName}
-                />
-                <IconButton onClick={handleAddOrUpdate}>
-                    <MaterialIcons name={editingId ? 'edit' : 'add'} size={20}></MaterialIcons>
-                </IconButton>
-            </View>
-            <ScrollView style={{ flex: 1, paddingRight: 40 }}>
-                {Categories?.map((item, index) => (
-                    <View key={index} style={{ marginVertical: 5 }}>
+        <Screen scroll edges={['left', 'right']}>
+            <Stack gap='lg'>
+                <Row gap='sm' align='flex-end'>
+                    <TextField
+                        containerStyle={{ flex: 1 }}
+                        label={t('categories.categoryName')}
+                        required
+                        placeholder={t('categories.categoryName')}
+                        value={category_name}
+                        onChangeText={setCategoryName}
+                    />
+                    <Button
+                        label={editingId ? t('categories.updateCategory') : t('categories.addCategory')}
+                        onPress={handleAddOrUpdate}
+                        leftIcon={
+                            <MaterialIcons
+                                name={editingId ? 'edit' : 'add'}
+                                size={18}
+                                color={colors.onPrimary}
+                            />
+                        }
+                    />
+                </Row>
+
+                <View style={{ gap: 8 }}>
+                    {Categories?.map((item, index) => (
                         <SwipeItem
+                            key={item.id ?? index}
                             handleDelete={() => handleDelete(item.id)}
                             handleUpdate={() => handleEdit(item)}
-                            style={[styles.horizontalBlock]}
                         >
-                            <BGSimpleBlock>
-                                <Text>{item.category_name}</Text>
-                            </BGSimpleBlock>
+                            <ListItem
+                                title={item.category_name}
+                                showDivider
+                            />
                         </SwipeItem>
-                    </View>
-                ))}
-            </ScrollView>
-        </View>
+                    ))}
+                </View>
+            </Stack>
+        </Screen>
     );
 };
 
-const localStyles = StyleSheet.create({
-    label: {
-        fontSize: 12,
-        fontWeight: "200"
-    },
-    rowContainer: {
-        flexDirection: "row",
-        justifyContent: "center",
-        alignItems: "flex-end",
-        gap: 10
-    },
-    colContainer: {
-        flex: 1,
-        flexDirection: "column"
-    },
-})
-
-export default PaymentTypesScreen;
+export default CategoriesScreen;

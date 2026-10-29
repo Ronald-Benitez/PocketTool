@@ -393,38 +393,39 @@ Checklist obligatorio por componente:
 
 ### UI-1 — Formularios y acciones (2–3 días)
 
-**Estado:** 🔄 Parcial avanzado — catálogo de campos y acciones completo;
-formularios principales migrados; faltan adaptadores y pantallas legacy.
+**Estado:** ✅ Completado (2026-10-28) dentro del alcance actual.
 
 - `FormField`, `TextField`, `MoneyField`, `SelectField`, `DateField`,
   `MonthField`, `SwitchField`, `ColorField`, `Button`, `IconButton`,
   `LinkButton`, `MultiSelectField`. ✅
 - Adaptadores para `InputLabel`, `Input`, `BaseSelect`, `DatePicker`,
-  `MonthSelector`, `PressableSwitch`, `ColorPicker2`. ⏳
+  `MonthSelector`, `PressableSwitch`, `ColorPicker2`. ✅ (los legacy se
+  eliminaron)
 - Migrar como piloto: `add-group`. ✅
 - Migrar: `add-record`. ✅
 - Migrar: `AddFixed`, `AddTemplateItem`, `add-budget`, `AddSaving`. ✅
 - Migrar selects de Ajustes, métodos de pago, grupo y ahorros. ✅
-- `RecordsFilterModal` migrado en UI-2b; `BaseSelect` queda sin consumidores. ✅
+- `RecordsFilterModal` migrado en UI-2b; `BaseSelect` eliminado. ✅
 
 ### UI-2 — Feedback y overlays (1–2 días)
 
-**Estado:** 🔄 Parcial avanzado — sistema de feedback y overlays creado; falta
-migrar los overlays legacy.
+**Estado:** ✅ Completado (2026-10-28), salvo el `Alert` de export/import.
 
 - `ToastProvider`, `InlineMessage`, `EmptyState`, `LoadingState`,
   `ConfirmDialog`. ✅
 - `Modal`, `Dialog`, `BottomSheet`, `ModalHeader/Body/Footer`. ✅ (header/body/
   footer integrados en `Modal`)
-- Reemplazar `useToast`/`useAndroidToast`/`Alert` en pantallas. ⏳
+- Reemplazar `useToast`/`useAndroidToast`/`Alert` en pantallas. ✅ (los
+  adaptadores de toast siguen disponibles; `export-db` conserva `Alert`)
 - Migrar `confirm-modal`. ✅
-- Migrar `ModalContainer`, `base-modal`, `confirm`, `HelpModal`. ⏳
-- `RecordsModal` migrado a `Modal` en UI-2b. ✅
+- Migrar `ModalContainer`, `base-modal`, `confirm`, `HelpModal`. ✅
+- `RecordsModal` migrado a `Modal`. ✅
+- `SwipeItem` y ahorros usan `Dialog` para eliminar. ✅
+- `ColorPicker2` migrado al `Modal` compartido. ✅
+- Eliminados los overlays legacy y componentes sin consumidores. ✅
 - Teclado: `Modal` usa `KeyboardAvoidingView` (padding iOS, height Android),
   auto-scroll al input enfocado y `softwareKeyboardLayoutMode: "resize"` en
   Android. ✅
-- Modales legacy `ModalContainer`, `base-modal` y `RecordsFilterModal` reciben
-  `KeyboardAvoidingView` mientras se migran. ✅
 
 ### UI-2b — Filtros tipados y reutilizables (1 día)
 
@@ -454,7 +455,7 @@ migración de bloques/tablas.
 - `SwipeAction`. ⏳
 - Migrar `FinanceSimpleBlock`, `FinanceSmallBlock`, `FinanceTableBlock`,
   `FinanceTableChart`, `BalanceBlock`, `IndexBlock`, `BGSimpleBlock`,
-  `BorderLeftBlock`, `BorderLeftButtonBlock`. ⏳
+  `BorderLeftButtonBlock`. ⏳
 - Unificar estilos de listas, tablas y tarjetas. ⏳
 
 ### UI-4 — Limpieza y calidad (1–2 días)

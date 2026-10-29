@@ -14,8 +14,8 @@ métodos de pago, créditos, ahorros y vehículo.
 - **Fase 1 — Fuente única de verdad del esquema: FINALIZADA** (2026-10-28).
 - **Fase 2 — Repositorios y ORM robusto: FINALIZADA** (2026-10-28).
 - **Fase 3 — Calidad, pruebas y operación: FINALIZADA** (2026-10-28).
-- **Fase 4 — Sistema de UI reutilizable: EN PROGRESO**. UI-0/UI-0b
-  completadas; UI-1 y UI-2 parciales (campos base, botones y toast global).
+- **Fase 4 — Sistema de UI reutilizable: EN PROGRESO**. UI-0, UI-0b, UI-1,
+  UI-2, UI-2b y UI-2c completadas; UI-3 parcial y UI-4 pendiente.
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
