@@ -137,7 +137,7 @@ const PaymentMethodsScreen = () => {
     return (
         <Screen scroll edges={['left', 'right']}>
             <Stack gap='lg'>
-                <Row justify='flex-end'>
+                <Row justify='flex-start'>
                     <Button
                         label={t('paymentMethods.addMethod')}
                         size='sm'

@@ -98,7 +98,7 @@ const PaymentTypesScreen = () => {
         <Screen scroll edges={['left', 'right']}>
             <Stack gap='lg'>
                 <Button
-                    label={t('add.paymentTypes')}
+                    label={t('add.paymentType')}
                     size='sm'
                     onPress={openCreate}
                     leftIcon={<MaterialIcons name='add' size={18} color={colors.onPrimary} />}
@@ -134,7 +134,7 @@ const PaymentTypesScreen = () => {
             <Modal
                 visible={visible}
                 onClose={() => setVisible(false)}
-                title={editingId ? t('edit.paymentTypes') : t('add.paymentTypes')}
+                title={editingId ? t('edit.paymentType') : t('add.paymentType')}
                 closeLabel={t('cancel')}
                 scrollable
                 footer={

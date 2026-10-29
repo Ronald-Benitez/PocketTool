@@ -11,6 +11,7 @@ import { useTableRepository } from '@/src/db';
 import { Button } from '@/src/ui/actions/Button';
 import { ListItem } from '@/src/ui/data-display/ListItem';
 import { TextField } from '@/src/ui/forms/TextField';
+import { Modal } from '@/src/ui/overlays/Modal';
 import { Row, Stack } from '@/src/ui/primitives/Stack';
 import { Screen } from '@/src/ui/primitives/Screen';
 import { useTheme } from '@/src/ui/theme/ThemeProvider';
@@ -18,6 +19,7 @@ import { useTheme } from '@/src/ui/theme/ThemeProvider';
 const CategoriesScreen = () => {
     const { t } = useLanguage();
     const { colors } = useTheme();
+    const [visible, setVisible] = useState(false);
     const [category_name, setCategoryName] = useState('');
     const [editingId, setEditingId] = useState<number | undefined>(undefined);
     const { Categories, setCategories } = useDataStore()
@@ -31,6 +33,16 @@ const CategoriesScreen = () => {
         };
         loadData();
     }, []);
+
+    const resetForm = () => {
+        setCategoryName('');
+        setEditingId(undefined);
+    }
+
+    const openCreate = () => {
+        resetForm();
+        setVisible(true);
+    }
 
     const handleAddOrUpdate = async () => {
         if (!category_name.trim()) {
@@ -50,8 +62,8 @@ const CategoriesScreen = () => {
 
             const result = await repository.fetchAll();
             setCategories(result);
-            setCategoryName('');
-            setEditingId(undefined);
+            resetForm();
+            setVisible(false);
         } catch (error) {
             console.error(error);
             toast.errorMessage()
@@ -61,6 +73,7 @@ const CategoriesScreen = () => {
     const handleEdit = (data: Category) => {
         setCategoryName(data.category_name);
         setEditingId(data.id);
+        setVisible(true);
     };
 
     const handleDelete = async (id: number | undefined) => {
@@ -78,21 +91,14 @@ const CategoriesScreen = () => {
     return (
         <Screen scroll edges={['left', 'right']}>
             <Stack gap='lg'>
-                <Row gap='sm' align='flex-end'>
-                    <TextField
-                        containerStyle={{ flex: 1 }}
-                        label={t('categories.categoryName')}
-                        required
-                        placeholder={t('categories.categoryName')}
-                        value={category_name}
-                        onChangeText={setCategoryName}
-                    />
+                <Row justify='flex-start'>
                     <Button
-                        label={editingId ? t('categories.updateCategory') : t('categories.addCategory')}
-                        onPress={handleAddOrUpdate}
+                        label={t('add.category')}
+                        size='sm'
+                        onPress={openCreate}
                         leftIcon={
                             <MaterialIcons
-                                name={editingId ? 'edit' : 'add'}
+                                name='add'
                                 size={18}
                                 color={colors.onPrimary}
                             />
@@ -115,6 +121,37 @@ const CategoriesScreen = () => {
                     ))}
                 </View>
             </Stack>
+
+            <Modal
+                visible={visible}
+                onClose={() => setVisible(false)}
+                title={editingId ? t('edit.category') : t('add.category')}
+                closeLabel={t('cancel')}
+                scrollable
+                footer={
+                    <Row gap='sm' style={{ flex: 1 }}>
+                        <Button
+                            label={t('cancel')}
+                            variant='outline'
+                            onPress={() => setVisible(false)}
+                            style={{ flex: 1 }}
+                        />
+                        <Button
+                            label={t('confirm')}
+                            onPress={handleAddOrUpdate}
+                            style={{ flex: 1 }}
+                        />
+                    </Row>
+                }
+            >
+                <TextField
+                    label={t('categories.categoryName')}
+                    required
+                    placeholder={t('categories.categoryName')}
+                    value={category_name}
+                    onChangeText={setCategoryName}
+                />
+            </Modal>
         </Screen>
     );
 };

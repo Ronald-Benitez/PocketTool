@@ -56,8 +56,12 @@ export const SwipeAction = ({
     transform: [{ translateX: translationX.value }],
   }));
 
-  const animatedOpacity = useAnimatedStyle(() => ({
-    opacity: translationX.value < -60 ? 1 : 0 || translationX.value > 60 ? 1 : 0,
+  const deleteOpacity = useAnimatedStyle(() => ({
+    opacity: translationX.value < -60 ? 1 : 0,
+  }));
+
+  const editOpacity = useAnimatedStyle(() => ({
+    opacity: translationX.value > 60 ? 1 : 0,
   }));
 
   const onConfirmDelete = () => {
@@ -79,7 +83,7 @@ export const SwipeAction = ({
           styles.action,
           styles.actionRight,
           { backgroundColor: colors.danger },
-          animatedOpacity,
+          deleteOpacity,
         ]}
       >
         <MaterialIcons name='delete-outline' size={24} color={colors.onDanger} />
@@ -92,7 +96,7 @@ export const SwipeAction = ({
             styles.action,
             styles.actionLeft,
             { backgroundColor: colors.warning },
-            animatedOpacity,
+            editOpacity,
           ]}
         >
           <MaterialIcons name='edit' size={22} color={colors.onWarning} />
@@ -119,12 +123,12 @@ export const SwipeAction = ({
 const styles = {
   action: {
     position: 'absolute',
+    top: 0,
+    bottom: 0,
     width: 52,
-    height: 48,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    top: 8,
   } as ViewStyle,
   actionRight: {
     right: 0,
