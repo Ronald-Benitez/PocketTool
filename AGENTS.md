@@ -59,8 +59,7 @@ commits relevantes, archivos tocados y verificaciones realizadas.
   usa el tema.
 - `src/ui/index.ts`: barrel público del sistema de UI.
 - `app/gallery.tsx`: galería de desarrollo, oculta del drawer.
-- `src/hooks/useAndroidToast.ts` es un adaptador semántico sobre el
-  `ToastProvider`; no crear toasts/Modals locales nuevos.
+- No crear toasts o modales locales; usar `ToastProvider` y `src/ui`.
 - `eslint.config.js` bloquea `TextInput`, `Modal`, `Alert` y `ToastAndroid` de
   `react-native` fuera de `src/ui`.
 - Los componentes nuevos usan `useTheme()`; no leer `useColorStore` ni claves

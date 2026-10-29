@@ -280,7 +280,10 @@
     "savings": {
         "select": "Select a saving",
         "add": "Add a saving",
-        "edit": "Edit a saving"
+        "edit": "Edit a saving",
+        "pin": "Pin saving",
+        "unpin": "Unpin saving",
+        "delete": "Delete saving"
     },
     "db": {
         "importCancel": "Import canceled!",

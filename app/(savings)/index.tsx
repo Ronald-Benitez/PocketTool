@@ -5,7 +5,7 @@ import { AntDesign, Feather, Ionicons, MaterialIcons } from '@expo/vector-icons'
 import { LineChart, lineDataItem } from "react-native-gifted-charts";
 
 import { useLanguage } from '@/src/lang/LanguageContext';
-import IconButton from '@/src/components/ui/icon-button';
+import { IconButton } from '@/src/ui/actions/IconButton';
 import SavingsSelector from '@/src/components/savings/saving-selector';
 import AddSaving from '@/src/components/savings/add-savings';
 import useSavingsStore from '@/src/stores/SavingsStore';
@@ -61,10 +61,13 @@ const Index = () => {
         }
 
         return (
-            <IconButton onClick={pinUp}>
-                <Ionicons name={isPinned ? "pin" : "pin-outline"} size={24} color="#000" />
-            </IconButton>
-
+            <IconButton
+                label={isPinned ? t('savings.unpin') : t('savings.pin')}
+                variant='surface'
+                selected={isPinned}
+                icon={<Ionicons name={isPinned ? "pin" : "pin-outline"} size={24} color={colors?.text} />}
+                onPress={pinUp}
+            />
         )
     }
 
@@ -84,9 +87,9 @@ const Index = () => {
                 <View style={localStyles.colContainer}>
                     <View style={{ marginBottom: 8 }}>
                         <SavingsSelector>
-                            <IconButton isButton={false}>
-                                <MaterialIcons name='list' size={20} color={"#000"} />
-                            </IconButton>
+                            <View style={localStyles.iconButton}>
+                                <MaterialIcons name='list' size={20} color={colors?.text} />
+                            </View>
                         </SavingsSelector>
                     </View>
                     <Pin />
@@ -107,16 +110,16 @@ const Index = () => {
                     {
                         saving && (
                             <AddSaving isEditing={true}>
-                                <IconButton isButton={false}>
-                                    <Feather name='edit-2' size={20} color={"#000"} />
-                                </IconButton>
+                                <View style={localStyles.iconButton}>
+                                    <Feather name='edit-2' size={20} color={colors?.text} />
+                                </View>
                             </AddSaving>
                         )
                     }
                     <AddSaving isEditing={false}>
-                        <IconButton isButton={false}>
-                            <AntDesign name='plus' size={20} color={"#000"} />
-                        </IconButton>
+                        <View style={localStyles.iconButton}>
+                            <AntDesign name='plus' size={20} color={colors?.text} />
+                        </View>
                     </AddSaving>
                 </View>
             </View>
@@ -165,9 +168,12 @@ const Index = () => {
             <View style={[localStyles.rowContainer, { justifyContent: "center" }]}>
                 {
                     saving && (
-                        <IconButton onClick={() => setDeleteVisible(true)}>
-                            <MaterialIcons name='delete-outline' size={20} color={"#000"}></MaterialIcons>
-                        </IconButton>
+                        <IconButton
+                            label={t('savings.delete')}
+                            variant='surface'
+                            icon={<MaterialIcons name='delete-outline' size={20} color={colors?.danger} />}
+                            onPress={() => setDeleteVisible(true)}
+                        />
                     )
                 }
             </View>
@@ -214,6 +220,12 @@ const localStyles = StyleSheet.create({
     colContainer: {
         flexDirection: "column",
         gap: 5,
+        justifyContent: "center"
+    },
+    iconButton: {
+        width: 44,
+        height: 44,
+        alignItems: "center",
         justifyContent: "center"
     },
     valueText: {

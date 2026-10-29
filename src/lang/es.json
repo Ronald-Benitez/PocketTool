@@ -284,7 +284,10 @@
     "savings": {
         "select": "Selecciona un ahorro",
         "add": "Agrega un ahorro",
-        "edit": "Edita un ahorro"
+        "edit": "Edita un ahorro",
+        "pin": "Fijar ahorro",
+        "unpin": "Quitar fijado",
+        "delete": "Eliminar ahorro"
     },
     "db": {
         "importCancel": "¡Importación cancelada!",

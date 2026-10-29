@@ -11,7 +11,6 @@ import AddItem from './AddTemplateItem'
 import useRecordsStore from '@/src/stores/RecordsStore';
 import useColorStore from '@/src/stores/ColorsStore'
 import { AccentRow } from '@/src/ui/data-display/AccentRow'
-import IconButton from '../ui/icon-button'
 import type { RecordFormEntry, RecordView } from '@/src/interfaces/schema'
 import { formatMoney, formatMoneyWithSymbol } from '@/src/utils'
 import { useRecords } from "@/src/db";import useResumesStore from '@/src/stores/ResumesStore'
@@ -129,9 +128,9 @@ const TemplateTable = () => {
                     {
                         group && (
                             <AddItem>
-                                <IconButton isButton={false}>
-                                    <AntDesign size={20} name='plus' color={"#000"} />
-                                </IconButton>
+                                <View style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+                                    <AntDesign size={20} name='plus' color={colors?.text} />
+                                </View>
                             </AddItem >
                         )
                     }

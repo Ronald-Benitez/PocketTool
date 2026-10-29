@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
 import useRecordsStore from '@/src/stores/RecordsStore'
-import useAndroidToast from '@/src/hooks/useAndroidToast'
+import { useToast } from '@/src/ui/feedback/ToastProvider'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { SwipeAction } from '@/src/ui/actions/SwipeAction'
 import AddGroup from './add-group'
@@ -23,7 +23,7 @@ import { TextField } from '@/src/ui/forms/TextField'
 
 const GroupSelector = () => {
     const { t } = useLanguage()
-    const toast = useAndroidToast()
+    const { showToast } = useToast()
     const [year, setYear] = useState<string>(new Date().getFullYear().toString())
     const { group, setGroup, setRecords, groups, setGroups, setPaidCredits } = useRecordsStore()
     const [openUpdate, setOpenUpdate] = useState(false)
@@ -119,7 +119,7 @@ const GroupSelector = () => {
             if (g) onSelect(g)
         })
         getGroups()
-        toast.deletedMessage()
+        showToast({ message: t('toast.deleted'), type: 'success' })
     }
 
     const handleUpdate = () => {

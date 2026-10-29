@@ -16,8 +16,7 @@ import {
   type ThemeMode,
 } from '@/src/ui/theme/ThemeProvider';
 import ColorPicker from '@/src/ui/forms/ColorPicker';
-import ConfirmModal from '../ui/confirm-modal';
-import ModalButton from '../ui/modal-button';
+import { ConfirmDialog } from '@/src/ui/overlays/Dialog';
 
 const MODES: ThemeMode[] = ['system', 'light', 'dark'];
 const PALETTES: PaletteName[] = ['bright', 'dark'];
@@ -41,6 +40,7 @@ const ColorSettings = () => {
   const [activePalette, setActivePalette] = useState<PaletteName>(
     resolvedMode === 'dark' ? 'dark' : 'bright'
   );
+  const [confirmAction, setConfirmAction] = useState<'palette' | 'all' | null>(null);
   const palette = palettes[activePalette];
   const warnings = useMemo(() => getContrastWarnings(palette), [palette]);
   const usingBase = settings.useBase[activePalette];
@@ -211,24 +211,14 @@ const ColorSettings = () => {
           disabled={usingBase}
           onPress={() => setUseBase(activePalette, true)}
         />
-        <ConfirmModal
-          title={t('theme.resetPalette')}
-          message={t('theme.confirmResetPalette').replace('{palette}', paletteLabel)}
-          onConfirm={() => resetPalette(activePalette)}
-        >
-          <ModalButton
-            isButton={false}
-            text={t('theme.resetPalette')}
-            type='base'
-          />
-        </ConfirmModal>
-        <ConfirmModal
-          title={t('theme.resetAll')}
-          message={t('theme.confirmResetAll')}
-          onConfirm={resetAll}
-        >
-          <ModalButton isButton={false} text={t('theme.resetAll')} type='base' />
-        </ConfirmModal>
+        <ActionButton
+          label={t('theme.resetPalette')}
+          onPress={() => setConfirmAction('palette')}
+        />
+        <ActionButton
+          label={t('theme.resetAll')}
+          onPress={() => setConfirmAction('all')}
+        />
       </View>
 
       <Text style={[localStyles.hint, { color: colors.textMuted }]}>
@@ -253,6 +243,25 @@ const ColorSettings = () => {
           ))}
         </View>
       ))}
+      <ConfirmDialog
+        visible={confirmAction !== null}
+        title={confirmAction === 'all' ? t('theme.resetAll') : t('theme.resetPalette')}
+        message={
+          confirmAction === 'all'
+            ? t('theme.confirmResetAll')
+            : t('theme.confirmResetPalette').replace('{palette}', paletteLabel)
+        }
+        confirmLabel={t('confirm')}
+        cancelLabel={t('cancel')}
+        closeLabel={t('cancel')}
+        tone='danger'
+        onConfirm={() => {
+          if (confirmAction === 'all') resetAll();
+          else resetPalette(activePalette);
+          setConfirmAction(null);
+        }}
+        onCancel={() => setConfirmAction(null)}
+      />
     </View>
   );
 };

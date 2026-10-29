@@ -7,7 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 import React, { useEffect, useMemo, useState } from "react";
-import { AntDesign, MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { useLanguage } from "@/src/lang/LanguageContext";
@@ -16,7 +16,6 @@ import { useToast } from "@/src/ui/feedback/ToastProvider";
 import AddItem from "./add-record";
 import useRecordsStore from "@/src/stores/RecordsStore";
 import useColorStore from "@/src/stores/ColorsStore";
-import IconButton from "../ui/icon-button";
 import useResumesStore from "@/src/stores/ResumesStore";
 import { useCreditStore } from "@/src/stores/CreditsStore";
 import { useConfigs } from "@/src/hooks/useConfigs";
@@ -25,7 +24,6 @@ import styles from "@/src/styles/styles";
 import RecordsGroup from "./RecordsGroup";
 import FixedsGroup from "./FixedsGroup";
 import CreditsGroups from "./CreditsGroups";
-import ColorText from "../ui/color-text";
 import { useRecords } from "@/src/db";
 import type { OrderCondition } from "@/src/orm";
 import type { RecordFormEntry, RecordType, RecordWithRelations } from "@/src/interfaces/schema";
@@ -38,6 +36,7 @@ import {
 } from "@/src/domain/records/filtering";
 import { IconButton as AppIconButton } from "@/src/ui/actions/IconButton";
 import { Badge } from "@/src/ui/data-display/Badge";
+import { AppText } from "@/src/ui/primitives/AppText";
 
 enum SHOW_OPTIONS {
   ALL = 0,
@@ -249,9 +248,9 @@ const ItemsTable = () => {
             ) : null}
             {group && (
               <AddItem>
-                <IconButton isButton={false}>
-                  <AntDesign size={20} name="plus" color={"#000"} />
-                </IconButton>
+                <View style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}>
+                  <MaterialIcons name="add" size={24} color={colors.primary} />
+                </View>
               </AddItem>
             )}
           </View>
@@ -269,94 +268,34 @@ const ItemsTable = () => {
               marginVertical: 10,
             }}
           >
-            <Pressable onPress={() => setShowActual(SHOW_OPTIONS.ALL)}>
-              <View
-                style={[
-                  localStyles.filterPill,
-                  showActual === SHOW_OPTIONS.ALL
-                    ? { backgroundColor: colors?.ModalHeaderColor }
-                    : {},
-                ]}
-              >
-                <ColorText
-                  backgroundColor={
-                    showActual === SHOW_OPTIONS.ALL
-                      ? colors?.ModalHeaderColor
-                      : "#fff"
-                  }
-                  fontSize={10}
-                  padding={0}
-                >
-                  {t("records.all")}
-                </ColorText>
-              </View>
-            </Pressable>
-            <Pressable onPress={() => setShowActual(SHOW_OPTIONS.RECORDS)}>
-              <View
-                style={[
-                  localStyles.filterPill,
-                  showActual === SHOW_OPTIONS.RECORDS
-                    ? { backgroundColor: colors?.ModalHeaderColor }
-                    : {},
-                ]}
-              >
-                <ColorText
-                  backgroundColor={
-                    showActual === SHOW_OPTIONS.RECORDS
-                      ? colors?.ModalHeaderColor
-                      : "#fff"
-                  }
-                  fontSize={10}
-                  padding={0}
-                >
-                  {t("records.records")}
-                </ColorText>
-              </View>
-            </Pressable>
-            <Pressable onPress={() => setShowActual(SHOW_OPTIONS.CREDITS)}>
-              <View
-                style={[
-                  localStyles.filterPill,
-                  showActual === SHOW_OPTIONS.CREDITS
-                    ? { backgroundColor: colors?.ModalHeaderColor }
-                    : {},
-                ]}
-              >
-                <ColorText
-                  backgroundColor={
-                    showActual === SHOW_OPTIONS.CREDITS
-                      ? colors?.ModalHeaderColor
-                      : "#fff"
-                  }
-                  fontSize={10}
-                  padding={0}
-                >
-                  {t("records.creditPayments")}
-                </ColorText>
-              </View>
-            </Pressable>
-            <Pressable onPress={() => setShowActual(SHOW_OPTIONS.FIXEDS)}>
-              <View
-                style={[
-                  localStyles.filterPill,
-                  showActual === SHOW_OPTIONS.FIXEDS
-                    ? { backgroundColor: colors?.ModalHeaderColor }
-                    : {},
-                ]}
-              >
-                <ColorText
-                  backgroundColor={
-                    showActual === SHOW_OPTIONS.FIXEDS
-                      ? colors?.ModalHeaderColor
-                      : "#fff"
-                  }
-                  fontSize={10}
-                  padding={0}
-                >
-                  {t("records.fixeds")}
-                </ColorText>
-              </View>
-            </Pressable>
+            {[
+              { value: SHOW_OPTIONS.ALL, label: t("records.all") },
+              { value: SHOW_OPTIONS.RECORDS, label: t("records.records") },
+              { value: SHOW_OPTIONS.CREDITS, label: t("records.creditPayments") },
+              { value: SHOW_OPTIONS.FIXEDS, label: t("records.fixeds") },
+            ].map((option) => {
+              const selected = showActual === option.value;
+              return (
+                <Pressable key={option.value} onPress={() => setShowActual(option.value)}>
+                  <View
+                    style={[
+                      localStyles.filterPill,
+                      {
+                        backgroundColor: selected ? colors.primary : colors.surfaceMuted,
+                        borderColor: selected ? colors.primary : colors.border,
+                      },
+                    ]}
+                  >
+                    <AppText
+                      variant='caption'
+                      style={{ color: selected ? colors.onPrimary : colors.text }}
+                    >
+                      {option.label}
+                    </AppText>
+                  </View>
+                </Pressable>
+              );
+            })}
           </View>
         </ScrollView>
       </View>

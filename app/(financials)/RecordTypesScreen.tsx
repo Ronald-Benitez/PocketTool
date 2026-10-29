@@ -4,7 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { SwipeAction } from '@/src/ui/actions/SwipeAction';
-import useAndroidToast from '@/src/hooks/useAndroidToast';
+import { useToast } from '@/src/ui/feedback/ToastProvider';
 import { RecordType, Insertable } from '@/src/interfaces/schema';
 import { useDataStore } from '@/src/stores';
 import { useTableRepository } from '@/src/db';
@@ -28,7 +28,7 @@ const RecordTypesScreen = () => {
     const [color, setColor] = useState('#000000');
     const [effect, setEffect] = useState<EffectType>('=');
     const [editingId, setEditingId] = useState<number | undefined>(undefined);
-    const toast = useAndroidToast()
+    const { showToast } = useToast()
     const { RecordTypes, setRecordTypes } = useDataStore();
     const repository = useTableRepository("RecordTypes");
 
@@ -54,7 +54,7 @@ const RecordTypesScreen = () => {
 
     const handleAdd = async () => {
         if (!name.trim() || !color || effect === null) {
-            toast.emptyMessage()
+            showToast({ message: t('toast.empty'), type: 'warning' })
             return;
         }
         const newData: Insertable<RecordType> = {
@@ -65,17 +65,17 @@ const RecordTypesScreen = () => {
         try {
             if (editingId) {
                 await repository.edit({ ...newData, id: editingId });
-                toast.editedMessage()
+                showToast({ message: t('toast.edited'), type: 'success' })
             } else {
                 await repository.add(newData);
-                toast.addedMessage()
+                showToast({ message: t('toast.added'), type: 'success' })
             }
             const methods = await repository.fetchAll();
             setRecordTypes(methods);
             resetForm();
             setVisible(false);
         } catch (error) {
-            toast.errorMessage()
+            showToast({ message: t('toast.error'), type: 'error' })
             console.error(error);
         }
     };
@@ -85,11 +85,11 @@ const RecordTypesScreen = () => {
         try {
             await repository.deleteById(id);
             const methods = await repository.fetchAll();
-            toast.deletedMessage()
+            showToast({ message: t('toast.deleted'), type: 'success' })
             setRecordTypes(methods);
         } catch (error) {
             console.error(error);
-            toast.errorMessage()
+            showToast({ message: t('toast.error'), type: 'error' })
         }
     };
 

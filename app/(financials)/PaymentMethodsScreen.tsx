@@ -4,7 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { SwipeAction } from '@/src/ui/actions/SwipeAction';
-import useAndroidToast from '@/src/hooks/useAndroidToast';
+import { useToast } from '@/src/ui/feedback/ToastProvider';
 import { PaymentType, PaymentMethod, Insertable } from '@/src/interfaces/schema';
 import { useDataStore } from '@/src/stores';
 import { usePaymentMethods, useTableRepository } from '@/src/db';
@@ -28,7 +28,7 @@ const PaymentMethodsScreen = () => {
     const [type, setType] = useState<PaymentType | null>(null);
     const [closingDate, setClosingDate] = useState(0)
     const [paidDate, setPaidDate] = useState(0)
-    const toast = useAndroidToast()
+    const { showToast } = useToast()
     const { PaymentMethods, setPaymentMethods, PaymentTypes, setPaymentTypes } = useDataStore();
     const {
         fetchPaymentMethods,
@@ -64,7 +64,7 @@ const PaymentMethodsScreen = () => {
 
     const handleAddPaymentMethod = async () => {
         if (!methodName.trim() || !type || closingDate < 0 || closingDate > 31 || paidDate < 0 || paidDate > 31) {
-            toast.emptyMessage()
+            showToast({ message: t('toast.empty'), type: 'warning' })
             return;
         }
         const newPaymentMethod: Insertable<PaymentMethod> = {
@@ -76,17 +76,17 @@ const PaymentMethodsScreen = () => {
         try {
             if (editingId) {
                 await updatePaymentMethod(editingId, newPaymentMethod);
-                toast.editedMessage()
+                showToast({ message: t('toast.edited'), type: 'success' })
             } else {
                 await addPaymentMethod(newPaymentMethod);
-                toast.addedMessage()
+                showToast({ message: t('toast.added'), type: 'success' })
             }
             const data = await fetchPaymentMethods();
             setPaymentMethods(data);
             resetForm();
             setVisible(false);
         } catch (error) {
-            toast.errorMessage()
+            showToast({ message: t('toast.error'), type: 'error' })
             console.error(error);
         }
     };
@@ -97,11 +97,11 @@ const PaymentMethodsScreen = () => {
             await deletePaymentMethod(id);
             const data = await fetchPaymentMethods();
 
-            toast.deletedMessage()
+            showToast({ message: t('toast.deleted'), type: 'success' })
             setPaymentMethods(data);
         } catch (error) {
             console.error(error);
-            toast.errorMessage()
+            showToast({ message: t('toast.error'), type: 'error' })
         }
     };
 

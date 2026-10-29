@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { useLanguage } from "@/src/lang/LanguageContext";
-import useAndroidToast from "@/src/hooks/useAndroidToast";
+import { useToast } from "@/src/ui/feedback/ToastProvider";
 import useRecordsStore from '@/src/stores/RecordsStore';
 import { useFixeds } from "@/src/db";
 import { useDataStore } from "@/src/stores";
@@ -38,7 +38,7 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
     const [payment_method, setPaymentMethod] = useState<PaymentMethodWithRelations>()
     const [category, setCategory] = useState<Category>()
     const [amountCents, setAmountCents] = useState<number>(0)
-    const toast = useAndroidToast()
+    const { showToast } = useToast()
     const { RecordTypes, PaymentMethods, Categories, setFixeds } = useDataStore()
     const { fetchFixeds, handler: fixedsHandler } = useFixeds()
     const firstOpenEffect = useRef(true)
@@ -71,7 +71,7 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
         if (!group) return
 
         if (amountCents <= 0 || !payment_method?.id || !category?.id || !type?.id) {
-            toast.emptyMessage()
+            showToast({ message: t('toast.empty'), type: 'warning' })
             return
         }
 
@@ -87,10 +87,10 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
         try {
             if (item?.id) {
                 await fixedsHandler.edit({ ...newItem, id: item.id })
-                toast.editedMessage()
+                showToast({ message: t('toast.edited'), type: 'success' })
             } else {
                 await fixedsHandler.add(newItem)
-                toast.addedMessage()
+                showToast({ message: t('toast.added'), type: 'success' })
                 setName("")
                 setAmountCents(0)
             }
@@ -98,7 +98,7 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
             setFixeds(fixeds)
             closeModal()
         } catch {
-            toast.errorMessage()
+            showToast({ message: t('toast.error'), type: 'error' })
         }
     }
 

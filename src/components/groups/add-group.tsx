@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, View } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
-import useAndroidToast from '@/src/hooks/useAndroidToast'
+import { useToast } from '@/src/ui/feedback/ToastProvider'
 import useRecordsStore from '@/src/stores/RecordsStore'
 import { useGroups } from '@/src/db'
 import type { Group, Insertable } from '@/src/interfaces/schema'
@@ -26,7 +26,7 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
     const [month, setMonth] = useState<number>(new Date().getMonth())
     const [year, setYear] = useState<number>(new Date().getFullYear())
     const { group, setGroup, setGroups } = useRecordsStore()
-    const toast = useAndroidToast()
+    const { showToast } = useToast()
     const { addGroup, editGroup, fetchGroupsByYear } = useGroups()
     const firstOpenEffect = useRef(true)
 
@@ -65,12 +65,12 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
 
     const onSave = async () => {
         if (!name.trim() || goalCents <= 0 || !year) {
-            toast.emptyMessage()
+            showToast({ message: t('toast.empty'), type: 'warning' })
             return
         }
 
         if (String(year).length !== 4) {
-            toast.withMessage(t('year-error'))
+            showToast({ message: t('year-error'), type: 'info' })
             return
         }
 
@@ -84,10 +84,10 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
             const updateGroup = { ...group, ...newGroup }
             await editGroup(group.id, updateGroup)
             setGroup && setGroup(updateGroup)
-            toast.editedMessage()
+            showToast({ message: t('toast.edited'), type: 'success' })
         } else {
             await addGroup(newGroup)
-            toast.addedMessage()
+            showToast({ message: t('toast.added'), type: 'success' })
         }
         await getGroups()
         cleanData()

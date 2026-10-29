@@ -6,7 +6,7 @@ import type { Budget, Insertable, RecordType } from "@/src/interfaces/schema";
 import useRecordsStore from "@/src/stores/RecordsStore";
 import useCategoriesStore from "@/src/stores/CategoriesStore";
 import useBudgetStore from "@/src/stores/BudgetStore";
-import useAndroidToast from "@/src/hooks/useAndroidToast";
+import { useToast } from "@/src/ui/feedback/ToastProvider";
 import { useLanguage } from "@/src/lang/LanguageContext";
 import { useDataStore } from "@/src/stores";
 import { Button } from "@/src/ui/actions/Button";
@@ -43,7 +43,7 @@ const AddBudget = ({ item, children, openUpdate, open }: AddItemProps) => {
   const { RecordTypes } = useDataStore();
   const budget = useBudget();
   const { setBudgets, setResumes } = useBudgetStore();
-  const toast = useAndroidToast();
+  const { showToast } = useToast();
   const firstOpenEffect = useRef(true);
 
   const budgetTypes = (RecordTypes ?? []).filter((recordType) =>
@@ -82,7 +82,7 @@ const AddBudget = ({ item, children, openUpdate, open }: AddItemProps) => {
     if (!group) return;
 
     if (amountCents <= 0 || !category?.id || !type?.id) {
-      toast.emptyMessage();
+      showToast({ message: t('toast.empty'), type: 'warning' });
       return;
     }
 
@@ -96,17 +96,17 @@ const AddBudget = ({ item, children, openUpdate, open }: AddItemProps) => {
     try {
       if (item?.id) {
         await budget.updateBudget(item.id, newItem);
-        toast.editedMessage();
+        showToast({ message: t('toast.edited'), type: 'success' });
       } else {
         await budget.addBudget(newItem);
-        toast.addedMessage();
+        showToast({ message: t('toast.added'), type: 'success' });
         setAmountCents(0);
       }
       setBudgets((await budget.fetchBudget(group_id)) ?? []);
       setResumes(await budget.getAllResume(group_id));
       closeModal();
     } catch {
-      toast.errorMessage();
+      showToast({ message: t('toast.error'), type: 'error' });
     }
   };
 

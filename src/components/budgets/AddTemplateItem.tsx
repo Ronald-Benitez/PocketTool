@@ -5,7 +5,7 @@ import { useLanguage } from "@/src/lang/LanguageContext";
 import { useRecords } from "@/src/db";
 import useDate from "@/src/hooks/useDate";
 import useRecordsStore from "@/src/stores/RecordsStore";
-import useAndroidToast from "@/src/hooks/useAndroidToast";
+import { useToast } from "@/src/ui/feedback/ToastProvider";
 import { useDataStore } from "@/src/stores";
 import type {
     Category,
@@ -47,7 +47,7 @@ const AddTemplateItem = ({ item, children, open }: AddItemProps) => {
     const [amountCents, setAmountCents] = useState<number>(0)
     const [group_id, setGroupId] = useState<number>(group?.id || 0)
     const { fetchRecords, saveRecord, fetchPaidCreditsByGroup } = useRecords()
-    const toast = useAndroidToast()
+    const { showToast } = useToast()
     const { RecordTypes, PaymentMethods, Categories } = useDataStore()
     const { configs: { paymentCreditType } } = useConfigs()
     const firstOpenEffect = useRef(true)
@@ -96,7 +96,7 @@ const AddTemplateItem = ({ item, children, open }: AddItemProps) => {
             !type?.id ||
             (type.id === paymentCreditType && !to_pay_method?.id)
         ) {
-            toast.emptyMessage()
+            showToast({ message: t('toast.empty'), type: 'warning' })
             return
         }
 
@@ -130,9 +130,9 @@ const AddTemplateItem = ({ item, children, open }: AddItemProps) => {
             })
 
             if (item?.id) {
-                toast.editedMessage()
+                showToast({ message: t('toast.edited'), type: 'success' })
             } else {
-                toast.addedMessage()
+                showToast({ message: t('toast.added'), type: 'success' })
                 setName("")
                 setAmountCents(0)
             }
@@ -143,7 +143,7 @@ const AddTemplateItem = ({ item, children, open }: AddItemProps) => {
             setPaidCredits(credits)
             closeModal()
         } catch {
-            toast.errorMessage()
+            showToast({ message: t('toast.error'), type: 'error' })
         }
     }
 

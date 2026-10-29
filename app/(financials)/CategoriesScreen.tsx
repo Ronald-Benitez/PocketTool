@@ -4,7 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { SwipeAction } from '@/src/ui/actions/SwipeAction';
-import useAndroidToast from '@/src/hooks/useAndroidToast';
+import { useToast } from '@/src/ui/feedback/ToastProvider';
 import { Category } from '@/src/interfaces/schema';
 import { useDataStore } from '@/src/stores';
 import { useTableRepository } from '@/src/db';
@@ -23,7 +23,7 @@ const CategoriesScreen = () => {
     const [category_name, setCategoryName] = useState('');
     const [editingId, setEditingId] = useState<number | undefined>(undefined);
     const { Categories, setCategories } = useDataStore()
-    const toast = useAndroidToast()
+    const { showToast } = useToast()
     const repository = useTableRepository("Categories");
 
     useEffect(() => {
@@ -46,7 +46,7 @@ const CategoriesScreen = () => {
 
     const handleAddOrUpdate = async () => {
         if (!category_name.trim()) {
-            toast.emptyMessage()
+            showToast({ message: t('toast.empty'), type: 'warning' })
             return;
         }
         const newData: Category = { category_name: category_name.trim() };
@@ -54,10 +54,10 @@ const CategoriesScreen = () => {
         try {
             if (editingId) {
                 await repository.edit({ ...newData, id: editingId });
-                toast.editedMessage()
+                showToast({ message: t('toast.edited'), type: 'success' })
             } else {
                 await repository.add(newData);
-                toast.addedMessage()
+                showToast({ message: t('toast.added'), type: 'success' })
             }
 
             const result = await repository.fetchAll();
@@ -66,7 +66,7 @@ const CategoriesScreen = () => {
             setVisible(false);
         } catch (error) {
             console.error(error);
-            toast.errorMessage()
+            showToast({ message: t('toast.error'), type: 'error' })
         }
     };
 
@@ -82,7 +82,7 @@ const CategoriesScreen = () => {
             await repository.deleteById(id);
             const result = await repository.fetchAll();
             setCategories(result);
-            toast.deletedMessage();
+            showToast({ message: t('toast.deleted'), type: 'success' });
         } catch (error) {
             console.error(error);
         }

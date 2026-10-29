@@ -196,14 +196,14 @@ Pendiente de UI-3: ninguno.
 - Regla ESLint `no-restricted-imports` para impedir `TextInput`, `Modal`, `Alert`
   y `ToastAndroid` nativos fuera de `src/ui`.
 - `ColorPicker` movido a `src/ui/forms/ColorPicker.tsx`.
-- Adaptador legacy `useToast` eliminado; las pantallas usan directamente el
-  `ToastProvider`.
+- Adaptadores legacy `useToast` y `useAndroidToast` eliminados; las pantallas
+  usan directamente el `ToastProvider`.
+- Eliminados `icon-button`, `confirm-modal`, `modal-button`, `color-text`,
+  `DetailedFinanceBlock` y `shake-animation`.
 - Verificado: `npm run ci` y `npm run lint` con 0 errores.
 
-Pendiente de UI-4: retirar `useAndroidToast`, migrar `icon-button`,
-`confirm-modal`, `color-text`, `dropdown` y `DetailedFinanceBlock`, añadir tests
-de accesibilidad, revisar dark mode en estilos legacy y actualizar la galería
-final.
+Pendiente de UI-4: migrar `dropdown`, añadir tests de accesibilidad, revisar dark
+mode en estilos legacy y completar el checklist visual final.
 
 ## Documentación
 

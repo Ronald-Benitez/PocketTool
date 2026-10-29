@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { useLanguage } from "@/src/lang/LanguageContext";
 import useDate from "@/src/hooks/useDate";
 import useRecordsStore from '@/src/stores/RecordsStore';
-import useAndroidToast from "@/src/hooks/useAndroidToast";
+import { useToast } from "@/src/ui/feedback/ToastProvider";
 import { usePaidCredits, usePaymentMethods, useRecords, useTableRepository } from "@/src/db";
 import type {
     Category,
@@ -45,7 +45,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     const [fixed_id, setFixedId] = useState<number | undefined>(undefined)
     const [amountCents, setAmountCents] = useState<number>(0)
     const [group_id, setGroupId] = useState<number>(group?.id || 0)
-    const toast = useAndroidToast()
+    const { showToast } = useToast()
     const [recordTypes, setRecordTypes] = useState<RecordType[]>([])
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethodWithRelations[]>([])
     const [categories, setCategories] = useState<Category[]>([])
@@ -79,7 +79,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
 
         loadOptions().catch((error) => {
             console.error("Error al cargar opciones de registros:", error)
-            toast.errorMessage()
+            showToast({ message: t('toast.error'), type: 'error' })
         })
     }, [])
 
@@ -108,7 +108,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
 
         loadPaidMethod().catch((error) => {
             console.error("Error al cargar el método de pago del crédito:", error)
-            toast.errorMessage()
+            showToast({ message: t('toast.error'), type: 'error' })
         })
     }, [item, recordTypes, paymentMethods, categories])
 
@@ -134,7 +134,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
             !type?.id ||
             (type.id === paymentCreditType && !to_pay_method?.id)
         ) {
-            toast.emptyMessage()
+            showToast({ message: t('toast.empty'), type: 'warning' })
             return
         }
 
@@ -168,9 +168,9 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
             })
 
             if (item?.id) {
-                toast.editedMessage()
+                showToast({ message: t('toast.edited'), type: 'success' })
             } else {
-                toast.addedMessage()
+                showToast({ message: t('toast.added'), type: 'success' })
                 setName("")
                 setAmountCents(0)
             }
@@ -182,7 +182,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
             closeModal()
         } catch (e) {
             console.error("Error al guardar el registro:", e)
-            toast.errorMessage()
+            showToast({ message: t('toast.error'), type: 'error' })
         }
     }
 

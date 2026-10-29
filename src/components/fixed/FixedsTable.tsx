@@ -8,17 +8,18 @@ import { ScrollView } from 'react-native-gesture-handler'
 import { useToast } from '@/src/ui/feedback/ToastProvider'
 import AddItem from './AddFixed'
 import { AccentRow } from '@/src/ui/data-display/AccentRow'
-import IconButton from '../ui/icon-button'
 import type { FixedRecord, FixedView } from '@/src/interfaces/schema'
 import { formatMoneyWithSymbol } from '@/src/utils'
 import { useDataStore } from '@/src/stores'
 import { useFixeds } from '@/src/db'
+import { useTheme } from '@/src/ui/theme/ThemeProvider'
 
 const FixedsTable = () => {
     const [selected, setSelected] = useState<FixedView | FixedRecord | undefined>()
     const [openUpdate, setOpenUpdate] = useState<boolean>(false)
     const { showToast } = useToast()
     const { t } = useLanguage()
+    const { colors } = useTheme()
     const { Fixeds, setFixeds } = useDataStore()
     const { fetchFixeds, handler: fixedsHandler } = useFixeds()
 
@@ -44,9 +45,9 @@ const FixedsTable = () => {
                 style={[localStyles.rowContainer, { justifyContent: "center" }]}
             >
                 <AddItem>
-                    <IconButton isButton={false}>
-                        <AntDesign size={20} name='plus' color={"#000"} />
-                    </IconButton>
+                    <View style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+                        <AntDesign size={20} name='plus' color={colors.text} />
+                    </View>
                 </AddItem >
             </View>
 

@@ -464,13 +464,16 @@ retirar.
 
 ### UI-4 — Limpieza y calidad (1–2 días)
 
-**Estado:** 🔄 Parcial — lint y adaptador `useToast` resueltos.
+**Estado:** 🔄 Parcial — lint, ColorPicker y adaptadores de toast resueltos.
 
-- Eliminar componentes legacy y adaptadores. 🔄 (`useToast` eliminado;
-  `useAndroidToast` y algunos componentes legacy siguen)
+- Eliminar componentes legacy y adaptadores. 🔄 (quedan `dropdown` y las tablas
+  de resumen)
 - Regla de lint/prohibición de imports directos:
   - `TextInput`, `Modal`, `Alert`, `ToastAndroid` solo dentro de `src/ui`. ✅
 - Mover `ColorPicker` a `src/ui/forms`. ✅
+- Eliminar `useToast`/`useAndroidToast` legacy. ✅
+- Eliminar `icon-button`, `confirm-modal`, `modal-button`, `color-text`,
+  `DetailedFinanceBlock`, `shake-animation`. ✅
 - Tests de accesibilidad y variantes. ⏳
 - Galería actualizada. ✅
 - Checklist visual en iOS/Android/web. ⏳
