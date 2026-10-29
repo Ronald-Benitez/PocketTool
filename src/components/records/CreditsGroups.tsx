@@ -73,7 +73,7 @@ const localStyles = StyleSheet.create({
         width: 50
     },
     dateText: {
-        fontWeight: "100",
+        fontWeight: "500",
         fontSize: 8,
         textAlign: "center"
     },
