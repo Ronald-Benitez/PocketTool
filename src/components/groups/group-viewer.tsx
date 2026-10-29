@@ -4,7 +4,6 @@ import React, { SetStateAction, useEffect, useState, useTransition } from "react
 import { Group, RecordView } from "@/src/interfaces/schema"
 import { formatMoney } from "@/src/utils"
 import styles from "@/src/styles/styles"
-import Dropdown from "../ui/dropdown"
 import { SwipeAction } from '@/src/ui/actions/SwipeAction'
 import AddGroup from "./add-group"
 import { useRecords, useGroups } from "@/src/db"

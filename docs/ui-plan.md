@@ -466,15 +466,16 @@ retirar.
 
 **Estado:** 🔄 Parcial — lint, ColorPicker y adaptadores de toast resueltos.
 
-- Eliminar componentes legacy y adaptadores. 🔄 (quedan `dropdown` y las tablas
-  de resumen)
+- Eliminar componentes legacy y adaptadores. 🔄 (quedan las tablas de resumen y
+  estilos legacy)
 - Regla de lint/prohibición de imports directos:
   - `TextInput`, `Modal`, `Alert`, `ToastAndroid` solo dentro de `src/ui`. ✅
 - Mover `ColorPicker` a `src/ui/forms`. ✅
 - Eliminar `useToast`/`useAndroidToast` legacy. ✅
 - Eliminar `icon-button`, `confirm-modal`, `modal-button`, `color-text`,
-  `DetailedFinanceBlock`, `shake-animation`. ✅
-- Tests de accesibilidad y variantes. ⏳
+  `DetailedFinanceBlock`, `dropdown`, `shake-animation`. ✅
+- Tests de accesibilidad y variantes. ✅ (render de `SummaryGroup`/`AccentRow`;
+  queda checklist visual)
 - Galería actualizada. ✅
 - Checklist visual en iOS/Android/web. ⏳
 - Actualizar `AGENTS.md`, `docs/phases.md` y `docs/schema.md` si aplica. ✅

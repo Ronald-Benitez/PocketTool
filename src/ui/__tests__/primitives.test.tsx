@@ -2,11 +2,14 @@
 import * as React from 'react';
 import renderer, { act } from 'react-test-renderer';
 
+import { AppText } from '../primitives/AppText';
 import { Button } from '../actions/Button';
 import { Badge } from '../data-display/Badge';
 import { Card } from '../data-display/Card';
+import { AccentRow } from '../data-display/AccentRow';
 import { FinanceValue } from '../data-display/FinanceValue';
 import { SummaryBlock } from '../data-display/SummaryBlock';
+import { SummaryGroup } from '../data-display/SummaryGroup';
 import { DateField } from '../forms/DateField';
 import { InlineMessage } from '../feedback/InlineMessage';
 import { MoneyField } from '../forms/MoneyField';
@@ -133,6 +136,33 @@ describe('UI primitives', () => {
     expect(rendered).toContain('Summary');
     expect(rendered).toContain('Monthly totals');
     expect(rendered).toContain('Balance');
+    expect(rendered).toContain('-12.50');
+  });
+
+  it('renders summary groups and accent rows', () => {
+    let tree: renderer.ReactTestRenderer;
+
+    act(() => {
+      tree = renderer.create(
+        <>
+          <AccentRow accentColor='#123456' bottomColor='#654321'>
+            <AppText>Accent content</AppText>
+          </AccentRow>
+          <SummaryGroup
+            title='Food'
+            totalCents={-1250}
+            items={[
+              { key: 'expense', label: 'Expense', cents: -1250, color: '#ff0000' },
+            ]}
+          />
+        </>
+      );
+    });
+
+    const rendered = JSON.stringify(tree!.toJSON());
+    expect(rendered).toContain('Accent content');
+    expect(rendered).toContain('Food');
+    expect(rendered).toContain('Expense');
     expect(rendered).toContain('-12.50');
   });
 });

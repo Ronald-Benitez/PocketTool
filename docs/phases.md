@@ -199,11 +199,12 @@ Pendiente de UI-3: ninguno.
 - Adaptadores legacy `useToast` y `useAndroidToast` eliminados; las pantallas
   usan directamente el `ToastProvider`.
 - Eliminados `icon-button`, `confirm-modal`, `modal-button`, `color-text`,
-  `DetailedFinanceBlock` y `shake-animation`.
+  `DetailedFinanceBlock`, `dropdown` y `shake-animation`.
+- Tests de render ampliados con `SummaryGroup` y `AccentRow`.
 - Verificado: `npm run ci` y `npm run lint` con 0 errores.
 
-Pendiente de UI-4: migrar `dropdown`, añadir tests de accesibilidad, revisar dark
-mode en estilos legacy y completar el checklist visual final.
+Pendiente de UI-4: revisar dark mode en estilos legacy y completar el checklist
+visual final.
 
 ## Documentación
 
