@@ -12,7 +12,7 @@ métodos de pago, créditos, ahorros y vehículo.
 
 - **Fase 0 — Correcciones críticas: FINALIZADA** (2026-10-28).
 - **Fase 1 — Fuente única de verdad del esquema: FINALIZADA** (2026-10-28).
-- **Fase 2 — Repositorios y ORM robusto: PENDIENTE**.
+- **Fase 2 — Repositorios y ORM robusto: FINALIZADA** (2026-10-28).
 - **Fase 3 — Calidad, pruebas y operación: PENDIENTE**.
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
@@ -38,8 +38,12 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 - `src/db/migrations/0001_baseline.ts`: baseline consolidado.
 - `src/db/migrations/0002_audit_timestamps.ts`: migración incremental de ejemplo.
 - `src/orm/index.ts`: ORM tipado; usa las relaciones generadas, filtros de soft
-  delete y CRUD.
+  delete, CRUD y transacciones.
+- `src/orm/errors.ts`: errores tipados (`InvalidIdentifierError`,
+  `InvalidDataError`, `QueryError`).
 - `src/db/repositories/index.ts`: repositorios por agregado.
+- `src/db/repositories/fuel.ts`: consultas tipadas de combustible y viajes.
+- `src/validation/entities.ts`: esquemas zod para entradas de repositorio.
 - `src/db/index.ts`: barrel público; expone `useRecords`, `useGroups`, etc.
 - `src/interfaces/schema.ts`: entidades generadas + relaciones/vistas.
 - `src/utils/index.ts`: helpers de dinero (`parseMoneyToCents`, `centsToInput`,
@@ -55,7 +59,9 @@ commits relevantes, archivos tocados y verificaciones realizadas.
   filas borradas por defecto.
 - Tablas: nombre lógico PascalCase, nombre físico snake_case.
 - No volver a introducir handlers raw-SQL ni un segundo `useRecords`.
-- Los componentes y stores deben usar repositorios/ORM; no SQL directo en UI.
+- Los componentes y stores deben usar repositorios; no SQL directo ni `useORM` en UI.
+- Las entradas de repositorio se validan con zod y el ORM rechaza columnas
+  inexistentes con errores tipados.
 - Export/import: usar validación, backup previo y transacción. No dropear tablas
   fuera de una transacción.
 - Migraciones: no capturar errores internamente; deben propagarse al runner.

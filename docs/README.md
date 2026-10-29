@@ -19,7 +19,7 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 | --- | --- |
 | Fase 0 — Correcciones críticas | ✅ Finalizada (2026-10-28) |
 | Fase 1 — Fuente única de verdad del esquema | ✅ Finalizada (2026-10-28) |
-| Fase 2 — Repositorios y ORM robusto | ⏳ Pendiente |
+| Fase 2 — Repositorios y ORM robusto | ✅ Finalizada (2026-10-28) |
 | Fase 3 — Calidad, pruebas y operación | ⏳ Pendiente |
 
 ## Regla de mantenimiento

@@ -1,13 +1,13 @@
 # Plan de fases y bitácora
 
 **Última actualización:** 2026-10-28
-**Estado global:** Fase 1 finalizada. Fase 2 pendiente.
+**Estado global:** Fase 2 finalizada. Fase 3 pendiente.
 
 | Fase | Estado | Fecha |
 | --- | --- | --- |
 | Fase 0 — Correcciones críticas sin cambiar el modelo | ✅ Finalizada | 2026-10-28 |
 | Fase 1 — Fuente única de verdad del esquema | ✅ Finalizada | 2026-10-28 |
-| Fase 2 — Repositorios y ORM robusto | ⏳ Pendiente | — |
+| Fase 2 — Repositorios y ORM robusto | ✅ Finalizada | 2026-10-28 |
 | Fase 3 — Calidad, pruebas y operación | ⏳ Pendiente | — |
 
 ## Cómo mantener este documento
@@ -300,47 +300,98 @@ bootstrap y es idempotente. La configuración por defecto se resuelve por nombre
 
 # Fase 2 — Repositorios y ORM robusto
 
-**Estado:** ⏳ PENDIENTE
+**Estado:** ✅ FINALIZADA — 2026-10-28
 
 ## 1. Repositorios por agregado
 
-- [ ] `RecordsRepository`, `GroupsRepository`, `BudgetsRepository`,
+- [x] `RecordsRepository`, `GroupsRepository`, `BudgetsRepository`,
   `SavingsRepository`, etc.
-- [ ] Métodos de dominio: `getByGroup`, `createWithCredit`,
+- [x] Métodos de dominio: `getByGroup`, `createWithCredit`,
   `softDeleteWithRelations`, `getSummaryByCategory`, etc.
-- [ ] La UI y los stores de Zustand solo llaman repositorios.
+- [x] La UI y los stores de Zustand solo llaman repositorios.
+
+**Resultado:** los repositorios por agregado viven en
+`src/db/repositories/index.ts` y `src/db/repositories/fuel.ts`. Se agregaron
+operaciones compuestas como `saveRecord` (registro + crédito en una
+transacción), `deleteRecordWithCredit`, `fetchCreditPeriodTotals`,
+`fetchPaidCreditsByGroup`, `fetchBySavingId` y las consultas tipadas de
+combustible/viajes. `CreditsStore` y las pantallas dejaron de usar `useORM`
+directamente.
 
 ## 2. Mejorar el ORM
 
-- [ ] Builder inmutable o `reset()` en `finally`.
-- [ ] Validar identificadores contra el esquema antes de interpolar.
-- [ ] Agregar `limit`, `offset`, `count`, `exists`, `getById`, `first`.
-- [ ] Soportar transacciones y operaciones compuestas.
-- [ ] Propagar errores tipados en lugar de devolver `[]`.
-- [ ] Aplicar soft delete también en joins.
-- [ ] Integrar las consultas custom (`gas.json`) como métodos tipados.
+- [x] Builder inmutable o `reset()` en `finally`.
+- [x] Validar identificadores contra el esquema antes de interpolar.
+- [x] Agregar `limit`, `offset`, `count`, `exists`, `getById`, `first`.
+- [x] Soportar transacciones y operaciones compuestas.
+- [x] Propagar errores tipados en lugar de devolver `[]`.
+- [x] Aplicar soft delete también en joins.
+- [x] Integrar las consultas custom (`gas.json`) como métodos tipados.
+
+**Resultado:** el ORM resetea el builder en `finally`, valida tablas/columnas y
+payloads, expone `exists`, `getById` y `transaction`, y propaga
+`InvalidIdentifierError`, `InvalidDataError` y `QueryError` en vez de devolver
+arrays vacíos. Las consultas de `gas.json` se movieron a métodos tipados en
+`useFuelRepository`.
 
 ## 3. Unificar tipos
 
-- [ ] Un solo módulo `types.ts` con:
+- [x] Un solo módulo `types.ts` con:
   - `Entity` (`id: number`);
   - `NewEntity` (`id?`, `deleted_at?`);
   - `UpdateEntity` (`Partial`);
   - `WithRelations<T>`.
-- [ ] Eliminar `src/db/types/tables.ts`, `src/db/types/schema.ts` e
+- [x] Eliminar `src/db/types/tables.ts`, `src/db/types/schema.ts` e
   `src/interfaces/db.ts` al terminar la migración.
-- [ ] Evitar `extends` múltiples con propiedades homónimas; usar tipos
+- [x] Evitar `extends` múltiples con propiedades homónimas; usar tipos
   explícitos para vistas/joins.
+
+**Resultado:** las entidades se generan en
+`src/db/schema/generated/types.ts`; `src/interfaces/schema.ts` añade
+`NewEntity`, `UpdateEntity` y `WithRelations`, además de las vistas explícitas.
+Se eliminó `src/db/types/tables.ts`; `src/db/types/schema.ts` e
+`src/interfaces/db.ts` ya no existían. `src/db/types/index.ts` queda solo con
+los tipos del DSL del esquema.
 
 ## 4. Validación en bordes
 
-- [ ] `zod` o similar para formularios, importación y datos externos.
-- [ ] Validar que un `INSERT` no incluya columnas inexistentes.
+- [x] `zod` o similar para formularios, importación y datos externos.
+- [x] Validar que un `INSERT` no incluya columnas inexistentes.
+
+**Resultado:** `src/validation/entities.ts` contiene esquemas zod para grupos,
+registros, créditos, presupuestos, ahorros y métodos de pago. Los repositorios
+los aplican antes de escribir. El ORM sigue validando columnas y ahora lanza
+`InvalidDataError` ante columnas inexistentes.
 
 ## Criterio de aceptación
 
-No queda SQL en componentes; no hay dos `useRecords`; los tipos de una entidad
-se definen una sola vez.
+- [x] No queda SQL en componentes.
+- [x] No hay dos `useRecords`.
+- [x] Los tipos de una entidad se definen una sola vez.
+
+## Commits
+
+- `8d98d7e` — `feat(orm): add typed errors, transactions and boundary validation`
+- `41ee91c` — `feat(repositories): add aggregate operations and typed fuel queries`
+- `9d61713` — `refactor(ui): route screens and stores through repositories`
+
+## Verificación
+
+- `npx tsc --noEmit` → `TSC_EXIT=0`.
+- Harness SQLite:
+  - migraciones, seed y export/import;
+  - `exists`, `getById`, validación de identificadores;
+  - transacción con commit y rollback;
+  - esquemas zod aceptan datos válidos y rechazan centavos decimales,
+    columnas desconocidas y campos obligatorios vacíos.
+
+## Notas para Fase 3
+
+- `created_at`/`updated_at` siguen sin llenarse automáticamente en inserts o
+  updates.
+- Las pruebas siguen siendo un harness de desarrollo; Fase 3 debe moverlas al
+  repo y añadir CI.
+- Falta prueba end-to-end del import con pickers nativos/web.
 
 ---
 
@@ -400,3 +451,11 @@ se definen una sola vez.
 - **2026-10-28 — Migraciones:** `0001_baseline` consolida el esquema y
   `0002_audit_timestamps` agrega `created_at`/`updated_at` a bases existentes.
   `SCHEMA_VERSION = 2`.
+- **2026-10-28 — Fase 2:** la UI y los stores dejaron de usar `useORM`; solo
+  consumen repositorios. Las operaciones registro+crédito son transaccionales.
+- **2026-10-28 — Errores tipados:** el ORM lanza `InvalidIdentifierError`,
+  `InvalidDataError` y `QueryError` en lugar de devolver `[]`.
+- **2026-10-28 — Validación:** zod valida entradas de repositorio y el ORM
+  valida columnas/identificadores.
+- **2026-10-28 — Consultas de vehículo:** `gas.json` se reemplazó por métodos
+  tipados en `useFuelRepository`.
