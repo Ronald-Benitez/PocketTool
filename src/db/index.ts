@@ -8,6 +8,7 @@ export {
   useSavingsHistoryRepository,
   useBudgetsRepository,
   usePaymentMethodsRepository,
+  usePaidCreditsRepository,
 } from './repositories';
 
 export { useRecordsRepository as useRecords } from './repositories';
@@ -19,6 +20,15 @@ export { useSavingsHistoryRepository as useSavingsHistory } from './repositories
 export { useBudgetsRepository as useBudget } from './repositories';
 export { useBudgetsRepository as useBudgets } from './repositories';
 export { usePaymentMethodsRepository as usePaymentMethods } from './repositories';
+export { usePaidCreditsRepository as usePaidCredits } from './repositories';
+export { useFuelRepository } from './repositories/fuel';
+export type {
+  FuelBlockAnalytics,
+  FuelRefillRow,
+  FuelSummary,
+  TripLogRow,
+  TripMetrics,
+} from './repositories/fuel';
 
 export interface ResumeTotalsBudget {
   transferTotal: number | null;

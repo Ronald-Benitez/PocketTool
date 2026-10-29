@@ -1,4 +1,20 @@
-import { useORM } from '@/src/orm';
+import { useSQLiteContext } from 'expo-sqlite';
+
+import { ORM, useORM } from '@/src/orm';
+import { withExclusiveTransaction } from '@/src/db/transaction';
+import {
+  budgetInputSchema,
+  budgetUpdateSchema,
+  groupInputSchema,
+  groupUpdateSchema,
+  paidCreditInputSchema,
+  paidCreditUpdateSchema,
+  paymentMethodInputSchema,
+  paymentMethodUpdateSchema,
+  recordInputSchema,
+  savingInputSchema,
+  savingUpdateSchema,
+} from '@/src/validation/entities';
 import type { TableName } from '@/src/db/schema';
 import type {
   Budget,
@@ -14,11 +30,13 @@ import type {
   PaidCredit,
   PaymentMethod,
   PaymentMethodView,
+  RecordEntry,
   RecordView,
   RecordWithRelations,
   Saving,
   SavingsHistoryEntry,
   SavingsHistoryWithRelations,
+  UpdateEntity,
 } from '@/src/interfaces/schema';
 
 const RECORD_JOINS = [
@@ -101,10 +119,12 @@ export const useTableRepository = <T extends TableName>(table: T) => {
     return rows;
   };
 
-  const fetchWithWhere = async (column: string, value: string | number) =>
+  const fetchWithWhere = async (column: string, value: string | number | boolean | null) =>
     orm.where(column as never, value).getAll();
 
-  const fetchWithMultipleWhere = async (conditions: Record<string, string | number | null>) => {
+  const fetchWithMultipleWhere = async (
+    conditions: Record<string, string | number | boolean | null>
+  ) => {
     let query = orm;
     for (const [column, value] of Object.entries(conditions)) {
       query = query.where(column as never, value);
@@ -115,9 +135,13 @@ export const useTableRepository = <T extends TableName>(table: T) => {
   const fetchGroupsByYear = async (year: string | number) =>
     orm.where('year' as never, Number(year)).getAll();
 
-  const fetchById = async (id: number) => orm.where('id' as never, id).first();
+  const fetchById = async (id: number) => orm.getById(id);
 
   const fetchLast = async () => orm.order('id' as never, 'DESC').first();
+
+  const count = async () => orm.count();
+
+  const existsById = async (id: number) => (await orm.getById(id)) !== null;
 
   const add = async (values: object) => orm.insert(values as never);
 
@@ -129,7 +153,7 @@ export const useTableRepository = <T extends TableName>(table: T) => {
 
   const deleteById = async (id: number) => orm.delete(id);
 
-  const deleteWithWhere = async (column: string, value: string | number) =>
+  const deleteWithWhere = async (column: string, value: string | number | boolean | null) =>
     orm.deleteWhere(column, value);
 
   return {
@@ -140,17 +164,77 @@ export const useTableRepository = <T extends TableName>(table: T) => {
     fetchGroupsByYear,
     fetchById,
     fetchLast,
+    count,
+    existsById,
     add,
     edit,
     deleteById,
     deleteWithWhere,
+    availableColumns: orm.availableColumns,
+    availableJoins: orm.availableJoins,
   };
 };
 
 export const useRecordsRepository = () => {
+  const db = useSQLiteContext();
   const recordsOrm = useORM('Records');
   const paidCreditsOrm = useORM('PaidCredits');
   const handler = useTableRepository('Records');
+
+  type SaveRecordInput = {
+    record: Insertable<RecordEntry>;
+    recordId?: number;
+    paidCredit?: Insertable<PaidCredit> | null;
+    paidCreditId?: number | null;
+  };
+
+  const saveRecord = async ({
+    record,
+    recordId,
+    paidCredit,
+    paidCreditId,
+  }: SaveRecordInput): Promise<number> => {
+    const creditRecord = recordInputSchema.parse(record);
+    const creditPayment = paidCredit ? paidCreditInputSchema.parse(paidCredit) : null;
+
+    return withExclusiveTransaction(db, async (txn) => {
+      const records = new ORM<'Records'>(txn, 'Records');
+      const credits = new ORM<'PaidCredits'>(txn, 'PaidCredits');
+      let currentPaidCreditId = paidCreditId ?? null;
+
+      if (creditPayment && currentPaidCreditId !== null) {
+        await credits.update(currentPaidCreditId, creditPayment);
+      } else if (creditPayment) {
+        currentPaidCreditId = await credits.insert(creditPayment);
+      } else if (currentPaidCreditId !== null) {
+        await credits.delete(currentPaidCreditId);
+        currentPaidCreditId = null;
+      }
+
+      const payload = { ...creditRecord, paid_credit_id: currentPaidCreditId };
+
+      if (recordId !== undefined) {
+        await records.update(recordId, payload);
+        return recordId;
+      }
+
+      return records.insert(payload);
+    });
+  };
+
+  const deleteRecordWithCredit = async (
+    recordId: number,
+    paidCreditId?: number | null
+  ): Promise<void> => {
+    await withExclusiveTransaction(db, async (txn) => {
+      const records = new ORM<'Records'>(txn, 'Records');
+      const credits = new ORM<'PaidCredits'>(txn, 'PaidCredits');
+      await records.delete(recordId);
+      if (paidCreditId) {
+        await credits.delete(paidCreditId);
+      }
+    });
+  };
 
   const fetchRecords = async (group_id: number | undefined): Promise<RecordView[] | undefined> => {
     if (!group_id) return;
@@ -202,6 +286,31 @@ export const useRecordsRepository = () => {
       .getAll();
   };
 
+  const fetchPaidCreditsByGroup = async (group_id: number): Promise<PaidCredit[]> =>
+    paidCreditsOrm.where('group_id', group_id).getAll();
+
+  const fetchCreditPeriodTotals = async (
+    payment_method_id: number,
+    startLimit: number,
+    endLimit: number
+  ) => {
+    const [records, payments] = await Promise.all([
+      recordsOrm
+        .where('payment_method_id', payment_method_id)
+        .where('date', [startLimit, endLimit], 'BETWEEN')
+        .getAll(),
+      paidCreditsOrm
+        .where('payment_method_id', payment_method_id)
+        .where('date', [startLimit, endLimit], 'BETWEEN')
+        .getAll(),
+    ]);
+
+    return {
+      recordsTotal: records.reduce((total, record) => total + (record.amount || 0), 0),
+      paymentsTotal: payments.reduce((total, payment) => total + (payment.amount || 0), 0),
+    };
+  };
+
   const sumByEffect = async (group_id: number, effect: string): Promise<number> => {
     const rows = await recordsOrm
       .join('RecordTypes')
@@ -221,17 +330,59 @@ export const useRecordsRepository = () => {
     return sumByEffect(group_id, '-');
   };
 
-  const deleteRecordByGroup = async (group_id: number) =>
-    recordsOrm.deleteWhere('group_id', group_id);
+  const deleteRecordByGroup = async (group_id: number) => {
+    await recordsOrm.deleteWhere('group_id', group_id);
+    await paidCreditsOrm.deleteWhere('group_id', group_id);
+  };
 
   return {
     fetchRecords,
     fetchRecordsWithMultipleWhere,
     fetchCredits,
     fetchPaidCredits,
+    fetchPaidCreditsByGroup,
+    fetchCreditPeriodTotals,
     fetchTotalIncomes,
     fetchTotalExpenses,
+    saveRecord,
+    deleteRecordWithCredit,
     deleteRecordByGroup,
+    handler,
+  };
+};
+
+export const usePaidCreditsRepository = () => {
+  const creditsOrm = useORM('PaidCredits');
+  const handler = useTableRepository('PaidCredits');
+
+  const fetchById = async (id: number): Promise<PaidCredit | null> =>
+    creditsOrm.getById(id);
+
+  const fetchByGroup = async (group_id: number): Promise<PaidCredit[]> =>
+    creditsOrm.where('group_id', group_id).getAll();
+
+  const add = async (credit: Insertable<PaidCredit>): Promise<number> =>
+    creditsOrm.insert(paidCreditInputSchema.parse(credit));
+
+  const edit = async (id: number, credit: UpdateEntity<PaidCredit>): Promise<void> => {
+    await creditsOrm.update(id, paidCreditUpdateSchema.parse(credit));
+  };
+
+  const deleteById = async (id: number): Promise<void> => {
+    await creditsOrm.delete(id);
+  };
+
+  const deleteByGroup = async (group_id: number): Promise<void> => {
+    await creditsOrm.deleteWhere('group_id', group_id);
+  };
+
+  return {
+    fetchById,
+    fetchByGroup,
+    add,
+    edit,
+    deleteById,
+    deleteByGroup,
     handler,
   };
 };
@@ -258,6 +409,7 @@ export const useGroupsRepository = () => {
   const groupsOrm = useORM('Groups');
   const recordsOrm = useORM('Records');
   const budgetsOrm = useORM('Budgets');
+  const paidCreditsOrm = useORM('PaidCredits');
 
   const fetchGroups = async (): Promise<Group[]> => groupsOrm.getAll();
 
@@ -271,17 +423,18 @@ export const useGroupsRepository = () => {
     groupsOrm.order('id', 'DESC').first();
 
   const addGroup = async (newGroup: Insertable<Group>) => {
-    return groupsOrm.insert(newGroup);
+    return groupsOrm.insert(groupInputSchema.parse(newGroup));
   };
 
   const deleteGroup = async (id: number) => {
     await recordsOrm.deleteWhere('group_id', id);
+    await paidCreditsOrm.deleteWhere('group_id', id);
     await budgetsOrm.deleteWhere('group_id', id);
     await groupsOrm.delete(id);
   };
 
   const editGroup = async (id: number, updatedGroup: Partial<Group>) => {
-    await groupsOrm.update(id, updatedGroup);
+    await groupsOrm.update(id, groupUpdateSchema.parse(updatedGroup));
   };
 
   return {
@@ -328,11 +481,11 @@ export const useSavingsRepository = () => {
   const fetchSavings = async (): Promise<Saving[]> => savingsOrm.getAll();
 
   const addSavings = async (savingName: string, amount: Cents) => {
-    return savingsOrm.insert({ saving_name: savingName, amount });
+    return savingsOrm.insert(savingInputSchema.parse({ saving_name: savingName, amount }));
   };
 
   const updateSavings = async (id: number, savingName: string, amount: Cents) => {
-    await savingsOrm.update(id, { saving_name: savingName, amount });
+    await savingsOrm.update(id, savingUpdateSchema.parse({ saving_name: savingName, amount }));
   };
 
   const deleteSavings = async (id: number) => {
@@ -369,8 +522,19 @@ export const useSavingsHistoryRepository = () => {
   const deleteSavingsHistory = async (savingId: number) =>
     historyOrm.deleteWhere('savings_id', savingId);
 
+  const fetchBySavingId = async (savingId: number): Promise<SavingsHistoryEntry[]> =>
+    historyOrm
+      .where('savings_id', savingId)
+      .order('change_date', 'ASC')
+      .getAll();
+
+  const addHistory = async (entry: Insertable<SavingsHistoryEntry>): Promise<number> =>
+    historyOrm.insert(entry);
+
   return {
     fetchSavingsHistoryBySavingId,
+    fetchBySavingId,
+    addHistory,
     deleteSavingsHistory,
     handler,
   };
@@ -439,10 +603,11 @@ export const useBudgetsRepository = (table: 'BudgetTemplateItems' | 'Budgets' = 
     return sumByEffect(group_id, '=');
   };
 
-  const addBudget = async (record: Insertable<Budget>) => budgetsOrm.insert(record);
+  const addBudget = async (record: Insertable<Budget>) =>
+    budgetsOrm.insert(budgetInputSchema.parse(record));
 
   const updateBudget = async (id: number, record: Partial<Budget>) => {
-    await budgetsOrm.update(id, record);
+    await budgetsOrm.update(id, budgetUpdateSchema.parse(record));
   };
 
   const deleteBudget = async (id: number) => budgetsOrm.delete(id);
@@ -490,10 +655,10 @@ export const usePaymentMethodsRepository = () => {
   };
 
   const addPaymentMethod = async (method: Insertable<PaymentMethod>) =>
-    methodsOrm.insert(method);
+    methodsOrm.insert(paymentMethodInputSchema.parse(method));
 
   const updatePaymentMethod = async (id: number, method: Partial<PaymentMethod>) => {
-    await methodsOrm.update(id, method);
+    await methodsOrm.update(id, paymentMethodUpdateSchema.parse(method));
   };
 
   const deletePaymentMethod = async (id: number) => methodsOrm.delete(id);
