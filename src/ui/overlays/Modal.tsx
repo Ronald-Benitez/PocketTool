@@ -1,6 +1,8 @@
 import React from 'react';
 import {
+  KeyboardAvoidingView,
   Modal as RNModal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -69,16 +71,20 @@ export const Modal = ({
       animationType={isBottom ? 'slide' : 'fade'}
       statusBarTranslucent
     >
-      <Pressable
-        onPress={dismissOnBackdrop ? onClose : undefined}
-        style={[
-          styles.backdrop,
-          {
-            backgroundColor: colors.overlay,
-            justifyContent: isBottom ? 'flex-end' : 'center',
-          },
-        ]}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.keyboard}
       >
+        <Pressable
+          onPress={dismissOnBackdrop ? onClose : undefined}
+          style={[
+            styles.backdrop,
+            {
+              backgroundColor: colors.overlay,
+              justifyContent: isBottom ? 'flex-end' : 'center',
+            },
+          ]}
+        >
         <Pressable
           onPress={() => {}}
           accessibilityViewIsModal
@@ -127,6 +133,7 @@ export const Modal = ({
           ) : null}
         </Pressable>
       </Pressable>
+      </KeyboardAvoidingView>
     </RNModal>
   );
 };
@@ -136,6 +143,9 @@ export const BottomSheet = (props: Omit<ModalProps, 'placement'>) => (
 );
 
 const styles = StyleSheet.create({
+  keyboard: {
+    flex: 1,
+  },
   backdrop: {
     flex: 1,
     padding: spacing.md,

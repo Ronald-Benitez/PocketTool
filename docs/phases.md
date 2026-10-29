@@ -104,14 +104,18 @@ Incluye:
 - Piloto migrado: `src/components/groups/add-group.tsx` usa `Modal`,
   `TextField`, `MoneyField`, `MonthField` y `Button`; ya no usa
   `ModalContainer`, `InputLabel` ni `MonthSelector`.
+- Piloto migrado: `src/components/records/add-record.tsx` usa `Modal`,
+  `TextField`, `MoneyField`, `DateField`, `SelectField` y `Button`; conserva los
+  bordes de color de tipos/métodos con `renderOption`/`renderValue`.
+- `Modal` incluye `KeyboardAvoidingView` para iOS.
 - Galería ampliada con campos especializados, feedback, loading, empty state y
   diálogo.
 - Tests de render ampliados en `src/ui/__tests__/primitives.test.tsx`.
 - Verificado: `npm run ci` y `npm run lint` con 0 errores.
 
-Pendiente de UI-1: adaptar/migrar `add-record`, `AddFixed`, `AddTemplateItem`,
-`add-budget`, `AddSaving` y reemplazar `BaseSelect`/`DatePicker`/
-`PressableSwitch` en pantallas existentes.
+Pendiente de UI-1: adaptar/migrar `AddFixed`, `AddTemplateItem`, `add-budget`,
+`AddSaving` y reemplazar `BaseSelect`/`DatePicker`/`PressableSwitch` en pantallas
+existentes.
 Pendiente de UI-2: migrar `ModalContainer`, `base-modal`, `confirm`,
 `HelpModal`, `RecordsFilterModal` y reemplazar `Alert`/`useAndroidToast` restantes
 por feedback global.

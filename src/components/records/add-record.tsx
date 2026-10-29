@@ -1,16 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { View, ScrollView, Text, StyleSheet } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { useLanguage } from "@/src/lang/LanguageContext";
 import useDate from "@/src/hooks/useDate";
-import useToast from "@/src/hooks/useToast";
 import useRecordsStore from '@/src/stores/RecordsStore';
-import ModalContainer from "../ui/modal-container";
-import InputLabel from "../ui/InputLabel";
-import BaseSelect from "../ui/base-select";
-import LabelBlock from "../ui/LabelBlock";
 import useAndroidToast from "@/src/hooks/useAndroidToast";
-import DatePicker from "../ui/date-picker";
 import { usePaidCredits, usePaymentMethods, useRecords, useTableRepository } from "@/src/db";
 import type {
     Category,
@@ -21,10 +15,15 @@ import type {
     RecordFormEntry,
     RecordType
 } from "@/src/interfaces/schema";
-import styles from '@/src/styles/styles';
-import BorderLeftBlock from '@/src/components/ui/BorderLeftBlock';
 import { useConfigs } from "@/src/hooks/useConfigs";
-import { centsToInput, parseMoneyToCents } from "@/src/utils";
+import { AppText } from "@/src/ui/primitives/AppText";
+import { Button } from "@/src/ui/actions/Button";
+import { DateField } from "@/src/ui/forms/DateField";
+import { MoneyField } from "@/src/ui/forms/MoneyField";
+import { SelectField } from "@/src/ui/forms/SelectField";
+import { TextField } from "@/src/ui/forms/TextField";
+import { Modal } from "@/src/ui/overlays/Modal";
+import { useTheme } from "@/src/ui/theme/ThemeProvider";
 
 interface AddItemProps {
     item?: RecordFormEntry
@@ -33,10 +32,20 @@ interface AddItemProps {
     open?: boolean
 }
 
+const ColoredOption = ({ color, label }: { color?: string | null; label: string }) => {
+    const { colors } = useTheme()
+    return (
+        <View style={[styles.colorOption, { borderLeftColor: color ?? colors.border, backgroundColor: colors.surfaceMuted }]}>
+            <AppText numberOfLines={1}>{label}</AppText>
+        </View>
+    )
+}
+
 const AddItem = ({ item, children, open }: AddItemProps) => {
     const { setRecords, group, setPaidCredits } = useRecordsStore()
     const dateH = useDate()
     const { t } = useLanguage()
+    const [visible, setVisible] = useState(false)
     const [name, setName] = useState<string>("")
     const [date, setDate] = useState(new Date().getTime())
     const [type, setType] = useState<RecordType>()
@@ -44,9 +53,8 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     const [to_pay_method, setToPayMethod] = useState<PaymentMethodWithRelations>()
     const [category, setCategory] = useState<Category>()
     const [fixed_id, setFixedId] = useState<number | undefined>(undefined)
-    const [value, setValue] = useState<string>("")
+    const [amountCents, setAmountCents] = useState<number>(0)
     const [group_id, setGroupId] = useState<number>(group?.id || 0)
-    const { ToastContainer } = useToast()
     const toast = useAndroidToast()
     const [recordTypes, setRecordTypes] = useState<RecordType[]>([])
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethodWithRelations[]>([])
@@ -57,6 +65,15 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     const recordTypesRepository = useTableRepository("RecordTypes")
     const categoriesRepository = useTableRepository("Categories")
     const { configs: { paymentCreditType } } = useConfigs()
+    const firstOpenEffect = useRef(true)
+
+    useEffect(() => {
+        if (firstOpenEffect.current) {
+            firstOpenEffect.current = false
+            return
+        }
+        setVisible(true)
+    }, [open])
 
     useEffect(() => {
         const loadOptions = async () => {
@@ -84,7 +101,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     useEffect(() => {
         if (!item) return
         setName(item.record_name ?? "")
-        setValue(item.amount === undefined ? "" : centsToInput(item.amount))
+        setAmountCents(item.amount ?? 0)
         if (item.date !== undefined) setDate(dateH.verify(item.date).getTime())
         setType(recordTypes.find(val => val.id === item.record_type_id))
         if (item.group_id !== undefined && item.group_id !== null) setGroupId(item.group_id)
@@ -105,10 +122,28 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
         })
     }, [item, recordTypes, paymentMethods, categories])
 
+    const closeModal = () => setVisible(false)
+
+    const typeOptions = recordTypes.flatMap(val =>
+        typeof val.id === 'number' ? [{ label: val.type_name, value: val.id }] : []
+    )
+    const categoryOptions = categories.flatMap(cat =>
+        typeof cat.id === 'number' ? [{ label: cat.category_name, value: cat.id }] : []
+    )
+    const paymentOptions = paymentMethods.flatMap(pay =>
+        typeof pay.id === 'number' ? [{ label: pay.method_name, value: pay.id }] : []
+    )
+
     const onSave = async () => {
         if (!group) return
 
-        if (value === "" || !payment_method?.id || !category?.id || !type?.id || (type.id == paymentCreditType && !to_pay_method?.id)) {
+        if (
+            amountCents <= 0 ||
+            !payment_method?.id ||
+            !category?.id ||
+            !type?.id ||
+            (type.id === paymentCreditType && !to_pay_method?.id)
+        ) {
             toast.emptyMessage()
             return
         }
@@ -118,7 +153,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                 type.id === paymentCreditType && to_pay_method?.id
                     ? {
                         group_id,
-                        amount: parseMoneyToCents(value),
+                        amount: amountCents,
                         date,
                         payment_method_id: to_pay_method.id,
                     }
@@ -129,7 +164,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                 group_id,
                 record_name: name.length < 1 ? category.category_name : name,
                 record_type_id: type.id,
-                amount: parseMoneyToCents(value),
+                amount: amountCents,
                 category_id: category.id,
                 payment_method_id: payment_method.id,
                 fixed_id,
@@ -147,173 +182,159 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
             } else {
                 toast.addedMessage()
                 setName("")
-                setValue("")
+                setAmountCents(0)
             }
 
             const records = await fetchRecords(group_id)
             const credits = await fetchPaidCreditsByGroup(group_id)
             setRecords(records ?? [])
             setPaidCredits(credits)
+            closeModal()
         } catch (e) {
             console.error("Error al guardar el registro:", e)
             toast.errorMessage()
         }
     }
 
-    const onChangeCategory = (index: number) => {
-        setCategory(categories[index])
-    }
-
-    const onPaymentChange = (index: number) => {
-        setPaymentMethod(paymentMethods[index])
-    }
-
-    const onToPayChange = (index: number) => {
-        setToPayMethod(paymentMethods[index])
-    }
-
-    const onTypeChange = (index: number) => {
-        setType(recordTypes[index])
-    }
-
-    const SelectTypeBlockRender = (index: number) => {
-        return (
-            <BorderLeftBlock color={recordTypes[index].record_color || "#000"}>
-                <Text style={[styles.text]}>{recordTypes[index].type_name}</Text>
-            </BorderLeftBlock>
-        )
-    }
-
-    const SelectedTypeBlockRender = () => {
-        return (
-            <BorderLeftBlock color={type?.record_color || "#000"}>
-                <Text style={[styles.text]}>{type?.type_name || t('item.type')}</Text>
-            </BorderLeftBlock>
-        )
-    }
-
-    const SelectPaymentBlockRender = (index: number) => {
-        return (
-            <BorderLeftBlock color={paymentMethods[index].PaymentTypes?.payment_color || "#000"}>
-                <Text style={[styles.text]}>{paymentMethods[index].method_name}</Text>
-            </BorderLeftBlock>
-        )
-    }
-
-    const SelectedPaymentBlockRender = ({ payment }: { payment: PaymentMethodWithRelations | undefined }) => {
-        return (
-            <BorderLeftBlock color={payment?.PaymentTypes?.payment_color || "#000"}>
-                <Text style={[styles.text]}>{payment?.method_name || t('item.selectPayment')}</Text>
-            </BorderLeftBlock>
-        )
-    }
-
     return (
         <>
-            <ModalContainer
-                buttonOpen={children}
-                closeOnAccept={true}
-                type="complete"
-                onAccept={onSave}
+            {children ? (
+                <Pressable onPress={() => setVisible(true)}>{children}</Pressable>
+            ) : null}
+            <Modal
+                visible={visible}
+                onClose={closeModal}
                 title={item ? t('item.edit') : t('item.add')}
-                open={open}
-            >
-                <ScrollView style={{ flex: 1 }}>
-                    <View style={[localStyles.colContainer, { width: "100%"}]}>
-                        <View style={localStyles.inputContainer}>
-                            <InputLabel
-                                value={name}
-                                onChangeText={setName}
-                                placeholder={t('item.name')}
-                            />
-                        </View>
-                        <View style={localStyles.inputContainer}>
-                            <BaseSelect
-                                label={t('item.type') + '*'}
-                                selected={type?.type_name}
-                                onChange={onTypeChange}
-                                options={recordTypes.map(val => val.type_name)}
-                                title={t('item.type')}
-                                render={SelectTypeBlockRender}
-
-                            >
-                                <SelectedTypeBlockRender />
-                            </BaseSelect>
-                        </View>
-
-                        <View style={localStyles.inputContainer}>
-                            <BaseSelect
-                                label={t('item.category') + '*'}
-                                selected={category?.category_name}
-                                onChange={onChangeCategory}
-                                options={categories.map(cat => cat.category_name)}
-                                title={t('item.selectCategory')}
-                            />
-                        </View>
-
-                        <View style={localStyles.inputContainer}>
-                            <BaseSelect
-                                label={t('item.payment') + '*'}
-                                selected={payment_method?.method_name}
-                                onChange={onPaymentChange}
-                                options={paymentMethods.map(pay => pay.method_name)}
-                                title={t('item.selectPayment')}
-                                render={SelectPaymentBlockRender}
-                            >
-                                <SelectedPaymentBlockRender payment={payment_method} />
-                            </BaseSelect>
-                        </View>
-                        {
-                            paymentCreditType == type?.id ? (
-                                <View style={localStyles.inputContainer}>
-                                    <BaseSelect
-                                        label={t('item.toPay') + '*'}
-                                        selected={to_pay_method?.method_name}
-                                        onChange={onToPayChange}
-                                        options={paymentMethods.map(pay => pay.method_name)}
-                                        title={t('item.selectToPay')}
-                                        render={SelectPaymentBlockRender}
-                                    >
-                                        <SelectedPaymentBlockRender payment={to_pay_method} />
-                                    </BaseSelect>
-                                </View>
-                            ) : null
-                        }
-                        <View style={localStyles.inputContainer}>
-                            <InputLabel
-                                value={value}
-                                onChangeText={setValue}
-                                placeholder={t('item.value') + '*'}
-                                keyboardType="numeric"
-                            />
-                        </View>
-                        <View style={localStyles.inputContainer}>
-                            <LabelBlock label={t('item.date')}>
-                                <DatePicker buttonText={dateH.getStringDate(date)} value={date} onChange={setDate} />
-                            </LabelBlock>
-                        </View>
+                closeLabel={t('item.cancel')}
+                scrollable
+                footer={
+                    <View style={styles.footer}>
+                        <Button
+                            label={t('item.cancel')}
+                            variant='outline'
+                            onPress={closeModal}
+                            style={styles.footerButton}
+                        />
+                        <Button
+                            label={t('item.save')}
+                            onPress={onSave}
+                            style={styles.footerButton}
+                        />
                     </View>
-                </ScrollView>
-                <ToastContainer />
-            </ModalContainer>
+                }
+            >
+                <View style={styles.form}>
+                    <TextField
+                        label={t('item.name')}
+                        value={name}
+                        onChangeText={setName}
+                        placeholder={t('item.name')}
+                    />
+                    <SelectField<number>
+                        label={t('item.type')}
+                        required
+                        value={type?.id}
+                        title={t('item.type')}
+                        options={typeOptions}
+                        onChange={(id) => setType(recordTypes.find(val => val.id === id))}
+                        renderValue={(option) => (
+                            <ColoredOption
+                                color={type?.record_color}
+                                label={option?.label ?? t('item.type')}
+                            />
+                        )}
+                        renderOption={(option) => (
+                            <ColoredOption
+                                color={recordTypes.find(val => val.id === option.value)?.record_color}
+                                label={option.label}
+                            />
+                        )}
+                    />
+                    <SelectField<number>
+                        label={t('item.category')}
+                        required
+                        value={category?.id}
+                        title={t('item.selectCategory')}
+                        options={categoryOptions}
+                        onChange={(id) => setCategory(categories.find(cat => cat.id === id))}
+                    />
+                    <SelectField<number>
+                        label={t('item.payment')}
+                        required
+                        value={payment_method?.id}
+                        title={t('item.selectPayment')}
+                        options={paymentOptions}
+                        onChange={(id) => setPaymentMethod(paymentMethods.find(pay => pay.id === id))}
+                        renderValue={(option) => (
+                            <ColoredOption
+                                color={payment_method?.PaymentTypes?.payment_color}
+                                label={option?.label ?? t('item.selectPayment')}
+                            />
+                        )}
+                        renderOption={(option) => (
+                            <ColoredOption
+                                color={paymentMethods.find(pay => pay.id === option.value)?.PaymentTypes?.payment_color}
+                                label={option.label}
+                            />
+                        )}
+                    />
+                    {type?.id === paymentCreditType ? (
+                        <SelectField<number>
+                            label={t('item.toPay')}
+                            required
+                            value={to_pay_method?.id}
+                            title={t('item.selectToPay')}
+                            options={paymentOptions}
+                            onChange={(id) => setToPayMethod(paymentMethods.find(pay => pay.id === id))}
+                            renderValue={(option) => (
+                                <ColoredOption
+                                    color={to_pay_method?.PaymentTypes?.payment_color}
+                                    label={option?.label ?? t('item.selectToPay')}
+                                />
+                            )}
+                            renderOption={(option) => (
+                                <ColoredOption
+                                    color={paymentMethods.find(pay => pay.id === option.value)?.PaymentTypes?.payment_color}
+                                    label={option.label}
+                                />
+                            )}
+                        />
+                    ) : null}
+                    <MoneyField
+                        label={t('item.value')}
+                        required
+                        value={amountCents}
+                        onChangeCents={setAmountCents}
+                    />
+                    <DateField
+                        label={t('item.date')}
+                        value={date}
+                        onChange={setDate}
+                    />
+                </View>
+            </Modal>
         </>
     )
-
 }
 
-const localStyles = StyleSheet.create({
-    colContainer: {
-        flexDirection: "column",
-        justifyContent: "center",
-        alignContent: "center",
-        paddingVertical: 20,
-        gap: 20
+const styles = StyleSheet.create({
+    form: {
+        gap: 16
     },
-
-    inputContainer: {
+    footer: {
         flex: 1,
-        flexDirection: "row",
-        justifyContent: "center"
+        flexDirection: 'row',
+        gap: 8
+    },
+    footerButton: {
+        flex: 1
+    },
+    colorOption: {
+        flex: 1,
+        borderLeftWidth: 3,
+        borderRadius: 5,
+        paddingHorizontal: 8,
+        paddingVertical: 8,
     }
 })
 

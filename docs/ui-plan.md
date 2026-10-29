@@ -402,8 +402,8 @@ migrar pantallas y adaptadores legacy.
 - Adaptadores para `InputLabel`, `Input`, `BaseSelect`, `DatePicker`,
   `MonthSelector`, `PressableSwitch`, `ColorPicker2`. ⏳
 - Migrar como piloto: `add-group`. ✅
-- Migrar: `add-record`, `AddFixed`, `AddTemplateItem`, `add-budget`,
-  `AddSaving`. ⏳
+- Migrar: `add-record`. ✅
+- Migrar: `AddFixed`, `AddTemplateItem`, `add-budget`, `AddSaving`. ⏳
 
 ### UI-2 — Feedback y overlays (1–2 días)
 

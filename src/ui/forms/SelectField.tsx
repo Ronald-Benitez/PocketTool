@@ -34,6 +34,8 @@ export type SelectFieldProps<T extends string | number = string> = {
   onChange: (value: T) => void;
   disabled?: boolean;
   containerStyle?: StyleProp<ViewStyle>;
+  renderValue?: (option: SelectOption<T> | undefined) => React.ReactNode;
+  renderOption?: (option: SelectOption<T>, selected: boolean) => React.ReactNode;
 };
 
 export const SelectField = <T extends string | number,>({
@@ -50,6 +52,8 @@ export const SelectField = <T extends string | number,>({
   onChange,
   disabled = false,
   containerStyle,
+  renderValue,
+  renderOption,
 }: SelectFieldProps<T>) => {
   const { colors } = useTheme();
   const [visible, setVisible] = useState(false);
@@ -85,13 +89,18 @@ export const SelectField = <T extends string | number,>({
           },
         ]}
       >
-        <AppText
-          color={selected ? 'default' : 'muted'}
-          numberOfLines={1}
-          style={styles.value}
-        >
-          {selected?.label ?? placeholder}
-        </AppText>
+        <View style={styles.value}>
+          {renderValue ? (
+            renderValue(selected)
+          ) : (
+            <AppText
+              color={selected ? 'default' : 'muted'}
+              numberOfLines={1}
+            >
+              {selected?.label ?? placeholder}
+            </AppText>
+          )}
+        </View>
         <MaterialIcons name='expand-more' size={22} color={colors.textMuted} />
       </Pressable>
 
@@ -126,12 +135,17 @@ export const SelectField = <T extends string | number,>({
                     },
                   ]}
                 >
-                  <AppText
-                    style={styles.optionLabel}
-                    color={isSelected ? 'primary' : 'default'}
-                  >
-                    {option.label}
-                  </AppText>
+                  <View style={styles.value}>
+                    {renderOption ? (
+                      renderOption(option, isSelected)
+                    ) : (
+                      <AppText
+                        color={isSelected ? 'primary' : 'default'}
+                      >
+                        {option.label}
+                      </AppText>
+                    )}
+                  </View>
                   {isSelected ? (
                     <MaterialIcons name='check' size={20} color={colors.primary} />
                   ) : null}
@@ -169,8 +183,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderWidth: 1,
     borderRadius: radii.md,
-  },
-  optionLabel: {
-    flex: 1,
   },
 });
