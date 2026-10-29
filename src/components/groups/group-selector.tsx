@@ -12,6 +12,7 @@ import { useDataStore } from '@/src/stores'
 import { useORM } from '@/src/orm'
 import { Group } from '@/src/interfaces/schema'
 import { useFixeds, usePaymentMethods, useRecords } from '@/src/db'
+import useConfigs from '@/src/hooks/useConfigs'
 
 const GroupSelector = () => {
     const { t } = useLanguage()
@@ -30,6 +31,7 @@ const GroupSelector = () => {
     const { fetchFixeds } = useFixeds()
     const { fetchPaymentMethods } = usePaymentMethods()
     const { fetchRecords } = useRecords()
+    const { loadConfigs } = useConfigs()
 
     useEffect(() => {
         getPinned()
@@ -48,6 +50,7 @@ const GroupSelector = () => {
             setRecordTypes(recordTypes)
             setPaymentTypes(paymentTypes)
             setFixeds(fixeds ?? [])
+            await loadConfigs(recordTypes)
         } catch (error) {
             console.error("Error loading data for group selector:", error)
         }

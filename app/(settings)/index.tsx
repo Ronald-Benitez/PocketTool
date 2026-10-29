@@ -16,7 +16,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 
 const SettingsScreen = () => {
     const { language, changeLanguage, t } = useLanguage();
-    const { configs, saveConfigs } = useConfigs();
+    const { configs, saveConfigs, loadConfigs } = useConfigs();
     const db = useSQLiteContext()
     const exportHook = useDBExport()
     const { RecordTypes } = useDataStore()
@@ -30,18 +30,10 @@ const SettingsScreen = () => {
     }
 
     useEffect(() => {
-        const defaultConfig = { ...configs }
-        if (configs?.recordTypes?.length <= 0) {
-            defaultConfig.recordTypes = [1, 2]
+        if (RecordTypes.length > 0) {
+            void loadConfigs(RecordTypes)
         }
-        if (!configs.recordTypes) {
-            defaultConfig.creditType = 4
-        }
-        if (!configs?.paymentCreditType) {
-            defaultConfig.paymentCreditType = 5
-        }
-        saveConfigs(defaultConfig)
-    }, [])
+    }, [RecordTypes.length])
 
     const onTypesChange = (value: number) => {
         const type = RecordTypes[value];
