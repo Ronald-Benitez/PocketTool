@@ -1,28 +1,49 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { useSQLiteContext } from 'expo-sqlite';
+import { View } from 'react-native';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
-import styles from '@/src/styles/styles';
 import ColorSettings from "@/src/components/settings/colors-settings"
-import IconButton from '@/src/components/ui/icon-button';
 import { useDBExport } from '@/src/db/utils';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useConfigs } from '@/src/hooks/useConfigs';
 import { useDataStore } from '@/src/stores';
-import BaseSelect from '@/src/components/ui/base-select';
-import BorderLeftBlock from '@/src/components/ui/BorderLeftBlock';
-import { ScrollView } from 'react-native-gesture-handler';
+import { Button } from '@/src/ui/actions/Button';
+import { IconButton } from '@/src/ui/actions/IconButton';
+import { ColoredSelectOption } from '@/src/ui/forms/ColoredSelectOption';
+import { MultiSelectField } from '@/src/ui/forms/MultiSelectField';
+import { SelectField } from '@/src/ui/forms/SelectField';
+import { AppText } from '@/src/ui/primitives/AppText';
+import { Row, Stack } from '@/src/ui/primitives/Stack';
+import { Screen } from '@/src/ui/primitives/Screen';
+import { useTheme } from '@/src/ui/theme/ThemeProvider';
+import type { RecordType } from '@/src/interfaces/schema';
 
 const SettingsScreen = () => {
     const { language, changeLanguage, t } = useLanguage();
     const { configs, saveConfigs, loadConfigs } = useConfigs();
-    const db = useSQLiteContext()
     const exportHook = useDBExport()
     const { RecordTypes } = useDataStore()
+    const { colors } = useTheme()
+
+    const recordTypes = RecordTypes ?? []
+    const recordTypeOptions = recordTypes.flatMap((recordType: RecordType) =>
+        typeof recordType.id === 'number'
+            ? [{ label: recordType.type_name, value: recordType.id }]
+            : []
+    )
+
+    const colorForType = (id: number | null | undefined) =>
+        recordTypes.find((recordType) => recordType.id === id)?.record_color
+
+    const renderTypeOption = (option: { label: string; value: number }) => (
+        <ColoredSelectOption
+            color={colorForType(option.value)}
+            label={option.label}
+        />
+    )
 
     const onPressLanguage = () => {
-        if (language == "en") {
+        if (language === "en") {
             changeLanguage("es")
         } else {
             changeLanguage("en")
@@ -35,187 +56,86 @@ const SettingsScreen = () => {
         }
     }, [RecordTypes.length])
 
-    const onTypesChange = (value: number) => {
-        const type = RecordTypes[value];
-        const set = new Set(configs?.recordTypes || []);
-        const newConfig = { ...configs }
-        if (!type?.id) return;
-        if (configs?.recordTypes?.includes(type.id)) {
-            newConfig.recordTypes = configs.recordTypes.filter(rt => rt !== type.id)
-        }
-        else {
-            newConfig.recordTypes = [...(configs?.recordTypes || []), type.id]
-        }
-        saveConfigs(newConfig);
+    const onRecordTypesChange = (values: number[]) => {
+        saveConfigs({ ...configs, recordTypes: values })
     }
 
-    const onCreditTypeChange = (value: number) => {
-        const type = RecordTypes[value]
-        if (!type.id) return
-        const newConfig = { ...configs }
-        newConfig.creditType = type.id
-        saveConfigs(newConfig)
+    const onCreditTypeChange = (id: number) => {
+        saveConfigs({ ...configs, creditType: id })
     }
 
-    const onCreditPaymentChange = (value: number) => {
-        const type = RecordTypes[value]
-        if (!type.id) return
-        const newConfig = { ...configs }
-        newConfig.paymentCreditType = type.id
-        saveConfigs(newConfig)
-    }
-
-
-    const SelectTypeBlockRender = (index: number) => {
-
-        const transformStyle = {
-            transform: Array.isArray(configs?.recordTypes) && configs.recordTypes.includes(RecordTypes[index]?.id || 0) ? [{ scale: 0.95 }] : [{ scale: 1 }]
-        };
-        return (
-            <BorderLeftBlock color={RecordTypes[index].record_color ?? undefined} style={transformStyle}>
-                <Text style={[styles.text]}>{RecordTypes[index].type_name}</Text>
-            </BorderLeftBlock>
-        )
-    }
-
-    const SelectedTypeBlockRender = () => {
-        const selected = RecordTypes.filter(rt => configs?.recordTypes?.includes(rt?.id || 0));
-
-        if (selected.length <= 0) {
-            return (
-                <View style={[styles.borderedContainer, { borderColor: "#B6B6B6" }]}>
-                    <Text style={[styles.text]}>{t('settings.selectRecordType')}</Text>
-                </View>
-            )
-        }
-
-        return (
-            <View style={[localStyles.block, { borderColor: selected[0].record_color ?? undefined }]}>
-                <Text style={[styles.text]}>{selected.map(rt => rt.type_name).join(", ")}</Text>
-            </View>
-        )
-    }
-
-    const SelectCreditBlockRender = (payment = false) => {
-        const type = payment ? configs.paymentCreditType : configs.creditType;
-        return (index: number) => {
-            const transformStyle = {
-                transform: type == RecordTypes[index]?.id ? [{ scale: 0.95 }] : [{ scale: 1 }]
-            };
-            return (
-                <BorderLeftBlock color={RecordTypes[index].record_color ?? undefined} style={transformStyle}>
-                    <Text style={[styles.text]}>{RecordTypes[index].type_name}</Text>
-                </BorderLeftBlock>
-            )
-        }
-    }
-
-    const SelectedCreditBlockRender = ({ payment = false }) => {
-        const selected = RecordTypes.filter(rt => payment ? configs?.paymentCreditType == rt?.id : configs?.creditType == rt?.id);
-
-        if (selected.length <= 0) {
-            return (
-                <View style={[styles.borderedContainer, { borderColor: "#B6B6B6" }]}>
-                    <Text style={[styles.text]}>{t('settings.selectRecordType')}</Text>
-                </View>
-            )
-        }
-
-        return (
-            <View style={[localStyles.block, { borderColor: selected[0].record_color ?? undefined }]}>
-                <Text style={[styles.text]}>{selected.map(rt => rt.type_name).join(", ")}</Text>
-            </View>
-        )
+    const onCreditPaymentChange = (id: number) => {
+        saveConfigs({ ...configs, paymentCreditType: id })
     }
 
     return (
-        <ScrollView>
+        <Screen scroll edges={['left', 'right']}>
+            <Stack gap='lg'>
+                <Row gap='md' justify='space-between' align='center'>
+                    <AppText variant='label' color='muted'>
+                        {t('settings.selectLanguage')}
+                    </AppText>
+                    <Button
+                        label={language === "en" ? t('settings.languages.english') : t('settings.languages.spanish')}
+                        variant='outline'
+                        size='sm'
+                        onPress={onPressLanguage}
+                    />
+                </Row>
 
-            <View style={styles.container}>
-                {/* <Text style={localStyles.languageText}>{t('settings.selectLanguage')}</Text> */}
-                <View style={localStyles.container}>
-                    <Pressable style={localStyles.block} onPress={onPressLanguage}>
-                        <Text style={localStyles.languageText}>
-                            {language == "en" ? t('settings.languages.english') : t('settings.languages.spanish')}
-                        </Text>
-                    </Pressable>
-                </View>
-                <View style={localStyles.container}>
-                    <BaseSelect
-                        options={RecordTypes.map(rt => rt.type_name)}
-                        selected={configs?.recordTypes || []}
-                        onChange={onTypesChange}
-                        title={t('settings.selectRecordType')}
-                        label={t('settings.selectRecordType')}
-                        render={SelectTypeBlockRender}
-                    >
-                        <SelectedTypeBlockRender />
-                    </BaseSelect>
-                </View>
-                <View style={localStyles.container}>
-                    <BaseSelect
-                        options={RecordTypes.map(rt => rt.type_name)}
-                        selected={configs?.creditType || 0}
-                        onChange={onCreditTypeChange}
-                        title={t('settings.selectCreditExpenseType')}
-                        label={t('settings.selectCreditExpenseType')}
-                        render={SelectCreditBlockRender()}
-                    >
-                        <SelectedCreditBlockRender />
-                    </BaseSelect>
-                </View>
-                <View style={localStyles.container}>
-                    <BaseSelect
-                        options={RecordTypes.map(rt => rt.type_name)}
-                        selected={configs?.paymentCreditType || 0}
-                        onChange={onCreditPaymentChange}
-                        title={t('settings.selectCreditPaymentType')}
-                        label={t('settings.selectCreditPaymentType')}
-                        render={SelectCreditBlockRender(true)}
-                    >
-                        <SelectedCreditBlockRender payment />
-                    </BaseSelect>
-                </View>
-                <View style={localStyles.dbContainer}>
-                    <IconButton onClick={() => exportHook.exportDatabase()}>
-                        <MaterialCommunityIcons name="cloud-upload-outline" size={24} color="black" />
+                <MultiSelectField<number>
+                    label={t('settings.selectRecordType')}
+                    title={t('settings.selectRecordType')}
+                    placeholder={t('settings.selectRecordType')}
+                    values={configs?.recordTypes || []}
+                    options={recordTypeOptions}
+                    onChange={onRecordTypesChange}
+                    doneLabel={t('confirm')}
+                    closeLabel={t('cancel')}
+                    renderOption={renderTypeOption}
+                />
 
-                    </IconButton>
-                    <IconButton onClick={() => exportHook.importDatabase()}>
-                        <MaterialCommunityIcons name="cloud-download-outline" size={24} color="black" />
-                    </IconButton>
+                <SelectField<number>
+                    label={t('settings.selectCreditExpenseType')}
+                    title={t('settings.selectCreditExpenseType')}
+                    placeholder={t('settings.selectRecordType')}
+                    value={configs?.creditType}
+                    options={recordTypeOptions}
+                    onChange={onCreditTypeChange}
+                    renderOption={renderTypeOption}
+                    closeLabel={t('cancel')}
+                />
+
+                <SelectField<number>
+                    label={t('settings.selectCreditPaymentType')}
+                    title={t('settings.selectCreditPaymentType')}
+                    placeholder={t('settings.selectRecordType')}
+                    value={configs?.paymentCreditType}
+                    options={recordTypeOptions}
+                    onChange={onCreditPaymentChange}
+                    renderOption={renderTypeOption}
+                    closeLabel={t('cancel')}
+                />
+
+                <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+                    <IconButton
+                        label={t('settings.export')}
+                        variant='surface'
+                        icon={<MaterialCommunityIcons name="cloud-upload-outline" size={24} color={colors.text} />}
+                        onPress={() => exportHook.exportDatabase()}
+                    />
+                    <IconButton
+                        label={t('settings.import')}
+                        variant='surface'
+                        icon={<MaterialCommunityIcons name="cloud-download-outline" size={24} color={colors.text} />}
+                        onPress={() => exportHook.importDatabase()}
+                    />
                 </View>
 
-                {/* Renderiza todos los colores */}
                 <ColorSettings />
-
-            </View>
-        </ScrollView>
+            </Stack>
+        </Screen>
     );
 };
 
 export default SettingsScreen;
-
-const localStyles = StyleSheet.create({
-    languageText: {
-        fontSize: 12,
-        fontWeight: '200',
-        textAlign: "center"
-    },
-    block: {
-        width: 300,
-        height: 50,
-        justifyContent: "center",
-        alignItems: "center",
-        borderWidth: 1,
-        borderColor: "#B6B6B6"
-    },
-    container: {
-        flexDirection: "row",
-        justifyContent: "center"
-    },
-    dbContainer: {
-        flexDirection: "row",
-        justifyContent: "space-around"
-    }
-});

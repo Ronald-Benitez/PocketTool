@@ -36,6 +36,11 @@ export type SelectFieldProps<T extends string | number = string> = {
   containerStyle?: StyleProp<ViewStyle>;
   renderValue?: (option: SelectOption<T> | undefined) => React.ReactNode;
   renderOption?: (option: SelectOption<T>, selected: boolean) => React.ReactNode;
+  renderTrigger?: (
+    open: () => void,
+    selected: SelectOption<T> | undefined
+  ) => React.ReactNode;
+  extra?: React.ReactNode;
 };
 
 export const SelectField = <T extends string | number,>({
@@ -54,6 +59,8 @@ export const SelectField = <T extends string | number,>({
   containerStyle,
   renderValue,
   renderOption,
+  renderTrigger,
+  extra,
 }: SelectFieldProps<T>) => {
   const { colors } = useTheme();
   const [visible, setVisible] = useState(false);
@@ -80,28 +87,38 @@ export const SelectField = <T extends string | number,>({
         accessibilityLabel={label}
         accessibilityHint={hint}
         accessibilityState={{ disabled, expanded: visible }}
-        style={[
-          styles.field,
-          {
-            borderColor: error ? colors.danger : colors.border,
-            backgroundColor: colors.inputBackground,
-            opacity: disabled ? 0.6 : 1,
-          },
-        ]}
+        style={
+          renderTrigger
+            ? { opacity: disabled ? 0.6 : 1 }
+            : [
+                styles.field,
+                {
+                  borderColor: error ? colors.danger : colors.border,
+                  backgroundColor: colors.inputBackground,
+                  opacity: disabled ? 0.6 : 1,
+                },
+              ]
+        }
       >
-        <View style={styles.value}>
-          {renderValue ? (
-            renderValue(selected)
-          ) : (
-            <AppText
-              color={selected ? 'default' : 'muted'}
-              numberOfLines={1}
-            >
-              {selected?.label ?? placeholder}
-            </AppText>
-          )}
-        </View>
-        <MaterialIcons name='expand-more' size={22} color={colors.textMuted} />
+        {renderTrigger ? (
+          renderTrigger(() => setVisible(true), selected)
+        ) : (
+          <>
+            <View style={styles.value}>
+              {renderValue ? (
+                renderValue(selected)
+              ) : (
+                <AppText
+                  color={selected ? 'default' : 'muted'}
+                  numberOfLines={1}
+                >
+                  {selected?.label ?? placeholder}
+                </AppText>
+              )}
+            </View>
+            <MaterialIcons name='expand-more' size={22} color={colors.textMuted} />
+          </>
+        )}
       </Pressable>
 
       <BottomSheet
@@ -111,6 +128,7 @@ export const SelectField = <T extends string | number,>({
         closeLabel={closeLabel}
         scrollable
       >
+        {extra ? <View style={{ paddingBottom: spacing.md }}>{extra}</View> : null}
         {options.length === 0 ? (
           <AppText color='muted' align='center'>
             {emptyMessage}

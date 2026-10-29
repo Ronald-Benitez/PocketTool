@@ -1,12 +1,11 @@
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Modal, Pressable, StyleSheet } from 'react-native'
-import React, { useState, useEffect, ReactNode } from 'react'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import React, { useEffect, ReactNode } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { useLanguage } from '@/src/lang/LanguageContext'
-import { useSavings, useSavingsHistory } from '@/src/db'
-import useSavingsStore from '@/src/stores/SavingsStore'
-import { Saving, SavingsHistoryEntry } from '@/src/interfaces/schema';
-import BaseSelect from '../ui/base-select'
+import { useLanguage } from '@/src/lang/LanguageContext';
+import { useSavings, useSavingsHistory } from '@/src/db';
+import useSavingsStore from '@/src/stores/SavingsStore';
+import { Saving } from '@/src/interfaces/schema';
+import { SelectField } from '@/src/ui/forms/SelectField';
 
 interface Props {
     children: ReactNode
@@ -14,83 +13,56 @@ interface Props {
 
 const SavingsSelector = ({ children }: Props) => {
     const { t } = useLanguage()
-    const [year, setYear] = useState<string>(new Date().getFullYear().toString())
-    const [modalVisible, setModalVisible] = useState(false)
-    const { saving, savingsHistory, setSaving, setSavingsHistory, savings, setSavings } = useSavingsStore()
+    const { saving, setSaving, setSavingsHistory, savings, setSavings } = useSavingsStore()
     const { fetchSavings, fetchSavingsById } = useSavings()
     const { fetchBySavingId } = useSavingsHistory()
-    const [openUpdate, setOpenUpdate] = useState(false)
 
     useEffect(() => {
-        getPinned()
+        void getPinned()
+        void getSavings()
     }, [])
 
     const getSavings = async () => {
-        const savings = await fetchSavings()
-        setSavings(savings)
+        const items = await fetchSavings()
+        setSavings(items)
     }
 
-    useEffect(() => {
-        getSavings()
-    }, [year])
-
-    const onSelect = async (saving: Saving) => {
-        setSaving(saving)
-        await fetchBySavingId(saving.id ?? 0).then((res) => {
+    const onSelect = async (nextSaving: Saving) => {
+        setSaving(nextSaving)
+        await fetchBySavingId(nextSaving.id ?? 0).then((res) => {
             setSavingsHistory(res.reverse())
         })
-        setModalVisible(false)
-    }
-
-    const handleSelect = (index: number) => {
-        if (!savings) return
-        const s = savings[index]
-        if (!s) return
-        onSelect(s)
     }
 
     const getPinned = async () => {
         const pinned = await AsyncStorage.getItem('savings');
         if (pinned) {
             const p = Number(pinned)
-            fetchSavingsById(p).then(g => {
-                if (g) onSelect(g)
+            fetchSavingsById(p).then(s => {
+                if (s) void onSelect(s)
             })
         }
     }
 
-    const handleUpdate = () => {
-        setOpenUpdate(!openUpdate)
-    }
-
+    const savingOptions = (savings ?? []).flatMap(item =>
+        typeof item.id === 'number'
+            ? [{ label: item.saving_name, value: item.id }]
+            : []
+    )
 
     return (
-        <>
-            <View style={localStyles.block}>
-                <View style={localStyles.bg}>
-                    <BaseSelect
-                        onChange={handleSelect}
-                        options={savings?.map(e => e.saving_name)}
-                        selected={saving?.saving_name}
-                        title={t("savings.select")}
-                        blockWith={50}
-                    >
-                        {children}
-                    </BaseSelect>
-                </View>
-            </View>
-        </>
+        <SelectField<number>
+            value={saving?.id}
+            options={savingOptions}
+            onChange={(id) => {
+                const nextSaving = savings?.find(item => item.id === id)
+                if (nextSaving) void onSelect(nextSaving)
+            }}
+            title={t("savings.select")}
+            closeLabel={t('cancel')}
+            renderTrigger={() => children}
+        />
     )
 }
-
-const localStyles = StyleSheet.create({
-    bg: {
-    },
-    block: {
-        height: 50,
-        justifyContent: "center",
-        alignItems: "center"
-    }
-})
 
 export default SavingsSelector

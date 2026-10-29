@@ -398,14 +398,14 @@ formularios principales migrados; faltan adaptadores y pantallas legacy.
 
 - `FormField`, `TextField`, `MoneyField`, `SelectField`, `DateField`,
   `MonthField`, `SwitchField`, `ColorField`, `Button`, `IconButton`,
-  `LinkButton`. ✅
+  `LinkButton`, `MultiSelectField`. ✅
 - Adaptadores para `InputLabel`, `Input`, `BaseSelect`, `DatePicker`,
   `MonthSelector`, `PressableSwitch`, `ColorPicker2`. ⏳
 - Migrar como piloto: `add-group`. ✅
 - Migrar: `add-record`. ✅
 - Migrar: `AddFixed`, `AddTemplateItem`, `add-budget`, `AddSaving`. ✅
-- Reemplazar `BaseSelect`/`DatePicker`/`PressableSwitch` en settings, filtros y
-  selectores restantes. ⏳
+- Migrar selects de Ajustes, métodos de pago, grupo y ahorros. ✅
+- Migrar `RecordsFilterModal` y retirar `BaseSelect`. ⏳
 
 ### UI-2 — Feedback y overlays (1–2 días)
 

@@ -110,6 +110,9 @@ Incluye:
 - Migrados también: `AddFixed`, `AddTemplateItem`, `add-budget` y `AddSaving`
   usan `Modal`, `TextField`/`MoneyField`/`SelectField`/`DateField` y `Button`.
 - `ColoredSelectOption` centraliza las filas de select con borde de color.
+- `MultiSelectField` agregado para selección múltiple con checkboxes.
+- Migrados a los nuevos selects: Ajustes, métodos de pago, selector de grupos y
+  selector de ahorros. `BaseSelect` queda solo en `RecordsFilterModal`.
 - `Modal` incluye `KeyboardAvoidingView` para iOS y Android y auto-scroll al
   campo enfocado mediante `TextField`.
 - Modales legacy (`ModalContainer`, `base-modal`, `RecordsFilterModal`) también
@@ -120,8 +123,8 @@ Incluye:
 - Tests de render ampliados en `src/ui/__tests__/primitives.test.tsx`.
 - Verificado: `npm run ci` y `npm run lint` con 0 errores.
 
-Pendiente de UI-1: reemplazar `BaseSelect`/`DatePicker`/`PressableSwitch` en
-pantallas de settings, filtros y selectores restantes.
+Pendiente de UI-1: migrar `RecordsFilterModal`, que es el último consumidor de
+`BaseSelect`.
 Pendiente de UI-2: migrar `ModalContainer`, `base-modal`, `confirm`,
 `HelpModal`, `RecordsFilterModal` y reemplazar `Alert`/`useAndroidToast` restantes
 por feedback global.

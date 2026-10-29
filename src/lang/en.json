@@ -26,6 +26,8 @@
         "selectRecordType": "Resume record types",
         "selectCreditExpenseType": "Credit expenses type",
         "selectCreditPaymentType": "Credit payments type",
+        "export": "Export database",
+        "import": "Import database",
         "languages": {
             "english": "English",
             "spanish": "Español"

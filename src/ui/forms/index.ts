@@ -6,6 +6,10 @@ export {
 export { DateField, type DateFieldProps } from './DateField';
 export { FormField, type FormFieldProps } from './FormField';
 export { MoneyField, type MoneyFieldProps } from './MoneyField';
+export {
+  MultiSelectField,
+  type MultiSelectFieldProps,
+} from './MultiSelectField';
 export { MonthField, type MonthFieldProps } from './MonthField';
 export {
   SelectField,

@@ -38,8 +38,8 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 - `src/ui/actions/`: `Button`, `IconButton` y `LinkButton` con variantes y
   estados.
 - `src/ui/forms/`: `FormField`, `TextField`, `MoneyField`, `SelectField`,
-  `DateField`, `MonthField`, `SwitchField` y `ColorField` con label/required/
-  hint/error.
+  `MultiSelectField`, `DateField`, `MonthField`, `SwitchField` y `ColorField`
+  con label/required/hint/error.
 - `src/ui/overlays/`: `Modal` (center/bottom), `BottomSheet`, `Dialog` y
   `ConfirmDialog`. `Modal` maneja el teclado con `KeyboardAvoidingView`, insets
   y auto-scroll al `TextField` enfocado.

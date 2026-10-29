@@ -1,30 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
-import BaseSelect from '@/src/components/ui/base-select';
-import styles from '@/src/styles/styles';
 import SwipeItem from '@/src/components/ui/swipe-item';
-import useColorStore from '@/src/stores/ColorsStore';
-import BorderLeftBlock from '@/src/components/ui/BorderLeftBlock';
-import IconButton from '@/src/components/ui/icon-button';
-import ModalContainer from '@/src/components/ui/modal-container';
-import { MaterialIcons } from '@expo/vector-icons';
-import InputLabel from '@/src/components/ui/InputLabel';
 import useAndroidToast from '@/src/hooks/useAndroidToast';
 import { PaymentType, PaymentMethod, Insertable } from '@/src/interfaces/schema';
-import { useDataStore} from '@/src/stores';
+import { useDataStore } from '@/src/stores';
 import { usePaymentMethods, useTableRepository } from '@/src/db';
+import { Button } from '@/src/ui/actions/Button';
+import { ColoredSelectOption } from '@/src/ui/forms/ColoredSelectOption';
+import { SelectField } from '@/src/ui/forms/SelectField';
+import { TextField } from '@/src/ui/forms/TextField';
+import { ListItem } from '@/src/ui/data-display/ListItem';
+import { Modal } from '@/src/ui/overlays/Modal';
+import { Row, Stack } from '@/src/ui/primitives/Stack';
+import { Screen } from '@/src/ui/primitives/Screen';
+import { useTheme } from '@/src/ui/theme/ThemeProvider';
+import type { PaymentType as PaymentTypeEntity } from '@/src/db/schema/generated/types';
 
 const PaymentMethodsScreen = () => {
     const { t } = useLanguage();
+    const { colors } = useTheme();
+    const [visible, setVisible] = useState(false);
     const [methodName, setMethodName] = useState('');
     const [editingId, setEditingId] = useState<number | undefined>(undefined);
     const [type, setType] = useState<PaymentType | null>(null);
     const [closingDate, setClosingDate] = useState(0)
     const [paidDate, setPaidDate] = useState(0)
-    const [openModal, setOpenModal] = useState(false)
-    const { colors } = useColorStore();
     const toast = useAndroidToast()
     const { PaymentMethods, setPaymentMethods, PaymentTypes, setPaymentTypes } = useDataStore();
     const {
@@ -46,12 +49,30 @@ const PaymentMethodsScreen = () => {
         loadData();
     }, []);
 
+    const resetForm = () => {
+        setMethodName('');
+        setType(null);
+        setClosingDate(0);
+        setPaidDate(0);
+        setEditingId(undefined);
+    }
+
+    const openCreate = () => {
+        resetForm();
+        setVisible(true);
+    }
+
     const handleAddPaymentMethod = async () => {
-        if (!methodName || !type || closingDate < 0 || closingDate > 31 || paidDate < 0 || paidDate > 31) {
+        if (!methodName.trim() || !type || closingDate < 0 || closingDate > 31 || paidDate < 0 || paidDate > 31) {
             toast.emptyMessage()
             return;
         }
-        const newPaymentMethod: Insertable<PaymentMethod> = { method_name: methodName, payment_type_id: type?.id || 1, closing_date: closingDate, payment_date: paidDate };
+        const newPaymentMethod: Insertable<PaymentMethod> = {
+            method_name: methodName.trim(),
+            payment_type_id: type?.id || 1,
+            closing_date: closingDate,
+            payment_date: paidDate,
+        };
         try {
             if (editingId) {
                 await updatePaymentMethod(editingId, newPaymentMethod);
@@ -62,10 +83,8 @@ const PaymentMethodsScreen = () => {
             }
             const data = await fetchPaymentMethods();
             setPaymentMethods(data);
-            setMethodName('');
-            setType(null);
-            setClosingDate(0)
-            setEditingId(undefined);
+            resetForm();
+            setVisible(false);
         } catch (error) {
             toast.errorMessage()
             console.error(error);
@@ -88,124 +107,134 @@ const PaymentMethodsScreen = () => {
 
     const handleEditPaymentMethod = (method: PaymentMethod) => {
         setMethodName(method.method_name);
-        setType(
-            PaymentTypes.find(pt => pt.id === method.payment_type_id) || null
-        ); // Establecer el tipo al editar
+        setType(PaymentTypes.find(pt => pt.id === method.payment_type_id) || null);
         setEditingId(method.id);
         setClosingDate(method?.closing_date || 0)
         setPaidDate(method?.payment_date || 0)
-        setOpenModal(!openModal)
+        setVisible(true)
     };
 
-    const handleCutOffDay = (value: string) => {
-        const val = Number(value)
-        if (val < 0 || val > 31 || isNaN(val)) {
-            return
-        }
-        setClosingDate(val)
+    const handleDayChange = (setter: (value: number) => void) => (value: string) => {
+        const day = Number(value.replace(/[^0-9]/g, ''))
+        if (Number.isNaN(day) || day < 0 || day > 31) return
+        setter(day)
     }
 
-    const handlePaidDate = (value: string) => {
-        const val = Number(value)
-        if (val < 0 || val > 31 || isNaN(val)) {
-            return
-        }
-        setPaidDate(val)
-    }
-
-    const buttonOpen = (
-        <View style={localStyles.buttonOpenContainer}>
-            <IconButton isButton={false}>
-                <MaterialIcons name='add' size={20}></MaterialIcons>
-            </IconButton >
-        </View>
+    const paymentTypes = PaymentTypes ?? []
+    const paymentTypeOptions = paymentTypes.flatMap((paymentType: PaymentTypeEntity) =>
+        typeof paymentType.id === 'number'
+            ? [{ label: paymentType.payment_type_name || '', value: paymentType.id }]
+            : []
     )
 
-    const onPaymentTypeChange = (index: number) => {
-        if (!PaymentTypes) return
-        setType(PaymentTypes[index])
-    }
-
-    const SelectBlockRender = (index: number) => {
-        return (
-            <BorderLeftBlock color={PaymentTypes[index]?.payment_color || colors?.GoalColor}>
-                <Text style={[styles.text]}>{PaymentTypes[index]?.payment_type_name}</Text>
-            </BorderLeftBlock>
-        )
-    }
+    const renderTypeOption = (option: { label: string; value: number }) => (
+        <ColoredSelectOption
+            color={paymentTypes.find((paymentType) => paymentType.id === option.value)?.payment_color}
+            label={option.label}
+        />
+    )
 
     return (
-        <View style={[styles.container, { flex: 1 }]}>
-            <ModalContainer
-                buttonOpen={buttonOpen}
+        <Screen scroll edges={['left', 'right']}>
+            <Stack gap='lg'>
+                <Row justify='flex-end'>
+                    <Button
+                        label={t('paymentMethods.addMethod')}
+                        size='sm'
+                        onPress={openCreate}
+                        leftIcon={<MaterialIcons name='add' size={18} color={colors.onPrimary} />}
+                    />
+                </Row>
+
+                <View style={{ gap: 8 }}>
+                    {PaymentMethods?.map((item) => (
+                        <SwipeItem
+                            key={item.id}
+                            handleDelete={() => handleDeletePaymentMethod(item.id)}
+                            handleUpdate={() => handleEditPaymentMethod(item)}
+                        >
+                            <ListItem
+                                title={item.method_name}
+                                leading={
+                                    <View
+                                        style={{
+                                            width: 4,
+                                            height: 32,
+                                            borderRadius: 2,
+                                            backgroundColor: item?.PaymentTypes?.payment_color || colors.goal,
+                                        }}
+                                    />
+                                }
+                                showDivider
+                            />
+                        </SwipeItem>
+                    ))}
+                </View>
+            </Stack>
+
+            <Modal
+                visible={visible}
+                onClose={() => setVisible(false)}
                 title={editingId ? t('paymentMethods.updateMethod') : t('paymentMethods.addMethod')}
-                type='complete'
-                onAccept={handleAddPaymentMethod}
-                closeOnAccept={true}
-                open={openModal}>
-                <View style={localStyles.modalContent}>
-                    <InputLabel
-                        placeholder={t('paymentMethods.methodName') + "*"}
+                closeLabel={t('cancel')}
+                scrollable
+                footer={
+                    <View style={{ flex: 1, flexDirection: 'row', gap: 8 }}>
+                        <Button
+                            label={t('cancel')}
+                            variant='outline'
+                            onPress={() => setVisible(false)}
+                            style={{ flex: 1 }}
+                        />
+                        <Button
+                            label={t('confirm')}
+                            onPress={handleAddPaymentMethod}
+                            style={{ flex: 1 }}
+                        />
+                    </View>
+                }
+            >
+                <View style={{ gap: 16 }}>
+                    <TextField
+                        label={t('paymentMethods.methodName')}
+                        required
                         value={methodName}
                         onChangeText={setMethodName}
+                        placeholder={t('paymentMethods.methodName')}
                     />
-                    <BaseSelect
-                        label={t('paymentMethods.type.label') + "*"}
-                        selected={type?.payment_type_name || ''}
-                        onChange={onPaymentTypeChange}
-                        options={PaymentTypes?.map(pt => pt?.payment_type_name || '') || []}
+                    <SelectField<number>
+                        label={t('paymentMethods.type.label')}
+                        required
+                        value={type?.id}
                         title={t('paymentMethods.type.label')}
-                        render={SelectBlockRender}
+                        placeholder={t('paymentMethods.type.label')}
+                        options={paymentTypeOptions}
+                        onChange={(id) => setType(paymentTypes.find((paymentType) => paymentType.id === id) || null)}
+                        renderOption={renderTypeOption}
+                        closeLabel={t('cancel')}
                     />
-
-                    <InputLabel
-                        placeholder={t('paymentMethods.closingDate') + "*"}
+                    <TextField
+                        label={t('paymentMethods.closingDate')}
+                        required
                         value={String(closingDate)}
-                        onChangeText={handleCutOffDay}
-                        keyboardType='numeric'
+                        onChangeText={handleDayChange(setClosingDate)}
+                        keyboardType='number-pad'
+                        maxLength={2}
+                        placeholder={t('paymentMethods.closingDate')}
                     />
-                    <InputLabel
-                        placeholder={t('paymentMethods.paidDate') + "*"}
+                    <TextField
+                        label={t('paymentMethods.paidDate')}
+                        required
                         value={String(paidDate)}
-                        onChangeText={handlePaidDate}
-                        keyboardType='numeric'
+                        onChangeText={handleDayChange(setPaidDate)}
+                        keyboardType='number-pad'
+                        maxLength={2}
+                        placeholder={t('paymentMethods.paidDate')}
                     />
-                    {/* )
-                    } */}
                 </View>
-            </ModalContainer>
-            <ScrollView style={{ flex: 1, paddingRight: 40 }}>
-                {PaymentMethods?.map((item, index) => (
-                    <SwipeItem
-                        key={index}
-                        handleDelete={() => handleDeletePaymentMethod(item.id)}
-                        handleUpdate={() => handleEditPaymentMethod(item)}
-                        style={[styles.horizontalBlock]}
-                    >
-                        <BorderLeftBlock color={item?.PaymentTypes?.payment_color || colors?.GoalColor}>
-                            <Text style={[styles.text]}>{item.method_name}</Text>
-                        </BorderLeftBlock>
-                    </SwipeItem>
-                ))}
-            </ScrollView>
-        </View >
+            </Modal>
+        </Screen>
     );
 };
-
-const localStyles = StyleSheet.create({
-    buttonOpenContainer: {
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center"
-    },
-    modalContent: {
-        paddingTop: 40,
-        flexDirection: "column",
-        justifyContent: "center",
-        gap: 60,
-        alignItems: "center",
-        height: "90%"
-    }
-})
 
 export default PaymentMethodsScreen;
