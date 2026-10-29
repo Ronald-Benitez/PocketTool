@@ -65,7 +65,7 @@ const FixedsTable = () => {
                                     accentColor={item.PaymentMethods?.PaymentTypes?.payment_color ?? undefined}
                                 >
                                     <View style={localStyles.rowContainer}>
-                                        <Text style={[localStyles.dayText, item.fixed_day > 9 ? {
+                                        <Text style={[localStyles.dayText, { color: colors.text }, item.fixed_day > 9 ? {
                                             padding: 8,
                                             paddingHorizontal: 9
                                         } : {
@@ -74,8 +74,8 @@ const FixedsTable = () => {
                                         }]}>
                                             {String(item.fixed_day)}
                                         </Text>
-                                        <Text style={localStyles.nameText}>{item.fixed_name}</Text>
-                                        <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.fixed_amount)}</Text>
+                                        <Text style={[localStyles.nameText, { color: colors.text }]}>{item.fixed_name}</Text>
+                                        <Text style={[localStyles.valueText, { color: colors.text }]}>{formatMoneyWithSymbol(item.fixed_amount)}</Text>
                                     </View>
                                 </AccentRow>
                             </SwipeAction>

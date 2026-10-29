@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native'
 import { SwipeAction } from '@/src/ui/actions/SwipeAction'
 import useDate from '@/src/hooks/useDate'
 import { AccentRow } from '@/src/ui/data-display/AccentRow'
+import { useThemedStyles } from '@/src/styles/useThemedStyles'
 import type { RecordWithRelations } from '@/src/interfaces/schema'
 import { formatMoneyWithSymbol } from '@/src/utils'
 
@@ -13,6 +14,7 @@ type RecordsGroupProps = {
 }
 
 const RecordsGroup = ({ records, handleDelete, handleUpdate }: RecordsGroupProps) => {
+    const styles = useThemedStyles()
     const dateh = useDate()
     return (
         <>
@@ -30,18 +32,18 @@ const RecordsGroup = ({ records, handleDelete, handleUpdate }: RecordsGroupProps
                             >
                                 <View style={localStyles.rowContainer}>
                                     <View style={localStyles.dateContainer}>
-                                        <Text style={localStyles.dateText}>
+                                        <Text style={[localStyles.dateText, styles.textMuted]}>
                                             {dateh.getStringDay(String(item.date))}
                                         </Text>
-                                        <Text style={localStyles.dateText}>
+                                        <Text style={[localStyles.dateText, styles.textMuted]}>
                                             {dateh.getDay(String(item.date))}
                                         </Text>
-                                        <Text style={localStyles.dateText}>
+                                        <Text style={[localStyles.dateText, styles.textMuted]}>
                                             {dateh.getStringMonth(String(item.date))}
                                         </Text>
                                     </View>
-                                    <Text style={localStyles.nameText}>{item.record_name}</Text>
-                                    <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.amount)}</Text>
+                                    <Text style={[localStyles.nameText, styles.textPrimary]}>{item.record_name}</Text>
+                                    <Text style={[localStyles.valueText, styles.textPrimary]}>{formatMoneyWithSymbol(item.amount)}</Text>
                                 </View>
                             </AccentRow>
                         </SwipeAction>

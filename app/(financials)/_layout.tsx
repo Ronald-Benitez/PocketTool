@@ -15,10 +15,7 @@ export default function Layout() {
                     title: t("headers.records"),
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons name="wallet-outline" size={size} color={color as string | undefined} />
-                    ),
-                    headerStyle: {
-                        backgroundColor: '#fff'
-                    }
+                    )
                 }} />
             <Tabs.Screen
                 name="PaymentMethodsScreen"
@@ -26,10 +23,7 @@ export default function Layout() {
                     title: t("headers.payments"),
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons name="cash-outline" size={size} color={color as string | undefined} />
-                    ),
-                    headerStyle: {
-                        backgroundColor: '#fff'
-                    }
+                    )
                 }} />
             <Tabs.Screen
                 name="CategoriesScreen"
@@ -37,10 +31,7 @@ export default function Layout() {
                     title: t("headers.categories"),
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons name="options" size={size} color={color as string | undefined} />
-                    ),
-                    headerStyle: {
-                        backgroundColor: '#fff'
-                    }
+                    )
                 }} />
             <Tabs.Screen
                 name="PaymentTypesScreen"
@@ -48,10 +39,7 @@ export default function Layout() {
                     title: t("headers.paymentTypes"),
                     tabBarIcon: ({ color, size }) => (
                         <MaterialCommunityIcons name="cash-multiple" size={size} color={color as string | undefined} />
-                    ),
-                    headerStyle: {
-                        backgroundColor: '#fff'
-                    }
+                    )
                 }} />
             <Tabs.Screen
                 name="RecordTypesScreen"
@@ -59,10 +47,7 @@ export default function Layout() {
                     title: t("headers.recordTypes"),
                     tabBarIcon: ({ color, size }) => (
                         <MaterialCommunityIcons name="format-list-bulleted" size={size} color={color as string | undefined} />
-                    ),
-                    headerStyle: {
-                        backgroundColor: '#fff'
-                    }
+                    )
                 }} />
 
         </StackBase>

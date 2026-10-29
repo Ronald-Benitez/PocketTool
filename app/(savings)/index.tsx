@@ -95,12 +95,12 @@ const Index = () => {
                     <Pin />
                 </View>
                 <View style={localStyles.colContainer}>
-                    <Text style={localStyles.valueText}> $
+                    <Text style={[localStyles.valueText, { color: colors?.text }]}> $
                         {
                             saving ? formatMoney(saving.amount) : "00.00"
                         }
                     </Text>
-                    <Text style={localStyles.nameText}>
+                    <Text style={[localStyles.nameText, { color: colors?.textMuted }]}>
                         {
                             saving ? saving?.saving_name : "Create a saving"
                         }
@@ -126,14 +126,14 @@ const Index = () => {
             <View style={localStyles.chartContainer}>
                 <LineChart
                     data={chartData}
-                    color={'#000'}
+                    color={colors?.text}
                     thickness={1}
-                    dataPointsColor={'#45ADBF'}
-                    yAxisTextStyle={localStyles.chartYText}
+                    dataPointsColor={colors?.primary}
+                    yAxisTextStyle={[localStyles.chartYText, { color: colors?.textMuted }]}
                     yAxisLabelPrefix='$'
                     yAxisOffset={10}
-                    yAxisColor="#9c9c9c"
-                    xAxisColor="#9c9c9c"
+                    yAxisColor={colors?.border}
+                    xAxisColor={colors?.border}
                     width={300}
                     height={300}
                     adjustToWidth={true}
@@ -147,15 +147,15 @@ const Index = () => {
                             return (
                                 <Surface key={e.id} variant='muted' padding='sm' style={{ marginBottom: 5 }}>
                                     <View style={[localStyles.rowContainer, { justifyContent: "space-between", flex: 1 }]}>
-                                        <Text style={localStyles.dateText}>
+                                        <Text style={[localStyles.dateText, { color: colors?.textMuted }]}>
                                             {
                                                 date.getStringDate(e.change_date) + "     " +
                                                 new Date(e.change_date).toISOString().split("T")[1]
                                             }
                                         </Text>
-                                        <Text style={localStyles.amountText}>${formatMoney(e.new_amount)}</Text>
+                                        <Text style={[localStyles.amountText, { color: colors?.text }]}>${formatMoney(e.new_amount)}</Text>
                                         <View style={[{ alignItems: "center", flexDirection: "row", gap: 5, justifyContent: "center" }]}>
-                                            <Text style={localStyles.differenceText}>${formatMoney(e.new_amount - e.previous_amount)}</Text>
+                                            <Text style={[localStyles.differenceText, { color: colors?.textMuted }]}>${formatMoney(e.new_amount - e.previous_amount)}</Text>
                                             <Feather name={minus ? "arrow-down" : "arrow-up"} size={20} color={minus ? colors?.ExpenseColor : colors?.IncomeColor} />
                                         </View>
                                     </View>

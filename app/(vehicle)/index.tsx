@@ -1,15 +1,13 @@
-import { View, ScrollView, StyleSheet, Text } from "react-native";
-import React, { useState, useEffect } from "react";
+import { View, StyleSheet } from "react-native";
+import React from "react";
 
-import { useLanguage } from "@/src/lang/LanguageContext";
+import { AppText } from "@/src/ui/primitives/AppText";
 
 const Index = () => {
-  const { t } = useLanguage();
-
   return (
     <>
       <View style={localStyles.container}>
-        <Text>Hola</Text>
+        <AppText>Hola</AppText>
       </View>
     </>
   );
