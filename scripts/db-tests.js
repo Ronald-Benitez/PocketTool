@@ -447,6 +447,9 @@ async function testAuditTimestampMigration() {
   const columns = q(raw, 'PRAGMA table_info(records)').map((column) => column.name);
   assert.ok(columns.includes('created_at'));
   assert.ok(columns.includes('updated_at'));
+  const backfilled = q(raw, 'SELECT created_at, updated_at FROM records LIMIT 1')[0];
+  assert.ok(backfilled.created_at > 0);
+  assert.ok(backfilled.updated_at > 0);
   assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 3);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,

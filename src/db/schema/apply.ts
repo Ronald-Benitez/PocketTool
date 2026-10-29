@@ -13,6 +13,7 @@ import {
   createTableSql,
   createTimestampTriggerSql,
   escapeSqlString,
+  nowMsSql,
   quoteIdent,
 } from './sql';
 
@@ -274,5 +275,27 @@ export const ensureTimestampTriggers = async (db: SQLiteDatabase) => {
     for (const sql of createTimestampTriggerSql(APP_SCHEMA[tableName])) {
       await db.execAsync(sql);
     }
+  }
+};
+
+export const backfillAuditTimestamps = async (db: SQLiteDatabase) => {
+  for (const tableName of TABLE_NAMES) {
+    const table = APP_SCHEMA[tableName];
+    const hasCreated = table.columns.some((column) => column.name === 'created_at');
+    const hasUpdated = table.columns.some((column) => column.name === 'updated_at');
+    if (!hasCreated && !hasUpdated) continue;
+
+    const setClauses = [
+      hasCreated ? `"created_at" = COALESCE("created_at", ${nowMsSql})` : null,
+      hasUpdated ? `"updated_at" = COALESCE("updated_at", ${nowMsSql})` : null,
+    ].filter(Boolean);
+    const whereClauses = [
+      hasCreated ? '"created_at" IS NULL' : null,
+      hasUpdated ? '"updated_at" IS NULL' : null,
+    ].filter(Boolean);
+
+    await db.execAsync(
+      `UPDATE ${quoteIdent(table.sqlName)} SET ${setClauses.join(', ')} WHERE ${whereClauses.join(' OR ')};`
+    );
   }
 };
