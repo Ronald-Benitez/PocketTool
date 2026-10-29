@@ -1,12 +1,19 @@
-import { useRef, useState } from "react";
-import { StyleSheet, Text, View, TextStyle, ViewStyle, StyleProp, Pressable } from "react-native";
+import { View } from "react-native";
 
 import { useLanguage } from "@/src/lang/LanguageContext";
-import ColorText from "./color-text";
-import { SummaryBlock } from "@/src/ui/data-display/SummaryBlock";
 import useResumesStore, { Resumes } from "@/src/stores/ResumesStore";
 import useFixedsResumesStore from "@/src/stores/FixedsResumesStore";
-import { formatMoney } from "@/src/utils";
+import {
+    SummaryGroup,
+    type SummaryGroupItem,
+} from "@/src/ui/data-display/SummaryGroup";
+import { AppText } from "@/src/ui/primitives/AppText";
+import { Stack } from "@/src/ui/primitives/Stack";
+
+type SummaryValue =
+    Resumes['balanceByPaymentMethod'][number]
+    | Resumes['balanceByCategory'][number]
+    | Resumes['balanceByPaymentType'][number]
 
 interface props {
     render: "categories" | "payments" | "types",
@@ -14,6 +21,48 @@ interface props {
     onSummarySelected: (id: number | undefined, idRecordType: number | undefined) => void
 }
 
+const toGroupItems = (
+    value: SummaryValue,
+    onSummarySelected: props['onSummarySelected']
+): SummaryGroupItem[] =>
+    (value.totalPerRecordType ?? [])
+        .filter((item) => item.total > 0)
+        .map((item) => ({
+            key: item.id ?? item.type_name,
+            label: item.type_name,
+            cents: item.total,
+            color: item.record_color,
+            onPress: () => onSummarySelected(value.id, item.id),
+        }))
+
+const SummaryList = ({
+    title,
+    values,
+    onSummarySelected,
+}: {
+    title: string,
+    values: SummaryValue[],
+    onSummarySelected: props['onSummarySelected'],
+}) => (
+    <Stack gap='md'>
+        <AppText variant='title'>{title}</AppText>
+        {values.map((value, index) => (
+            <SummaryGroup
+                key={value.id ?? index}
+                title={
+                    'category_name' in value
+                        ? value.category_name
+                        : 'method_name' in value
+                            ? value.method_name
+                            : value.payment_type_name ?? ''
+                }
+                totalCents={value.balance}
+                items={toGroupItems(value, onSummarySelected)}
+                onPress={() => onSummarySelected(value.id, undefined)}
+            />
+        ))}
+    </Stack>
+)
 
 const FinnanceTableBlock = ({ render, fixed, onSummarySelected }: props) => {
     const { t } = useLanguage()
@@ -21,177 +70,41 @@ const FinnanceTableBlock = ({ render, fixed, onSummarySelected }: props) => {
     const fixedsResumes = useFixedsResumesStore()
     const { balanceByCategory, balanceByPaymentMethod, balanceByPaymentType } = fixed ? fixedsResumes : resumes
 
-    const renderCategories = (
-        <View style={localStyles.container}>
-            <Text style={localStyles.headerText}>
-                {t("resume.summaryByCategories")}
-            </Text>
-            {
-                balanceByCategory?.map((val, index) => (
-                    <Pressable onPress={() => onSummarySelected(val.id, undefined)} key={index} >
-                        <RecordTypeBlock
-                            onSummarySelected={onSummarySelected}
-                            index={index}
-                            val={val}
-                            nameValue={val.category_name}
-                        />
-                    </Pressable>
-                ))
-            }
-        </View>
-    )
-
-    const renderPayments = (
-        <View style={localStyles.container}>
-            <Text style={localStyles.headerText}>
-                {t("resume.summaryByPayments")}
-            </Text>
-            {
-                balanceByPaymentMethod?.map((val, index) => (
-                    <Pressable onPress={() => onSummarySelected(val.id, undefined)} key={index} >
-                        <RecordTypeBlock
-                            onSummarySelected={onSummarySelected}
-                            key={index}
-                            index={index}
-                            val={val}
-                            nameValue={val.method_name}
-                        />
-                    </Pressable>
-                ))
-            }
-        </View>
-    )
-
-    const renderTypes = (
-        <View style={localStyles.container}>
-            <Text style={localStyles.headerText}>
-                {t("resume.summaryByTypes")}
-            </Text>
-            {
-                balanceByPaymentType?.map((val, index) => (
-                    <Pressable onPress={() => onSummarySelected(val.id, undefined)} key={index} >
-                        <RecordTypeBlock
-                            onSummarySelected={onSummarySelected}
-                            key={index}
-                            index={index}
-                            val={val}
-                            nameValue={val.payment_type_name ?? ""}
-                        />
-                    </Pressable>
-                ))
-            }
-        </View>
-    )
-
-    switch (render) {
-        case "categories":
-            return renderCategories;
-        case "payments":
-            return renderPayments;
-        case "types":
-            return renderTypes;
-        default:
-            return <Text>{t("resume.noData")}</Text>;
+    if (render === 'categories') {
+        return (
+            <SummaryList
+                title={t("resume.summaryByCategories")}
+                values={balanceByCategory ?? []}
+                onSummarySelected={onSummarySelected}
+            />
+        )
     }
 
-}
+    if (render === 'payments') {
+        return (
+            <SummaryList
+                title={t("resume.summaryByPayments")}
+                values={balanceByPaymentMethod ?? []}
+                onSummarySelected={onSummarySelected}
+            />
+        )
+    }
 
-const RecordTypeBlock = ({
-    index,
-    val,
-    nameValue,
-    onSummarySelected
-}: {
-    index: number,
-    nameValue: string,
-    val: Resumes['balanceByPaymentMethod'][number] | Resumes['balanceByCategory'][number] | Resumes['balanceByPaymentType'][number],
-    onSummarySelected: (id: number | undefined, idRecordType: number | undefined) => void
-}) => {
+    if (render === 'types') {
+        return (
+            <SummaryList
+                title={t("resume.summaryByTypes")}
+                values={balanceByPaymentType ?? []}
+                onSummarySelected={onSummarySelected}
+            />
+        )
+    }
+
     return (
-        <View key={index}>
-            <View style={[localStyles.headerRow]}>
-                <View style={localStyles.nameCircleBlock}>
-                    <View style={[localStyles.circle]}></View>
-
-                    <ColorText fontSize={12} fontWeight={200}>{nameValue}</ColorText>
-                </View>
-                <ColorText fontSize={12} fontWeight={200}>${formatMoney(val?.balance)}</ColorText>
-            </View>
-            <View style={localStyles.colContainer} key={index}>
-                <View style={localStyles.wrapContainer} key={index}>
-                    {
-                        val?.totalPerRecordType?.map((item) => {
-                            if (item.total <= 0) return null
-                            return (
-                                <Pressable key={item.id} onPress={() => onSummarySelected(val.id, item.id)}>
-                                    <SummaryBlock
-                                        key={item.id}
-                                        label={item.type_name}
-                                        cents={item.total}
-                                        valueColorOverride={item.record_color ?? undefined}
-                                        size='sm'
-                                        style={{ width: 170 }}
-                                    />
-                                </Pressable>
-                            )
-                        })
-                    }
-                </View>
-            </View>
+        <View>
+            <AppText color='muted'>{t("resume.noData")}</AppText>
         </View>
     )
 }
-
-const localStyles = StyleSheet.create({
-    headerText: {
-        fontSize: 14,
-        textAlign: "center",
-        marginTop: 30,
-        marginBottom: 10
-    },
-    nameText: {
-        fontWeight: "200",
-        fontSize: 12
-    },
-    footerText: {
-        fontWeight: "200",
-        fontSize: 8,
-        textAlign: "center",
-        margin: 0,
-        padding: 0
-    },
-    container: {
-        flexDirection: "column",
-        gap: 10
-    },
-    rowContainer: {
-        flexDirection: "row",
-        gap: 5,
-    },
-    wrapContainer: {
-        flexWrap: "wrap",
-        flexDirection: 'row',
-        gap: 5,
-        justifyContent: 'space-between'
-    },
-    headerRow: {
-        flexDirection: "row",
-        borderBottomWidth: 1,
-        justifyContent: "space-between",
-        alignItems: "center"
-    },
-    colContainer: {
-        flexDirection: "column"
-    },
-    nameCircleBlock: {
-        flexDirection: "row",
-        alignItems: "center"
-    },
-    circle: {
-        width: 15,
-        height: 15,
-        borderRadius: 50
-    }
-})
 
 export default FinnanceTableBlock

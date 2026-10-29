@@ -272,6 +272,7 @@
         "summaryByCategories": "Summary by categories",
         "summaryByPayments": "Summary by payment methods",
         "summaryByTypes": "Summary by payment types",
+        "summaryByRecordType": "Summary by record type",
         "today": "Today",
         "transfers": "Tranfers",
         "recordsDetail": "Records Detail"

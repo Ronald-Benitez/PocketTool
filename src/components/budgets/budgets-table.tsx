@@ -111,7 +111,8 @@ const ItemsTable = () => {
                         <SummaryBlock
                             label={t("budget.budget")}
                             cents={Math.abs(resumes?.balance || 0)}
-                            valueColorOverride={resumes ? (resumes?.balance < 0 ? colors?.ExpenseColor : colors?.GoalColor) : undefined}
+                            valueColorOverride={colors?.text}
+                            accentColor={resumes ? (resumes?.balance < 0 ? colors?.ExpenseColor : colors?.GoalColor) : colors?.primary}
                             size='lg'
                         />
                     </View>
@@ -119,7 +120,8 @@ const ItemsTable = () => {
                         <SummaryBlock
                             label={t("budget.current")}
                             cents={Math.abs(currentBalance)}
-                            valueColorOverride={currentBalance < 0 ? colors?.ExpenseColor : colors?.IncomeColor}
+                            valueColorOverride={colors?.text}
+                            accentColor={currentBalance < 0 ? colors?.ExpenseColor : colors?.IncomeColor}
                             size='lg'
                         />
                     </View>
@@ -141,21 +143,24 @@ const ItemsTable = () => {
                     style={{ flex: 1 }}
                     label={t("resume.incomes")}
                     cents={Math.abs(resumes?.incomesTotal || 0)}
-                    valueColorOverride={colors?.IncomeColor}
+                    valueColorOverride={colors?.text}
+                    accentColor={colors?.IncomeColor}
                     size='sm'
                 />
                 <SummaryBlock
                     style={{ flex: 1 }}
                     label={t("resume.expenses")}
                     cents={Math.abs(resumes?.expensesTotal || 0)}
-                    valueColorOverride={colors?.ExpenseColor}
+                    valueColorOverride={colors?.text}
+                    accentColor={colors?.ExpenseColor}
                     size='sm'
                 />
                 <SummaryBlock
                     style={{ flex: 1 }}
                     label={t("resume.transfers")}
                     cents={Math.abs(resumes?.transferTotal || 0)}
-                    valueColorOverride={colors?.TransferColor}
+                    valueColorOverride={colors?.text}
+                    accentColor={colors?.TransferColor}
                     size='sm'
                 />
             </View>

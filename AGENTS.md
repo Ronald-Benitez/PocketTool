@@ -54,8 +54,8 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 - `SelectField` y `MultiSelectField` aceptan `searchable` para buscar opciones.
 - `src/ui/feedback/`: `ToastProvider` único, `InlineMessage`, `EmptyState`,
   `LoadingState` y `ToastViewport` para modales.
-- `src/ui/data-display/`: `Card`, `ListItem`, `Badge`, `FinanceValue` y
-  `SummaryBlock`; `FinanceValue` recibe centavos y usa el tema.
+- `src/ui/data-display/`: `Card`, `ListItem`, `Badge`, `FinanceValue`,
+  `SummaryBlock` y `SummaryGroup`; `FinanceValue` recibe centavos y usa el tema.
 - `src/ui/index.ts`: barrel público del sistema de UI.
 - `app/gallery.tsx`: galería de desarrollo, oculta del drawer.
 - `src/hooks/useToast.tsx` y `src/hooks/useAndroidToast.ts` son adaptadores al

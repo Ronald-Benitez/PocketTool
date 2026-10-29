@@ -6,7 +6,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { spacing } from '../theme/tokens';
+import { spacing, type Typography } from '../theme/tokens';
 import { AppText, type TextColor } from '../primitives/AppText';
 import { FinanceValue, type FinanceTone, type FinanceValueSize } from './FinanceValue';
 
@@ -19,6 +19,9 @@ export type SummaryBlockProps = {
   valueColor?: TextColor;
   valueColorOverride?: string;
   size?: FinanceValueSize;
+  labelVariant?: Typography;
+  labelColor?: TextColor;
+  accentColor?: string;
   icon?: React.ReactNode;
   hint?: string;
   align?: 'left' | 'center' | 'right';
@@ -33,6 +36,9 @@ export const SummaryBlock = ({
   valueColor = 'default',
   valueColorOverride,
   size = 'md',
+  labelVariant,
+  labelColor,
+  accentColor,
   icon,
   hint,
   align = 'left',
@@ -40,12 +46,18 @@ export const SummaryBlock = ({
 }: SummaryBlockProps) => {
   const alignment =
     align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start';
+  const resolvedLabelVariant =
+    labelVariant ?? (size === 'xl' ? 'subtitle' : size === 'sm' ? 'caption' : 'label');
+  const resolvedLabelColor = labelColor ?? (size === 'sm' ? 'muted' : 'default');
 
   return (
     <View style={[styles.container, { alignItems: alignment }, style]}>
       <View style={styles.labelRow}>
+        {accentColor ? (
+          <View style={[styles.accent, { backgroundColor: accentColor }]} />
+        ) : null}
         {icon}
-        <AppText variant='caption' color='muted'>
+        <AppText variant={resolvedLabelVariant} color={resolvedLabelColor}>
           {label}
         </AppText>
       </View>
@@ -83,5 +95,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
+  },
+  accent: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
 });

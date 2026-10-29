@@ -276,6 +276,7 @@
         "summaryByCategories": "Resumen por categorias",
         "summaryByPayments": "Resumen por método de pago",
         "summaryByTypes": "Resumen por tipo de pago",
+        "summaryByRecordType": "Resumen por tipo de registro",
         "today": "Hoy",
         "transfers": "Tranferencias",
         "recordsDetail": "Detalle de registros"

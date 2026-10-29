@@ -1,27 +1,29 @@
-import { View, Text, ScrollView, TextStyle, StyleSheet, Pressable } from 'react-native';
+import { View, Pressable } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
-import styles from '@/src/styles/styles';
 import useColorStore from '@/src/stores/ColorsStore';
 import GroupSelector from '@/src/components/groups/group-selector';
 import useRecordsStore from '@/src/stores/RecordsStore';
 import AddItem from '@/src/components/records/add-record';
-import ColorText from '@/src/components/ui/color-text';
 import useResumesStore from '@/src/stores/ResumesStore';
 import { useDataStore } from '@/src/stores';
 import type { FixedView, RecordFormEntry } from '@/src/interfaces/schema';
-import { formatMoneyWithSymbol } from '@/src/utils';
 import { useConfigs } from '@/src/hooks/useConfigs';
-import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock';
+import { AppText } from '@/src/ui/primitives/AppText';
+import { Row, Stack } from '@/src/ui/primitives/Stack';
+import { Screen } from '@/src/ui/primitives/Screen';
 import { Surface } from '@/src/ui/primitives/Surface';
+import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock';
+import { FinanceValue } from '@/src/ui/data-display/FinanceValue';
+import { useTheme } from '@/src/ui/theme/ThemeProvider';
 
 const Index = () => {
     const { t } = useLanguage();
-    const { initializeColors, colors } = useColorStore()
+    const { initializeColors } = useColorStore()
+    const { colors } = useTheme()
     const { group } = useRecordsStore()
-    const [today, setToday] = useState(new Date())
     const [todayFixeds, setTodayFixeds] = useState<FixedView[]>()
     const { balance, todayBalanceByRecordType } = useResumesStore()
     const [fixedToSave, setFixedToSave] = useState<RecordFormEntry>()
@@ -32,21 +34,16 @@ const Index = () => {
 
     useEffect(() => {
         initializeColors()
-        let date = new Date();
-        let offset = date.getTimezoneOffset() * 60 * 1000;
-        let newDate = new Date(date.getTime() - offset);
-        setToday(newDate)
         loadConfigs()
-
     }, [])
 
     const verifyFixedsForToday = () => {
         const today = new Date()
         const day = today.getDate()
         const list: FixedView[] = []
-        const todayFixeds = Fixeds.filter(fixed => fixed.fixed_day == day)
-        todayFixeds.map((fixed) => {
-            const record = records.find(record => record.fixed_id == fixed.id)
+        const todayFixeds = Fixeds.filter(fixed => fixed.fixed_day === day)
+        todayFixeds.forEach((fixed) => {
+            const record = records.find(record => record.fixed_id === fixed.id)
             if (!record) {
                 list.push(fixed)
             }
@@ -62,13 +59,13 @@ const Index = () => {
         let icon = <></>
         if (hour >= 5 && hour < 12) {
             message = t("greeting.morning")
-            icon = <MaterialCommunityIcons name="weather-partly-cloudy" size={24} color="#179BAE" />
+            icon = <MaterialCommunityIcons name="weather-partly-cloudy" size={28} color={colors.info} />
         } else if (hour >= 12 && hour < 18) {
-            icon = <MaterialCommunityIcons name="weather-sunny" size={24} color="#FFB200" />
+            icon = <MaterialCommunityIcons name="weather-sunny" size={28} color={colors.warning} />
             message = t("greeting.afternoon")
         } else {
             message = t("greeting.night")
-            icon = <MaterialCommunityIcons name="weather-night" size={24} color="blue" />
+            icon = <MaterialCommunityIcons name="weather-night" size={28} color={colors.transfer} />
         }
 
         return [message, icon]
@@ -93,155 +90,110 @@ const Index = () => {
     const [message, Icon] = decideText()
 
     return (
-        <ScrollView>
-            <View style={[styles.container, { paddingBottom: 20 }]}>
-                <View style={[{ justifyContent: "center", alignItems: "center", height: "100%", gap: 20 }]}>
+        <Screen scroll edges={['left', 'right']}>
+            <Stack gap='lg'>
+                <Row justify='space-between' align='center'>
+                    <Row gap='sm' align='center'>
+                        <AppText variant='title'>{message}</AppText>
+                        {Icon}
+                    </Row>
+                </Row>
+
+                <Row justify='center'>
                     <GroupSelector />
-                    <View style={localStyles.blocksContainer}>
-                        <View style={[localStyles.rowContainer, { margin: 10 }]}>
-                            <ColorText fontWeight={"200"} fontSize={20}>
-                                {message}
-                            </ColorText>
-                            {Icon}
-                        </View>
-                        {
-                            todayFixeds && todayFixeds.length > 0 ? (
-                                <View style={[localStyles.rowContainer, { backgroundColor: colors?.BGSimple, paddingVertical: 10, paddingTop: 30 }]}>
-                                    <ScrollView>
-                                        <Text style={[styles.textCenter, styles.smallText]}>{t("index.fixedsMessage")}</Text>
-                                        <View style={[localStyles.colContainer, { padding: 10 }]}>
-                                            {
-                                                todayFixeds?.map((item) => (
-                                                    <Pressable key={item.id} onPress={() => onFixedPress(item)} >
-                                                        <View style={[localStyles.fixedContainer, {
-                                                            borderLeftColor: item.PaymentMethods?.PaymentTypes?.payment_color ?? undefined,
-                                                            borderBottomColor: item.RecordTypes?.record_color ?? undefined
-                                                        }]}>
-                                                            <Text style={localStyles.nameText}>{item.fixed_name}</Text>
-                                                            <Text style={localStyles.valueText}>{formatMoneyWithSymbol(item.fixed_amount)}</Text>
-                                                        </View>
-                                                    </Pressable>
-                                                ))
-                                            }
-                                        </View>
-                                    </ScrollView>
-                                </View>
-                            ) : null
-                        }
-                        <Surface variant='outlined' padding='sm'>
-                            <SummaryBlock
-                                label={t("resume.balance")}
-                                cents={balance}
-                                size='lg'
-                            />
-                        </Surface>
-                        <Surface variant='outlined' padding='sm'>
-                            <SummaryBlock
-                                label={t("resume.goal")}
-                                cents={group?.goal}
-                                valueColorOverride={colors?.GoalColor}
-                                size='lg'
-                            />
-                        </Surface>
+                </Row>
 
-                        <View style={[localStyles.rowContainer, { position: "relative", backgroundColor: colors?.BGSimple, paddingVertical: 10, paddingTop: 30 }]}>
-                            <ScrollView>
-                                <Text style={localStyles.blockText}>{t("resume.today")}</Text>
-                                <View style={localStyles.colContainer}>
-                                    {
-                                        todayBalanceByRecordType?.map((item) => (
-                                            <SummaryBlock
-                                                key={item.id}
-                                                label={item.type_name}
-                                                cents={item.total}
-                                                valueColorOverride={item.record_color ?? undefined}
-                                                size='sm'
+                {todayFixeds && todayFixeds.length > 0 ? (
+                    <Surface variant='outlined' padding='md'>
+                        <Stack gap='sm'>
+                            <AppText variant='label'>{t("index.fixedsMessage")}</AppText>
+                            {todayFixeds.map((item) => (
+                                <Pressable key={item.id} onPress={() => onFixedPress(item)}>
+                                    <Row justify='space-between' align='center' style={{ minHeight: 40, gap: 12 }}>
+                                        <Row gap='sm' align='center' style={{ flex: 1 }}>
+                                            <View
+                                                style={{
+                                                    width: 8,
+                                                    height: 8,
+                                                    borderRadius: 4,
+                                                    backgroundColor: item.RecordTypes?.record_color ?? colors.primary,
+                                                }}
                                             />
-                                        ))
-                                    }
-                                </View>
-                            </ScrollView>
-                            <View style={[{ position: "absolute", right: 0, top: 0 }]}>
-                                {
-                                    group && (
-                                        <AddItem>
-                                            <View style={[localStyles.button]}>
-                                                <AntDesign size={20} name='plus' color={"#000"} />
-                                            </View>
-                                        </AddItem >
-                                    )
-                                }
-                            </View>
-                        </View>
-                    </View>
-                </View>
-            </View>
-            {
-                group && <AddItem open={open} item={fixedToSave} />
+                                            <AppText variant='body' numberOfLines={1} style={{ flex: 1 }}>
+                                                {item.fixed_name}
+                                            </AppText>
+                                        </Row>
+                                        <FinanceValue cents={item.fixed_amount} size='md' color={colors.text} />
+                                    </Row>
+                                </Pressable>
+                            ))}
+                        </Stack>
+                    </Surface>
+                ) : null}
 
-            }
-            <View style={{ padding: 40 }}></View>
-        </ScrollView>
+                <Surface variant='raised' padding='lg'>
+                    <SummaryBlock
+                        label={t("resume.balance")}
+                        cents={balance}
+                        size='xl'
+                        labelVariant='subtitle'
+                        valueColorOverride={colors.text}
+                        accentColor={colors.primary}
+                    />
+                </Surface>
+
+                <Surface variant='outlined' padding='md'>
+                    <SummaryBlock
+                        label={t("resume.goal")}
+                        cents={group?.goal}
+                        size='lg'
+                        valueColorOverride={colors.text}
+                        accentColor={colors.goal}
+                    />
+                </Surface>
+
+                <Surface variant='muted' padding='md'>
+                    <Stack gap='md'>
+                        <Row justify='space-between' align='center'>
+                            <AppText variant='subtitle'>{t("resume.today")}</AppText>
+                            {group ? (
+                                <AddItem>
+                                    <View style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+                                        <MaterialCommunityIcons name='plus' size={26} color={colors.primary} />
+                                    </View>
+                                </AddItem>
+                            ) : null}
+                        </Row>
+
+                        {todayBalanceByRecordType && todayBalanceByRecordType.length > 0 ? (
+                            todayBalanceByRecordType.map((item) => (
+                                <Row key={item.id} justify='space-between' align='center' style={{ minHeight: 36, gap: 12 }}>
+                                    <Row gap='sm' align='center' style={{ flex: 1 }}>
+                                        <View
+                                            style={{
+                                                width: 8,
+                                                height: 8,
+                                                borderRadius: 4,
+                                                backgroundColor: item.record_color ?? colors.primary,
+                                            }}
+                                        />
+                                        <AppText variant='body' numberOfLines={1} style={{ flex: 1 }}>
+                                            {item.type_name}
+                                        </AppText>
+                                    </Row>
+                                    <FinanceValue cents={item.total} size='lg' color={colors.text} />
+                                </Row>
+                            ))
+                        ) : (
+                            <AppText color='muted'>{t("resume.noData")}</AppText>
+                        )}
+                    </Stack>
+                </Surface>
+            </Stack>
+
+            {group && <AddItem open={open} item={fixedToSave} />}
+        </Screen>
     );
 };
 
-const localStyles = StyleSheet.create({
-    blocksContainer: {
-        flex: 1,
-        flexDirection: "column",
-        justifyContent: "center",
-        gap: 10
-    },
-    rowContainer: {
-        flex: 1,
-        flexDirection: "row",
-        gap: 5,
-        alignItems: "center",
-        justifyContent: "center"
-    },
-    colContainer: {
-        flexDirection: "column",
-        gap: 5,
-        alignItems: "center",
-        justifyContent: "center"
-    },
-    blockText: {
-        fontWeight: "200",
-        fontSize: 12,
-        marginBottom: 10,
-        textAlign: "center",
-    },
-    button: {
-        width: 50,
-        height: 50,
-        justifyContent: "center",
-        alignItems: "center"
-    },
-    nameText: {
-        fontSize: 12,
-        textAlign: "left",
-        maxWidth: 200
-    },
-    valueText: {
-        fontSize: 12,
-        textAlign: "center",
-        fontWeight: "300",
-    },
-    dayText: {
-        borderColor: "#acacac",
-        borderWidth: 1,
-        borderRadius: 100,
-    },
-    fixedContainer: {
-        justifyContent: "space-between",
-        width: "100%",
-        flexDirection: "row",
-        margin: 10,
-        padding: 10,
-        borderLeftWidth: 3,
-        borderBottomWidth: 1,
-        borderBottomLeftRadius: 5,
-        borderTopLeftRadius: 5
-    }
-})
 export default Index;

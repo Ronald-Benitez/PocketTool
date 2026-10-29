@@ -45,7 +45,8 @@ const Index = () => {
                     <SummaryBlock
                         label={t("credits.previousTotal")}
                         cents={totalPrevious}
-                        valueColorOverride={colors?.GoalColor}
+                        valueColorOverride={colors?.text}
+                        accentColor={colors?.GoalColor}
                         size='lg'
                     />
                 </View>
@@ -53,7 +54,8 @@ const Index = () => {
                     <SummaryBlock
                         label={t("credits.currentTotal")}
                         cents={totalCurrent}
-                        valueColorOverride={colors?.GoalColor}
+                        valueColorOverride={colors?.text}
+                        accentColor={colors?.GoalColor}
                         size='lg'
                     />
                 </View>

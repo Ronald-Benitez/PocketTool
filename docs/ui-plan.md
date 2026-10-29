@@ -452,16 +452,15 @@ retirar.
 **Estado:** 🔄 Parcial avanzado — componentes de presentación y migración de
 bloques financieros principales completados.
 
-- `Card`, `ListItem`, `Badge`, `FinanceValue`, `SummaryBlock`. ✅
-- `FinanceValue`/`SummaryBlock` con color override. ✅
+- `Card`, `ListItem`, `Badge`, `FinanceValue`, `SummaryBlock`, `SummaryGroup`. ✅
+- `FinanceValue`/`SummaryBlock` con color override y tipografía mayor. ✅
 - Migrar home, Summary, fixeds, créditos y presupuestos a
-  `SummaryBlock`/`Surface`. ✅
+  `SummaryBlock`/`SummaryGroup`/`Surface`. ✅
 - `FinanceSimpleBlock`, `FinanceSmallBlock`, `BalanceBlock`, `IndexBlock`
   eliminados. ✅
-- `FinanceTableBlock`/`FinanceTableChart` usan `SummaryBlock`. ✅
+- `FinanceTableBlock`/`FinanceTableChart` agrupan con `SummaryGroup`. ✅
 - `SwipeAction` (renombrar/mover `SwipeItem`). ⏳
-- Migrar `BGSimpleBlock`, `BorderLeftButtonBlock` y terminar el estilo de
-  tablas. ⏳
+- Migrar `BGSimpleBlock` y `BorderLeftButtonBlock`. ⏳
 
 ### UI-4 — Limpieza y calidad (1–2 días)
 

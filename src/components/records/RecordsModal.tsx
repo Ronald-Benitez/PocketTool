@@ -126,7 +126,7 @@ export const RecordsModal = forwardRef<RecordsModalRef, Record<string, unknown>>
                                                 }}
                                             />
                                         }
-                                        trailing={<FinanceValue cents={item.amount} size='sm' />}
+                                        trailing={<FinanceValue cents={item.amount} size='md' color={colors.text} />}
                                         showDivider
                                     />
                                 ))}

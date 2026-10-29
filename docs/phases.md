@@ -168,22 +168,26 @@ resumen (fuera del alcance de esta fase).
 
 ### UI-3 — Datos y presentación (🔄 Parcial · 2026-10-28)
 
-- `src/ui/data-display`: `Card`, `ListItem`, `Badge`, `FinanceValue` y
-  `SummaryBlock`.
+- `src/ui/data-display`: `Card`, `ListItem`, `Badge`, `FinanceValue`,
+  `SummaryBlock` y `SummaryGroup`.
 - `FinanceValue` recibe centavos y resuelve el color/tamaño desde el tema, con
   override explícito de color.
-- `SummaryBlock` compone label, valor monetario/texto e icono.
-- Migrados a `SummaryBlock`/`Surface`/`Screen`: home, Summary, resumen de
-  fixeds, créditos y cabecera de presupuestos.
-- `FinanceTableBlock` y `FinanceTableChart` usan `SummaryBlock` para sus filas.
+- `SummaryBlock` compone label, valor monetario/texto, acento e icono, con label
+  y valor más grandes.
+- `SummaryGroup` agrupa categoría/método/tipo con su total y sus tipos internos.
+- Home y Summary rediseñados: balance destacado, valores en color de texto para
+  contraste, acentos de color y filas más legibles.
+- Migrados a `SummaryBlock`/`SummaryGroup`/`Surface`/`Screen`: home, Summary,
+  resumen de fixeds, créditos y cabecera de presupuestos.
+- `FinanceTableBlock` y `FinanceTableChart` usan `SummaryGroup` para agrupar
+  categorías/métodos con sus tipos.
 - Eliminados `FinanceSimpleBlock`, `FinanceSmallBlock`, `BalanceBlock` e
   `IndexBlock`.
 - Galería y tests actualizados.
 - Verificado: `npm run ci` y `npm run lint` con 0 errores.
 
-Pendiente de UI-3: mover/renombrar `SwipeItem` a `SwipeAction` en `src/ui`,
-migrar `BGSimpleBlock` y `BorderLeftButtonBlock`, y terminar de unificar el
-estilo interno de `FinanceTableBlock`/`FinanceTableChart`.
+Pendiente de UI-3: mover/renombrar `SwipeItem` a `SwipeAction` en `src/ui` y
+migrar `BGSimpleBlock`/`BorderLeftButtonBlock`.
 
 ## Documentación
 

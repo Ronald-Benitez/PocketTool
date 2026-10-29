@@ -7,4 +7,12 @@ export {
   type FinanceValueSize,
 } from './FinanceValue';
 export { ListItem, type ListItemProps } from './ListItem';
-export { SummaryBlock, type SummaryBlockProps } from './SummaryBlock';
+export {
+  SummaryBlock,
+  type SummaryBlockProps,
+} from './SummaryBlock';
+export {
+  SummaryGroup,
+  type SummaryGroupItem,
+  type SummaryGroupProps,
+} from './SummaryGroup';
