@@ -35,6 +35,5 @@ jobs:
       - name: Jest tests
         run: npm test
 
-      - name: Lint (non-blocking baseline)
-        continue-on-error: true
+      - name: Lint
         run: npm run lint

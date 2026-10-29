@@ -35,8 +35,9 @@ de `APP_SCHEMA`.
 - Las fechas (`date`, `change_date`, `applied_at`) y `deleted_at` se guardan
   como timestamps Unix en milisegundos.
 - Las tablas de negocio incluyen `deleted_at` para soft delete y `created_at` /
-  `updated_at` para auditoría. Las consultas del ORM y los repositorios excluyen
-  las filas borradas por defecto.
+  `updated_at` para auditoría. `created_at`/`updated_at` se llenan con triggers
+  de SQLite. Las consultas del ORM y los repositorios excluyen las filas
+  borradas por defecto.
 
 ## Tablas principales
 

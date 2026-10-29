@@ -237,8 +237,9 @@ los tipos generados. El antiguo `src/orm/relations.json` fue eliminado.
 **Resultado:** `migrateDb` crea `migrations` antes del runner.
 `0001_baseline` aplica el esquema consolidado y
 `0002_audit_timestamps` agrega `created_at`/`updated_at` a bases existentes.
-`SCHEMA_VERSION = 2`. Cada migración se ejecuta en transacción exclusiva y se
-registra solo después del commit.
+`SCHEMA_VERSION = 3` (2 en Fase 1, 3 al agregar los triggers de auditoría). Cada
+migración se ejecuta en transacción exclusiva y se registra solo después del
+commit.
 
 ## 4. Normalizar nombres y tipos
 
@@ -457,7 +458,7 @@ cablear la paginación visual queda como mejora incremental.
 **Resultado:** `.github/workflows/ci.yml` ejecuta typecheck, verifica que los
 artefactos generados estén actualizados, corre `test:db`, Jest y un lint no
 bloqueante. La suite escanea `src`/`app` para impedir imports a handlers legacy.
-El lint queda no bloqueante porque el proyecto arrastra deuda preexistente.
+El lint es bloqueante: la deuda de errores quedó en cero.
 
 ## Commits
 
@@ -477,10 +478,20 @@ El lint queda no bloqueante porque el proyecto arrastra deuda preexistente.
 
 - Cablear `fetchRecordsPage` en la UI de registros (hoy los resúmenes y filtros
   requieren el grupo completo en memoria).
-- Limpiar la deuda de ESLint para volver el lint bloqueante.
 - Prueba end-to-end del import con pickers nativos/web.
-- Rellenar automáticamente `created_at`/`updated_at` si se decide hacerlo en el
-  ORM o con triggers.
+- Reducir warnings de ESLint (imports sin usar y `exhaustive-deps`); hoy lint
+  pasa con 0 errores.
+
+## Fix posterior — auditoría y ESLint (2026-10-28)
+
+- `created_at` y `updated_at` ahora se llenan automáticamente con triggers de
+  SQLite en todas las tablas de negocio. Se agregó `0003_timestamp_triggers` y
+  `SCHEMA_VERSION = 3`.
+- El generador incluye los triggers en `schema.sql` y `docs/schema.md`.
+- Se limpiaron los errores bloqueantes de ESLint: hooks condicionales, hooks en
+  callbacks, JSX sin escapar, globals de scripts, tipos de array e imports.
+- `npm run lint` termina en 0 errores y CI lo ejecuta como paso bloqueante.
+- Commits: `9f7a32f` (triggers) y `e8a0167` (ESLint).
 
 ---
 
@@ -506,7 +517,7 @@ El lint queda no bloqueante porque el proyecto arrastra deuda preexistente.
   FKs; el ORM dejó de usar el JSON editado a mano.
 - **2026-10-28 — Migraciones:** `0001_baseline` consolida el esquema y
   `0002_audit_timestamps` agrega `created_at`/`updated_at` a bases existentes.
-  `SCHEMA_VERSION = 2`.
+  `SCHEMA_VERSION = 3`.
 - **2026-10-28 — Fase 2:** la UI y los stores dejaron de usar `useORM`; solo
   consumen repositorios. Las operaciones registro+crédito son transaccionales.
 - **2026-10-28 — Errores tipados:** el ORM lanza `InvalidIdentifierError`,
@@ -515,10 +526,14 @@ El lint queda no bloqueante porque el proyecto arrastra deuda preexistente.
   valida columnas/identificadores.
 - **2026-10-28 — Consultas de vehículo:** `gas.json` se reemplazó por métodos
   tipados en `useFuelRepository`.
-- **2026-10-28 — Fase 3:** `node:sqlite` es la base de la suite de regresión;
+- **2026-10-28 - Fase 3:** `node:sqlite` es la base de la suite de regresión;
   Jest cubre componentes. CI ejecuta typecheck, artefactos generados, tests y
-  lint no bloqueante.
+  lint bloqueante.
 - **2026-10-28 — Backups v2:** cabecera `POCKETTOOL_BACKUP` con metadatos sobre
   el dump SQL, manteniendo compatibilidad con backups antiguos.
 - **2026-10-28 — Paginación:** repositorio expone `fetchRecordsPage` y
   `countRecords`; la UI mantiene carga completa para resúmenes/filtros.
+- **2026-10-28 — Triggers de auditoría:** `created_at`/`updated_at` se rellenan
+  con triggers; `SCHEMA_VERSION = 3`.
+- **2026-10-28 — ESLint:** lint bloqueante con 0 errores; las reglas de React
+  Compiler que requerían refactors grandes quedaron desactivadas con nota.

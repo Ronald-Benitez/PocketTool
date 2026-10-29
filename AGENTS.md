@@ -36,7 +36,8 @@ commits relevantes, archivos tocados y verificaciones realizadas.
   e índices.
 - `src/db/migration.ts`: bootstrap, pragmas y runner de migraciones.
 - `src/db/migrations/0001_baseline.ts`: baseline consolidado.
-- `src/db/migrations/0002_audit_timestamps.ts`: migración incremental de ejemplo.
+- `src/db/migrations/0002_audit_timestamps.ts`: migración incremental de auditoría.
+- `src/db/migrations/0003_timestamp_triggers.ts`: triggers de `created_at`/`updated_at`.
 - `src/orm/index.ts`: ORM tipado; usa las relaciones generadas, filtros de soft
   delete, CRUD y transacciones.
 - `src/orm/errors.ts`: errores tipados (`InvalidIdentifierError`,
@@ -66,6 +67,8 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 - Los componentes y stores deben usar repositorios; no SQL directo ni `useORM` en UI.
 - Las entradas de repositorio se validan con zod y el ORM rechaza columnas
   inexistentes con errores tipados.
+- `created_at` y `updated_at` se llenan con triggers; no asignarlos manualmente
+  salvo que se requiera un valor histórico explícito.
 - Export/import: usar validación, backup previo y transacción. No dropear tablas
   fuera de una transacción.
 - Migraciones: no capturar errores internamente; deben propagarse al runner.
@@ -88,8 +91,7 @@ npm run ci
 - `test:db`: suite de migraciones/ORM/backup con `node:sqlite`.
 - `test`: Jest.
 - `ci`: typecheck + tests de base de datos + Jest.
-- `lint`: ESLint; actualmente hay deuda preexistente, por eso el lint de CI es
-  no bloqueante.
+- `lint`: ESLint (`npm run lint`); forma parte de CI y debe pasar.
 
 ## Documentación
 
