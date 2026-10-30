@@ -7,8 +7,6 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 
 - [`phases.md`](phases.md): estado actual y fases activas. El detalle histórico
   de fases completadas vive en `legacy/`.
-- [`budget-plan.md`](budget-plan.md): plan de mejora de Presupuestos (Fase 7):
-  modelo de datos, plantillas, comparación plan/real, fijos y gráficos Mermaid.
 - [`database.md`](database.md): documentación actual de la base de datos,
   migraciones, triggers y backups.
 - [`schema.md`](schema.md): esquema generado desde
@@ -20,6 +18,8 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 - [`legacy/ui-plan.md`](legacy/ui-plan.md): plan original de UI archivado.
 - [`legacy/i18n-help-plan.md`](legacy/i18n-help-plan.md): plan de traducciones
   tipadas y centro de ayuda archivado.
+- [`legacy/budget-plan.md`](legacy/budget-plan.md): plan de Presupuestos (Fase 7)
+  implementado y archivado.
 - [`legacy/db-summary.md`](legacy/db-summary.md): resumen anterior de base de
   datos.
 - [`../AGENTS.md`](../AGENTS.md): contexto e instrucciones para agentes.

@@ -18,8 +18,8 @@ métodos de pago, créditos, ahorros y vehículo.
   pendiente el checklist visual final.
 - **Fase 5 — Traducciones tipadas: FINALIZADA** (2026-10-29).
 - **Fase 6 — Centro de ayuda: FINALIZADA** (2026-10-29).
-- **Fase 7 — Presupuestos: FINALIZADA** (2026-10-29). El plan vive en
-  [`docs/budget-plan.md`](docs/budget-plan.md).
+- **Fase 7 — Presupuestos: FINALIZADA** (2026-10-29). El plan archivado vive en
+  [`docs/legacy/budget-plan.md`](docs/legacy/budget-plan.md).
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -313,8 +313,8 @@ npm run ci
 
 - [`docs/README.md`](docs/README.md): índice de documentación.
 - [`docs/phases.md`](docs/phases.md): estado actual y fases activas.
-- [`docs/budget-plan.md`](docs/budget-plan.md): plan de mejora de Presupuestos
-  (Fase 7): esquema, plantillas, comparación plan/real, fijos y Mermaid.
+- [`docs/legacy/budget-plan.md`](docs/legacy/budget-plan.md): plan archivado de
+  Presupuestos (Fase 7).
 - [`docs/schema.md`](docs/schema.md): esquema generado.
 - [`docs/database.md`](docs/database.md): documentación de la base de datos.
 - [`docs/legacy/phase-history.md`](docs/legacy/phase-history.md): historial de

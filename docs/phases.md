@@ -100,7 +100,7 @@ Implementado:
 
 ## Fase 7 — Presupuestos (✅ 2026-10-29)
 
-**Plan completo:** [`budget-plan.md`](budget-plan.md)
+**Plan completo:** [`legacy/budget-plan.md`](legacy/budget-plan.md)
 
 Objetivo: terminar y publicar la sección de Presupuestos con un plan mensual
 comparado contra los registros reales, plantillas reutilizables, integración con
@@ -148,7 +148,8 @@ Criterios de aceptación principales:
 ## Documentación
 
 - [`README.md`](README.md): índice de documentación.
-- [`budget-plan.md`](budget-plan.md): plan de mejora de Presupuestos (Fase 7).
+- [`legacy/budget-plan.md`](legacy/budget-plan.md): plan de Presupuestos
+  archivado.
 - [`database.md`](database.md): documentación actual de la base de datos.
 - [`schema.md`](schema.md): esquema generado.
 - [`legacy/i18n-help-plan.md`](legacy/i18n-help-plan.md): plan de traducciones y

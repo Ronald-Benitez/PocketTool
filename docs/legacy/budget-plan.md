@@ -1,6 +1,10 @@
 # Plan de mejora de Presupuestos — Fase 7 (BUD)
 
-**Estado:** ✅ Implementado y validado
+> **Archivado 2026-10-29.** La Fase 7 se implementó y validó. Este documento se
+> conserva como registro del diseño y de las decisiones. El estado vigente vive
+> en [`../phases.md`](../phases.md) y [`../database.md`](../database.md).
+
+**Estado:** ✅ Implementado, validado y archivado
 **Fecha:** 2026-10-29
 **Objetivo:** terminar y publicar la sección de Presupuestos con plantillas
 reutilizables, un modelo de datos que permita comparar plan vs. registros del

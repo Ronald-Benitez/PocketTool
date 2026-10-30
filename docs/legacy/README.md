@@ -9,6 +9,8 @@ diario de `docs/phases.md`.
 - [`ui-plan.md`](ui-plan.md): plan original de UI archivado.
 - [`i18n-help-plan.md`](i18n-help-plan.md): plan de traducciones tipadas y
   centro de ayuda (fases 5 y 6), implementado y archivado.
+- [`budget-plan.md`](budget-plan.md): plan de Presupuestos (Fase 7), implementado,
+  validado y archivado.
 - [`db-summary.md`](db-summary.md): resumen anterior de la base de datos,
   reemplazado por [`../database.md`](../database.md).
 
