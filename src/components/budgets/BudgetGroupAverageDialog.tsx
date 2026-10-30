@@ -120,6 +120,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   footer: {
+    flex: 1,
     flexDirection: 'row',
     gap: 8,
   },

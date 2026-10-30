@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 
 import GroupSelector from '@/src/components/groups/group-selector';
 import { BudgetGroupAverageDialog } from '@/src/components/budgets/BudgetGroupAverageDialog';
@@ -71,7 +71,6 @@ const Index = () => {
   const { colors } = useTheme();
   const { showToast } = useToast();
   const router = useRouter();
-  const navigation = useNavigation<any>();
   const { group } = useRecordsStore();
   const { plan, loading, refresh, repository } = useBudgetPlan(group?.id);
   const { templates, refresh: refreshTemplates } = useBudgetTemplates();
@@ -135,12 +134,6 @@ const Index = () => {
     } finally {
       setBusy(false);
     }
-  };
-
-  const openDrawer = () => {
-    const parent = navigation.getParent?.();
-    if (parent?.openDrawer) parent.openDrawer();
-    else navigation.openDrawer?.();
   };
 
   const openAverage = async () => {
@@ -365,15 +358,8 @@ const Index = () => {
     return (
       <Screen scroll>
         <Stack gap='lg'>
-          <Row align='center' gap='sm'>
-            <IconButton
-              label={t('headers.home')}
-              icon={<MaterialIcons name='menu' size={24} color={colors.text} />}
-              onPress={openDrawer}
-            />
-            <View style={{ flex: 1 }}>
-              <GroupSelector />
-            </View>
+          <Row justify='center'>
+            <GroupSelector />
           </Row>
           <EmptyState
             title={t('budget.noPlanTitle')}
@@ -396,15 +382,8 @@ const Index = () => {
   return (
     <Screen scroll edges={['left', 'right']}>
       <Stack gap='lg'>
-        <Row align='center' gap='sm'>
-          <IconButton
-            label={t('headers.home')}
-            icon={<MaterialIcons name='menu' size={24} color={colors.text} />}
-            onPress={openDrawer}
-          />
-          <View style={{ flex: 1 }}>
-            <GroupSelector />
-          </View>
+        <Row justify='center'>
+          <GroupSelector />
         </Row>
 
         {!plan ? (
@@ -723,7 +702,7 @@ const Index = () => {
             closeLabel={t('budget.actions.cancel')}
             scrollable
             footer={
-              <Row gap='sm'>
+              <Row gap='sm' style={{ flex: 1 }}>
                 <Button
                   label={t('budget.actions.cancel')}
                   variant='outline'
@@ -777,7 +756,7 @@ const Index = () => {
             closeLabel={t('budget.actions.cancel')}
             scrollable
             footer={
-              <Row gap='sm'>
+              <Row gap='sm' style={{ flex: 1 }}>
                 <Button
                   label={t('budget.actions.cancel')}
                   variant='outline'

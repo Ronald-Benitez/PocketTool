@@ -116,9 +116,9 @@ Implementado:
   `merge`/`replace`/`reset`, guardar plan como plantilla, copiar mes anterior,
   crear desde fijos, desde gastos actuales y desde la media de grupos
   seleccionables.
-- **BUD-4:** pantalla principal de Presupuestos, editor de plan, eliminación
-  de plan para recrearlo, líneas, sección de fijos, sin planificar y estados;
-  menú de drawer explícito y bloque “Plan vs. real” en Resúmenes.
+- **BUD-4:** pantalla principal de Presupuestos con `StackBase`, editor de plan,
+  eliminación de plan para recrearlo, líneas, sección de fijos, sin planificar
+  y estados; bloque “Plan vs. real” en Resúmenes.
 - **BUD-5:** `react-native-webview` + Mermaid 11 vendorizado offline,
   `MermaidChart`, tema, accesibilidad y fallback a tabla.
 - **BUD-6 parcial:** ruta publicada en el drawer, i18n `budget`, tema de ayuda

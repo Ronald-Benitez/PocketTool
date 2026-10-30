@@ -1,30 +1,40 @@
-import { Stack } from 'expo-router';
+import { Tabs } from 'expo-router';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 
+import StackBase from '@/src/components/navigation/stack-base';
 import { useLanguage } from '@/src/lang/LanguageContext';
-import { useTheme } from '@/src/ui/theme/ThemeProvider';
 
 export default function Layout() {
   const { t } = useLanguage();
-  const { colors } = useTheme();
 
   return (
-    <Stack
-      screenOptions={{
-        headerStyle: { backgroundColor: colors.surface },
-        headerTintColor: colors.text,
-        headerTitleStyle: { color: colors.text },
-        contentStyle: { backgroundColor: colors.background },
-      }}
-    >
-      <Stack.Screen name='index' options={{ headerShown: false }} />
-      <Stack.Screen
+    <StackBase>
+      <Tabs.Screen
+        name='index'
+        options={{
+          title: t('headers.budget'),
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons
+              name='pie-chart-outline'
+              size={size}
+              color={color as string | undefined}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name='templates'
-        options={{ title: t('budget.templates.title') }}
+        options={{
+          title: t('budget.templates.title'),
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons
+              name='dashboard-customize'
+              size={size}
+              color={color as string | undefined}
+            />
+          ),
+        }}
       />
-      <Stack.Screen
-        name='templates/[id]'
-        options={{ title: t('budget.templates.edit') }}
-      />
-    </Stack>
+    </StackBase>
   );
 }

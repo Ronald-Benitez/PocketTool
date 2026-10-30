@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 
+import { BudgetTemplateEditor } from '@/src/components/budgets/BudgetTemplateEditor';
 import { useBudgetTemplates } from '@/src/hooks/useBudgetPlan';
 import type { BudgetTemplateView } from '@/src/domain/budgets/types';
 import { useLanguage } from '@/src/lang/LanguageContext';
@@ -23,9 +23,9 @@ import { useTheme } from '@/src/ui/theme/ThemeProvider';
 const Index = () => {
   const { t } = useLanguage();
   const { colors } = useTheme();
-  const router = useRouter();
   const { showToast } = useToast();
   const { templates, loading, refresh, repository } = useBudgetTemplates();
+  const [editingId, setEditingId] = useState<number | null | undefined>(undefined);
   const [selected, setSelected] = useState<BudgetTemplateView | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -63,6 +63,20 @@ const Index = () => {
     }
   };
 
+  if (editingId !== undefined) {
+    return (
+      <Screen scroll edges={['left', 'right']}>
+        <BudgetTemplateEditor
+          templateId={editingId}
+          onClose={() => {
+            setEditingId(undefined);
+            refresh();
+          }}
+        />
+      </Screen>
+    );
+  }
+
   return (
     <Screen scroll edges={['left', 'right']}>
       <Stack gap='lg'>
@@ -74,12 +88,7 @@ const Index = () => {
           <Button
             label={t('budget.templates.add')}
             size='sm'
-            onPress={() =>
-              router.push({
-                pathname: '/(budget)/templates/[id]',
-                params: { id: 'new' },
-              })
-            }
+            onPress={() => setEditingId(null)}
           />
         </Row>
 
@@ -93,12 +102,7 @@ const Index = () => {
             action={
               <Button
                 label={t('budget.templates.add')}
-                onPress={() =>
-                  router.push({
-                    pathname: '/(budget)/templates/[id]',
-                    params: { id: 'new' },
-                  })
-                }
+                onPress={() => setEditingId(null)}
               />
             }
           />
@@ -136,12 +140,7 @@ const Index = () => {
                       </AppText>
                     </Stack>
                   }
-                  onPress={() =>
-                    router.push({
-                      pathname: '/(budget)/templates/[id]',
-                      params: { id: template.id },
-                    })
-                  }
+                  onPress={() => setEditingId(template.id)}
                 />
                 <Row gap='xs' wrap style={{ paddingHorizontal: 12, paddingBottom: 12 }}>
                   <Button

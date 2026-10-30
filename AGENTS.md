@@ -81,6 +81,54 @@ commits relevantes, archivos tocados y verificaciones realizadas.
   legacy.
 - `src/stores/ColorsStore.ts` es solo un adaptador de compatibilidad durante la
   migración.
+
+### Navegación por grupos
+
+- Cada sección del drawer vive en un grupo `app/(...)/` con un `_layout.tsx`
+  basado en `StackBase`, igual que `app/(financials)/_layout.tsx`.
+- Declarar cada pantalla con `<Tabs.Screen name='...'>`; `StackBase` aporta el
+  header, el botón de menú del drawer, el tema y la tab bar.
+- **No** crear un `Stack` interno para una sección del drawer. Un `Stack`
+  reemplaza el header de `StackBase` y puede dejar al usuario sin acceso al
+  drawer. Si se necesita navegación interna, usar estado/modal dentro de la
+  pantalla o una ruta del mismo grupo declarada como tab.
+- Para editores de una entidad (por ejemplo plantillas), preferir estado local
+  en la pantalla de la sección y un componente editor, no una ruta dinámica
+  oculta dentro de `Tabs`.
+- Referencia vigente: `app/(budget)/_layout.tsx` declara `index` y `templates`
+  con `Tabs.Screen`; el editor de plantillas es un componente dentro de
+  `templates.tsx`.
+
+### Footers de modales
+
+- El contenedor interno del `footer` de un `Modal` debe tener `flex: 1` cuando
+  los botones usan `flex: 1`. Sin ese `flex`, el contenedor queda con ancho
+  automático, los botones colapsan y el texto desaparece.
+- Patrón correcto, igual que `src/components/records/add-record.tsx`:
+  ```tsx
+  footer={
+    <View style={styles.footer}>
+      <Button label='Cancel' variant='outline' style={styles.footerButton} />
+      <Button label='Save' style={styles.footerButton} />
+    </View>
+  }
+  // styles.footer = { flex: 1, flexDirection: 'row', gap: 8 }
+  // styles.footerButton = { flex: 1 }
+  ```
+- Si se usa `Row` de `src/ui/primitives` como footer, pasarle
+  `style={{ flex: 1 }}`.
+- No usar `flexDirection: 'row'` sin `flex: 1` en el footer interno.
+
+### Carpetas de la sección Presupuestos
+
+- `app/(budget)/_layout.tsx`: `StackBase` con tabs `index` y `templates`.
+- `app/(budget)/index.tsx`: plan mensual, comparación, fijos y acciones.
+- `app/(budget)/templates.tsx`: lista de plantillas y editor embebido.
+- `src/components/budgets/`: formularios y diálogos de presupuesto y plantillas.
+- `src/domain/budgets/`: lógica pura de comparación, media, charts e insights.
+- `src/hooks/useBudgetPlan.ts`: carga/refresco de plan y plantillas.
+- `src/ui/charts/`: `MermaidChart` y wrappers de gráficos.
+- `assets/vendor/mermaid/`: bundle offline generado con `npm run vendor:mermaid`.
 - Persistencia del tema: clave `themeSettings`; migra desde `colors` y elimina
   la clave legacy al migrar.
 - La UI no debe hardcodear colores nuevos; usar tokens semánticos.

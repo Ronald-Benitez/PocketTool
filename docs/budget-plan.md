@@ -686,9 +686,9 @@ para no hardcodear nombres ni IDs.
 
 ### 8.4 Plantillas
 
-- `app/(budget)/templates.tsx`: lista.
-- `app/(budget)/templates/[id].tsx`: edición.
-- `app/(budget)/templates/apply.tsx` o `Dialog`: preview y modo.
+- `app/(budget)/templates.tsx`: lista y editor embebido.
+- `src/components/budgets/BudgetTemplateEditor.tsx`: edición de plantilla.
+- `BudgetTemplateApplyDialog`: preview y modo.
 - Reutilizar `Screen`, `Surface`, `ListItem`, `Button`, `Dialog`,
   `ConfirmDialog`, `SelectField`, `MoneyField`, `SwitchField`.
 
@@ -1149,7 +1149,7 @@ Antes de implementar la UI:
 - `src/stores/BudgetStore.ts` → reemplazo
 - `app/(budget)/index.tsx`
 - `app/(budget)/templates.tsx`
-- `app/(budget)/templates/[id].tsx`
+- `src/components/budgets/BudgetTemplateEditor.tsx`
 - `src/components/budgets/*`
 - `src/ui/charts/MermaidChart.tsx`
 - `src/ui/charts/index.ts`
@@ -1235,7 +1235,8 @@ Implementado:
 - Bloque “Plan vs. real” en Resúmenes.
 - Mermaid vendorizado offline en `assets/vendor/mermaid/`, `MermaidChart` y
   `npm run vendor:mermaid`.
-- Ruta `(budget)` publicada en el drawer.
+- Ruta `(budget)` publicada en el drawer con `StackBase` y tabs de Plan y
+  Plantillas.
 - Traducciones `budget`, ayuda `budgets` y `budgetTemplates`, tests y docs.
 
 Pendiente:

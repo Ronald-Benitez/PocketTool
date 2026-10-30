@@ -79,6 +79,7 @@ export const budgetEn = {
     fixedPending: 'Fixed pending',
   },
   actions: {
+    back: 'Back',
     addLine: 'Add line',
     viewRecords: 'View records',
     syncFixed: 'Sync amount',
@@ -281,6 +282,7 @@ export const budgetEs: MessageShape<typeof budgetEn> = {
     fixedPending: 'Fijo pendiente',
   },
   actions: {
+    back: 'Volver',
     addLine: 'Agregar línea',
     viewRecords: 'Ver registros',
     syncFixed: 'Sincronizar monto',
