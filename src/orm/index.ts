@@ -24,8 +24,10 @@ import type {
   BudgetTemplateWithRelations,
   BudgetTemplateItem,
   BudgetTemplateItemWithRelations,
-  Budget,
-  BudgetWithRelations,
+  BudgetPlan,
+  BudgetPlanWithRelations,
+  BudgetLine,
+  BudgetLineWithRelations,
   Saving,
   SavingsHistoryEntry,
   SavingsHistoryWithRelations,
@@ -47,7 +49,8 @@ export type BaseSchemaMap = {
   PaidCredits: PaidCredit;
   BudgetTemplates: BudgetTemplate;
   BudgetTemplateItems: BudgetTemplateItem;
-  Budgets: Budget;
+  BudgetPlans: BudgetPlan;
+  BudgetLines: BudgetLine;
   Savings: Saving;
   SavingsHistory: SavingsHistoryEntry;
   Migrations: Migration;
@@ -68,7 +71,8 @@ export type RelationsSchemaMap = {
   PaidCredits: PaidCreditWithRelations;
   BudgetTemplates: BudgetTemplateWithRelations;
   BudgetTemplateItems: BudgetTemplateItemWithRelations;
-  Budgets: BudgetWithRelations;
+  BudgetPlans: BudgetPlanWithRelations;
+  BudgetLines: BudgetLineWithRelations;
   Savings: Saving;
   SavingsHistory: SavingsHistoryWithRelations;
   Migrations: Migration;

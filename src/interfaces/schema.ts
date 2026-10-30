@@ -6,7 +6,8 @@
  * `deleted_at` is also stored as a millisecond timestamp, or null when active.
  */
 import type {
-  Budget,
+  BudgetLine,
+  BudgetPlan,
   BudgetTemplate,
   BudgetTemplateItem,
   Category,
@@ -29,7 +30,8 @@ import type {
 } from '../db/schema/generated/types';
 
 export type {
-  Budget,
+  BudgetLine,
+  BudgetPlan,
   BudgetTemplate,
   BudgetTemplateItem,
   Category,
@@ -90,16 +92,25 @@ export interface BudgetTemplateItemWithRelations extends BudgetTemplateItem {
   BudgetTemplates?: BudgetTemplate | null;
   RecordTypes?: RecordType | null;
   Categories?: Category | null;
+  Fixed?: FixedRecordWithRelations | null;
 }
 
 export interface BudgetTemplateWithRelations extends BudgetTemplate {
   BudgetTemplateItems?: BudgetTemplateItemWithRelations[];
 }
 
-export interface BudgetWithRelations extends Budget {
-  RecordTypes?: RecordType | null;
+export interface BudgetPlanWithRelations extends BudgetPlan {
   Groups?: Group | null;
+  BudgetTemplates?: BudgetTemplate | null;
+  BudgetLines?: BudgetLineWithRelations[];
+}
+
+export interface BudgetLineWithRelations extends BudgetLine {
+  BudgetPlans?: BudgetPlanWithRelations | null;
   Categories?: Category | null;
+  RecordTypes?: RecordType | null;
+  Fixed?: FixedRecordWithRelations | null;
+  BudgetTemplateItems?: BudgetTemplateItemWithRelations | null;
 }
 
 export interface SavingsHistoryWithRelations extends SavingsHistoryEntry {
@@ -142,10 +153,11 @@ export interface PaymentMethodView extends PaymentMethodWithRelations {
   payment_color?: string | null;
 }
 
-export interface BudgetItemView extends BudgetWithRelations {
-  budget_template_item_id?: number;
+export interface BudgetLineView extends BudgetLineWithRelations {
   category_name?: string | null;
   type_name?: string | null;
   effect?: string | null;
   record_color?: string | null;
+  fixed_name?: string | null;
+  fixed_day?: number | null;
 }

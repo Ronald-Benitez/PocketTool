@@ -113,24 +113,6 @@ const needsRebuild = async (db: SQLiteDatabase, table: TableDefinition): Promise
   return false;
 };
 
-const budgetTypeLookupExpr = (oldBudgetType: string) => {
-  const q = quoteIdent(oldBudgetType);
-  const recordTypes = APP_SCHEMA.RecordTypes.sqlName;
-  return `(
-    SELECT rt.id FROM ${quoteIdent(recordTypes)} AS rt
-    WHERE lower(rt.type_name) = lower(
-      CASE ${q}
-        WHEN 'income' THEN 'Income'
-        WHEN 'expense' THEN 'Expense'
-        WHEN 'transfer' THEN 'Transfer'
-        WHEN 'credit' THEN 'Credit expenses'
-        ELSE ${q}
-      END
-    )
-    LIMIT 1
-  )`;
-};
-
 const paymentTypeLookupExpr = (oldPaymentType: string) => {
   const q = quoteIdent(oldPaymentType);
   const paymentTypes = APP_SCHEMA.PaymentTypes.sqlName;
@@ -162,29 +144,12 @@ const copyColumnExpr = (
     if (fallback) return fallback;
   }
 
-  if (tableName === 'Budgets' && column.name === 'record_type_id') {
-    const oldBudgetType = oldColumns.get('budget_type');
-    const fallback = oldBudgetType
-      ? oldBudgetType.type.trim().toUpperCase() === 'INTEGER'
-        ? quoteIdent(oldBudgetType.name)
-        : budgetTypeLookupExpr(oldBudgetType.name)
-      : null;
-    if (old && fallback) return `COALESCE(${quoteIdent(old.name)}, ${fallback})`;
-    if (old) return quoteIdent(old.name);
-    if (fallback) return fallback;
-  }
-
   if (old) {
     if (isMoneyColumn(tableName, column.name)) {
       return toCentsExpr(old.name, old.type, legacyName);
     }
     if (isTimestampColumn(tableName, column.name)) return toTimestampExpr(old.name);
     return quoteIdent(old.name);
-  }
-
-  if (tableName === 'Budgets' && column.name === 'id') {
-    const oldBudgetId = oldColumns.get('id_budget');
-    if (oldBudgetId) return quoteIdent(oldBudgetId.name);
   }
 
   return defaultExpr(column);

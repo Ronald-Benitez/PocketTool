@@ -3,8 +3,6 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { ORM, useORM } from '@/src/orm';
 import { withExclusiveTransaction } from '@/src/db/transaction';
 import {
-  budgetInputSchema,
-  budgetUpdateSchema,
   groupInputSchema,
   groupUpdateSchema,
   paidCreditInputSchema,
@@ -17,10 +15,6 @@ import {
 } from '@/src/validation/entities';
 import type { TableName } from '@/src/db/schema';
 import type {
-  Budget,
-  BudgetItemView,
-  BudgetTemplateItem,
-  BudgetWithRelations,
   Category,
   Cents,
   FixedRecordWithRelations,
@@ -39,6 +33,18 @@ import type {
   UpdateEntity,
 } from '@/src/interfaces/schema';
 
+export {
+  useBudgetPlansRepository,
+  useBudgetTemplatesRepository,
+} from './budgets';
+export type {
+  BudgetLineInput,
+  BudgetPlanInput,
+  BudgetTemplateInput,
+  BudgetTemplateItemInput,
+} from './budgets';
+export type { BudgetApplyMode } from '@/src/domain/budgets/types';
+
 const RECORD_JOINS = [
   'Groups',
   'Categories',
@@ -56,8 +62,6 @@ const FIXED_JOINS = [
   'PaymentMethods.PaymentTypes',
   'RecordTypes',
 ] as const;
-
-const BUDGET_JOINS = ['Categories', 'RecordTypes', 'Groups'] as const;
 
 const flattenRecord = (record: RecordWithRelations): RecordView => ({
   ...record,
@@ -96,14 +100,6 @@ const flattenPaymentMethod = (method: PaymentMethod & {
   ...method,
   payment_type_name: method.PaymentTypes?.payment_type_name,
   payment_color: method.PaymentTypes?.payment_color,
-});
-
-const flattenBudget = (budget: BudgetWithRelations): BudgetItemView => ({
-  ...budget,
-  category_name: budget.Categories?.category_name,
-  type_name: budget.RecordTypes?.type_name,
-  effect: budget.RecordTypes?.effect,
-  record_color: budget.RecordTypes?.record_color,
 });
 
 export const useTableRepository = <T extends TableName>(table: T) => {
@@ -428,7 +424,6 @@ export const useFixedsRepository = () => {
 export const useGroupsRepository = () => {
   const groupsOrm = useORM('Groups');
   const recordsOrm = useORM('Records');
-  const budgetsOrm = useORM('Budgets');
   const paidCreditsOrm = useORM('PaidCredits');
 
   const fetchGroups = async (): Promise<Group[]> => groupsOrm.getAll();
@@ -449,7 +444,6 @@ export const useGroupsRepository = () => {
   const deleteGroup = async (id: number) => {
     await recordsOrm.deleteWhere('group_id', id);
     await paidCreditsOrm.deleteWhere('group_id', id);
-    await budgetsOrm.deleteWhere('group_id', id);
     await groupsOrm.delete(id);
   };
 
@@ -560,111 +554,6 @@ export const useSavingsHistoryRepository = () => {
   };
 };
 
-export const useBudgetsRepository = (table: 'BudgetTemplateItems' | 'Budgets' = 'Budgets') => {
-  const budgetsOrm = useORM('Budgets');
-  const templateItemsOrm = useORM('BudgetTemplateItems');
-  const handler = useTableRepository(table);
-
-  const fetchBudget = async (group_id: number | undefined): Promise<BudgetItemView[] | undefined> => {
-    if (!group_id) return;
-    const rows = await budgetsOrm
-      .joinMany([...BUDGET_JOINS])
-      .where('group_id', group_id)
-      .getAll();
-    return rows.map(flattenBudget);
-  };
-
-  const fetchBudgetItems = async (
-    group_id: number | undefined
-  ): Promise<BudgetItemView[] | undefined> => {
-    if (!group_id) return;
-    const rows = await budgetsOrm
-      .joinMany([...BUDGET_JOINS])
-      .where('group_id', group_id)
-      .getAll();
-    return rows.map(flattenBudget);
-  };
-
-  const fetchBudgetTemplateItems = async (
-    template_id: number | undefined
-  ): Promise<BudgetItemView[] | undefined> => {
-    if (!template_id) return;
-    const rows = await templateItemsOrm
-      .joinMany(['Categories', 'RecordTypes'])
-      .where('budget_template_id', template_id)
-      .getAll();
-    return rows.map((row) => ({
-      ...flattenBudget(row as never),
-      budget_template_item_id: row.id,
-    }));
-  };
-
-  const sumByEffect = async (group_id: number, effect: string): Promise<number> => {
-    const rows = await budgetsOrm
-      .join('RecordTypes')
-      .where('group_id', group_id)
-      .where('RecordTypes.effect', effect)
-      .getAll();
-    return rows.reduce((total, row) => total + (row.amount || 0), 0);
-  };
-
-  const fetchTotalExpenses = async (group_id: number | undefined): Promise<number | null> => {
-    if (!group_id) return null;
-    return sumByEffect(group_id, '-');
-  };
-
-  const fetchTotalIncomes = async (group_id: number | null): Promise<number | null> => {
-    if (!group_id) return null;
-    return sumByEffect(group_id, '+');
-  };
-
-  const fetchTotalTransfers = async (group_id: number | null): Promise<number | null> => {
-    if (!group_id) return null;
-    return sumByEffect(group_id, '=');
-  };
-
-  const addBudget = async (record: Insertable<Budget>) =>
-    budgetsOrm.insert(budgetInputSchema.parse(record));
-
-  const updateBudget = async (id: number, record: Partial<Budget>) => {
-    await budgetsOrm.update(id, budgetUpdateSchema.parse(record));
-  };
-
-  const deleteBudget = async (id: number) => budgetsOrm.delete(id);
-
-  const deleteBudgetByGroup = async (group_id: number) => budgetsOrm.deleteWhere('group_id', group_id);
-
-  const getAllResume = async (group_id: number) => {
-    const [expensesTotal, incomesTotal, transferTotal] = await Promise.all([
-      fetchTotalExpenses(group_id),
-      fetchTotalIncomes(group_id),
-      fetchTotalTransfers(group_id),
-    ]);
-
-    return {
-      expensesTotal,
-      incomesTotal,
-      transferTotal,
-      balance: (incomesTotal || 0) - (expensesTotal || 0),
-    };
-  };
-
-  return {
-    fetchBudget,
-    fetchBudgetItems,
-    fetchBudgetTemplateItems,
-    fetchTotalExpenses,
-    fetchTotalIncomes,
-    fetchTotalTransfers,
-    addBudget,
-    updateBudget,
-    deleteBudget,
-    deleteBudgetByGroup,
-    getAllResume,
-    handler,
-  };
-};
-
 export const usePaymentMethodsRepository = () => {
   const methodsOrm = useORM('PaymentMethods');
   const handler = useTableRepository('PaymentMethods');
@@ -692,4 +581,4 @@ export const usePaymentMethodsRepository = () => {
   };
 };
 
-export type { BudgetTemplateItem, SavingsHistoryEntry };
+export type { SavingsHistoryEntry };

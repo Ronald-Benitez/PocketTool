@@ -18,9 +18,9 @@ métodos de pago, créditos, ahorros y vehículo.
   pendiente el checklist visual final.
 - **Fase 5 — Traducciones tipadas: FINALIZADA** (2026-10-29).
 - **Fase 6 — Centro de ayuda: FINALIZADA** (2026-10-29).
-- **Fase 7 — Presupuestos: EN PLANIFICACIÓN.** El plan vive en
-  [`docs/budget-plan.md`](docs/budget-plan.md) y no debe implementarse sin
-  validarlo.
+- **Fase 7 — Presupuestos: EN IMPLEMENTACIÓN** (2026-10-29). El plan vive en
+  [`docs/budget-plan.md`](docs/budget-plan.md); queda QA visual y validación en
+  dispositivo antes de cerrarla.
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -54,6 +54,13 @@ commits relevantes, archivos tocados y verificaciones realizadas.
   filtro, matcher y orden compartidos.
 - `src/domain/records/filterFields.ts`: campos curados de Records, opciones de
   relaciones y columnas avanzadas.
+- `src/domain/budgets/`: comparación plan/real, estados, proyección, insights y
+  builders de gráficos Mermaid. La UI no calcula dinero.
+- `src/db/repositories/budgets.ts`: repositorios de planes, líneas y plantillas;
+  entrega `BudgetPlanView` listo para la UI.
+- `src/ui/charts/MermaidChart.tsx`: WebView offline con Mermaid vendorizado,
+  tema y fallback accesible.
+- `src/hooks/useBudgetPlan.ts`: carga y refresco del plan mensual y plantillas.
 - `src/ui/filters/`: `FilterModal`, `FilterRow`, `OrderRow` y
   `FilterValueInput`; `RecordsFilterModal` es el wrapper de Records.
 - `SelectField` y `MultiSelectField` aceptan `searchable` para buscar opciones.
@@ -112,7 +119,7 @@ de negocio o se agregue una pantalla.
 7. Validar la lógica del ejemplo contra los stores reales:
    - `useResumesStore` para balances y resúmenes;
    - `useCreditStore` para créditos;
-   - `useBudgetStore` para presupuestos;
+   - `useBudgetPlan`/`useBudgetPlansRepository` para presupuestos;
    - `useSavingsStore` para ahorros.
 
 ### Agregar una categoría de ayuda
@@ -154,6 +161,12 @@ de negocio o se agregue una pantalla.
   mano.**
 - `scripts/generate-db-artifacts.js`: generador de artefactos (`npm run db:generate`).
 - `src/db/schema/seed.ts`: seed idempotente de datos de referencia y ejemplo.
+- `src/db/migrations/0004_budget_plans.ts`: migra `budgets` a
+  `budget_plans`/`budget_lines` y conserva `budgets_legacy` durante una versión.
+- Presupuestos: un plan por grupo, líneas `category` o `fixed`, snapshot del
+  monto planificado y comparación derivada desde `Records`. No guardar el real.
+- Gráficos: Mermaid se vendoriza en `assets/vendor/mermaid/mermaid.min.js.txt`
+  con `node scripts/vendor-mermaid.js`; no usar CDN.
 - `src/db/schema/apply.ts`: normalización/rebuild de tablas, conversiones legacy
   e índices.
 - `src/db/migration.ts`: bootstrap, pragmas y runner de migraciones.
@@ -206,6 +219,7 @@ npm run typecheck
 npm run test:db
 npm test
 npm run db:generate
+npm run vendor:mermaid
 npm run ci
 ```
 

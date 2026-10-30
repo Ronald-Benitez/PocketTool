@@ -1,6 +1,6 @@
 # Plan de mejora de Presupuestos — Fase 7 (BUD)
 
-**Estado:** 📝 Planificación (pendiente de validación)
+**Estado:** 🚧 En implementación (núcleo funcional, QA pendiente)
 **Fecha:** 2026-10-29
 **Objetivo:** terminar y publicar la sección de Presupuestos con plantillas
 reutilizables, un modelo de datos que permita comparar plan vs. registros del
@@ -1214,3 +1214,32 @@ Al cerrar la Fase 7, el usuario podrá:
 
 Todo con datos locales, sin dependencia de red, con migración preservando la
 información existente y con una única fuente de verdad para el dinero real.
+
+---
+
+## 19. Estado de implementación (2026-10-29)
+
+Implementado:
+
+- `SCHEMA_VERSION = 4` y migración `0004_budget_plans`.
+- `BudgetPlans`, `BudgetLines`, plantillas ampliadas y zod.
+- Comparación plan/real, estados, proyección, insights y builders Mermaid.
+- Repositorios de planes, líneas y plantillas.
+- Pantalla de Presupuestos, editor de plan, editor de líneas, fijos y
+  sin planificar.
+- Plantillas: lista, editor, duplicar, predeterminada, aplicar con
+  `merge`/`replace`/`reset`, guardar plan como plantilla.
+- Crear desde el mes anterior, desde fijos y desde gastos actuales.
+- Bloque “Plan vs. real” en Resúmenes.
+- Mermaid vendorizado offline en `assets/vendor/mermaid/`, `MermaidChart` y
+  `npm run vendor:mermaid`.
+- Ruta `(budget)` publicada en el drawer.
+- Traducciones `budget`, ayuda `budgets` y `budgetTemplates`, tests y docs.
+
+Pendiente:
+
+- QA visual en dispositivo Android/iOS, claro/oscuro y textos largos.
+- Validar el render de Mermaid en WebView real y el peso del bundle.
+- Probar import/export con `budgets_legacy`.
+- Decidir la migración `0005_drop_budget_legacy`.
+- Ajustes de UX que surjan del QA.

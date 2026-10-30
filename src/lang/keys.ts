@@ -26,3 +26,12 @@ export const filterColumnKey = (column: string): TranslationKey =>
 
 export const helpCategoryKey = (category: string): TranslationKey =>
   `help.categories.${category}` as TranslationKey;
+
+export const budgetLineStatusKey = (status: string): TranslationKey =>
+  `budget.lineStatus.${
+    status === 'on_track'
+      ? 'onTrack'
+      : status === 'fixed_pending'
+        ? 'fixedPending'
+        : status
+  }` as TranslationKey;

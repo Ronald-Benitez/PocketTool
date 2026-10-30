@@ -91,6 +91,8 @@ export interface PaidCredit extends Entity, SoftDeletable {
 export interface BudgetTemplate extends Entity, SoftDeletable {
   template_name: string;
   description?: string | null;
+  is_default?: boolean | number | null;
+  notes?: string | null;
   created_at?: TimestampMs | null;
   updated_at?: TimestampMs | null;
 }
@@ -100,15 +102,39 @@ export interface BudgetTemplateItem extends Entity, SoftDeletable {
   amount: Cents;
   record_type_id: number;
   category_id: number;
+  fixed_id?: number | null;
+  scope: string;
+  priority: number;
+  notes?: string | null;
+  sort_order: number;
   created_at?: TimestampMs | null;
   updated_at?: TimestampMs | null;
 }
 
-export interface Budget extends Entity, SoftDeletable {
-  amount: Cents;
-  record_type_id?: number | null;
-  group_id?: number | null;
+export interface BudgetPlan extends Entity, SoftDeletable {
+  group_id: number;
+  template_id?: number | null;
+  plan_name?: string | null;
+  status: string;
+  alert_threshold_percent: number;
+  notes?: string | null;
+  applied_template_at?: TimestampMs | null;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
+export interface BudgetLine extends Entity, SoftDeletable {
+  budget_plan_id: number;
   category_id?: number | null;
+  record_type_id?: number | null;
+  fixed_id?: number | null;
+  scope: string;
+  source: string;
+  template_item_id?: number | null;
+  planned_amount: Cents;
+  priority: number;
+  notes?: string | null;
+  sort_order: number;
   created_at?: TimestampMs | null;
   updated_at?: TimestampMs | null;
 }

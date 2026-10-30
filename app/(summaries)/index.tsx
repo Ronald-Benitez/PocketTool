@@ -1,6 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 
+import { BudgetSummaryBlock } from '@/src/components/summaries/BudgetSummaryBlock';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import GroupSelector from '@/src/components/groups/group-selector';
 import useResumesStore from '@/src/stores/ResumesStore';
@@ -35,6 +36,8 @@ const Index = () => {
                         accentColor={colors.primary}
                     />
                 </Surface>
+
+                <BudgetSummaryBlock />
 
                 <Stack gap='sm'>
                     <AppText variant='subtitle'>{t('resume.summaryByRecordType')}</AppText>

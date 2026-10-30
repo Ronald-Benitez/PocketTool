@@ -1,6 +1,6 @@
 import type { TableDefinition, TableSchema } from '../types';
 
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 export type TableName =
   | 'Groups'
@@ -13,7 +13,8 @@ export type TableName =
   | 'PaidCredits'
   | 'BudgetTemplates'
   | 'BudgetTemplateItems'
-  | 'Budgets'
+  | 'BudgetPlans'
+  | 'BudgetLines'
   | 'Savings'
   | 'SavingsHistory'
   | 'Migrations'
@@ -220,6 +221,8 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
       { name: 'template_name', type: 'TEXT', notNull: true, unique: true },
       { name: 'description', type: 'TEXT' },
+      { name: 'is_default', type: 'INTEGER', kind: 'boolean', defaultValue: 0 },
+      { name: 'notes', type: 'TEXT' },
       ...timestamps,
       softDelete,
     ],
@@ -249,6 +252,15 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
         references: { table: 'Categories', column: 'id', onDelete: 'SET NULL' },
         notNull: true,
       },
+      {
+        name: 'fixed_id',
+        type: 'INTEGER',
+        references: { table: 'Fixed', column: 'id', onDelete: 'SET NULL' },
+      },
+      { name: 'scope', type: 'TEXT', notNull: true, defaultValue: 'category' },
+      { name: 'priority', type: 'INTEGER', notNull: true, defaultValue: 2 },
+      { name: 'notes', type: 'TEXT' },
+      { name: 'sort_order', type: 'INTEGER', notNull: true, defaultValue: 0 },
       ...timestamps,
       softDelete,
     ],
@@ -256,37 +268,107 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
       { name: 'idx_budget_template_items_template', columns: ['budget_template_id'], where: 'deleted_at IS NULL' },
       { name: 'idx_budget_template_items_category', columns: ['category_id'], where: 'deleted_at IS NULL' },
       { name: 'idx_budget_template_items_record_type', columns: ['record_type_id'], where: 'deleted_at IS NULL' },
+      { name: 'idx_budget_template_items_fixed', columns: ['fixed_id'], where: 'deleted_at IS NULL' },
     ],
   },
-  Budgets: {
-    name: 'Budgets',
-    sqlName: 'budgets',
-    entity: 'Budget',
+  BudgetPlans: {
+    name: 'BudgetPlans',
+    sqlName: 'budget_plans',
+    entity: 'BudgetPlan',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
-      { name: 'amount', type: 'INTEGER', kind: 'money', notNull: true },
-      {
-        name: 'record_type_id',
-        type: 'INTEGER',
-        references: { table: 'RecordTypes', column: 'id', onDelete: 'SET NULL' },
-      },
       {
         name: 'group_id',
         type: 'INTEGER',
         references: { table: 'Groups', column: 'id', onDelete: 'CASCADE' },
+        notNull: true,
+      },
+      {
+        name: 'template_id',
+        type: 'INTEGER',
+        references: { table: 'BudgetTemplates', column: 'id', onDelete: 'SET NULL' },
+      },
+      { name: 'plan_name', type: 'TEXT' },
+      { name: 'status', type: 'TEXT', notNull: true, defaultValue: 'draft' },
+      {
+        name: 'alert_threshold_percent',
+        type: 'INTEGER',
+        notNull: true,
+        defaultValue: 80,
+      },
+      { name: 'notes', type: 'TEXT' },
+      { name: 'applied_template_at', type: 'INTEGER', kind: 'timestamp' },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      {
+        name: 'idx_budget_plans_group_active',
+        columns: ['group_id'],
+        unique: true,
+        where: 'deleted_at IS NULL',
+      },
+      { name: 'idx_budget_plans_template', columns: ['template_id'], where: 'deleted_at IS NULL' },
+    ],
+  },
+  BudgetLines: {
+    name: 'BudgetLines',
+    sqlName: 'budget_lines',
+    entity: 'BudgetLine',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      {
+        name: 'budget_plan_id',
+        type: 'INTEGER',
+        references: { table: 'BudgetPlans', column: 'id', onDelete: 'CASCADE' },
+        notNull: true,
       },
       {
         name: 'category_id',
         type: 'INTEGER',
         references: { table: 'Categories', column: 'id', onDelete: 'SET NULL' },
       },
+      {
+        name: 'record_type_id',
+        type: 'INTEGER',
+        references: { table: 'RecordTypes', column: 'id', onDelete: 'SET NULL' },
+      },
+      {
+        name: 'fixed_id',
+        type: 'INTEGER',
+        references: { table: 'Fixed', column: 'id', onDelete: 'SET NULL' },
+      },
+      { name: 'scope', type: 'TEXT', notNull: true, defaultValue: 'category' },
+      { name: 'source', type: 'TEXT', notNull: true, defaultValue: 'manual' },
+      {
+        name: 'template_item_id',
+        type: 'INTEGER',
+        references: { table: 'BudgetTemplateItems', column: 'id', onDelete: 'SET NULL' },
+      },
+      { name: 'planned_amount', type: 'INTEGER', kind: 'money', notNull: true },
+      { name: 'priority', type: 'INTEGER', notNull: true, defaultValue: 2 },
+      { name: 'notes', type: 'TEXT' },
+      { name: 'sort_order', type: 'INTEGER', notNull: true, defaultValue: 0 },
       ...timestamps,
       softDelete,
     ],
     indexes: [
-      { name: 'idx_budgets_group', columns: ['group_id'], where: 'deleted_at IS NULL' },
-      { name: 'idx_budgets_category', columns: ['category_id'], where: 'deleted_at IS NULL' },
-      { name: 'idx_budgets_record_type', columns: ['record_type_id'], where: 'deleted_at IS NULL' },
+      { name: 'idx_budget_lines_plan', columns: ['budget_plan_id'], where: 'deleted_at IS NULL' },
+      { name: 'idx_budget_lines_category', columns: ['category_id'], where: 'deleted_at IS NULL' },
+      { name: 'idx_budget_lines_record_type', columns: ['record_type_id'], where: 'deleted_at IS NULL' },
+      { name: 'idx_budget_lines_fixed', columns: ['fixed_id'], where: 'deleted_at IS NULL' },
+      {
+        name: 'idx_budget_lines_category_unique',
+        columns: ['budget_plan_id', 'category_id', 'record_type_id'],
+        unique: true,
+        where: "deleted_at IS NULL AND scope = 'category' AND category_id IS NOT NULL AND record_type_id IS NOT NULL",
+      },
+      {
+        name: 'idx_budget_lines_fixed_unique',
+        columns: ['budget_plan_id', 'fixed_id'],
+        unique: true,
+        where: "deleted_at IS NULL AND scope = 'fixed' AND fixed_id IS NOT NULL",
+      },
     ],
   },
   Savings: {

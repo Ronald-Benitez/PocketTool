@@ -1,3 +1,4 @@
+import { budgetEn, budgetEs } from './budget';
 import { catalogsEn, catalogsEs } from './catalogs';
 import { commonEn, commonEs } from './common';
 import { datesEn, datesEs } from './dates';
@@ -22,6 +23,7 @@ export const en = {
   ...filtersEn,
   ...settingsEn,
   ...summariesEn,
+  budget: budgetEn,
   help: helpEn,
 } as const;
 
@@ -36,6 +38,7 @@ export const es: MessageShape<typeof en> = {
   ...filtersEs,
   ...settingsEs,
   ...summariesEs,
+  budget: budgetEs,
   help: helpEs,
 };
 
@@ -67,4 +70,5 @@ export type TranslationKey =
   | Leaves<typeof filtersEn>
   | Leaves<typeof settingsEn>
   | Leaves<typeof summariesEn>
+  | Leaves<typeof budgetEn, 'budget.'>
   | HelpTranslationKey;

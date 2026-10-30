@@ -12,6 +12,7 @@ export type HelpTopicId =
   | 'fixeds'
   | 'summaries'
   | 'budgets'
+  | 'budgetTemplates'
   | 'credits'
   | 'savings'
   | 'filters'

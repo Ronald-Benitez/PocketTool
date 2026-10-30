@@ -37,12 +37,37 @@
   "BudgetTemplateItems": {
     "BudgetTemplates": "BudgetTemplates",
     "RecordTypes": "RecordTypes",
-    "Categories": "Categories"
+    "Categories": "Categories",
+    "Fixed": "Fixed",
+    "Fixed.RecordTypes": "Fixed.RecordTypes",
+    "Fixed.Categories": "Fixed.Categories",
+    "Fixed.PaymentMethods": "Fixed.PaymentMethods",
+    "Fixed.PaymentMethods.PaymentTypes": "Fixed.PaymentMethods.PaymentTypes"
   },
-  "Budgets": {
-    "RecordTypes": "RecordTypes",
+  "BudgetPlans": {
     "Groups": "Groups",
-    "Categories": "Categories"
+    "BudgetTemplates": "BudgetTemplates"
+  },
+  "BudgetLines": {
+    "BudgetPlans": "BudgetPlans",
+    "BudgetPlans.Groups": "BudgetPlans.Groups",
+    "BudgetPlans.BudgetTemplates": "BudgetPlans.BudgetTemplates",
+    "Categories": "Categories",
+    "RecordTypes": "RecordTypes",
+    "Fixed": "Fixed",
+    "Fixed.RecordTypes": "Fixed.RecordTypes",
+    "Fixed.Categories": "Fixed.Categories",
+    "Fixed.PaymentMethods": "Fixed.PaymentMethods",
+    "Fixed.PaymentMethods.PaymentTypes": "Fixed.PaymentMethods.PaymentTypes",
+    "BudgetTemplateItems": "BudgetTemplateItems",
+    "BudgetTemplateItems.BudgetTemplates": "BudgetTemplateItems.BudgetTemplates",
+    "BudgetTemplateItems.RecordTypes": "BudgetTemplateItems.RecordTypes",
+    "BudgetTemplateItems.Categories": "BudgetTemplateItems.Categories",
+    "BudgetTemplateItems.Fixed": "BudgetTemplateItems.Fixed",
+    "BudgetTemplateItems.Fixed.RecordTypes": "BudgetTemplateItems.Fixed.RecordTypes",
+    "BudgetTemplateItems.Fixed.Categories": "BudgetTemplateItems.Fixed.Categories",
+    "BudgetTemplateItems.Fixed.PaymentMethods": "BudgetTemplateItems.Fixed.PaymentMethods",
+    "BudgetTemplateItems.Fixed.PaymentMethods.PaymentTypes": "BudgetTemplateItems.Fixed.PaymentMethods.PaymentTypes"
   },
   "Savings": {},
   "SavingsHistory": {

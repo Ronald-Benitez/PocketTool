@@ -6,7 +6,8 @@ export {
   useCategoriesRepository,
   useSavingsRepository,
   useSavingsHistoryRepository,
-  useBudgetsRepository,
+  useBudgetPlansRepository,
+  useBudgetTemplatesRepository,
   usePaymentMethodsRepository,
   usePaidCreditsRepository,
 } from './repositories';
@@ -17,8 +18,8 @@ export { useGroupsRepository as useGroups } from './repositories';
 export { useCategoriesRepository as useCategories } from './repositories';
 export { useSavingsRepository as useSavings } from './repositories';
 export { useSavingsHistoryRepository as useSavingsHistory } from './repositories';
-export { useBudgetsRepository as useBudget } from './repositories';
-export { useBudgetsRepository as useBudgets } from './repositories';
+export { useBudgetPlansRepository as useBudgetPlans } from './repositories';
+export { useBudgetTemplatesRepository as useBudgetTemplates } from './repositories';
 export { usePaymentMethodsRepository as usePaymentMethods } from './repositories';
 export { usePaidCreditsRepository as usePaidCredits } from './repositories';
 export { useFuelRepository } from './repositories/fuel';
@@ -29,13 +30,6 @@ export type {
   TripLogRow,
   TripMetrics,
 } from './repositories/fuel';
-
-export interface ResumeTotalsBudget {
-  transferTotal: number | null;
-  expensesTotal: number | null;
-  incomesTotal: number | null;
-  balance: number;
-}
 
 export interface ResumeByCreditCards {
   creditCardName: string;

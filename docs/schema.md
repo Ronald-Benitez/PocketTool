@@ -3,7 +3,7 @@
 > Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.
 > Fuente de verdad: `src/db/schema/tables.ts`.
 
-Versión de esquema: **3**
+Versión de esquema: **4**
 
 ## Convenciones
 
@@ -24,9 +24,10 @@ Versión de esquema: **3**
 | `Fixed` | `fixed_records` | `FixedRecord` | 10 | 4 |
 | `Records` | `records` | `RecordEntry` | 13 | 6 |
 | `PaidCredits` | `paid_credits` | `PaidCredit` | 8 | 3 |
-| `BudgetTemplates` | `budget_templates` | `BudgetTemplate` | 6 | 0 |
-| `BudgetTemplateItems` | `budget_template_items` | `BudgetTemplateItem` | 8 | 3 |
-| `Budgets` | `budgets` | `Budget` | 8 | 3 |
+| `BudgetTemplates` | `budget_templates` | `BudgetTemplate` | 8 | 0 |
+| `BudgetTemplateItems` | `budget_template_items` | `BudgetTemplateItem` | 13 | 4 |
+| `BudgetPlans` | `budget_plans` | `BudgetPlan` | 11 | 2 |
+| `BudgetLines` | `budget_lines` | `BudgetLine` | 15 | 6 |
 | `Savings` | `savings` | `Saving` | 6 | 0 |
 | `SavingsHistory` | `savings_history` | `SavingsHistoryEntry` | 8 | 1 |
 | `Migrations` | `migrations` | `Migration` | 3 | 0 |
@@ -212,6 +213,8 @@ Entidad TypeScript: `BudgetTemplate`
 | `id` | `INTEGER` | `number` | PK, autoincrement |
 | `template_name` | `TEXT` | `string` | NOT NULL, UNIQUE |
 | `description` | `TEXT` | `string` |  |
+| `is_default` | `INTEGER` | `boolean | number` | kind=boolean, default=0 |
+| `notes` | `TEXT` | `string` |  |
 | `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
@@ -229,40 +232,82 @@ Entidad TypeScript: `BudgetTemplateItem`
 | `amount` | `INTEGER` | `Cents` | NOT NULL, kind=money |
 | `record_type_id` | `INTEGER` | `number` | NOT NULL, FK → RecordTypes.id ON DELETE SET NULL |
 | `category_id` | `INTEGER` | `number` | NOT NULL, FK → Categories.id ON DELETE SET NULL |
+| `fixed_id` | `INTEGER` | `number` | FK → Fixed.id ON DELETE SET NULL |
+| `scope` | `TEXT` | `string` | NOT NULL, default="category" |
+| `priority` | `INTEGER` | `number` | NOT NULL, default=2 |
+| `notes` | `TEXT` | `string` |  |
+| `sort_order` | `INTEGER` | `number` | NOT NULL, default=0 |
 | `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 
-Relaciones navegables: `BudgetTemplates`, `RecordTypes`, `Categories`
+Relaciones navegables: `BudgetTemplates`, `RecordTypes`, `Categories`, `Fixed`, `Fixed.RecordTypes`, `Fixed.Categories`, `Fixed.PaymentMethods`, `Fixed.PaymentMethods.PaymentTypes`
 
 Índices:
 - `idx_budget_template_items_template` (budget_template_id) WHERE deleted_at IS NULL
 - `idx_budget_template_items_category` (category_id) WHERE deleted_at IS NULL
 - `idx_budget_template_items_record_type` (record_type_id) WHERE deleted_at IS NULL
+- `idx_budget_template_items_fixed` (fixed_id) WHERE deleted_at IS NULL
 
 Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
 
-## Budgets (`budgets`)
+## BudgetPlans (`budget_plans`)
 
-Entidad TypeScript: `Budget`
+Entidad TypeScript: `BudgetPlan`
 
 | Columna | SQL | TS | Notas |
 | --- | --- | --- | --- |
 | `id` | `INTEGER` | `number` | PK, autoincrement |
-| `amount` | `INTEGER` | `Cents` | NOT NULL, kind=money |
-| `record_type_id` | `INTEGER` | `number` | FK → RecordTypes.id ON DELETE SET NULL |
-| `group_id` | `INTEGER` | `number` | FK → Groups.id ON DELETE CASCADE |
-| `category_id` | `INTEGER` | `number` | FK → Categories.id ON DELETE SET NULL |
+| `group_id` | `INTEGER` | `number` | NOT NULL, FK → Groups.id ON DELETE CASCADE |
+| `template_id` | `INTEGER` | `number` | FK → BudgetTemplates.id ON DELETE SET NULL |
+| `plan_name` | `TEXT` | `string` |  |
+| `status` | `TEXT` | `string` | NOT NULL, default="draft" |
+| `alert_threshold_percent` | `INTEGER` | `number` | NOT NULL, default=80 |
+| `notes` | `TEXT` | `string` |  |
+| `applied_template_at` | `INTEGER` | `TimestampMs` | kind=timestamp |
 | `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 
-Relaciones navegables: `RecordTypes`, `Groups`, `Categories`
+Relaciones navegables: `Groups`, `BudgetTemplates`
 
 Índices:
-- `idx_budgets_group` (group_id) WHERE deleted_at IS NULL
-- `idx_budgets_category` (category_id) WHERE deleted_at IS NULL
-- `idx_budgets_record_type` (record_type_id) WHERE deleted_at IS NULL
+- `idx_budget_plans_group_active` (group_id) UNIQUE WHERE deleted_at IS NULL
+- `idx_budget_plans_template` (template_id) WHERE deleted_at IS NULL
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
+## BudgetLines (`budget_lines`)
+
+Entidad TypeScript: `BudgetLine`
+
+| Columna | SQL | TS | Notas |
+| --- | --- | --- | --- |
+| `id` | `INTEGER` | `number` | PK, autoincrement |
+| `budget_plan_id` | `INTEGER` | `number` | NOT NULL, FK → BudgetPlans.id ON DELETE CASCADE |
+| `category_id` | `INTEGER` | `number` | FK → Categories.id ON DELETE SET NULL |
+| `record_type_id` | `INTEGER` | `number` | FK → RecordTypes.id ON DELETE SET NULL |
+| `fixed_id` | `INTEGER` | `number` | FK → Fixed.id ON DELETE SET NULL |
+| `scope` | `TEXT` | `string` | NOT NULL, default="category" |
+| `source` | `TEXT` | `string` | NOT NULL, default="manual" |
+| `template_item_id` | `INTEGER` | `number` | FK → BudgetTemplateItems.id ON DELETE SET NULL |
+| `planned_amount` | `INTEGER` | `Cents` | NOT NULL, kind=money |
+| `priority` | `INTEGER` | `number` | NOT NULL, default=2 |
+| `notes` | `TEXT` | `string` |  |
+| `sort_order` | `INTEGER` | `number` | NOT NULL, default=0 |
+| `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Relaciones navegables: `BudgetPlans`, `BudgetPlans.Groups`, `BudgetPlans.BudgetTemplates`, `Categories`, `RecordTypes`, `Fixed`, `Fixed.RecordTypes`, `Fixed.Categories`, `Fixed.PaymentMethods`, `Fixed.PaymentMethods.PaymentTypes`, `BudgetTemplateItems`, `BudgetTemplateItems.BudgetTemplates`, `BudgetTemplateItems.RecordTypes`, `BudgetTemplateItems.Categories`, `BudgetTemplateItems.Fixed`, `BudgetTemplateItems.Fixed.RecordTypes`, `BudgetTemplateItems.Fixed.Categories`, `BudgetTemplateItems.Fixed.PaymentMethods`, `BudgetTemplateItems.Fixed.PaymentMethods.PaymentTypes`
+
+Índices:
+- `idx_budget_lines_plan` (budget_plan_id) WHERE deleted_at IS NULL
+- `idx_budget_lines_category` (category_id) WHERE deleted_at IS NULL
+- `idx_budget_lines_record_type` (record_type_id) WHERE deleted_at IS NULL
+- `idx_budget_lines_fixed` (fixed_id) WHERE deleted_at IS NULL
+- `idx_budget_lines_category_unique` (budget_plan_id, category_id, record_type_id) UNIQUE WHERE deleted_at IS NULL AND scope = 'category' AND category_id IS NOT NULL AND record_type_id IS NOT NULL
+- `idx_budget_lines_fixed_unique` (budget_plan_id, fixed_id) UNIQUE WHERE deleted_at IS NULL AND scope = 'fixed' AND fixed_id IS NOT NULL
 
 Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
 

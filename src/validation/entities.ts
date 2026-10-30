@@ -53,17 +53,106 @@ export const paidCreditInputSchema = z
 
 export const paidCreditUpdateSchema = paidCreditInputSchema.partial().extend(updateMeta);
 
-export const budgetInputSchema = z
+const budgetStatus = z.enum(['draft', 'active', 'closed']);
+const budgetScope = z.enum(['category', 'fixed']);
+const budgetSource = z.enum(['manual', 'template', 'fixed', 'previous_month', 'actuals']);
+const priority = z.number().int().min(1).max(3);
+
+export const budgetPlanInputSchema = z
   .object({
-    amount: cents,
-    record_type_id: id,
-    group_id: id,
-    category_id: id,
+    group_id: z.number().int().positive(),
+    template_id: id,
+    plan_name: z.string().max(120).nullable().optional(),
+    status: budgetStatus.optional(),
+    alert_threshold_percent: z.number().int().min(1).max(100).optional(),
+    notes: z.string().nullable().optional(),
+    applied_template_at: timestamp.nullable().optional(),
     ...auditTimestamps,
   })
   .strict();
 
-export const budgetUpdateSchema = budgetInputSchema.partial().extend(updateMeta);
+export const budgetPlanUpdateSchema = budgetPlanInputSchema.partial().extend(updateMeta);
+
+export const budgetLineInputSchema = z
+  .object({
+    budget_plan_id: z.number().int().positive(),
+    category_id: id,
+    record_type_id: id,
+    fixed_id: id,
+    scope: budgetScope.optional(),
+    source: budgetSource.optional(),
+    template_item_id: id,
+    planned_amount: cents.positive(),
+    priority: priority.optional(),
+    notes: z.string().nullable().optional(),
+    sort_order: z.number().int().optional(),
+    ...auditTimestamps,
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if ((value.scope ?? 'category') === 'category') {
+      if (!value.category_id) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['category_id'], message: 'Required' });
+      }
+      if (!value.record_type_id) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['record_type_id'], message: 'Required' });
+      }
+      if (value.fixed_id) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['fixed_id'], message: 'Not allowed' });
+      }
+    } else if (!value.fixed_id) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['fixed_id'], message: 'Required' });
+    }
+  });
+
+export const budgetLineUpdateSchema = z
+  .object({
+    budget_plan_id: z.number().int().positive().optional(),
+    category_id: id,
+    record_type_id: id,
+    fixed_id: id,
+    scope: budgetScope.optional(),
+    source: budgetSource.optional(),
+    template_item_id: id,
+    planned_amount: cents.positive().optional(),
+    priority: priority.optional(),
+    notes: z.string().nullable().optional(),
+    sort_order: z.number().int().optional(),
+    ...auditTimestamps,
+    ...updateMeta,
+  })
+  .strict();
+
+export const budgetTemplateInputSchema = z
+  .object({
+    template_name: z.string().min(1).max(120),
+    description: z.string().nullable().optional(),
+    is_default: z.boolean().or(z.number().int().min(0).max(1)).optional(),
+    notes: z.string().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const budgetTemplateUpdateSchema =
+  budgetTemplateInputSchema.partial().extend(updateMeta);
+
+export const budgetTemplateItemInputSchema = z
+  .object({
+    budget_template_id: z.number().int().positive(),
+    amount: cents.positive(),
+    record_type_id: z.number().int().positive(),
+    category_id: z.number().int().positive(),
+    fixed_id: id,
+    scope: budgetScope.optional(),
+    priority: priority.optional(),
+    notes: z.string().nullable().optional(),
+    sort_order: z.number().int().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const budgetTemplateItemUpdateSchema =
+  budgetTemplateItemInputSchema.partial().extend(updateMeta);
 
 export const savingInputSchema = z
   .object({

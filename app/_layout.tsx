@@ -152,11 +152,10 @@ const AppDrawer = () => {
       <Drawer.Screen
         name="(budget)"
         options={{
-          drawerItemStyle: { display: 'none' },
           title: t('headers.budget'),
-          headerShown: true,
+          headerShown: false,
           drawerIcon: ({ color, size }) => (
-            <Ionicons name="wallet-outline" size={size} color={color as string | undefined} />
+            <Ionicons name="pie-chart-outline" size={size} color={color as string | undefined} />
           ),
         }}
       />

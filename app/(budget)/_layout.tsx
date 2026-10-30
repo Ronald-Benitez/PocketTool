@@ -1,55 +1,30 @@
-import { Tabs } from "expo-router";
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Stack } from 'expo-router';
 
-import StackBase from "@/src/components/navigation/stack-base";
-import { useLanguage } from "@/src/lang/LanguageContext";
+import { useLanguage } from '@/src/lang/LanguageContext';
+import { useTheme } from '@/src/ui/theme/ThemeProvider';
 
 export default function Layout() {
-    const { t } = useLanguage()
+  const { t } = useLanguage();
+  const { colors } = useTheme();
 
-    return (
-        <StackBase>
-            <Tabs.Screen
-                name="RecordsScreen"
-                options={{
-                    title: t("headers.records"),
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="wallet-outline" size={size} color={color as string | undefined} />
-                    )
-                }} />
-            <Tabs.Screen
-                name="PaymentMethodsScreen"
-                options={{
-                    title: t("headers.payments"),
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="cash-outline" size={size} color={color as string | undefined} />
-                    )
-                }} />
-            <Tabs.Screen
-                name="CategoriesScreen"
-                options={{
-                    title: t("headers.categories"),
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="options" size={size} color={color as string | undefined} />
-                    )
-                }} />
-            <Tabs.Screen
-                name="PaymentTypesScreen"
-                options={{
-                    title: t("headers.paymentTypes"),
-                    tabBarIcon: ({ color, size }) => (
-                        <MaterialCommunityIcons name="cash-multiple" size={size} color={color as string | undefined} />
-                    )
-                }} />
-            <Tabs.Screen
-                name="RecordTypesScreen"
-                options={{
-                    title: t("headers.recordTypes"),
-                    tabBarIcon: ({ color, size }) => (
-                        <MaterialCommunityIcons name="format-list-bulleted" size={size} color={color as string | undefined} />
-                    )
-                }} />
-
-        </StackBase>
-    );
+  return (
+    <Stack
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.surface },
+        headerTintColor: colors.text,
+        headerTitleStyle: { color: colors.text },
+        contentStyle: { backgroundColor: colors.background },
+      }}
+    >
+      <Stack.Screen name='index' options={{ headerShown: false }} />
+      <Stack.Screen
+        name='templates'
+        options={{ title: t('budget.templates.title') }}
+      />
+      <Stack.Screen
+        name='templates/[id]'
+        options={{ title: t('budget.templates.edit') }}
+      />
+    </Stack>
+  );
 }

@@ -54,7 +54,8 @@ const {
 const {
   recordInputSchema,
   groupInputSchema,
-  budgetInputSchema,
+  budgetLineInputSchema,
+  budgetPlanInputSchema,
 } = require(path.join(ROOT, 'src/validation/entities.ts'));
 const { getCreditPeriods } = require(path.join(ROOT, 'src/utils/creditPeriods.ts'));
 
@@ -130,7 +131,7 @@ async function testLegacyMigration() {
   await migrateDb(db);
 
   const tables = q(raw, "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").map(r => r.name);
-  for (const expected of ['groups', 'payment_types', 'payment_methods', 'categories', 'record_types', 'fixed_records', 'records', 'paid_credits', 'budget_templates', 'budget_template_items', 'budgets', 'savings', 'savings_history', 'migrations', 'fuel_refills', 'trip_logs']) {
+  for (const expected of ['groups', 'payment_types', 'payment_methods', 'categories', 'record_types', 'fixed_records', 'records', 'paid_credits', 'budget_templates', 'budget_template_items', 'budget_plans', 'budget_lines', 'budgets_legacy', 'savings', 'savings_history', 'migrations', 'fuel_refills', 'trip_logs']) {
     assert.ok(tables.includes(expected), `missing table ${expected}`);
   }
   assert.ok(!tables.includes('Groups'), 'legacy Groups should be gone');
@@ -153,9 +154,35 @@ async function testLegacyMigration() {
   const fixed = q(raw, 'SELECT * FROM fixed_records')[0];
   assert.strictEqual(fixed.fixed_amount, 9999);
 
-  const budget = q(raw, 'SELECT * FROM budgets')[0];
-  assert.strictEqual(budget.amount, 30033);
+  const budgetPlan = q(raw, 'SELECT * FROM budget_plans')[0];
+  assert.strictEqual(budgetPlan.group_id, 1);
+  assert.strictEqual(budgetPlan.status, 'active');
+  const budget = q(raw, 'SELECT * FROM budget_lines')[0];
+  assert.strictEqual(budget.budget_plan_id, budgetPlan.id);
+  assert.strictEqual(budget.planned_amount, 30033);
   assert.strictEqual(budget.record_type_id, 2);
+  assert.strictEqual(budget.scope, 'category');
+  assert.strictEqual(q(raw, 'SELECT COUNT(*) AS c FROM budget_plans')[0].c, 1);
+  assert.strictEqual(q(raw, 'SELECT COUNT(*) AS c FROM budget_lines')[0].c, 1);
+  assert.strictEqual(q(raw, 'SELECT COUNT(*) AS c FROM budgets_legacy')[0].c, 1);
+  assert.throws(() =>
+    raw
+      .prepare(
+        `INSERT INTO budget_lines (budget_plan_id, category_id, record_type_id, scope, source, planned_amount, priority, sort_order)
+         VALUES (?, ?, ?, 'category', 'manual', ?, 2, 0)`
+      )
+      .run(budgetPlan.id, budget.category_id, budget.record_type_id, 1000)
+  );
+  assert.ok(
+    q(raw, 'PRAGMA table_info(budget_template_items)').some(
+      (column) => column.name === 'fixed_id'
+    )
+  );
+  assert.ok(
+    q(raw, 'PRAGMA table_info(budget_templates)').some(
+      (column) => column.name === 'is_default'
+    )
+  );
 
   const saving = q(raw, 'SELECT * FROM savings')[0];
   assert.strictEqual(saving.amount, 12345);
@@ -178,7 +205,8 @@ async function testLegacyMigration() {
   assert.ok(indexes.includes('idx_records_group_date'));
   assert.ok(indexes.includes('idx_records_fixed'));
   assert.ok(indexes.includes('idx_fixed_category'));
-  assert.ok(indexes.includes('idx_budgets_category'));
+  assert.ok(indexes.includes('idx_budget_lines_category'));
+  assert.ok(indexes.includes('idx_budget_plans_group_active'));
 
   const counts = {};
   for (const t of tables) counts[t] = q(raw, `SELECT COUNT(*) AS c FROM "${t}"`)[0].c;
@@ -299,9 +327,9 @@ async function testTextFallbacks() {
 
   const method = q(raw, 'SELECT * FROM payment_methods')[0];
   assert.strictEqual(method.payment_type_id, 1, 'text payment_type should map to id');
-  const budget = q(raw, 'SELECT * FROM budgets')[0];
+  const budget = q(raw, 'SELECT * FROM budget_lines')[0];
   assert.strictEqual(budget.record_type_id, 2, 'text budget_type should map to id');
-  assert.strictEqual(budget.amount, 1025);
+  assert.strictEqual(budget.planned_amount, 1025);
   raw.close();
   console.log('text fallbacks: OK');
 }
@@ -325,7 +353,7 @@ async function testNullOldIdWithTextFallback() {
   const db = shim(raw);
   await migrateDb(db);
   assert.strictEqual(q(raw, 'SELECT payment_type_id FROM payment_methods')[0].payment_type_id, 1);
-  assert.strictEqual(q(raw, 'SELECT record_type_id FROM budgets')[0].record_type_id, 1);
+  assert.strictEqual(q(raw, 'SELECT record_type_id FROM budget_lines')[0].record_type_id, 1);
   raw.close();
   console.log('null old id + text fallback: OK');
 }
@@ -338,9 +366,8 @@ async function testBudgetIdFallback() {
   raw.exec(`INSERT INTO Budgets (id_budget, amount, budget_type, group_id, category_id) VALUES (5, 10.25, 'income', 1, 1);`);
   const db = shim(raw);
   await migrateDb(db);
-  const budget = q(raw, 'SELECT * FROM budgets')[0];
-  assert.strictEqual(budget.id, 5);
-  assert.strictEqual(budget.amount, 1025);
+  const budget = q(raw, 'SELECT * FROM budget_lines')[0];
+  assert.strictEqual(budget.planned_amount, 1025);
   assert.strictEqual(q(raw, "SELECT type_name FROM record_types WHERE id = ?", [budget.record_type_id])[0].type_name, 'Income');
   raw.close();
   console.log('id_budget fallback: OK');
@@ -360,7 +387,7 @@ async function testEmptyDatabase() {
   assert.strictEqual(q(raw, 'SELECT goal FROM groups')[0].goal, 500000);
   assert.strictEqual(q(raw, 'SELECT amount FROM records ORDER BY id')[0].amount, 100000);
   assert.strictEqual(q(raw, 'SELECT migration_name FROM migrations')[0].migration_name, '0001_baseline');
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 3);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 4);
   const recordColumns = q(raw, 'PRAGMA table_info(records)').map(c => c.name);
   assert.ok(recordColumns.includes('created_at'));
   assert.ok(recordColumns.includes('updated_at'));
@@ -397,7 +424,7 @@ async function testExportImport() {
   assert.ok(metadata);
   assert.strictEqual(metadata.formatVersion, BACKUP_FORMAT_VERSION);
   assert.strictEqual(metadata.appVersion, 'test-version');
-  assert.strictEqual(metadata.schemaVersion, 3);
+  assert.strictEqual(metadata.schemaVersion, 4);
   assert.ok(metadata.tables.includes('records'));
   assert.doesNotThrow(() => validateSqlDump(backupSql));
   assert.strictEqual(parseBackupMetadata(dump), null);
@@ -409,7 +436,7 @@ async function testExportImport() {
   targetRaw.exec('PRAGMA foreign_keys = ON;');
   await migrateDb(target);
 
-  for (const table of ['groups', 'records', 'paid_credits', 'fixed_records', 'budgets', 'savings', 'savings_history']) {
+  for (const table of ['groups', 'records', 'paid_credits', 'fixed_records', 'budget_plans', 'budget_lines', 'savings', 'savings_history']) {
     assert.strictEqual(
       q(targetRaw, `SELECT COUNT(*) AS c FROM ${table}`)[0].c,
       q(sourceRaw, `SELECT COUNT(*) AS c FROM ${table}`)[0].c,
@@ -450,7 +477,7 @@ async function testAuditTimestampMigration() {
   const backfilled = q(raw, 'SELECT created_at, updated_at FROM records LIMIT 1')[0];
   assert.ok(backfilled.created_at > 0);
   assert.ok(backfilled.updated_at > 0);
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 3);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 4);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,
     1
@@ -495,12 +522,28 @@ async function testValidationSchemas() {
       month: 1,
     })
   );
+  const plan = budgetPlanInputSchema.parse({
+    group_id: 1,
+    plan_name: 'Test',
+    status: 'active',
+  });
+  assert.strictEqual(plan.group_id, 1);
   assert.doesNotThrow(() =>
-    budgetInputSchema.parse({
-      amount: 500,
+    budgetLineInputSchema.parse({
+      budget_plan_id: 1,
+      planned_amount: 500,
       record_type_id: 1,
-      group_id: 1,
       category_id: 1,
+      scope: 'category',
+    })
+  );
+  assert.throws(() =>
+    budgetLineInputSchema.parse({
+      budget_plan_id: 1,
+      planned_amount: 0,
+      record_type_id: 1,
+      category_id: 1,
+      scope: 'category',
     })
   );
   console.log('validation schemas: OK');
@@ -607,8 +650,12 @@ async function testQueryPlans() {
       sql: 'EXPLAIN QUERY PLAN SELECT * FROM paid_credits WHERE group_id = 1 AND date BETWEEN 0 AND 9999999999999 AND deleted_at IS NULL',
     },
     {
-      name: 'budgets by group',
-      sql: 'EXPLAIN QUERY PLAN SELECT * FROM budgets WHERE group_id = 1 AND deleted_at IS NULL',
+      name: 'budget lines by plan',
+      sql: 'EXPLAIN QUERY PLAN SELECT * FROM budget_lines WHERE budget_plan_id = 1 AND deleted_at IS NULL',
+    },
+    {
+      name: 'budget plans by group',
+      sql: 'EXPLAIN QUERY PLAN SELECT * FROM budget_plans WHERE group_id = 1 AND deleted_at IS NULL',
     },
     {
       name: 'active fixed records',

@@ -171,32 +171,62 @@ export const helpEn = {
         },
         "budgets": {
             "title": "Budgets",
-            "summary": "Plan spending by category and compare it with real records.",
+            "summary": "Plan the month, compare it with real records and detect deviations early.",
             "what": {
                 "title": "What it is",
-                "body": "A budget defines how much you plan to spend in a category for a group."
+                "body": "A budget is a monthly plan with category envelopes and fixed commitments. Each line stores a planned amount, but the actual amount always comes from the records of the same group."
             },
             "how": {
                 "title": "How it works",
-                "body": "Budgets compare the planned amount with recorded expenses. The percentage shows how much of the budget has been used."
+                "body": "PocketTool compares planned and actual amounts by category and record type. It shows used percentage, variation, pending fixed transactions, unplanned spending and a projection at the current pace."
             },
             "steps": {
                 "title": "Step by step",
-                "step1": "Select the group.",
-                "step2": "Create a budget or use a template item.",
-                "step3": "Review the budget progress in the budgets section."
+                "step1": "Select the group and create a plan from scratch, from a template, from last month or from fixed transactions.",
+                "step2": "Add category envelopes with amount, priority and notes.",
+                "step3": "Review signals, adjust lines and use the chart to see plan vs. actual."
             },
             "example": {
                 "title": "Example",
-                "body": "Food budget 2,000 and 1,250 spent shows 62.5% used and 750 remaining."
+                "body": "Food envelope 2,000 and 1,250 spent shows 62.5% used and 750 remaining. Rent is a separate fixed line, so its confirmed record is not counted twice."
             },
             "tips": {
                 "title": "Tips",
-                "body": "Keep categories consistent between records and budgets for accurate comparisons."
+                "body": "Keep categories and record types consistent between records and budgets. Use priorities to protect essential spending first."
             },
             "warning": {
                 "title": "Common mistake",
-                "body": "Budgets do not block expenses. They only show how much you planned versus how much you spent."
+                "body": "A fixed transaction is a commitment, not an expense. It only affects the actual amount after you confirm it and a record is created."
+            }
+        },
+        "budgetTemplates": {
+            "title": "Budget templates",
+            "summary": "Reuse a monthly plan without starting from zero.",
+            "what": {
+                "title": "What it is",
+                "body": "A budget template is a reusable list of category envelopes and fixed commitments. It stores suggested amounts, priorities and notes, but it is not linked to a specific month."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "When you apply a template, PocketTool copies its lines into the current plan. Merge adds missing lines, replace deletes the current lines, and reset keeps them but overwrites their amounts."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Open Manage templates and create a template.",
+                "step2": "Add category or fixed lines with their suggested amounts.",
+                "step3": "Apply it to a month and choose merge, replace or reset."
+            },
+            "example": {
+                "title": "Example",
+                "body": "The Regular month template has rent 3,000 and food 2,000. Applying it with merge adds both lines if they do not exist and keeps any amount you already edited."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Mark one template as default and save a good month as a template to reuse it later."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "Replace deletes every current line. Check the preview before applying it to a plan with manual changes."
             }
         },
         "credits": {
@@ -493,32 +523,62 @@ export const helpEs: MessageShape<typeof helpEn> = {
         },
         "budgets": {
             "title": "Presupuestos",
-            "summary": "Planifica el gasto por categoría y compáralo con los registros reales.",
+            "summary": "Planifica el mes, compáralo con los registros reales y detecta desviaciones a tiempo.",
             "what": {
                 "title": "Qué es",
-                "body": "Un presupuesto define cuánto planeas gastar en una categoría para un grupo."
+                "body": "Un presupuesto es un plan mensual con sobres de categoría y compromisos fijos. Cada línea guarda un monto planificado, pero el real siempre sale de los registros del mismo grupo."
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "Los presupuestos comparan el monto planificado con los gastos registrados. El porcentaje muestra cuánto del presupuesto se ha usado."
+                "body": "PocketTool compara lo planificado y lo real por categoría y tipo de registro. Muestra porcentaje usado, variación, fijos pendientes, gasto sin planificar y una proyección al ritmo actual."
             },
             "steps": {
                 "title": "Paso a paso",
-                "step1": "Selecciona el grupo.",
-                "step2": "Crea un presupuesto o usa un elemento de plantilla.",
-                "step3": "Revisa el avance en la sección de presupuestos."
+                "step1": "Selecciona el grupo y crea un plan desde cero, desde una plantilla, desde el mes anterior o desde los fijos.",
+                "step2": "Agrega sobres de categoría con monto, prioridad y notas.",
+                "step3": "Revisa las señales, ajusta las líneas y usa el gráfico para ver plan vs. real."
             },
             "example": {
                 "title": "Ejemplo",
-                "body": "Presupuesto de comida 2,000 y 1,250 gastados muestran 62.5% usado y 750 restantes."
+                "body": "Sobre de comida 2,000 y 1,250 gastados muestran 62.5% usado y 750 restantes. La renta es una línea fija separada, así que su registro confirmado no se cuenta dos veces."
             },
             "tips": {
                 "title": "Consejos",
-                "body": "Mantén las mismas categorías entre registros y presupuestos para comparar con precisión."
+                "body": "Mantén las mismas categorías y tipos entre registros y presupuestos. Usa prioridades para proteger primero el gasto esencial."
             },
             "warning": {
                 "title": "Error común",
-                "body": "Los presupuestos no bloquean gastos. Solo muestran lo planificado frente a lo gastado."
+                "body": "Una transacción fija es un compromiso, no un gasto. Solo afecta el real después de confirmarla y crear un registro."
+            }
+        },
+        "budgetTemplates": {
+            "title": "Plantillas de presupuesto",
+            "summary": "Reutiliza un plan mensual sin empezar de cero.",
+            "what": {
+                "title": "Qué es",
+                "body": "Una plantilla de presupuesto es una lista reutilizable de sobres de categoría y compromisos fijos. Guarda montos sugeridos, prioridades y notas, pero no pertenece a un mes específico."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "Al aplicar una plantilla, PocketTool copia sus líneas al plan actual. Combinar agrega las que faltan, Reemplazar elimina las actuales y Reiniciar las conserva pero sobrescribe sus montos."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Abre Gestionar plantillas y crea una plantilla.",
+                "step2": "Agrega líneas de categoría o fijas con sus montos sugeridos.",
+                "step3": "Aplícala a un mes y elige combinar, reemplazar o reiniciar."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "La plantilla Mes normal tiene renta 3,000 y comida 2,000. Al aplicarla con combinar agrega ambas líneas si no existen y conserva los montos que ya editaste."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Marca una plantilla como predeterminada y guarda un buen mes como plantilla para reutilizarlo después."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "Reemplazar elimina todas las líneas actuales. Revisa la vista previa antes de aplicarla a un plan con cambios manuales."
             }
         },
         "credits": {

@@ -46,9 +46,10 @@ No editar esos archivos a mano.
 | `Fixed` | `fixed_records` | Movimientos recurrentes. |
 | `Records` | `records` | Movimientos principales. |
 | `PaidCredits` | `paid_credits` | Pagos de créditos. |
-| `BudgetTemplates` | `budget_templates` | Plantillas de presupuesto. |
-| `BudgetTemplateItems` | `budget_template_items` | Elementos de plantilla. |
-| `Budgets` | `budgets` | Presupuestos por grupo/tipo/categoría. |
+| `BudgetTemplates` | `budget_templates` | Plantillas de presupuesto reutilizables. |
+| `BudgetTemplateItems` | `budget_template_items` | Líneas de plantilla (categoría o fijo). |
+| `BudgetPlans` | `budget_plans` | Plan mensual por grupo. |
+| `BudgetLines` | `budget_lines` | Líneas planificadas por categoría o fijo. |
 | `Savings` | `savings` | Cuentas/metas de ahorro. |
 | `SavingsHistory` | `savings_history` | Historial de ahorros. |
 | `Migrations` | `migrations` | Historial de migraciones. |
@@ -62,8 +63,10 @@ No editar esos archivos a mano.
 - `Records` → `RecordTypes`, `Groups`, `Categories`, `PaymentMethods`,
   `Fixed`, `PaidCredits`
 - `PaidCredits` → `Groups`, `PaymentMethods`
-- `BudgetTemplateItems` → `BudgetTemplates`, `RecordTypes`, `Categories`
-- `Budgets` → `RecordTypes`, `Groups`, `Categories`
+- `BudgetTemplateItems` → `BudgetTemplates`, `RecordTypes`, `Categories`, `Fixed`
+- `BudgetPlans` → `Groups`, `BudgetTemplates`
+- `BudgetLines` → `BudgetPlans`, `Categories`, `RecordTypes`, `Fixed`,
+  `BudgetTemplateItems`
 - `SavingsHistory` → `Savings`
 
 Las rutas navegables se generan en `relations.json` a partir de las FKs.
@@ -75,6 +78,7 @@ Las rutas navegables se generan en `relations.json` a partir de las FKs.
 | 1 | `0001_baseline` | Esquema consolidado y normalización legacy. |
 | 2 | `0002_audit_timestamps` | Agrega `created_at`/`updated_at`. |
 | 3 | `0003_timestamp_triggers` | Crea triggers y rellena timestamps nulos. |
+| 4 | `0004_budget_plans` | Crea `budget_plans`/`budget_lines`, migra `budgets` a `budgets_legacy` y amplía plantillas. |
 
 Reglas:
 
