@@ -7,8 +7,8 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 
 - [`phases.md`](phases.md): estado actual y fases activas. El detalle histórico
   de fases completadas vive en `legacy/`.
-- [`ui-plan.md`](ui-plan.md): plan del sistema de componentes de UI, tema,
-  colores personalizados, modo oscuro, labels, errores y toast.
+- [`i18n-help-plan.md`](i18n-help-plan.md): plan de traducciones tipadas y centro
+  de ayuda.
 - [`database.md`](database.md): documentación actual de la base de datos,
   migraciones, triggers y backups.
 - [`schema.md`](schema.md): esquema generado desde
@@ -16,6 +16,8 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 - [`legacy/README.md`](legacy/README.md): índice del archivo histórico.
 - [`legacy/phase-history.md`](legacy/phase-history.md): historial detallado de
   fases 0–3.
+- [`legacy/ui-history.md`](legacy/ui-history.md): historial de la Fase 4.
+- [`legacy/ui-plan.md`](legacy/ui-plan.md): plan original de UI archivado.
 - [`legacy/db-summary.md`](legacy/db-summary.md): resumen anterior de base de
   datos.
 - [`../AGENTS.md`](../AGENTS.md): contexto e instrucciones para agentes.
@@ -29,7 +31,9 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 | Fase 1 — Fuente única de verdad del esquema | ✅ Finalizada (2026-10-28) |
 | Fase 2 — Repositorios y ORM robusto | ✅ Finalizada (2026-10-28) |
 | Fase 3 — Calidad, pruebas y operación | ✅ Finalizada (2026-10-28) |
-| Fase 4 — Sistema de UI reutilizable | 📝 Planificación |
+| Fase 4 — Sistema de UI reutilizable | ✅ Finalizada (2026-10-29) |
+| Fase 5 — Traducciones tipadas | 📝 Planificación |
+| Fase 6 — Centro de ayuda | 📝 Planificación |
 
 ## Regla de mantenimiento
 

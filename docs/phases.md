@@ -1,6 +1,6 @@
 # Plan de fases
 
-**Última actualización:** 2026-10-28
+**Última actualización:** 2026-10-29
 
 ## Estado
 
@@ -10,11 +10,15 @@
 | Fase 1 — Fuente única de verdad del esquema | ✅ Finalizada | 2026-10-28 |
 | Fase 2 — Repositorios y ORM robusto | ✅ Finalizada | 2026-10-28 |
 | Fase 3 — Calidad, pruebas y operación | ✅ Finalizada | 2026-10-28 |
-| Fase 4 — Sistema de UI reutilizable | 🔄 En progreso | — |
+| Fase 4 — Sistema de UI reutilizable | ✅ Finalizada | 2026-10-29 |
+| Fase 5 — Traducciones tipadas | 📝 Planificación | — |
+| Fase 6 — Centro de ayuda | 📝 Planificación | — |
 
-El detalle histórico de las fases 0–3, sus checklists y commits vive en
-[`legacy/phase-history.md`](legacy/phase-history.md). Se conserva como registro,
-pero no se carga en el contexto diario.
+El detalle histórico de las fases 0–3 vive en
+[`legacy/phase-history.md`](legacy/phase-history.md). El detalle de la Fase 4
+vive en [`legacy/ui-history.md`](legacy/ui-history.md) y su plan original en
+[`legacy/ui-plan.md`](legacy/ui-plan.md). Queda pendiente únicamente el checklist
+visual de la Fase 4 en iOS/Android/web.
 
 ## Arquitectura actual (resumen)
 
@@ -30,196 +34,71 @@ pero no se carga en el contexto diario.
 - **Backups:** dump SQL con cabecera de metadatos y compatibilidad legacy.
 - **Calidad:** `test:db` con `node:sqlite`, Jest, typecheck, lint bloqueante y
   CI en `.github/workflows/ci.yml`.
-- **UI:** `src/ui/theme/` implementa tokens, paletas base bright/dark,
-  `ThemeProvider`, modo `system`/`light`/`dark`, persistencia, migración y
-  contraste. `src/components/ui` fue retirado; los resúmenes viven en
+- **UI:** `src/ui/` contiene el sistema de componentes, tema y filtros.
+  `src/components/ui` fue retirado; los resúmenes viven en
   `src/components/summaries` y los estilos legacy se adaptan con
   `src/styles/useThemedStyles.ts`.
+- **Idiomas:** `LanguageContext` con `en.json`, `es.json` y
+  `records-filters.*.json`; pendiente de tipado y consolidación.
 
-## Fase 4 — Sistema de UI reutilizable
+## Fase 4 — Sistema de UI reutilizable (✅ 2026-10-29)
 
-**Estado:** 🔄 En progreso
-**Plan detallado:** [`ui-plan.md`](ui-plan.md)
+Se implementó:
 
-Objetivo: unificar inputs, selects, modales, botones, feedback, tema, modo
-oscuro y gestión de colores en componentes reutilizables con variantes, labels,
-errores, accesibilidad y un único `ToastProvider`.
+- Tokens, paletas bright/dark, `ThemeProvider`, modo `system`/`light`/`dark` y
+  editor de colores.
+- Primitivas, acciones, formularios, overlays, feedback, filtros y componentes
+  de datos en `src/ui`.
+- Migración de formularios, selects, modales, toasts y listas principales.
+- Filtros tipados y reutilizables para Records y Summary.
+- Limpieza de componentes legacy y regla de lint para primitivas nativas.
+
+Pendiente de QA: checklist visual en iOS/Android/web. El detalle y los commits
+están en [`legacy/ui-history.md`](legacy/ui-history.md).
+
+## Fase 5 — Traducciones tipadas (📝 Planificación)
+
+**Plan completo:** [`i18n-help-plan.md`](i18n-help-plan.md)
+
+Objetivo: reemplazar el `t(key: string)` actual por un hook tipado con
+autocompletado, mensajes co-localizados por dominio y una única fuente de verdad
+para inglés y español.
 
 Incluye:
 
-- Tokens de tema y `ThemeProvider`.
-- Paletas base bright/dark y paletas personalizadas editables por el usuario.
-- Modo `system`/`light`/`dark`.
-- Formularios con label, required, hint y errores inline.
-- `Button`/`IconButton`, `Modal`/`Dialog`, `ToastProvider`.
-- Galería de componentes y migración incremental por pantalla.
-- Documentación de base de datos mejorada y concisa.
+- Mensajes agrupados por dominio en `src/lang/messages/`.
+- Tipo recursivo `TranslationKey` derivado de los mensajes.
+- `t()` con autocompletado, parámetros/interpolación y fallback.
+- Consolidación de `records-filters.*.json`.
+- Validación de paridad de claves y tests.
 
-### UI-0 / UI-0b — Fundaciones de tema (✅ 2026-10-28)
+## Fase 6 — Centro de ayuda (📝 Planificación)
 
-- `src/ui/theme/tokens.ts`: espaciado, radios, alturas, tipografía, sombras y
-  z-index.
-- `src/ui/theme/palettes/bright.base.json` y `dark.base.json`: paletas base
-  versionadas.
-- `src/ui/theme/settings.ts`: normalización, migración legacy, resolución de
-  modo/paleta y merge de tokens.
-- `src/ui/theme/ThemeProvider.tsx`: `system`/`light`/`dark`, paletas bright/dark
-  editables, persistencia con debounce y migración desde la clave `colors`.
-- `src/ui/theme/contrast.ts`: contraste WCAG AA y advertencias.
-- `ColorScheme` ampliado con tokens semánticos y alias legacy derivados.
-- Editor de tema en Ajustes: modo, pestañas bright/dark, grupos de color,
-  restauración por color/paleta/todo, vista previa y contraste.
-- `app/_layout.tsx`: `ThemeProvider`, `StatusBar`, `SystemUI` y drawer temático.
-- `ColorsStore` convertido en adaptador de `useTheme`; eliminados
-  `colors.json`, `colorsDark.json` y `useColors`.
-- Tests en `src/ui/theme/__tests__/theme-settings.test.ts`.
-- Verificado: `npm run typecheck`, Jest y `npm run lint` con 0 errores.
+**Plan completo:** [`i18n-help-plan.md`](i18n-help-plan.md)
 
-### UI-0 complemento — Primitivas, galería y primer bloque UI-1/UI-2 (✅ 2026-10-28)
+Objetivo: convertir la sección de ayuda en un centro de aprendizaje con
+explicaciones de la lógica, ejemplos de uso y búsqueda.
 
-- `src/ui/primitives`: `AppText`, `Surface`, `Divider`, `Screen`, `Stack`/`Row`/
-  `Column`.
-- `src/ui/actions`: `Button` (primary, secondary, outline, ghost, danger; sm/md/lg;
-  loading/disabled/iconos) e `IconButton` (ghost/surface/primary; sm/md/lg).
-- `src/ui/forms`: `FormField` (label, required, hint, error accesible) y
-  `TextField` (tamaños, iconos, multiline, disabled, error).
-- `src/ui/feedback`: `ToastProvider` único con host global y `ToastViewport` para
-  modales.
-- `src/hooks/useToast.tsx` y `src/hooks/useAndroidToast.ts` ahora delegan al
-  `ToastProvider`; `ToastContainer` legacy queda como no-op.
-- `src/ui/index.ts` como barrel público.
-- Galería de desarrollo en `app/gallery.tsx` (ruta oculta en el drawer).
-- Tests de render en `src/ui/__tests__/primitives.test.tsx`.
-- Verificado: `npm run typecheck`, `npm test`, `npm run test:db` y `npm run lint`
-  con 0 errores.
+Incluye:
 
-### UI-1 / UI-2 — Campos especializados, overlays y feedback (✅ 2026-10-28)
-
-- `src/ui/forms`: `MoneyField` (centavos), `SelectField` value-based, `DateField`
-  con calendario, `MonthField`, `SwitchField` y `ColorField`.
-- `src/ui/actions`: `LinkButton`.
-- `src/ui/overlays`: `Modal` center/bottom, `BottomSheet`, `Dialog` y
-  `ConfirmDialog`.
-- `src/ui/feedback`: `InlineMessage`, `EmptyState` y `LoadingState`.
-- `ConfirmModal` legacy ahora usa `Dialog` y los botones/textos del tema.
-- Piloto migrado: `src/components/groups/add-group.tsx` usa `Modal`,
-  `TextField`, `MoneyField`, `MonthField` y `Button`; ya no usa
-  `ModalContainer`, `InputLabel` ni `MonthSelector`.
-- Piloto migrado: `src/components/records/add-record.tsx` usa `Modal`,
-  `TextField`, `MoneyField`, `DateField`, `SelectField` y `Button`; conserva los
-  bordes de color de tipos/métodos con `renderOption`/`renderValue`.
-- Migrados también: `AddFixed`, `AddTemplateItem`, `add-budget` y `AddSaving`
-  usan `Modal`, `TextField`/`MoneyField`/`SelectField`/`DateField` y `Button`.
-- `ColoredSelectOption` centraliza las filas de select con borde de color.
-- `MultiSelectField` agregado para selección múltiple con checkboxes.
-- Migrados a los nuevos selects: Ajustes, métodos de pago, selector de grupos y
-  selector de ahorros. `BaseSelect` queda solo en `RecordsFilterModal`.
-- `Modal` incluye `KeyboardAvoidingView` para iOS y Android y auto-scroll al
-  campo enfocado mediante `TextField`.
-- Modales legacy (`ModalContainer`, `base-modal`, `RecordsFilterModal`) también
-  usan `KeyboardAvoidingView`; `app.json` fija
-  `android.softwareKeyboardLayoutMode: "resize"`.
-- Galería ampliada con campos especializados, feedback, loading, empty state y
-  diálogo.
-- Tests de render ampliados en `src/ui/__tests__/primitives.test.tsx`.
-- Verificado: `npm run ci` y `npm run lint` con 0 errores.
-
-Pendiente de UI-1: ninguno dentro del alcance actual; `BaseSelect`, `Input`,
-`InputLabel`, `DatePicker`, `MonthSelector` y `PressableSwitch` fueron
-eliminados.
-Pendiente de UI-2: retirar los adaptadores `useToast`/`useAndroidToast` cuando ya
-no queden llamadas; el `Alert` de export/import fue reemplazado por toasts.
-
-### UI-2c — Migración de overlays y limpieza legacy (✅ 2026-10-28)
-
-- `PaymentTypesScreen`, `RecordTypesScreen` y `CategoriesScreen` migrados a
-  `Screen`, `TextField`, `ColorField`, `SelectField`, `Button` y `ListItem`.
-- `SwipeItem` y el detalle de ahorros usan `Dialog` para confirmar borrados.
-- `ColorPicker2` migrado al `Modal` compartido.
-- Eliminados: `ModalContainer`, `base-modal`, `base-select`, `Input`,
-  `InputLabel`, `LabelBlock`, `BGSelectBlock`, `BorderLeftBlock`, `HelpModal`,
-  `confirm`, `date-picker`, `month-selector`, `pressable-switch`, `picker`,
-  `color-picker` y `tap-block`.
-- Verificado: `npm run ci` y `npm run lint` con 0 errores.
-
-Pendiente de UI-2c: retirar los adaptadores de toast cuando ya no queden
-llamadas.
-
-### UI-2b — Filtros tipados y reutilizables (✅ 2026-10-28)
-
-- `src/db/schema/metadata.ts`: resolución de columnas, tipos, `kind` y
-  referencias sin ejecutar SQL.
-- `src/domain/filters/types.ts`: tipos de campo, operador, opciones y valores.
-- `src/domain/records/filtering.ts`: matcher y orden compartidos, con soporte
-  para fechas, dinero, booleanos `0/1`, `BETWEEN`, `IN`, `IS` e `IS NOT`.
-- `src/domain/records/filterFields.ts`: campos curados de Records, opciones de
-  relaciones y sección `advanced`.
-- `src/ui/filters/`: `FilterModal`, `FilterRow`, `OrderRow` y
-  `FilterValueInput`.
-- `SelectField` y `MultiSelectField` aceptan `searchable` y filtran opciones.
-- `RecordsFilterModal` ahora es un wrapper del modal genérico.
-- `records-table` usa los filtros compartidos y muestra el contador de filtros.
-- `RecordsModal` de Summary usa el mismo modal, filtra solo su detalle y no
-  persiste el orden.
-- Tests en `src/domain/records/__tests__/filtering.test.ts`.
-- Verificado: `npm run ci` y `npm run lint` con 0 errores.
-
-Pendiente de UI-2b: filtros persistidos por vista y filtros en las tablas
-resumen (fuera del alcance de esta fase).
-
-### UI-3 — Datos y presentación (🔄 Parcial · 2026-10-28)
-
-- `src/ui/data-display`: `Card`, `ListItem`, `Badge`, `FinanceValue`,
-  `SummaryBlock` y `SummaryGroup`.
-- `FinanceValue` recibe centavos y resuelve el color/tamaño desde el tema, con
-  override explícito de color.
-- `SummaryBlock` compone label, valor monetario/texto, acento e icono, con label
-  y valor más grandes.
-- `SummaryGroup` agrupa categoría/método/tipo con su total y sus tipos internos.
-- Home y Summary rediseñados: balance destacado, valores en color de texto para
-  contraste, acentos de color y filas más legibles.
-- Migrados a `SummaryBlock`/`SummaryGroup`/`Surface`/`Screen`: home, Summary,
-  resumen de fixeds, créditos y cabecera de presupuestos.
-- `FinanceTableBlock` y `FinanceTableChart` usan `SummaryGroup` para agrupar
-  categorías/métodos con sus tipos.
-- `SwipeAction` reemplaza a `SwipeItem`; `AccentRow` reemplaza a
-  `BGSimpleBlock`/`BorderLeftButtonBlock`.
-- Galería ampliada con `AccentRow`, `SwipeAction` y `SummaryGroup`.
-- Eliminados `FinanceSimpleBlock`, `FinanceSmallBlock`, `BalanceBlock`,
-  `IndexBlock`, `SwipeItem`, `BGSimpleBlock` y `BorderLeftButtonBlock`.
-- Tests actualizados.
-- Verificado: `npm run ci` y `npm run lint` con 0 errores.
-
-Pendiente de UI-3: ninguno.
-
-### UI-4 — Calidad y limpieza (🔄 Parcial · 2026-10-28)
-
-- Regla ESLint `no-restricted-imports` para impedir `TextInput`, `Modal`, `Alert`
-  y `ToastAndroid` nativos fuera de `src/ui`.
-- `ColorPicker` movido a `src/ui/forms/ColorPicker.tsx`.
-- Adaptadores legacy `useToast` y `useAndroidToast` eliminados; las pantallas
-  usan directamente el `ToastProvider`.
-- Eliminados `icon-button`, `confirm-modal`, `modal-button`, `color-text`,
-  `DetailedFinanceBlock`, `dropdown` y `shake-animation`.
-- `src/components/ui` retirado; `FinanceTableBlock`/`FinanceTableChart` movidos a
-  `src/components/summaries`.
-- `src/styles/useThemedStyles.ts` adapta los estilos legacy al tema activo;
-  `sceneStyle` del drawer usa el fondo del tema.
-- Tests de render ampliados con `SummaryGroup` y `AccentRow`.
-- Verificado: `npm run ci` y `npm run lint` con 0 errores.
-
-Pendiente de UI-4: completar el checklist visual en iOS/Android/web.
+- Hub de temas y detalle por tema.
+- Explicaciones de grupos, records, fijos, resúmenes, presupuestos, créditos,
+  ahorros, filtros y tema.
+- Ejemplos con datos ficticios.
+- Búsqueda, accesos rápidos y contenido bilingüe.
+- Reutilización de `src/ui` y navegación por rutas.
 
 ## Documentación
 
 - [`README.md`](README.md): índice de documentación.
-- [`ui-plan.md`](ui-plan.md): plan activo de UI, tema, color y modo oscuro.
+- [`i18n-help-plan.md`](i18n-help-plan.md): plan de traducciones y ayuda.
 - [`database.md`](database.md): documentación actual de la base de datos.
 - [`schema.md`](schema.md): esquema generado.
-- [`legacy/phase-history.md`](legacy/phase-history.md): historial detallado de
-  fases 0–3.
-- [`legacy/db-summary.md`](legacy/db-summary.md): resumen de base de datos
-  anterior, conservado como archivo.
+- [`legacy/phase-history.md`](legacy/phase-history.md): historial de fases 0–3.
+- [`legacy/ui-history.md`](legacy/ui-history.md): historial de la Fase 4.
+- [`legacy/ui-plan.md`](legacy/ui-plan.md): plan original de UI archivado.
+- [`legacy/db-summary.md`](legacy/db-summary.md): resumen anterior de base de
+  datos.
 - [`../AGENTS.md`](../AGENTS.md): instrucciones para agentes.
 
 ## Decisiones vigentes
@@ -231,3 +110,5 @@ Pendiente de UI-4: completar el checklist visual en iOS/Android/web.
 - Repositorios como única puerta de acceso desde stores/pantallas.
 - Backups con metadatos versionados y compatibilidad con dumps SQL antiguos.
 - Lint bloqueante; CI ejecuta typecheck, artefactos, tests y lint.
+- La UI nueva usa `src/ui`; los estilos legacy se adaptan con
+  `useThemedStyles`.

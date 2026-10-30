@@ -1,6 +1,10 @@
 # Plan de mejora de UI — Sistema de componentes reutilizables
 
-**Estado:** 📝 Planificación
+> **Archivado 2026-10-29.** Este plan se implementó y se conserva como registro.
+> El historial de ejecución vive en [`ui-history.md`](ui-history.md). Queda
+> pendiente únicamente el checklist visual final en iOS/Android/web.
+
+**Estado:** ✅ Implementado (archivado)
 **Fecha:** 2026-10-28
 **Objetivo:** unificar inputs, selects, modales, botones, feedback y estilos en un
 sistema de componentes con variantes, labels, errores, accesibilidad y una sola

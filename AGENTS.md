@@ -14,8 +14,10 @@ métodos de pago, créditos, ahorros y vehículo.
 - **Fase 1 — Fuente única de verdad del esquema: FINALIZADA** (2026-10-28).
 - **Fase 2 — Repositorios y ORM robusto: FINALIZADA** (2026-10-28).
 - **Fase 3 — Calidad, pruebas y operación: FINALIZADA** (2026-10-28).
-- **Fase 4 — Sistema de UI reutilizable: EN PROGRESO**. UI-0, UI-0b, UI-1,
-  UI-2, UI-2b, UI-2c y UI-3 completadas; UI-4 parcial (pendiente checklist visual).
+- **Fase 4 — Sistema de UI reutilizable: FINALIZADA** (2026-10-29). Queda
+  pendiente el checklist visual final.
+- **Fase 5 — Traducciones tipadas: PLANIFICADA**.
+- **Fase 6 — Centro de ayuda: PLANIFICADA**.
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -155,9 +157,13 @@ npm run ci
 
 - [`docs/README.md`](docs/README.md): índice de documentación.
 - [`docs/phases.md`](docs/phases.md): estado actual y fases activas.
+- [`docs/i18n-help-plan.md`](docs/i18n-help-plan.md): plan de traducciones
+  tipadas y centro de ayuda.
 - [`docs/schema.md`](docs/schema.md): esquema generado.
 - [`docs/database.md`](docs/database.md): documentación de la base de datos.
-- [`docs/ui-plan.md`](docs/ui-plan.md): plan de UI, tema, color y modo oscuro.
 - [`docs/legacy/phase-history.md`](docs/legacy/phase-history.md): historial de
-  fases completadas.
+  fases 0–3.
+- [`docs/legacy/ui-history.md`](docs/legacy/ui-history.md): historial de la
+  Fase 4.
+- [`docs/legacy/ui-plan.md`](docs/legacy/ui-plan.md): plan de UI archivado.
 - [`README.md`](README.md): descripción general y ejecución del proyecto.

@@ -1,0 +1,180 @@
+# Historial de la Fase 4 — Sistema de UI
+
+Documento histórico. El plan detallado original vive en [ui-plan.md](ui-plan.md).
+
+**Estado final:** UI implementada. Queda pendiente únicamente el checklist visual en iOS/Android/web.
+
+## Fase 4 — Sistema de UI reutilizable
+
+**Estado:** ✅ Finalizada (2026-10-29)
+**Plan detallado:** [`ui-plan.md`](ui-plan.md)
+
+Objetivo: unificar inputs, selects, modales, botones, feedback, tema, modo
+oscuro y gestión de colores en componentes reutilizables con variantes, labels,
+errores, accesibilidad y un único `ToastProvider`.
+
+Incluye:
+
+- Tokens de tema y `ThemeProvider`.
+- Paletas base bright/dark y paletas personalizadas editables por el usuario.
+- Modo `system`/`light`/`dark`.
+- Formularios con label, required, hint y errores inline.
+- `Button`/`IconButton`, `Modal`/`Dialog`, `ToastProvider`.
+- Galería de componentes y migración incremental por pantalla.
+- Documentación de base de datos mejorada y concisa.
+
+### UI-0 / UI-0b — Fundaciones de tema (✅ 2026-10-28)
+
+- `src/ui/theme/tokens.ts`: espaciado, radios, alturas, tipografía, sombras y
+  z-index.
+- `src/ui/theme/palettes/bright.base.json` y `dark.base.json`: paletas base
+  versionadas.
+- `src/ui/theme/settings.ts`: normalización, migración legacy, resolución de
+  modo/paleta y merge de tokens.
+- `src/ui/theme/ThemeProvider.tsx`: `system`/`light`/`dark`, paletas bright/dark
+  editables, persistencia con debounce y migración desde la clave `colors`.
+- `src/ui/theme/contrast.ts`: contraste WCAG AA y advertencias.
+- `ColorScheme` ampliado con tokens semánticos y alias legacy derivados.
+- Editor de tema en Ajustes: modo, pestañas bright/dark, grupos de color,
+  restauración por color/paleta/todo, vista previa y contraste.
+- `app/_layout.tsx`: `ThemeProvider`, `StatusBar`, `SystemUI` y drawer temático.
+- `ColorsStore` convertido en adaptador de `useTheme`; eliminados
+  `colors.json`, `colorsDark.json` y `useColors`.
+- Tests en `src/ui/theme/__tests__/theme-settings.test.ts`.
+- Verificado: `npm run typecheck`, Jest y `npm run lint` con 0 errores.
+
+### UI-0 complemento — Primitivas, galería y primer bloque UI-1/UI-2 (✅ 2026-10-28)
+
+- `src/ui/primitives`: `AppText`, `Surface`, `Divider`, `Screen`, `Stack`/`Row`/
+  `Column`.
+- `src/ui/actions`: `Button` (primary, secondary, outline, ghost, danger; sm/md/lg;
+  loading/disabled/iconos) e `IconButton` (ghost/surface/primary; sm/md/lg).
+- `src/ui/forms`: `FormField` (label, required, hint, error accesible) y
+  `TextField` (tamaños, iconos, multiline, disabled, error).
+- `src/ui/feedback`: `ToastProvider` único con host global y `ToastViewport` para
+  modales.
+- `src/hooks/useToast.tsx` y `src/hooks/useAndroidToast.ts` ahora delegan al
+  `ToastProvider`; `ToastContainer` legacy queda como no-op.
+- `src/ui/index.ts` como barrel público.
+- Galería de desarrollo en `app/gallery.tsx` (ruta oculta en el drawer).
+- Tests de render en `src/ui/__tests__/primitives.test.tsx`.
+- Verificado: `npm run typecheck`, `npm test`, `npm run test:db` y `npm run lint`
+  con 0 errores.
+
+### UI-1 / UI-2 — Campos especializados, overlays y feedback (✅ 2026-10-28)
+
+- `src/ui/forms`: `MoneyField` (centavos), `SelectField` value-based, `DateField`
+  con calendario, `MonthField`, `SwitchField` y `ColorField`.
+- `src/ui/actions`: `LinkButton`.
+- `src/ui/overlays`: `Modal` center/bottom, `BottomSheet`, `Dialog` y
+  `ConfirmDialog`.
+- `src/ui/feedback`: `InlineMessage`, `EmptyState` y `LoadingState`.
+- `ConfirmModal` legacy ahora usa `Dialog` y los botones/textos del tema.
+- Piloto migrado: `src/components/groups/add-group.tsx` usa `Modal`,
+  `TextField`, `MoneyField`, `MonthField` y `Button`; ya no usa
+  `ModalContainer`, `InputLabel` ni `MonthSelector`.
+- Piloto migrado: `src/components/records/add-record.tsx` usa `Modal`,
+  `TextField`, `MoneyField`, `DateField`, `SelectField` y `Button`; conserva los
+  bordes de color de tipos/métodos con `renderOption`/`renderValue`.
+- Migrados también: `AddFixed`, `AddTemplateItem`, `add-budget` y `AddSaving`
+  usan `Modal`, `TextField`/`MoneyField`/`SelectField`/`DateField` y `Button`.
+- `ColoredSelectOption` centraliza las filas de select con borde de color.
+- `MultiSelectField` agregado para selección múltiple con checkboxes.
+- Migrados a los nuevos selects: Ajustes, métodos de pago, selector de grupos y
+  selector de ahorros. `BaseSelect` queda solo en `RecordsFilterModal`.
+- `Modal` incluye `KeyboardAvoidingView` para iOS y Android y auto-scroll al
+  campo enfocado mediante `TextField`.
+- Modales legacy (`ModalContainer`, `base-modal`, `RecordsFilterModal`) también
+  usan `KeyboardAvoidingView`; `app.json` fija
+  `android.softwareKeyboardLayoutMode: "resize"`.
+- Galería ampliada con campos especializados, feedback, loading, empty state y
+  diálogo.
+- Tests de render ampliados en `src/ui/__tests__/primitives.test.tsx`.
+- Verificado: `npm run ci` y `npm run lint` con 0 errores.
+
+Pendiente de UI-1: ninguno dentro del alcance actual; `BaseSelect`, `Input`,
+`InputLabel`, `DatePicker`, `MonthSelector` y `PressableSwitch` fueron
+eliminados.
+Pendiente de UI-2: retirar los adaptadores `useToast`/`useAndroidToast` cuando ya
+no queden llamadas; el `Alert` de export/import fue reemplazado por toasts.
+
+### UI-2c — Migración de overlays y limpieza legacy (✅ 2026-10-28)
+
+- `PaymentTypesScreen`, `RecordTypesScreen` y `CategoriesScreen` migrados a
+  `Screen`, `TextField`, `ColorField`, `SelectField`, `Button` y `ListItem`.
+- `SwipeItem` y el detalle de ahorros usan `Dialog` para confirmar borrados.
+- `ColorPicker2` migrado al `Modal` compartido.
+- Eliminados: `ModalContainer`, `base-modal`, `base-select`, `Input`,
+  `InputLabel`, `LabelBlock`, `BGSelectBlock`, `BorderLeftBlock`, `HelpModal`,
+  `confirm`, `date-picker`, `month-selector`, `pressable-switch`, `picker`,
+  `color-picker` y `tap-block`.
+- Verificado: `npm run ci` y `npm run lint` con 0 errores.
+
+Pendiente de UI-2c: retirar los adaptadores de toast cuando ya no queden
+llamadas.
+
+### UI-2b — Filtros tipados y reutilizables (✅ 2026-10-28)
+
+- `src/db/schema/metadata.ts`: resolución de columnas, tipos, `kind` y
+  referencias sin ejecutar SQL.
+- `src/domain/filters/types.ts`: tipos de campo, operador, opciones y valores.
+- `src/domain/records/filtering.ts`: matcher y orden compartidos, con soporte
+  para fechas, dinero, booleanos `0/1`, `BETWEEN`, `IN`, `IS` e `IS NOT`.
+- `src/domain/records/filterFields.ts`: campos curados de Records, opciones de
+  relaciones y sección `advanced`.
+- `src/ui/filters/`: `FilterModal`, `FilterRow`, `OrderRow` y
+  `FilterValueInput`.
+- `SelectField` y `MultiSelectField` aceptan `searchable` y filtran opciones.
+- `RecordsFilterModal` ahora es un wrapper del modal genérico.
+- `records-table` usa los filtros compartidos y muestra el contador de filtros.
+- `RecordsModal` de Summary usa el mismo modal, filtra solo su detalle y no
+  persiste el orden.
+- Tests en `src/domain/records/__tests__/filtering.test.ts`.
+- Verificado: `npm run ci` y `npm run lint` con 0 errores.
+
+Pendiente de UI-2b: filtros persistidos por vista y filtros en las tablas
+resumen (fuera del alcance de esta fase).
+
+### UI-3 — Datos y presentación (🔄 Parcial · 2026-10-28)
+
+- `src/ui/data-display`: `Card`, `ListItem`, `Badge`, `FinanceValue`,
+  `SummaryBlock` y `SummaryGroup`.
+- `FinanceValue` recibe centavos y resuelve el color/tamaño desde el tema, con
+  override explícito de color.
+- `SummaryBlock` compone label, valor monetario/texto, acento e icono, con label
+  y valor más grandes.
+- `SummaryGroup` agrupa categoría/método/tipo con su total y sus tipos internos.
+- Home y Summary rediseñados: balance destacado, valores en color de texto para
+  contraste, acentos de color y filas más legibles.
+- Migrados a `SummaryBlock`/`SummaryGroup`/`Surface`/`Screen`: home, Summary,
+  resumen de fixeds, créditos y cabecera de presupuestos.
+- `FinanceTableBlock` y `FinanceTableChart` usan `SummaryGroup` para agrupar
+  categorías/métodos con sus tipos.
+- `SwipeAction` reemplaza a `SwipeItem`; `AccentRow` reemplaza a
+  `BGSimpleBlock`/`BorderLeftButtonBlock`.
+- Galería ampliada con `AccentRow`, `SwipeAction` y `SummaryGroup`.
+- Eliminados `FinanceSimpleBlock`, `FinanceSmallBlock`, `BalanceBlock`,
+  `IndexBlock`, `SwipeItem`, `BGSimpleBlock` y `BorderLeftButtonBlock`.
+- Tests actualizados.
+- Verificado: `npm run ci` y `npm run lint` con 0 errores.
+
+Pendiente de UI-3: ninguno.
+
+### UI-4 — Calidad y limpieza (🔄 Parcial · 2026-10-28)
+
+- Regla ESLint `no-restricted-imports` para impedir `TextInput`, `Modal`, `Alert`
+  y `ToastAndroid` nativos fuera de `src/ui`.
+- `ColorPicker` movido a `src/ui/forms/ColorPicker.tsx`.
+- Adaptadores legacy `useToast` y `useAndroidToast` eliminados; las pantallas
+  usan directamente el `ToastProvider`.
+- Eliminados `icon-button`, `confirm-modal`, `modal-button`, `color-text`,
+  `DetailedFinanceBlock`, `dropdown` y `shake-animation`.
+- `src/components/ui` retirado; `FinanceTableBlock`/`FinanceTableChart` movidos a
+  `src/components/summaries`.
+- `src/styles/useThemedStyles.ts` adapta los estilos legacy al tema activo;
+  `sceneStyle` del drawer usa el fondo del tema.
+- Tests de render ampliados con `SummaryGroup` y `AccentRow`.
+- Verificado: `npm run ci` y `npm run lint` con 0 errores.
+
+Pendiente de UI-4: completar el checklist visual en iOS/Android/web.
+

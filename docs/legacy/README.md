@@ -5,6 +5,8 @@ diario de `docs/phases.md`.
 
 - [`phase-history.md`](phase-history.md): historial detallado de las fases 0–3,
   con checklists, commits y verificaciones.
+- [`ui-history.md`](ui-history.md): historial de ejecución de la Fase 4.
+- [`ui-plan.md`](ui-plan.md): plan original de UI archivado.
 - [`db-summary.md`](db-summary.md): resumen anterior de la base de datos,
   reemplazado por [`../database.md`](../database.md).
 
