@@ -75,6 +75,9 @@ const Index = () => {
   const { templates, refresh: refreshTemplates } = useBudgetTemplates();
   const [lineFormVisible, setLineFormVisible] = useState(false);
   const [selectedLine, setSelectedLine] = useState<BudgetLineComparison | null>(null);
+  const [chartMode, setChartMode] = useState<
+    'comparison' | 'health' | 'distribution' | 'projection'
+  >('comparison');
   const [applyVisible, setApplyVisible] = useState(false);
   const [averageVisible, setAverageVisible] = useState(false);
   const [groups, setGroups] = useState<Group[]>([]);
@@ -93,8 +96,10 @@ const Index = () => {
       healthTitle: t('budget.chart.health'),
       distributionTitle: t('budget.chart.distribution'),
       comparisonTitle: t('budget.chart.comparison'),
+      projectionTitle: t('budget.chart.projection'),
       planned: t('budget.chart.planned'),
       actual: t('budget.chart.actual'),
+      projected: t('budget.lines.projected'),
       spent: t('budget.chart.spent'),
       remaining: t('budget.chart.remaining'),
       onTrack: t('budget.lineStatus.onTrack'),
@@ -106,7 +111,10 @@ const Index = () => {
   );
 
   const charts = useMemo(
-    () => (plan ? buildBudgetCharts(plan, chartLabels) : { health: null, distribution: null, comparison: null }),
+    () =>
+      plan
+        ? buildBudgetCharts(plan, chartLabels)
+        : { health: null, distribution: null, comparison: null, projection: null },
     [plan, chartLabels]
   );
 
@@ -248,6 +256,18 @@ const Index = () => {
         planned_amount: fixed.amountCents,
         priority: 2,
       });
+      await refresh();
+    } catch {
+      showToast({ message: t('budget.toast.error'), type: 'error' });
+    }
+  };
+
+  const removeFixedFromPlan = async (fixedId: number) => {
+    if (!plan) return;
+    const fixed = plan.fixedCommitments.find((item) => item.fixedId === fixedId);
+    if (!fixed?.lineId) return;
+    try {
+      await repository.deleteLine(fixed.lineId);
       await refresh();
     } catch {
       showToast({ message: t('budget.toast.error'), type: 'error' });
@@ -523,10 +543,36 @@ const Index = () => {
 
             <Stack gap='sm'>
               <AppText variant='subtitle'>{t('budget.chart.title')}</AppText>
+              <Row gap='xs' wrap>
+                <Button
+                  label={t('budget.chart.comparison')}
+                  size='sm'
+                  variant={chartMode === 'comparison' ? 'primary' : 'outline'}
+                  onPress={() => setChartMode('comparison')}
+                />
+                <Button
+                  label={t('budget.chart.health')}
+                  size='sm'
+                  variant={chartMode === 'health' ? 'primary' : 'outline'}
+                  onPress={() => setChartMode('health')}
+                />
+                <Button
+                  label={t('budget.chart.distribution')}
+                  size='sm'
+                  variant={chartMode === 'distribution' ? 'primary' : 'outline'}
+                  onPress={() => setChartMode('distribution')}
+                />
+                <Button
+                  label={t('budget.chart.projection')}
+                  size='sm'
+                  variant={chartMode === 'projection' ? 'primary' : 'outline'}
+                  onPress={() => setChartMode('projection')}
+                />
+              </Row>
               <MermaidChart
-                definition={charts.comparison ?? charts.health}
+                definition={charts[chartMode] ?? charts.comparison ?? charts.health}
                 height={300}
-                accessibilityLabel={t('budget.chart.comparison')}
+                accessibilityLabel={t('budget.chart.title')}
                 fallback={chartFallback}
               />
             </Stack>
@@ -575,6 +621,12 @@ const Index = () => {
                             <AppText variant='caption' color='muted'>
                               {t('budget.totals.planned')}: {formatMoneyWithSymbol(line.plannedCents)}
                             </AppText>
+                            {line.projectedCents !== null ? (
+                              <AppText variant='caption' color='muted'>
+                                {t('budget.lines.projected')}:{' '}
+                                {formatMoneyWithSymbol(line.projectedCents)}
+                              </AppText>
+                            ) : null}
                             <Badge label={`${Math.round(line.usagePercent)}%`} tone={tone} size='sm' />
                           </Stack>
                         }
@@ -627,7 +679,11 @@ const Index = () => {
                         key={fixed.fixedId}
                         title={fixed.name}
                         subtitle={`${t('budget.fixed.day', { day: fixed.day })} · ${
-                          fixed.confirmed ? t('budget.fixed.confirmed') : t('budget.fixed.pending')
+                          fixed.active
+                            ? fixed.confirmed
+                              ? t('budget.fixed.confirmed')
+                              : t('budget.fixed.pending')
+                            : t('budget.fixed.inactive')
                         } · ${fixed.categoryName || t('budget.lines.noCategory')}`}
                         leading={
                           <MaterialIcons
@@ -640,20 +696,30 @@ const Index = () => {
                           <Stack gap='xs' align='flex-end'>
                             <FinanceValue cents={fixed.amountCents} size='sm' />
                             {fixed.lineId ? (
-                              <Button
-                                label={needsSync ? t('budget.fixed.sync') : t('budget.fixed.included')}
-                                size='sm'
-                                variant='ghost'
-                                onPress={() => (needsSync && line ? syncFixed(line) : undefined)}
-                              />
-                            ) : (
+                              <Row gap='xs'>
+                                {fixed.active && needsSync && line ? (
+                                  <Button
+                                    label={t('budget.fixed.sync')}
+                                    size='sm'
+                                    variant='ghost'
+                                    onPress={() => syncFixed(line)}
+                                  />
+                                ) : null}
+                                <Button
+                                  label={t('budget.fixed.remove')}
+                                  size='sm'
+                                  variant='ghost'
+                                  onPress={() => removeFixedFromPlan(fixed.fixedId)}
+                                />
+                              </Row>
+                            ) : fixed.active ? (
                               <Button
                                 label={t('budget.fixed.include')}
                                 size='sm'
                                 variant='ghost'
                                 onPress={() => addFixedToPlan(fixed.fixedId)}
                               />
-                            )}
+                            ) : null}
                           </Stack>
                         }
                         showDivider={index < plan.fixedCommitments.length - 1}
@@ -672,6 +738,7 @@ const Index = () => {
           <BudgetLineForm
             visible={lineFormVisible}
             planId={plan.planId}
+            groupId={group.id}
             line={selectedLine}
             onClose={() => setLineFormVisible(false)}
             onSaved={refresh}

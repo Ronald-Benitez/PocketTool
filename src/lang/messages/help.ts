@@ -182,21 +182,21 @@ export const helpEn = {
             },
             "steps": {
                 "title": "Step by step",
-                "step1": "Select the group and create a plan from scratch, from a template, from last month or from fixed transactions.",
-                "step2": "Add category envelopes with amount, priority and notes.",
-                "step3": "Review signals, adjust lines and use the chart to see plan vs. actual."
+                "step1": "Select the group and create a plan from scratch, from a template, from last month, from fixed transactions or from the average of selected groups.",
+                "step2": "Add category envelopes with amount, priority and notes. Open a line to view its records or edit it.",
+                "step3": "Review signals, switch between chart modes and adjust lines. If you want a different approach, delete the plan and create another."
             },
             "example": {
                 "title": "Example",
-                "body": "Food envelope 2,000 and 1,250 spent shows 62.5% used and 750 remaining. Rent is a separate fixed line, so its confirmed record is not counted twice."
+                "body": "Food envelope 2,000 and 1,250 spent shows 62.5% used and 750 remaining. If the selected groups averaged 1,800 in food, the group average creates a 1,800 envelope. Rent is a separate fixed line, so its confirmed record is not counted twice."
             },
             "tips": {
                 "title": "Tips",
-                "body": "Keep categories and record types consistent between records and budgets. Use priorities to protect essential spending first."
+                "body": "Keep categories and record types consistent between records and budgets. Use the group average when spending is stable, and templates when you want a fixed structure."
             },
             "warning": {
                 "title": "Common mistake",
-                "body": "A fixed transaction is a commitment, not an expense. It only affects the actual amount after you confirm it and a record is created."
+                "body": "Deleting a plan also deletes its lines. You can create another plan afterward. A fixed transaction is a commitment, not an expense: it only affects the actual amount after you confirm it and a record is created."
             }
         },
         "budgetTemplates": {
@@ -534,21 +534,21 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "steps": {
                 "title": "Paso a paso",
-                "step1": "Selecciona el grupo y crea un plan desde cero, desde una plantilla, desde el mes anterior o desde los fijos.",
-                "step2": "Agrega sobres de categoría con monto, prioridad y notas.",
-                "step3": "Revisa las señales, ajusta las líneas y usa el gráfico para ver plan vs. real."
+                "step1": "Selecciona el grupo y crea un plan desde cero, desde una plantilla, desde el mes anterior, desde los fijos o desde la media de grupos seleccionados.",
+                "step2": "Agrega sobres de categoría con monto, prioridad y notas. Abre una línea para ver sus registros o editarla.",
+                "step3": "Revisa las señales, cambia entre los modos de gráfico y ajusta las líneas. Si quieres otro enfoque, elimina el plan y crea otro."
             },
             "example": {
                 "title": "Ejemplo",
-                "body": "Sobre de comida 2,000 y 1,250 gastados muestran 62.5% usado y 750 restantes. La renta es una línea fija separada, así que su registro confirmado no se cuenta dos veces."
+                "body": "Sobre de comida 2,000 y 1,250 gastados muestran 62.5% usado y 750 restantes. Si los grupos seleccionados promediaron 1,800 en comida, la media de grupos crea un sobre de 1,800. La renta es una línea fija separada, así que su registro confirmado no se cuenta dos veces."
             },
             "tips": {
                 "title": "Consejos",
-                "body": "Mantén las mismas categorías y tipos entre registros y presupuestos. Usa prioridades para proteger primero el gasto esencial."
+                "body": "Mantén las mismas categorías y tipos entre registros y presupuestos. Usa la media de grupos cuando el gasto sea estable y plantillas cuando quieras una estructura fija."
             },
             "warning": {
                 "title": "Error común",
-                "body": "Una transacción fija es un compromiso, no un gasto. Solo afecta el real después de confirmarla y crear un registro."
+                "body": "Eliminar un plan también elimina sus líneas. Después puedes crear otro plan. Una transacción fija es un compromiso, no un gasto: solo afecta el real después de confirmarla y crear un registro."
             }
         },
         "budgetTemplates": {

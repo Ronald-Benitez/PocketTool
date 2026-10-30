@@ -1,3 +1,4 @@
+import { getSpendingTypeIds } from '@/src/domain/summaries/aggregate';
 import type {
   BudgetComparisonInput,
   BudgetFixedCommitment,
@@ -95,17 +96,7 @@ export const calculateBudgetPlanView = ({
       type.id === undefined ? [] : [[type.id, type.effect ?? ''] as const]
     )
   );
-  const excluded = new Set(excludedRecordTypeIds);
-
-  const budgetableTypes = recordTypes.filter(
-    (type) =>
-      type.id !== undefined &&
-      !excluded.has(type.id) &&
-      (type.effect === '+' || type.effect === '-')
-  );
-  const budgetableIds = new Set(
-    budgetableTypes.flatMap((type) => (type.id === undefined ? [] : [type.id]))
-  );
+  const budgetableIds = getSpendingTypeIds(recordTypes, excludedRecordTypeIds);
 
   const budgetableRecords = records.filter(
     (record) =>
@@ -148,7 +139,12 @@ export const calculateBudgetPlanView = ({
         (record) => line.fixed_id !== null && record.fixed_id === line.fixed_id
       );
       const pendingFixedCents =
-        scope === 'fixed' && fixed && !confirmed ? fixed.fixed_amount : 0;
+        scope === 'fixed' &&
+        fixed &&
+        fixed.deleted_at == null &&
+        !confirmed
+          ? fixed.fixed_amount
+          : 0;
       const plannedCents = line.planned_amount;
       const usagePercent =
         plannedCents > 0
@@ -207,8 +203,10 @@ export const calculateBudgetPlanView = ({
   const fixedCommitments: BudgetFixedCommitment[] = fixeds
     .filter((fixed) => {
       if (fixed.id === undefined) return false;
-      if (fixed.record_type_id === null || fixed.record_type_id === undefined) return false;
-      return budgetableIds.has(fixed.record_type_id);
+      const usedByLine = fixedLineIds.has(fixed.id);
+      if (fixed.deleted_at != null && !usedByLine) return false;
+      if (fixed.record_type_id == null) return usedByLine;
+      return usedByLine || budgetableIds.has(fixed.record_type_id);
     })
     .map((fixed) => {
       const fixedId = fixed.id as number;
@@ -231,7 +229,7 @@ export const calculateBudgetPlanView = ({
         confirmed: Boolean(record),
         recordId: record?.id ?? null,
         lineId: line?.lineId ?? null,
-        active: true,
+        active: fixed.deleted_at == null,
       };
     })
     .sort((a, b) => a.day - b.day);
@@ -276,7 +274,7 @@ export const calculateBudgetPlanView = ({
   );
 
   const pendingFixedCents = fixedCommitments
-    .filter((fixed) => !fixed.confirmed)
+    .filter((fixed) => fixed.active && !fixed.confirmed)
     .reduce((total, fixed) => total + fixed.amountCents, 0);
 
   const insights: BudgetInsight[] = [];
@@ -310,7 +308,7 @@ export const calculateBudgetPlanView = ({
         amountCents: fixed.amountCents,
       });
     }
-    if (!fixed.confirmed) {
+    if (!fixed.confirmed && fixed.active) {
       insights.push({
         kind: 'fixed_pending',
         fixedId: fixed.fixedId,

@@ -3,6 +3,7 @@ import {
   buildBudgetComparisonChart,
   buildBudgetDistributionPie,
   buildBudgetHealthPie,
+  buildBudgetProjectionChart,
   type BudgetChartLabels,
 } from '../charts';
 import type { BudgetComparisonInput } from '../types';
@@ -11,8 +12,10 @@ const labels: BudgetChartLabels = {
   healthTitle: 'Health',
   distributionTitle: 'Distribution',
   comparisonTitle: 'Comparison',
+  projectionTitle: 'Projection',
   planned: 'Planned',
   actual: 'Actual',
+  projected: 'Projected',
   spent: 'Spent',
   remaining: 'Remaining',
   onTrack: 'On track',
@@ -195,12 +198,15 @@ describe('budget comparison', () => {
     const health = buildBudgetHealthPie(view, labels);
     const distribution = buildBudgetDistributionPie(view, labels);
     const comparison = buildBudgetComparisonChart(view, labels);
+    const projection = buildBudgetProjectionChart(view, labels);
 
     expect(health).toContain('pie showData');
     expect(distribution).toContain('Food and drinks');
     expect(distribution).not.toContain('"and"');
     expect(comparison).toContain('xychart-beta');
     expect(comparison).toContain('bar [');
+    expect(projection).toContain('xychart-beta');
+    expect(projection).toContain('Projection');
   });
 
   it('returns null charts when there is no expense data', () => {
@@ -212,5 +218,6 @@ describe('budget comparison', () => {
     expect(buildBudgetHealthPie(view, labels)).toBeNull();
     expect(buildBudgetDistributionPie(view, labels)).toBeNull();
     expect(buildBudgetComparisonChart(view, labels)).toBeNull();
+    expect(buildBudgetProjectionChart(view, labels)).toBeNull();
   });
 });

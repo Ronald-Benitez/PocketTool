@@ -4,8 +4,10 @@ export type BudgetChartLabels = {
   healthTitle: string;
   distributionTitle: string;
   comparisonTitle: string;
+  projectionTitle: string;
   planned: string;
   actual: string;
+  projected: string;
   spent: string;
   remaining: string;
   onTrack: string;
@@ -109,8 +111,36 @@ export const buildBudgetComparisonChart = (
   ].join('\n');
 };
 
+export const buildBudgetProjectionChart = (
+  view: BudgetPlanView,
+  labels: BudgetChartLabels
+): string | null => {
+  const lines = topExpenseLines(view).filter((line) => line.projectedCents !== null);
+  if (lines.length === 0) return null;
+
+  const planned = lines.map((line) => moneyLabel(line.plannedCents));
+  const projected = lines.map((line) => moneyLabel(line.projectedCents ?? 0));
+  const max = Math.max(...planned, ...projected, 1);
+  const axisMax = Math.ceil(max * 1.15);
+
+  return [
+    'xychart-beta',
+    `  title "${clean(labels.projectionTitle, labels.projectionTitle)}"`,
+    `  x-axis [${lines
+      .map((line) => `"${clean(line.categoryName || line.typeName, '—')}"`)
+      .join(', ')}]`,
+    `  y-axis "${clean(labels.planned, labels.planned)} / ${clean(
+      labels.projected,
+      labels.projected
+    )}" 0 --> ${axisMax}`,
+    `  bar [${planned.join(', ')}]`,
+    `  bar [${projected.join(', ')}]`,
+  ].join('\n');
+};
+
 export const buildBudgetCharts = (view: BudgetPlanView, labels: BudgetChartLabels) => ({
   health: buildBudgetHealthPie(view, labels),
   distribution: buildBudgetDistributionPie(view, labels),
   comparison: buildBudgetComparisonChart(view, labels),
+  projection: buildBudgetProjectionChart(view, labels),
 });

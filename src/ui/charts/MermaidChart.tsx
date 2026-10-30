@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system/legacy';
 import { WebView } from 'react-native-webview';
@@ -158,7 +158,7 @@ export const MermaidChart = ({
     colors.textMuted,
   ]);
 
-  if (!definition || Platform.OS === 'web') {
+  if (!definition) {
     return <>{fallback}</>;
   }
 

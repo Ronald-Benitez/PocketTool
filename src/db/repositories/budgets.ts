@@ -15,6 +15,7 @@ import type {
   FixedRecord,
   Insertable,
   RecordType,
+  RecordView,
 } from '@/src/interfaces/schema';
 import {
   budgetLineInputSchema,
@@ -147,7 +148,7 @@ export const useBudgetPlansRepository = () => {
     const [lines, records, fixeds, categories, recordTypes, template] = await Promise.all([
       linesOrm.where('budget_plan_id', plan.id).getAll(),
       recordsOrm.where('group_id', groupId).getAll(),
-      fixedsOrm.getAll(),
+      fixedsOrm.getAll({ includeDeleted: true }),
       categoriesOrm.getAll(),
       recordTypesOrm.getAll(),
       plan.template_id ? templatesOrm.getById(plan.template_id) : Promise.resolve(null),
@@ -605,6 +606,44 @@ export const useBudgetPlansRepository = () => {
     return planId;
   };
 
+  const fetchLineRecords = async (
+    groupId: number,
+    lineId: number
+  ): Promise<RecordView[]> => {
+    const plan = await fetchPlan(groupId);
+    if (!plan?.id) return [];
+    const lines = (await linesOrm.where('budget_plan_id', plan.id).getAll()) as BudgetLine[];
+    const line = lines.find((item) => item.id === lineId);
+    if (!line) return [];
+
+    const fixedLineIds = new Set(
+      lines
+        .filter((item) => saleOf(item.scope) === 'fixed' && item.fixed_id !== null)
+        .map((item) => item.fixed_id as number)
+    );
+    const rows = (await recordsOrm
+      .join('RecordTypes')
+      .where('group_id', groupId)
+      .order('date', 'DESC')
+      .getAll()) as RecordView[];
+
+    return rows.filter((record) => {
+      if (saleOf(line.scope) === 'fixed') {
+        return line.fixed_id != null && record.fixed_id === line.fixed_id;
+      }
+      if (
+        record.category_id !== line.category_id ||
+        record.record_type_id !== line.record_type_id
+      ) {
+        return false;
+      }
+      if (record.fixed_id != null && fixedLineIds.has(record.fixed_id)) {
+        return false;
+      }
+      return true;
+    });
+  };
+
   const listLines = async (planId: number): Promise<BudgetLineView[]> => {
     const [lines, categories, recordTypes, fixeds] = await Promise.all([
       linesOrm.where('budget_plan_id', planId).getAll(),
@@ -635,6 +674,7 @@ export const useBudgetPlansRepository = () => {
     saveLine,
     deleteLine,
     listLines,
+    fetchLineRecords,
     applyTemplate,
     saveAsTemplate,
     createFromFixeds,
@@ -654,24 +694,31 @@ export const useBudgetTemplatesRepository = () => {
   const recordTypesOrm = useORM('RecordTypes');
   const fixedsOrm = useORM('Fixed');
 
-  const buildView = async (template: BudgetTemplate): Promise<BudgetTemplateView> => {
-    const [items, categories, recordTypes, fixeds] = await Promise.all([
-      itemsOrm.where('budget_template_id', template.id as number).getAll(),
+  const loadLookups = async () => {
+    const [categories, recordTypes, fixeds] = await Promise.all([
       categoriesOrm.getAll(),
       recordTypesOrm.getAll(),
       fixedsOrm.getAll(),
     ]);
-    const categoryMap = new Map(categories.map((item) => [item.id, item.category_name]));
-    const typeMap = new Map(recordTypes.map((item) => [item.id, item]));
-    const fixedMap = new Map(fixeds.map((item) => [item.id, item]));
+    return {
+      categoryMap: new Map(categories.map((item) => [item.id, item.category_name])),
+      typeMap: new Map(recordTypes.map((item) => [item.id, item])),
+      fixedMap: new Map(fixeds.map((item) => [item.id, item])),
+    };
+  };
 
-    const itemViews: BudgetTemplateItemView[] = (items as BudgetTemplateItem[]).map((item) => {
-      const type = typeMap.get(item.record_type_id);
+  const buildView = (
+    template: BudgetTemplate,
+    items: BudgetTemplateItem[],
+    lookups: Awaited<ReturnType<typeof loadLookups>>
+  ): BudgetTemplateView => {
+    const itemViews: BudgetTemplateItemView[] = items.map((item) => {
+      const type = lookups.typeMap.get(item.record_type_id);
       return {
         id: item.id as number,
         templateId: item.budget_template_id,
         categoryId: item.category_id,
-        categoryName: categoryMap.get(item.category_id) ?? '',
+        categoryName: lookups.categoryMap.get(item.category_id) ?? '',
         recordTypeId: item.record_type_id,
         typeName: type?.type_name ?? '',
         effect: effectOf(type),
@@ -681,7 +728,10 @@ export const useBudgetTemplatesRepository = () => {
         sortOrder: item.sort_order ?? 0,
         scope: saleOf(item.scope),
         fixedId: item.fixed_id ?? null,
-        fixedName: item.fixed_id !== null ? fixedMap.get(item.fixed_id)?.fixed_name ?? null : null,
+        fixedName:
+          item.fixed_id !== null
+            ? lookups.fixedMap.get(item.fixed_id)?.fixed_name ?? null
+            : null,
       };
     });
 
@@ -699,13 +749,30 @@ export const useBudgetTemplatesRepository = () => {
   };
 
   const listTemplates = async (): Promise<BudgetTemplateView[]> => {
-    const templates = (await templatesOrm.getAll()) as BudgetTemplate[];
-    return Promise.all(templates.map(buildView));
+    const [templates, items, lookups] = await Promise.all([
+      templatesOrm.getAll() as Promise<BudgetTemplate[]>,
+      itemsOrm.getAll() as Promise<BudgetTemplateItem[]>,
+      loadLookups(),
+    ]);
+    const itemsByTemplate = new Map<number, BudgetTemplateItem[]>();
+    for (const item of items) {
+      const list = itemsByTemplate.get(item.budget_template_id) ?? [];
+      list.push(item);
+      itemsByTemplate.set(item.budget_template_id, list);
+    }
+
+    return templates.map((template) =>
+      buildView(template, itemsByTemplate.get(template.id as number) ?? [], lookups)
+    );
   };
 
   const getTemplate = async (id: number): Promise<BudgetTemplateView | null> => {
-    const template = (await templatesOrm.getById(id)) as BudgetTemplate | null;
-    return template ? buildView(template) : null;
+    const [template, items, lookups] = await Promise.all([
+      templatesOrm.getById(id) as Promise<BudgetTemplate | null>,
+      itemsOrm.where('budget_template_id', id).getAll() as Promise<BudgetTemplateItem[]>,
+      loadLookups(),
+    ]);
+    return template ? buildView(template, items, lookups) : null;
   };
 
   const saveTemplate = async (
@@ -740,12 +807,23 @@ export const useBudgetTemplatesRepository = () => {
     const sourceItems = (await itemsOrm
       .where('budget_template_id', templateId)
       .getAll()) as BudgetTemplateItem[];
+    const existingNames = new Set(
+      ((await templatesOrm.getAll()) as BudgetTemplate[]).map(
+        (template) => template.template_name
+      )
+    );
+    let copyName = `${source.template_name} (copy)`;
+    let copyIndex = 2;
+    while (existingNames.has(copyName)) {
+      copyName = `${source.template_name} (copy ${copyIndex})`;
+      copyIndex += 1;
+    }
 
     return withExclusiveTransaction(db, async (txn) => {
       const templates = new ORM(txn, 'BudgetTemplates');
       const items = new ORM(txn, 'BudgetTemplateItems');
       const newId = await templates.insert({
-        template_name: `${source.template_name} (copy)`,
+        template_name: copyName,
         description: source.description ?? null,
         notes: source.notes ?? null,
         is_default: 0,

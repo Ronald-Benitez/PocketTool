@@ -1,6 +1,6 @@
 # Plan de mejora de Presupuestos — Fase 7 (BUD)
 
-**Estado:** 🚧 En implementación (núcleo funcional, QA pendiente)
+**Estado:** ✅ Implementado y validado
 **Fecha:** 2026-10-29
 **Objetivo:** terminar y publicar la sección de Presupuestos con plantillas
 reutilizables, un modelo de datos que permita comparar plan vs. registros del
@@ -274,8 +274,8 @@ Reglas:
 
 - Sale de `APP_SCHEMA` y de `TABLE_NAMES` cuando la migración esté validada.
 - La migración copia sus filas a `BudgetPlans`/`BudgetLines`.
-- Se conserva como `budgets_legacy` durante una versión para auditoría y se
-  elimina en una migración posterior (`0005_drop_budget_legacy`).
+- Se conservó como `budgets_legacy` durante una versión para auditoría y se
+  elimina en `0005_drop_budget_legacy`.
 - El código nuevo no debe importar `Budget` ni `useBudgetsRepository` legacy.
 
 ### 4.7 Por qué no se guarda el real
@@ -817,9 +817,8 @@ para no hardcodear nombres ni IDs.
 
 ### 9.7 Web y Expo Go
 
-- `react-native-webview` no funciona igual en web. En web:
-  - usar el fallback de tabla o un SVG estático;
-  - detectar con `Platform.OS === 'web'`.
+- Web queda fuera de alcance por decisión de producto. No agregar ramas
+  `Platform.OS === 'web'` ni lógica específica para web.
 - En Expo Go, validar que el WebView cargue el asset local; si no, usar un
   development build.
 - Probar en Android e iOS; el proyecto se distribuye principalmente en Android.
@@ -1009,8 +1008,9 @@ Antes de implementar la UI:
   - agregar `BudgetPlans`, `BudgetLines`;
   - ampliar `BudgetTemplates`, `BudgetTemplateItems`;
   - retirar `Budgets` del esquema activo.
-- `SCHEMA_VERSION = 4`.
-- Crear `0004_budget_plans.ts`.
+- `SCHEMA_VERSION = 6`.
+- Crear `0004_budget_plans.ts`, `0005_drop_budget_legacy.ts` y
+  `0006_drop_budget_plan_status.ts`.
 - Actualizar `src/validation/entities.ts` con zod.
 - Regenerar artefactos y `docs/schema.md`.
 - Tests de migración y datos.
@@ -1077,9 +1077,9 @@ Antes de implementar la UI:
 - Quitar `display: 'none'` del drawer.
 - Traducciones `budget` y ayuda actualizada.
 - Documentación (`docs/phases.md`, `docs/database.md`, `AGENTS.md`).
-- QA final Android/iOS/web.
-- Migración de limpieza `0005_drop_budget_legacy` si los datos están validados.
-- Marcar Fase 7 como finalizada.
+- QA final Android/iOS; web fuera de alcance.
+- ~~Migración de limpieza `0005_drop_budget_legacy`.~~ Implementada.
+- ~~Marcar Fase 7 como finalizada.~~ Finalizada.
 
 **Salida:** sección publicada y documentada.
 
@@ -1091,7 +1091,7 @@ Antes de implementar la UI:
 | --- | --- | --- |
 | Mermaid no renderiza `xychart-beta` con dos series | Medio | Spike BUD-0; alternativa con dos gráficos o SVG |
 | Bundle de Mermaid grande | Medio | Vendorizar, cargar solo al abrir presupuestos, cachear |
-| WebView no funciona en web | Medio | Fallback de tabla/SVG; detectar plataforma |
+| WebView en web | Fuera de alcance | La app no se soporta en web; no agregar lógica específica |
 | Migración con datos duplicados o huérfanos | Alto | Copia defensiva, `budgets_legacy`, tests con datos sucios |
 | Doble conteo fijo/categoría | Alto | `scope`, asignación exclusiva, preview y tests |
 | Reglas de crédito distintas entre resúmenes y presupuestos | Alto | Dominio compartido y tests de paridad |
@@ -1128,6 +1128,7 @@ Antes de implementar la UI:
 - `src/db/schema/tables.ts`
 - `src/db/migrations/0004_budget_plans.ts`
 - `src/db/migrations/0005_drop_budget_legacy.ts`
+- `src/db/migrations/0006_drop_budget_plan_status.ts`
 - `src/db/migrations/index.ts`
 - `src/db/schema/generated/*` (generado)
 - `src/validation/entities.ts`
@@ -1218,14 +1219,16 @@ información existente y con una única fuente de verdad para el dinero real.
 
 ## 19. Estado de implementación (2026-10-29)
 
-Implementado:
+Implementado y validado:
 
-- `SCHEMA_VERSION = 4` y migración `0004_budget_plans`.
-- `BudgetPlans`, `BudgetLines`, plantillas ampliadas y zod.
-- Comparación plan/real, estados, proyección, insights y builders Mermaid.
+- `SCHEMA_VERSION = 6` y migraciones `0004_budget_plans`,
+  `0005_drop_budget_legacy` y `0006_drop_budget_plan_status`.
+- `BudgetPlans` sin estado, `BudgetLines`, plantillas ampliadas y zod.
+- Comparación plan/real, proyección, insights y builders Mermaid.
+- Reglas de gasto compartidas con resúmenes en `src/domain/summaries`.
 - Repositorios de planes, líneas y plantillas.
-- Pantalla de Presupuestos, editor de plan, editor de líneas, fijos y
-  sin planificar.
+- Pantalla de Presupuestos, editor de plan, editor de líneas con detalle de
+  registros, fijos activos/inactivos y sin planificar.
 - Plantillas: lista, editor, duplicar, predeterminada, aplicar con
   `merge`/`replace`/`reset`, guardar plan como plantilla.
 - Crear desde el mes anterior, desde fijos, desde gastos actuales y desde la
@@ -1233,17 +1236,17 @@ Implementado:
 - Eliminar el plan para recrearlo con otro enfoque.
 - Bloque “Plan vs. real” en Resúmenes.
 - Mermaid vendorizado offline en `assets/vendor/mermaid/`, `MermaidChart` y
-  `npm run vendor:mermaid`.
+  `npm run vendor:mermaid`, con gráficos de comparación, salud, distribución y
+  proyección.
 - Ruta `(budget)` publicada en el drawer con `StackBase` y tabs de Plan y
   Plantillas.
 - Traducciones `budget`, ayuda `budgets` y `budgetTemplates`, tests y docs.
 
-Pendiente:
+Validación:
 
-- QA visual en dispositivo Android/iOS, claro/oscuro y textos largos.
-- Validar el render de Mermaid en WebView real y el peso del bundle.
-- Probar import/export de backups antiguos que todavía incluyan `budgets` o
-  `budgets_legacy`.
-- ~~Decidir la migración `0005_drop_budget_legacy`.~~ Implementada: elimina
-  `budgets_legacy` después de la migración.
-- Ajustes de UX que surjan del QA.
+- QA visual en dispositivo Android/iOS, claro/oscuro y textos largos: validado.
+- Mermaid en WebView real: funcional.
+- Import/export: sin impacto porque la versión en producción usa el esquema
+  previo a Presupuestos.
+- Web: fuera de alcance por decisión de producto.
+- `npm run ci` y `npm run lint` en verde.

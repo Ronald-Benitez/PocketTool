@@ -1,6 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import {
+  RecordsModal,
+  type RecordsModalRef,
+} from '@/src/components/records/RecordsModal';
 import { useDataStore } from '@/src/stores';
 import { useConfigs } from '@/src/hooks/useConfigs';
 import { useBudgetPlansRepository } from '@/src/db';
@@ -18,6 +22,7 @@ import { useToast } from '@/src/ui/feedback/ToastProvider';
 type BudgetLineFormProps = {
   visible: boolean;
   planId: number;
+  groupId: number;
   line?: BudgetLineComparison | null;
   onClose: () => void;
   onSaved: () => void;
@@ -26,6 +31,7 @@ type BudgetLineFormProps = {
 export const BudgetLineForm = ({
   visible,
   planId,
+  groupId,
   line,
   onClose,
   onSaved,
@@ -45,6 +51,8 @@ export const BudgetLineForm = ({
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [loadingRecords, setLoadingRecords] = useState(false);
+  const recordsModalRef = useRef<RecordsModalRef | null>(null);
 
   useEffect(() => {
     if (!visible) return;
@@ -140,6 +148,19 @@ export const BudgetLineForm = ({
       setError(t('budget.toast.error'));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const openRecords = async () => {
+    if (!line) return;
+    setLoadingRecords(true);
+    try {
+      const records = await repository.fetchLineRecords(groupId, line.lineId);
+      recordsModalRef.current?.open(records);
+    } catch {
+      setError(t('budget.toast.error'));
+    } finally {
+      setLoadingRecords(false);
     }
   };
 
@@ -264,9 +285,18 @@ export const BudgetLineForm = ({
             multiline
             numberOfLines={3}
           />
+          {line ? (
+            <Button
+              label={t('budget.actions.viewRecords')}
+              variant='outline'
+              onPress={openRecords}
+              loading={loadingRecords}
+            />
+          ) : null}
           {error ? <InlineMessage variant='error' message={error} /> : null}
         </View>
       </Modal>
+      <RecordsModal ref={recordsModalRef} />
       <ConfirmDialog
         visible={confirmDelete}
         title={t('budget.lines.delete')}

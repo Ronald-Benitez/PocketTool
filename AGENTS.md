@@ -18,9 +18,8 @@ métodos de pago, créditos, ahorros y vehículo.
   pendiente el checklist visual final.
 - **Fase 5 — Traducciones tipadas: FINALIZADA** (2026-10-29).
 - **Fase 6 — Centro de ayuda: FINALIZADA** (2026-10-29).
-- **Fase 7 — Presupuestos: EN IMPLEMENTACIÓN** (2026-10-29). El plan vive en
-  [`docs/budget-plan.md`](docs/budget-plan.md); queda QA visual y validación en
-  dispositivo antes de cerrarla.
+- **Fase 7 — Presupuestos: FINALIZADA** (2026-10-29). El plan vive en
+  [`docs/budget-plan.md`](docs/budget-plan.md).
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -56,6 +55,8 @@ commits relevantes, archivos tocados y verificaciones realizadas.
   relaciones y columnas avanzadas.
 - `src/domain/budgets/`: comparación plan/real, estados de línea, proyección,
   insights y builders de gráficos Mermaid. La UI no calcula dinero.
+- `src/domain/summaries/`: reglas compartidas de efecto, gasto y balance usadas
+  por resúmenes y presupuestos.
 - `src/db/repositories/budgets.ts`: repositorios de planes, líneas y plantillas;
   entrega `BudgetPlanView` listo para la UI.
 - `src/ui/charts/MermaidChart.tsx`: WebView offline con Mermaid vendorizado,
@@ -122,9 +123,11 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 ### Carpetas de la sección Presupuestos
 
 - `app/(budget)/_layout.tsx`: `StackBase` con tabs `index` y `templates`.
-- `app/(budget)/index.tsx`: plan mensual, comparación, fijos y acciones.
+- `app/(budget)/index.tsx`: plan mensual, comparación, modos de gráfico, fijos y
+  acciones.
 - `app/(budget)/templates.tsx`: lista de plantillas y editor embebido.
-- `src/components/budgets/`: formularios y diálogos de presupuesto y plantillas.
+- `src/components/budgets/`: formularios, diálogos y editor de plantillas.
+  El detalle de una línea reutiliza `src/components/records/RecordsModal`.
 - `src/domain/budgets/`: lógica pura de comparación, media, charts e insights.
 - `src/hooks/useBudgetPlan.ts`: carga/refresco de plan y plantillas.
 - `src/ui/charts/`: `MermaidChart` y wrappers de gráficos.
@@ -263,6 +266,14 @@ de negocio o se agregue una pantalla.
   fuera de una transacción.
 - Migraciones: no capturar errores internamente; deben propagarse al runner.
   Registrar la migración solo después del commit.
+
+## Soporte de plataformas
+
+- La app está pensada para Android e iOS. **Web no es un objetivo de soporte.**
+- No agregar fallbacks, polyfills, ramas `Platform.OS === 'web'` ni lógica
+  específica para web en Presupuestos ni en el resto de la app.
+- No bloquear una entrega porque `npx expo export --platform web` falle; el
+  error conocido de `expo-sqlite`/WASM es ajeno a las pantallas de producto.
 
 ## Comandos de verificación
 

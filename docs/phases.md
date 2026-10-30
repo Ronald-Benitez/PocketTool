@@ -13,7 +13,7 @@
 | Fase 4 — Sistema de UI reutilizable | ✅ Finalizada | 2026-10-29 |
 | Fase 5 — Traducciones tipadas | ✅ Finalizada | 2026-10-29 |
 | Fase 6 — Centro de ayuda | ✅ Finalizada | 2026-10-29 |
-| Fase 7 — Presupuestos | 🚧 En implementación | 2026-10-29 |
+| Fase 7 — Presupuestos | ✅ Finalizada | 2026-10-29 |
 
 El detalle histórico de las fases 0–3 vive en
 [`legacy/phase-history.md`](legacy/phase-history.md). El detalle de la Fase 4
@@ -98,7 +98,7 @@ Implementado:
 - Tests en `src/help/__tests__/registry.test.ts`.
 - Instrucciones de mantenimiento en `AGENTS.md`.
 
-## Fase 7 — Presupuestos (🚧 En implementación, 2026-10-29)
+## Fase 7 — Presupuestos (✅ 2026-10-29)
 
 **Plan completo:** [`budget-plan.md`](budget-plan.md)
 
@@ -108,30 +108,31 @@ resúmenes y transacciones fijas, y gráficos Mermaid renderizados en WebView.
 
 Implementado:
 
-- **BUD-0/1:** `BudgetPlans`, `BudgetLines`, plantillas ampliadas, migración
-  `0004_budget_plans`, `SCHEMA_VERSION = 4`, zod y artefactos regenerados.
-- **BUD-2:** `src/domain/budgets` con comparación, estados, proyección,
-  insights y builders Mermaid; `useBudgetPlansRepository` y
-  `useBudgetTemplatesRepository`; `BudgetPlanView`.
+- **BUD-0/1:** `BudgetPlans`, `BudgetLines`, plantillas ampliadas, migraciones
+  `0004`–`0006`, `SCHEMA_VERSION = 6`, zod y artefactos regenerados. Se eliminó
+  el estado de plan y `budgets_legacy`.
+- **BUD-2:** `src/domain/budgets` y `src/domain/summaries` con reglas
+  compartidas de gasto, comparación, proyección, insights y builders Mermaid;
+  `useBudgetPlansRepository` y `useBudgetTemplatesRepository`;
+  `BudgetPlanView`.
 - **BUD-3:** pantallas de plantillas, editor de líneas, aplicar
   `merge`/`replace`/`reset`, guardar plan como plantilla, copiar mes anterior,
   crear desde fijos, desde gastos actuales y desde la media de grupos
   seleccionables.
 - **BUD-4:** pantalla principal de Presupuestos con `StackBase`, editor de plan,
-  eliminación de plan para recrearlo, líneas, sección de fijos, sin planificar
-  y estados; bloque “Plan vs. real” en Resúmenes.
+  eliminación de plan para recrearlo, líneas con detalle de registros, sección
+  de fijos (incluidos inactivos), sin planificar y estados; bloque “Plan vs.
+  real” en Resúmenes.
 - **BUD-5:** `react-native-webview` + Mermaid 11 vendorizado offline,
-  `MermaidChart`, tema, accesibilidad y fallback a tabla.
-- **BUD-6 parcial:** ruta publicada en el drawer, i18n `budget`, tema de ayuda
-  `budgets` + `budgetTemplates`, documentación y pruebas.
+  `MermaidChart`, tema, accesibilidad, modos de gráfico (comparación, salud,
+  distribución y proyección) y fallback a tabla.
+- **BUD-6:** ruta publicada en el drawer, i18n `budget`, ayuda `budgets` +
+  `budgetTemplates`, documentación y pruebas.
 
-Pendiente antes de cerrar:
-
-- QA visual en Android/iOS y modo oscuro.
-- Validar el render real de Mermaid en dispositivo y el peso del bundle.
-- Revisar el flujo de import/export con `budgets_legacy`.
-- Decidir si se elimina `budgets_legacy` en `0005` y ejecutar la limpieza.
-- Checklist visual y ajustes de textos largos.
+Estado: **Fase finalizada**. QA visual validado en dispositivo, Mermaid
+funcional e import/export sin impacto porque la versión en producción usa el
+esquema anterior a Presupuestos. Web queda fuera de alcance por decisión de
+producto.
 
 Criterios de aceptación principales:
 

@@ -1,5 +1,9 @@
 import { create } from "zustand";
 
+import {
+    calculateRecordBalance,
+    getEffectMap,
+} from "@/src/domain/summaries/aggregate";
 import { useConfigs } from "../hooks/useConfigs";
 import useRecordsStore from "./RecordsStore";
 import type {
@@ -39,15 +43,12 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
     const { PaymentMethods, Categories, RecordTypes, PaymentTypes } = useDataStore();
     const records = recordsToSummarize ?? allRecords;
 
-    const calculateBalance = (): number => records.reduce((balance, record) => {
-        if (!configuredRecordTypes.includes(record.record_type_id ?? -1)) return balance;
-
-        const effect = record.RecordTypes?.effect
-            ?? RecordTypes.find(type => type.id === record.record_type_id)?.effect;
-        if (effect === "+") return balance + record.amount;
-        if (effect === "-") return balance - record.amount;
-        return balance;
-    }, 0);
+    const calculateBalance = (): number =>
+        calculateRecordBalance(
+            records,
+            getEffectMap(RecordTypes),
+            new Set(configuredRecordTypes)
+        );
 
     const createRecordTypeTotals = (): TotalPerRecordType[] =>
         RecordTypes.map(recordType => ({ ...recordType, total: 0 }));
