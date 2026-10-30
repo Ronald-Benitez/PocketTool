@@ -4,6 +4,7 @@ import baseline from './0001_baseline';
 import auditTimestamps from './0002_audit_timestamps';
 import timestampTriggers from './0003_timestamp_triggers';
 import budgetPlans from './0004_budget_plans';
+import dropBudgetLegacy from './0005_drop_budget_legacy';
 
 export interface Migration {
   version: number;
@@ -20,4 +21,5 @@ export const migrations: Migration[] = [
   auditTimestamps,
   timestampTriggers,
   budgetPlans,
+  dropBudgetLegacy,
 ];

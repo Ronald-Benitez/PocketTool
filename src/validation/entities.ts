@@ -55,7 +55,14 @@ export const paidCreditUpdateSchema = paidCreditInputSchema.partial().extend(upd
 
 const budgetStatus = z.enum(['draft', 'active', 'closed']);
 const budgetScope = z.enum(['category', 'fixed']);
-const budgetSource = z.enum(['manual', 'template', 'fixed', 'previous_month', 'actuals']);
+const budgetSource = z.enum([
+  'manual',
+  'template',
+  'fixed',
+  'previous_month',
+  'actuals',
+  'group_average',
+]);
 const priority = z.number().int().min(1).max(3);
 
 export const budgetPlanInputSchema = z

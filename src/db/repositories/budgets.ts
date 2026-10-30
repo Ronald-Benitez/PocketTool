@@ -26,6 +26,7 @@ import {
   budgetTemplateItemUpdateSchema,
   budgetTemplateUpdateSchema,
 } from '@/src/validation/entities';
+import { averageBudgetTotals } from '@/src/domain/budgets/average';
 import { calculateBudgetPlanView } from '@/src/domain/budgets/comparison';
 import type {
   BudgetApplyMode,
@@ -257,6 +258,17 @@ export const useBudgetPlansRepository = () => {
 
   const deleteLine = async (lineId: number) => linesOrm.delete(lineId);
 
+  const deletePlan = async (planId: number) => {
+    await withExclusiveTransaction(db, async (txn) => {
+      const lines = new ORM(txn, 'BudgetLines');
+      const plans = new ORM(txn, 'BudgetPlans');
+      await lines.deleteWhere('budget_plan_id', planId);
+      await plans.delete(planId);
+    });
+  };
+
+  const listGroups = async () => groupsOrm.getAll();
+
   const fetchTemplateItems = async (templateId: number) =>
     (await templateItemsOrm
       .where('budget_template_id', templateId)
@@ -486,6 +498,50 @@ export const useBudgetPlansRepository = () => {
     return planId;
   };
 
+  const createFromGroupsAverage = async (
+    groupId: number,
+    sourceGroupIds: number[]
+  ): Promise<number> => {
+    const planId = await createPlan(groupId);
+    const selected = [...new Set(sourceGroupIds.filter((id) => id > 0))];
+    if (selected.length === 0) return planId;
+
+    const [records, current] = await Promise.all([
+      recordsOrm.where('group_id', selected, 'IN').getAll(),
+      linesOrm.where('budget_plan_id', planId).getAll() as Promise<BudgetLine[]>,
+    ]);
+    const allTypes = (await recordTypesOrm.getAll()) as RecordType[];
+    const typeIds = budgetableTypeIds(
+      allTypes,
+      excludedRecordTypeIds(allTypes)
+    );
+    const existing = new Set(
+      current
+        .filter((line) => saleOf(line.scope) === 'category')
+        .map((line) => `${line.category_id}:${line.record_type_id}`)
+    );
+    const averages = averageBudgetTotals(records, typeIds, selected.length);
+
+    let created = 0;
+    for (const entry of averages) {
+      const key = `${entry.categoryId}:${entry.typeId}`;
+      if (existing.has(key)) continue;
+      await linesOrm.insert({
+        budget_plan_id: planId,
+        category_id: entry.categoryId,
+        record_type_id: entry.typeId,
+        scope: 'category',
+        source: 'group_average',
+        planned_amount: entry.amountCents,
+        priority: 2,
+        sort_order: created,
+      });
+      created += 1;
+    }
+
+    return planId;
+  };
+
   const createFromPreviousMonth = async (groupId: number): Promise<number | null> => {
     const group = await groupsOrm.getById(groupId);
     if (!group) return null;
@@ -584,7 +640,10 @@ export const useBudgetPlansRepository = () => {
     saveAsTemplate,
     createFromFixeds,
     createFromActuals,
+    createFromGroupsAverage,
     createFromPreviousMonth,
+    deletePlan,
+    listGroups,
   };
 };
 

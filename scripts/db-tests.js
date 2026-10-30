@@ -131,7 +131,7 @@ async function testLegacyMigration() {
   await migrateDb(db);
 
   const tables = q(raw, "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").map(r => r.name);
-  for (const expected of ['groups', 'payment_types', 'payment_methods', 'categories', 'record_types', 'fixed_records', 'records', 'paid_credits', 'budget_templates', 'budget_template_items', 'budget_plans', 'budget_lines', 'budgets_legacy', 'savings', 'savings_history', 'migrations', 'fuel_refills', 'trip_logs']) {
+  for (const expected of ['groups', 'payment_types', 'payment_methods', 'categories', 'record_types', 'fixed_records', 'records', 'paid_credits', 'budget_templates', 'budget_template_items', 'budget_plans', 'budget_lines', 'savings', 'savings_history', 'migrations', 'fuel_refills', 'trip_logs']) {
     assert.ok(tables.includes(expected), `missing table ${expected}`);
   }
   assert.ok(!tables.includes('Groups'), 'legacy Groups should be gone');
@@ -164,7 +164,7 @@ async function testLegacyMigration() {
   assert.strictEqual(budget.scope, 'category');
   assert.strictEqual(q(raw, 'SELECT COUNT(*) AS c FROM budget_plans')[0].c, 1);
   assert.strictEqual(q(raw, 'SELECT COUNT(*) AS c FROM budget_lines')[0].c, 1);
-  assert.strictEqual(q(raw, 'SELECT COUNT(*) AS c FROM budgets_legacy')[0].c, 1);
+  assert.ok(!tables.includes('budgets_legacy'), 'legacy budget table should be dropped');
   assert.throws(() =>
     raw
       .prepare(
@@ -387,7 +387,7 @@ async function testEmptyDatabase() {
   assert.strictEqual(q(raw, 'SELECT goal FROM groups')[0].goal, 500000);
   assert.strictEqual(q(raw, 'SELECT amount FROM records ORDER BY id')[0].amount, 100000);
   assert.strictEqual(q(raw, 'SELECT migration_name FROM migrations')[0].migration_name, '0001_baseline');
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 4);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 5);
   const recordColumns = q(raw, 'PRAGMA table_info(records)').map(c => c.name);
   assert.ok(recordColumns.includes('created_at'));
   assert.ok(recordColumns.includes('updated_at'));
@@ -424,7 +424,7 @@ async function testExportImport() {
   assert.ok(metadata);
   assert.strictEqual(metadata.formatVersion, BACKUP_FORMAT_VERSION);
   assert.strictEqual(metadata.appVersion, 'test-version');
-  assert.strictEqual(metadata.schemaVersion, 4);
+  assert.strictEqual(metadata.schemaVersion, 5);
   assert.ok(metadata.tables.includes('records'));
   assert.doesNotThrow(() => validateSqlDump(backupSql));
   assert.strictEqual(parseBackupMetadata(dump), null);
@@ -477,7 +477,7 @@ async function testAuditTimestampMigration() {
   const backfilled = q(raw, 'SELECT created_at, updated_at FROM records LIMIT 1')[0];
   assert.ok(backfilled.created_at > 0);
   assert.ok(backfilled.updated_at > 0);
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 4);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 5);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,
     1

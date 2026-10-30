@@ -3,7 +3,7 @@
 > Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.
 > Fuente de verdad: `src/db/schema/tables.ts`.
 
-Versión de esquema: **4**
+Versión de esquema: **5**
 
 ## Convenciones
 

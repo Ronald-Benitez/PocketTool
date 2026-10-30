@@ -112,11 +112,14 @@ export const Button = ({
           {leftIcon}
           <AppText
             variant='label'
+            numberOfLines={1}
             style={[
               {
                 color: palette.textColor,
                 fontSize: FONT_SIZE[size],
                 fontWeight: '600',
+                flexShrink: 1,
+                textAlign: 'center',
               },
               textStyle,
             ]}

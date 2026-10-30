@@ -1128,7 +1128,7 @@ Antes de implementar la UI:
 
 - `src/db/schema/tables.ts`
 - `src/db/migrations/0004_budget_plans.ts`
-- `src/db/migrations/0005_drop_budget_legacy.ts` (posterior)
+- `src/db/migrations/0005_drop_budget_legacy.ts`
 - `src/db/migrations/index.ts`
 - `src/db/schema/generated/*` (generado)
 - `src/validation/entities.ts`
@@ -1229,7 +1229,9 @@ Implementado:
   sin planificar.
 - Plantillas: lista, editor, duplicar, predeterminada, aplicar con
   `merge`/`replace`/`reset`, guardar plan como plantilla.
-- Crear desde el mes anterior, desde fijos y desde gastos actuales.
+- Crear desde el mes anterior, desde fijos, desde gastos actuales y desde la
+  media de grupos seleccionables.
+- Eliminar el plan para recrearlo con otro enfoque.
 - Bloque “Plan vs. real” en Resúmenes.
 - Mermaid vendorizado offline en `assets/vendor/mermaid/`, `MermaidChart` y
   `npm run vendor:mermaid`.
@@ -1240,6 +1242,8 @@ Pendiente:
 
 - QA visual en dispositivo Android/iOS, claro/oscuro y textos largos.
 - Validar el render de Mermaid en WebView real y el peso del bundle.
-- Probar import/export con `budgets_legacy`.
-- Decidir la migración `0005_drop_budget_legacy`.
+- Probar import/export de backups antiguos que todavía incluyan `budgets` o
+  `budgets_legacy`.
+- ~~Decidir la migración `0005_drop_budget_legacy`.~~ Implementada: elimina
+  `budgets_legacy` después de la migración.
 - Ajustes de UX que surjan del QA.

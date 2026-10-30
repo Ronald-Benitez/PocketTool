@@ -30,10 +30,11 @@ visual de la Fase 4 en iOS/Android/web.
 - **Auditoría:** `created_at`/`updated_at` se llenan con triggers; soft delete
   con `deleted_at`.
 - **Migraciones:** `0001_baseline`, `0002_audit_timestamps`,
-  `0003_timestamp_triggers`, `0004_budget_plans`; `SCHEMA_VERSION = 4`.
+  `0003_timestamp_triggers`, `0004_budget_plans`,
+  `0005_drop_budget_legacy`; `SCHEMA_VERSION = 5`.
 - **Presupuestos:** `BudgetPlans` (un plan por grupo), `BudgetLines` (categoría
   o fijo) y plantillas reutilizables. El real se deriva de `Records`; no se
-  guarda. `Budgets` queda como `budgets_legacy` durante una versión.
+  guarda. `budgets_legacy` se elimina en `0005`.
 - **Gráficos:** `src/ui/charts/MermaidChart.tsx` renderiza Mermaid vendorizado
   en WebView, sin CDN, con tema y fallback a tabla.
 - **Acceso a datos:** ORM tipado + repositorios. La UI no usa `useORM` ni SQL.
@@ -113,10 +114,11 @@ Implementado:
   `useBudgetTemplatesRepository`; `BudgetPlanView`.
 - **BUD-3:** pantallas de plantillas, editor de líneas, aplicar
   `merge`/`replace`/`reset`, guardar plan como plantilla, copiar mes anterior,
-  crear desde fijos y desde gastos actuales.
-- **BUD-4:** pantalla principal de Presupuestos, editor de plan, líneas,
-  sección de fijos, sin planificar y estados; bloque “Plan vs. real”
-  en Resúmenes.
+  crear desde fijos, desde gastos actuales y desde la media de grupos
+  seleccionables.
+- **BUD-4:** pantalla principal de Presupuestos, editor de plan, eliminación
+  de plan para recrearlo, líneas, sección de fijos, sin planificar y estados;
+  menú de drawer explícito y bloque “Plan vs. real” en Resúmenes.
 - **BUD-5:** `react-native-webview` + Mermaid 11 vendorizado offline,
   `MermaidChart`, tema, accesibilidad y fallback a tabla.
 - **BUD-6 parcial:** ruta publicada en el drawer, i18n `budget`, tema de ayuda

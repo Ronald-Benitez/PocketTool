@@ -1,9 +1,10 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
 
 import GroupSelector from '@/src/components/groups/group-selector';
+import { BudgetGroupAverageDialog } from '@/src/components/budgets/BudgetGroupAverageDialog';
 import { BudgetLineForm } from '@/src/components/budgets/BudgetLineForm';
 import { BudgetTemplateApplyDialog } from '@/src/components/budgets/BudgetTemplateApplyDialog';
 import { useBudgetPlan, useBudgetTemplates } from '@/src/hooks/useBudgetPlan';
@@ -15,6 +16,7 @@ import type {
 } from '@/src/domain/budgets/types';
 import { buildBudgetCharts } from '@/src/domain/budgets/charts';
 import { budgetLineStatusKey } from '@/src/lang/keys';
+import type { Group } from '@/src/interfaces/schema';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { formatMoneyWithSymbol } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
@@ -30,6 +32,7 @@ import { useToast } from '@/src/ui/feedback/ToastProvider';
 import { SelectField } from '@/src/ui/forms/SelectField';
 import { TextField } from '@/src/ui/forms/TextField';
 import { MermaidChart } from '@/src/ui/charts/MermaidChart';
+import { ConfirmDialog } from '@/src/ui/overlays/Dialog';
 import { Modal } from '@/src/ui/overlays/Modal';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Screen } from '@/src/ui/primitives/Screen';
@@ -68,13 +71,18 @@ const Index = () => {
   const { colors } = useTheme();
   const { showToast } = useToast();
   const router = useRouter();
+  const navigation = useNavigation<any>();
   const { group } = useRecordsStore();
   const { plan, loading, refresh, repository } = useBudgetPlan(group?.id);
   const { templates, refresh: refreshTemplates } = useBudgetTemplates();
   const [lineFormVisible, setLineFormVisible] = useState(false);
   const [selectedLine, setSelectedLine] = useState<BudgetLineComparison | null>(null);
   const [applyVisible, setApplyVisible] = useState(false);
+  const [averageVisible, setAverageVisible] = useState(false);
+  const [groups, setGroups] = useState<Group[]>([]);
   const [saveAsVisible, setSaveAsVisible] = useState(false);
+  const [confirmDeletePlan, setConfirmDeletePlan] = useState(false);
+  const [deletingPlan, setDeletingPlan] = useState(false);
   const [planEditVisible, setPlanEditVisible] = useState(false);
   const [planName, setPlanName] = useState('');
   const [planStatus, setPlanStatus] = useState<'draft' | 'active' | 'closed'>('active');
@@ -126,6 +134,40 @@ const Index = () => {
       showToast({ message: t('budget.toast.error'), type: 'error' });
     } finally {
       setBusy(false);
+    }
+  };
+
+  const openDrawer = () => {
+    const parent = navigation.getParent?.();
+    if (parent?.openDrawer) parent.openDrawer();
+    else navigation.openDrawer?.();
+  };
+
+  const openAverage = async () => {
+    setGroups(await repository.listGroups());
+    setAverageVisible(true);
+  };
+
+  const createAverage = async (sourceGroupIds: number[]) => {
+    if (!group?.id) return;
+    await repository.createFromGroupsAverage(group.id, sourceGroupIds);
+    await refresh();
+    showToast({ message: t('budget.toast.planCreated'), type: 'success' });
+  };
+
+  const removePlan = async () => {
+    if (!plan) return;
+    setDeletingPlan(true);
+    try {
+      await repository.deletePlan(plan.planId);
+      setConfirmDeletePlan(false);
+      setPlanEditVisible(false);
+      await refresh();
+      showToast({ message: t('budget.planDeleted'), type: 'success' });
+    } catch {
+      showToast({ message: t('budget.toast.error'), type: 'error' });
+    } finally {
+      setDeletingPlan(false);
     }
   };
 
@@ -323,8 +365,15 @@ const Index = () => {
     return (
       <Screen scroll>
         <Stack gap='lg'>
-          <Row justify='center'>
-            <GroupSelector />
+          <Row align='center' gap='sm'>
+            <IconButton
+              label={t('headers.home')}
+              icon={<MaterialIcons name='menu' size={24} color={colors.text} />}
+              onPress={openDrawer}
+            />
+            <View style={{ flex: 1 }}>
+              <GroupSelector />
+            </View>
           </Row>
           <EmptyState
             title={t('budget.noPlanTitle')}
@@ -347,8 +396,15 @@ const Index = () => {
   return (
     <Screen scroll edges={['left', 'right']}>
       <Stack gap='lg'>
-        <Row justify='center'>
-          <GroupSelector />
+        <Row align='center' gap='sm'>
+          <IconButton
+            label={t('headers.home')}
+            icon={<MaterialIcons name='menu' size={24} color={colors.text} />}
+            onPress={openDrawer}
+          />
+          <View style={{ flex: 1 }}>
+            <GroupSelector />
+          </View>
         </Row>
 
         {!plan ? (
@@ -363,6 +419,11 @@ const Index = () => {
                 <Button label={t('budget.fromPrevious')} variant='outline' onPress={() => start('previous')} />
                 <Button label={t('budget.fromFixeds')} variant='outline' onPress={() => start('fixeds')} />
                 <Button label={t('budget.fromActuals')} variant='outline' onPress={() => start('actuals')} />
+                <Button
+                  label={t('budget.fromAverage')}
+                  variant='outline'
+                  onPress={openAverage}
+                />
                 <Button
                   label={t('budget.useTemplate')}
                   variant='ghost'
@@ -434,16 +495,16 @@ const Index = () => {
                     style={{ flex: 1 }}
                   />
                 </Row>
-                <Row gap='sm' wrap>
+                <Stack gap='sm'>
                   <Button
                     label={t('budget.lines.add')}
-                    size='sm'
+                    fullWidth
                     onPress={openNewLine}
                     leftIcon={<MaterialIcons name='add' size={18} color={colors.onPrimary} />}
                   />
                   <Button
                     label={t('budget.applyTemplate')}
-                    size='sm'
+                    fullWidth
                     variant='outline'
                     onPress={() =>
                       templates.length > 0
@@ -451,19 +512,29 @@ const Index = () => {
                         : router.push('/(budget)/templates')
                     }
                   />
-                  <Button
-                    label={t('budget.editPlan')}
-                    size='sm'
-                    variant='ghost'
-                    onPress={openPlanEdit}
-                  />
+                  <Row gap='sm'>
+                    <Button
+                      label={t('budget.editPlan')}
+                      fullWidth
+                      variant='ghost'
+                      onPress={openPlanEdit}
+                      style={{ flex: 1 }}
+                    />
+                    <Button
+                      label={t('budget.fromAverage')}
+                      fullWidth
+                      variant='ghost'
+                      onPress={openAverage}
+                      style={{ flex: 1 }}
+                    />
+                  </Row>
                   <Button
                     label={t('budget.saveAsTemplate')}
-                    size='sm'
+                    fullWidth
                     variant='ghost'
                     onPress={() => setSaveAsVisible(true)}
                   />
-                </Row>
+                </Stack>
               </Stack>
             </Surface>
 
@@ -692,6 +763,11 @@ const Index = () => {
                 keyboardType='number-pad'
                 hint='1 - 100'
               />
+              <Button
+                label={t('budget.deletePlan')}
+                variant='danger'
+                onPress={() => setConfirmDeletePlan(true)}
+              />
             </Stack>
           </Modal>
           <Modal
@@ -737,6 +813,25 @@ const Index = () => {
           </Modal>
         </>
       ) : null}
+
+      <ConfirmDialog
+        visible={confirmDeletePlan}
+        title={t('budget.deletePlan')}
+        message={t('budget.confirm.deletePlan')}
+        confirmLabel={t('budget.deletePlan')}
+        cancelLabel={t('budget.actions.cancel')}
+        tone='danger'
+        loading={deletingPlan}
+        onConfirm={removePlan}
+        onCancel={() => setConfirmDeletePlan(false)}
+      />
+      <BudgetGroupAverageDialog
+        visible={averageVisible}
+        groups={groups}
+        currentGroupId={group?.id}
+        onClose={() => setAverageVisible(false)}
+        onApply={createAverage}
+      />
     </Screen>
   );
 };

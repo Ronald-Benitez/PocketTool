@@ -7,7 +7,13 @@ import type {
 } from '@/src/interfaces/schema';
 
 export type BudgetLineScope = 'category' | 'fixed';
-export type BudgetLineSource = 'manual' | 'template' | 'fixed' | 'previous_month' | 'actuals';
+export type BudgetLineSource =
+  | 'manual'
+  | 'template'
+  | 'fixed'
+  | 'previous_month'
+  | 'actuals'
+  | 'group_average';
 export type BudgetPlanStatus = 'draft' | 'active' | 'closed';
 export type BudgetApplyMode = 'merge' | 'replace' | 'reset';
 export type BudgetLineStatus =

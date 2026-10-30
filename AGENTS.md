@@ -163,6 +163,8 @@ de negocio o se agregue una pantalla.
 - `src/db/schema/seed.ts`: seed idempotente de datos de referencia y ejemplo.
 - `src/db/migrations/0004_budget_plans.ts`: migra `budgets` a
   `budget_plans`/`budget_lines` y conserva `budgets_legacy` durante una versión.
+- `src/db/migrations/0005_drop_budget_legacy.ts`: elimina la tabla legacy
+  después de validar la migración.
 - Presupuestos: un plan por grupo, líneas `category` o `fixed`, snapshot del
   monto planificado y comparación derivada desde `Records`. No guardar el real.
 - Gráficos: Mermaid se vendoriza en `assets/vendor/mermaid/mermaid.min.js.txt`
