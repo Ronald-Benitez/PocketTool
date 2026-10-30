@@ -138,6 +138,20 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 - Los colores personalizados viven por paleta (`bright`/`dark`) y se completan
   con la base al agregar tokens nuevos.
 
+### Colores nuevos y editables
+
+- Cualquier color semántico nuevo que no elija el usuario debe agregarse a:
+  1. `ThemeColorTokens` en `src/interfaces/colors.ts`.
+  2. `bright.base.json` y `dark.base.json`.
+  3. `COLOR_GROUPS` y `COLOR_LABELS_ES` en `src/ui/theme/colors.ts`.
+- Con eso aparece automáticamente en Settings → Colors, porque el editor recorre
+  `COLOR_GROUPS`.
+- No hardcodear colores en componentes, gráficos, Mermaid ni estilos. Si un
+  gráfico necesita una serie nueva, crear un token (`chartPlanned`,
+  `chartActual`, `chartProjected`) y pasarlo desde `useTheme()`.
+- Los gráficos deben incluir una leyenda visible que relacione cada color con
+  su serie.
+
 - **Idiomas:** `src/lang/messages/` es la fuente de verdad. Cada dominio contiene
   inglés y español; `t()` se tipa con `TranslationKey`. No agregar JSON de
   traducciones.

@@ -118,6 +118,73 @@ const Index = () => {
     [plan, chartLabels]
   );
 
+  const chartPalette = useMemo(() => {
+    if (chartMode === 'health') {
+      return [colors.success, colors.warning, colors.danger, colors.info];
+    }
+    if (chartMode === 'distribution') {
+      return [
+        colors.chartPlanned,
+        colors.chartActual,
+        colors.chartProjected,
+        colors.primary,
+        colors.secondary,
+        colors.info,
+        colors.warning,
+        colors.danger,
+      ];
+    }
+    if (chartMode === 'projection') {
+      return [colors.chartPlanned, colors.chartProjected];
+    }
+    return [colors.chartPlanned, colors.chartActual];
+  }, [
+    chartMode,
+    colors.chartActual,
+    colors.chartPlanned,
+    colors.chartProjected,
+    colors.danger,
+    colors.info,
+    colors.primary,
+    colors.secondary,
+    colors.success,
+    colors.warning,
+  ]);
+
+  const chartLegend = useMemo(() => {
+    if (chartMode === 'comparison') {
+      return [
+        { label: t('budget.chart.planned'), color: colors.chartPlanned },
+        { label: t('budget.chart.actual'), color: colors.chartActual },
+      ];
+    }
+    if (chartMode === 'projection') {
+      return [
+        { label: t('budget.chart.planned'), color: colors.chartPlanned },
+        { label: t('budget.lines.projected'), color: colors.chartProjected },
+      ];
+    }
+    if (chartMode === 'health') {
+      return [
+        { label: t('budget.lineStatus.onTrack'), color: colors.success },
+        { label: t('budget.lineStatus.warning'), color: colors.warning },
+        { label: t('budget.lineStatus.over'), color: colors.danger },
+        { label: t('budget.lineStatus.fixedPending'), color: colors.info },
+      ];
+    }
+    return [];
+  }, [
+    chartMode,
+    colors.chartActual,
+    colors.chartPlanned,
+    colors.chartProjected,
+    colors.danger,
+    colors.info,
+    colors.success,
+    colors.warning,
+    t,
+  ]);
+
   useFocusEffect(
     useCallback(() => {
       refresh();
@@ -574,6 +641,8 @@ const Index = () => {
                 height={300}
                 accessibilityLabel={t('budget.chart.title')}
                 fallback={chartFallback}
+                palette={chartPalette}
+                legend={chartLegend}
               />
             </Stack>
 

@@ -69,6 +69,10 @@ export const COLOR_GROUPS: ColorGroup[] = [
     tokens: ['income', 'expense', 'transfer', 'goal', 'neutral', 'saving', 'credit', 'debit'],
   },
   {
+    key: 'charts',
+    tokens: ['chartPlanned', 'chartActual', 'chartProjected'],
+  },
+  {
     key: 'overlays',
     tokens: [
       'modalHeaderBg',
@@ -105,6 +109,7 @@ export const COLOR_GROUP_LABELS: Record<string, { en: string; es: string }> = {
   inputs: { en: 'Inputs and borders', es: 'Inputs y bordes' },
   actions: { en: 'Actions', es: 'Acciones' },
   finance: { en: 'Finance', es: 'Finanzas' },
+  charts: { en: 'Charts', es: 'Gráficos' },
   overlays: { en: 'Modals and toasts', es: 'Modales y toasts' },
   components: { en: 'Components', es: 'Componentes' },
 };
@@ -147,6 +152,9 @@ export const COLOR_LABELS_ES: Record<keyof ThemeColorTokens, string> = {
   saving: 'Ahorro',
   credit: 'Crédito',
   debit: 'Débito',
+  chartPlanned: 'Planificado en gráficos',
+  chartActual: 'Real en gráficos',
+  chartProjected: 'Proyectado en gráficos',
   modalHeaderBg: 'Fondo de encabezado de modal',
   modalHeaderText: 'Texto de encabezado de modal',
   toastSuccessBg: 'Fondo toast éxito',

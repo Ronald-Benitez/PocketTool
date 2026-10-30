@@ -8,10 +8,12 @@ import { useLanguage } from '@/src/lang/LanguageContext';
 import { Button } from '@/src/ui/actions/Button';
 import { InlineMessage } from '@/src/ui/feedback/InlineMessage';
 import { AppText } from '@/src/ui/primitives/AppText';
-import { Stack } from '@/src/ui/primitives/Stack';
+import { Row, Stack } from '@/src/ui/primitives/Stack';
 import { useTheme } from '@/src/ui/theme/ThemeProvider';
 
 let cachedBundle: string | null = null;
+const EMPTY_PALETTE: string[] = [];
+const EMPTY_LEGEND: MermaidChartLegendItem[] = [];
 
 const loadMermaidBundle = async () => {
   if (cachedBundle) return cachedBundle;
@@ -37,9 +39,13 @@ const buildHtml = (
     border: string;
     expense: string;
     income: string;
-  }
+  },
+  palette: string[]
 ) => {
   const safeBundle = bundle.replace(/<\/script/gi, '<\\/script');
+  const pieVariables = palette
+    .map((color, index) => `pie${index + 1}: '${color}'`)
+    .join(', ');
   return `<!doctype html>
 <html>
 <head>
@@ -78,7 +84,10 @@ const buildHtml = (
           secondaryColor: '${colors.income}',
           tertiaryColor: '${colors.expense}',
           fontSize: '14px',
-          fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+          xyChart: {
+            plotColorPalette: '${palette.join(',')}'
+          }${pieVariables ? `,\n          ${pieVariables}` : ''}
         }
       });
       mermaid.render('budget-diagram', definition).then(function (result) {
@@ -100,11 +109,18 @@ const buildHtml = (
 </html>`;
 };
 
+export type MermaidChartLegendItem = {
+  label: string;
+  color: string;
+};
+
 export type MermaidChartProps = {
   definition: string | null;
   height?: number;
   accessibilityLabel: string;
   fallback: React.ReactNode;
+  palette?: string[];
+  legend?: MermaidChartLegendItem[];
 };
 
 export const MermaidChart = ({
@@ -112,6 +128,8 @@ export const MermaidChart = ({
   height = 260,
   accessibilityLabel,
   fallback,
+  palette = EMPTY_PALETTE,
+  legend = EMPTY_LEGEND,
 }: MermaidChartProps) => {
   const { colors } = useTheme();
   const { t } = useLanguage();
@@ -137,18 +155,24 @@ export const MermaidChart = ({
 
   const html = useMemo(() => {
     if (!bundle || !definition) return null;
-    return buildHtml(bundle, definition, {
-      background: colors.surface,
-      text: colors.text,
-      textMuted: colors.textMuted,
-      primary: colors.primary,
-      border: colors.border,
-      expense: colors.expense,
-      income: colors.income,
-    });
+    return buildHtml(
+      bundle,
+      definition,
+      {
+        background: colors.surface,
+        text: colors.text,
+        textMuted: colors.textMuted,
+        primary: colors.primary,
+        border: colors.border,
+        expense: colors.expense,
+        income: colors.income,
+      },
+      palette
+    );
   }, [
     bundle,
     definition,
+    palette,
     colors.border,
     colors.expense,
     colors.income,
@@ -211,6 +235,23 @@ export const MermaidChart = ({
           </Stack>
         )}
       </View>
+      {legend.length > 0 ? (
+        <Row gap='md' wrap>
+          {legend.map((item) => (
+            <Row key={item.label} gap='xs' align='center'>
+              <View
+                style={[
+                  styles.legendDot,
+                  { backgroundColor: item.color },
+                ]}
+              />
+              <AppText variant='caption' color='muted'>
+                {item.label}
+              </AppText>
+            </Row>
+          ))}
+        </Row>
+      ) : null}
       <Button
         label={
           showData ? t('budget.chart.hideData') : t('budget.chart.viewData')
@@ -241,5 +282,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
+  },
+  legendDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 2,
   },
 });

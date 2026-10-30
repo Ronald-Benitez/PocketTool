@@ -42,6 +42,10 @@ export type ThemeColorTokens = {
   credit: string;
   debit: string;
 
+  chartPlanned: string;
+  chartActual: string;
+  chartProjected: string;
+
   modalHeaderBg: string;
   modalHeaderText: string;
 
