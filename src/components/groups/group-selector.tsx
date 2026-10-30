@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
+import { monthKey } from '@/src/lang/keys'
 import useRecordsStore from '@/src/stores/RecordsStore'
 import { useToast } from '@/src/ui/feedback/ToastProvider'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -85,7 +86,7 @@ const GroupSelector = () => {
 
     const getPlaceHolder = (group: Group | null) => {
         if (!group) return ""
-        return group.group_name?.substring(0, 20) + (group.group_name?.length > 20 ? "..." : "") + " (" + t("months." + Number(group.month)) + " " + group.year + ")"
+        return group.group_name?.substring(0, 20) + (group.group_name?.length > 20 ? "..." : "") + " (" + t(monthKey(Number(group.month))) + " " + group.year + ")"
     }
 
     const getPinned = async () => {

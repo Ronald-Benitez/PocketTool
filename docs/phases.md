@@ -11,8 +11,8 @@
 | Fase 2 — Repositorios y ORM robusto | ✅ Finalizada | 2026-10-28 |
 | Fase 3 — Calidad, pruebas y operación | ✅ Finalizada | 2026-10-28 |
 | Fase 4 — Sistema de UI reutilizable | ✅ Finalizada | 2026-10-29 |
-| Fase 5 — Traducciones tipadas | 📝 Planificación | — |
-| Fase 6 — Centro de ayuda | 📝 Planificación | — |
+| Fase 5 — Traducciones tipadas | ✅ Finalizada | 2026-10-29 |
+| Fase 6 — Centro de ayuda | ✅ Finalizada | 2026-10-29 |
 
 El detalle histórico de las fases 0–3 vive en
 [`legacy/phase-history.md`](legacy/phase-history.md). El detalle de la Fase 4
@@ -38,8 +38,12 @@ visual de la Fase 4 en iOS/Android/web.
   `src/components/ui` fue retirado; los resúmenes viven en
   `src/components/summaries` y los estilos legacy se adaptan con
   `src/styles/useThemedStyles.ts`.
-- **Idiomas:** `LanguageContext` con `en.json`, `es.json` y
-  `records-filters.*.json`; pendiente de tipado y consolidación.
+- **Idiomas:** `src/lang/messages/` es la fuente de verdad, con inglés y español
+  co-localizados por dominio. `t()` se tipa con `TranslationKey` y permite
+  autocompletado. No quedan JSON de traducciones.
+- **Ayuda:** `src/help/registry.ts` define los temas y
+  `src/lang/messages/help.ts` el contenido bilingüe. Ver `AGENTS.md` para el
+  mantenimiento.
 
 ## Fase 4 — Sistema de UI reutilizable (✅ 2026-10-29)
 
@@ -56,37 +60,35 @@ Se implementó:
 Pendiente de QA: checklist visual en iOS/Android/web. El detalle y los commits
 están en [`legacy/ui-history.md`](legacy/ui-history.md).
 
-## Fase 5 — Traducciones tipadas (📝 Planificación)
+## Fase 5 — Traducciones tipadas (✅ 2026-10-29)
 
-**Plan completo:** [`i18n-help-plan.md`](i18n-help-plan.md)
+**Documento de referencia:** [`i18n-help-plan.md`](i18n-help-plan.md)
 
-Objetivo: reemplazar el `t(key: string)` actual por un hook tipado con
-autocompletado, mensajes co-localizados por dominio y una única fuente de verdad
-para inglés y español.
+Implementado:
 
-Incluye:
+- `src/lang/messages/` con dominios bilingües co-localizados.
+- `MessageShape` para validar paridad entre `en` y `es`.
+- `TranslationKey` tipado y `t()` con autocompletado, interpolación y fallback.
+- Helpers para claves dinámicas (`monthKey`, `dayShortKey`, etc.).
+- `LanguageContext` sin `any` y con `useLanguage()` tipado.
+- Eliminados `en.json`, `es.json`, `records-filters.*.json` y
+  `src/interfaces/lang.ts`.
+- Tests en `src/lang/__tests__/messages.test.ts`.
 
-- Mensajes agrupados por dominio en `src/lang/messages/`.
-- Tipo recursivo `TranslationKey` derivado de los mensajes.
-- `t()` con autocompletado, parámetros/interpolación y fallback.
-- Consolidación de `records-filters.*.json`.
-- Validación de paridad de claves y tests.
+## Fase 6 — Centro de ayuda (✅ 2026-10-29)
 
-## Fase 6 — Centro de ayuda (📝 Planificación)
+**Documento de referencia:** [`i18n-help-plan.md`](i18n-help-plan.md)
 
-**Plan completo:** [`i18n-help-plan.md`](i18n-help-plan.md)
+Implementado:
 
-Objetivo: convertir la sección de ayuda en un centro de aprendizaje con
-explicaciones de la lógica, ejemplos de uso y búsqueda.
-
-Incluye:
-
-- Hub de temas y detalle por tema.
-- Explicaciones de grupos, records, fijos, resúmenes, presupuestos, créditos,
-  ahorros, filtros y tema.
-- Ejemplos con datos ficticios.
-- Búsqueda, accesos rápidos y contenido bilingüe.
-- Reutilización de `src/ui` y navegación por rutas.
+- Hub con búsqueda y detalle maestro-detalle en `app/(help)/index.tsx`.
+- `HelpTopicView` con secciones: qué es, cómo funciona, pasos, ejemplo, consejos
+  y error común.
+- `src/help/registry.ts` con 10 temas y relaciones.
+- Contenido bilingüe en `src/lang/messages/help.ts`.
+- Búsqueda normalizada por título, resumen, secciones y pasos.
+- Tests en `src/help/__tests__/registry.test.ts`.
+- Instrucciones de mantenimiento en `AGENTS.md`.
 
 ## Documentación
 

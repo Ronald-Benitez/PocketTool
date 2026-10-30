@@ -9,6 +9,8 @@ import {
   type FilterKind,
   type FilterOption,
 } from '@/src/domain/filters/types';
+import { filterColumnKey } from '@/src/lang/keys';
+import type { TranslationKey } from '@/src/lang/messages';
 
 export type RecordFilterOptionSource = {
   id?: number;
@@ -16,7 +18,7 @@ export type RecordFilterOptionSource = {
 };
 
 export type RecordFilterFieldInputs = {
-  t: (key: string) => string;
+  t: (key: TranslationKey) => string;
   recordTypes?: { id?: number; type_name: string }[];
   categories?: { id?: number; category_name: string }[];
   paymentMethods?: { id?: number; method_name: string }[];
@@ -30,10 +32,10 @@ const toOptions = (items: RecordFilterOptionSource[] = []): FilterOption[] =>
     typeof item.id === 'number' ? [{ label: item.label, value: item.id }] : []
   );
 
-const columnLabel = (column: string, t: (key: string) => string) =>
+const columnLabel = (column: string, t: (key: TranslationKey) => string) =>
   column
     .split('.')
-    .map((part) => t(`recordsFilters.columns.${part}`))
+    .map((part) => t(filterColumnKey(part)))
     .join(' → ')
 
 export const buildRecordFilterFields = ({

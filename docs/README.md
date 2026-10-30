@@ -32,8 +32,8 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 | Fase 2 — Repositorios y ORM robusto | ✅ Finalizada (2026-10-28) |
 | Fase 3 — Calidad, pruebas y operación | ✅ Finalizada (2026-10-28) |
 | Fase 4 — Sistema de UI reutilizable | ✅ Finalizada (2026-10-29) |
-| Fase 5 — Traducciones tipadas | 📝 Planificación |
-| Fase 6 — Centro de ayuda | 📝 Planificación |
+| Fase 5 — Traducciones tipadas | ✅ Finalizada (2026-10-29) |
+| Fase 6 — Centro de ayuda | ✅ Finalizada (2026-10-29) |
 
 ## Regla de mantenimiento
 

@@ -16,8 +16,8 @@ métodos de pago, créditos, ahorros y vehículo.
 - **Fase 3 — Calidad, pruebas y operación: FINALIZADA** (2026-10-28).
 - **Fase 4 — Sistema de UI reutilizable: FINALIZADA** (2026-10-29). Queda
   pendiente el checklist visual final.
-- **Fase 5 — Traducciones tipadas: PLANIFICADA**.
-- **Fase 6 — Centro de ayuda: PLANIFICADA**.
+- **Fase 5 — Traducciones tipadas: FINALIZADA** (2026-10-29).
+- **Fase 6 — Centro de ayuda: FINALIZADA** (2026-10-29).
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -76,6 +76,68 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 - La UI no debe hardcodear colores nuevos; usar tokens semánticos.
 - Los colores personalizados viven por paleta (`bright`/`dark`) y se completan
   con la base al agregar tokens nuevos.
+
+- **Idiomas:** `src/lang/messages/` es la fuente de verdad. Cada dominio contiene
+  inglés y español; `t()` se tipa con `TranslationKey`. No agregar JSON de
+  traducciones.
+- **Ayuda:** `src/help/registry.ts` define los temas y `src/lang/messages/help.ts`
+  su contenido bilingüe. Ver “Mantenimiento del centro de ayuda”.
+
+## Mantenimiento del centro de ayuda
+
+La sección de ayuda debe actualizarse cuando cambie una funcionalidad, una regla
+de negocio o se agregue una pantalla.
+
+### Agregar un tema
+
+1. Agregar el ID a `HelpTopicId` en `src/help/types.ts`.
+2. Agregar el seed en `src/help/registry.ts` con:
+   - `id`, `icon`, `category` y `related`;
+   - un tema por cada flujo importante.
+3. Agregar el contenido en `src/lang/messages/help.ts` dentro de
+   `helpEn.topics.<id>` y `helpEs.topics.<id>`.
+4. Mantener exactamente las mismas claves en inglés y español:
+   - `title`, `summary`;
+   - `what.{title,body}`;
+   - `how.{title,body}`;
+   - `steps.{title,step1,step2,step3}`;
+   - `example.{title,body}`;
+   - `tips.{title,body}`;
+   - `warning.{title,body}`.
+5. Agregar relaciones en `related` solo con IDs existentes.
+6. Usar datos ficticios en los ejemplos; nunca datos reales del usuario.
+7. Validar la lógica del ejemplo contra los stores reales:
+   - `useResumesStore` para balances y resúmenes;
+   - `useCreditStore` para créditos;
+   - `useBudgetStore` para presupuestos;
+   - `useSavingsStore` para ahorros.
+
+### Agregar una categoría de ayuda
+
+1. Agregar el valor a `HelpCategory` en `src/help/types.ts`.
+2. Agregarla a `HELP_CATEGORIES` en `src/help/registry.ts`.
+3. Agregar su etiqueta en `helpEn.categories` y `helpEs.categories`.
+
+### Reglas de contenido
+
+- No escribir texto directamente en `app/(help)` ni en componentes; usar
+  `titleKey`/`bodyKey` y `t()`.
+- Cada tema debe explicar la lógica, no solo describir botones.
+- Los cambios de lógica deben reflejarse en el tema correspondiente y en su
+  ejemplo.
+- La búsqueda del hub indexa título, resumen y secciones; si se agrega contenido
+  nuevo, no hace falta un índice aparte.
+- Usar `Screen`, `Surface`, `ListItem`, `InlineMessage` y el resto de `src/ui`
+  para mantener dark mode y accesibilidad.
+- Ejecutar `npm run typecheck` y `npm test` después de cambiar ayuda o
+  traducciones.
+
+### Tests de ayuda
+
+- `src/help/__tests__/registry.test.ts` valida IDs, categorías, relaciones,
+  claves bilingües y pasos.
+- Si se agrega una sección obligatoria, actualizar ese test.
+- Si se agrega una nueva categoría, actualizar `HELP_CATEGORIES` y el test.
 
 ## Arquitectura de datos
 

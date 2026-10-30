@@ -10,6 +10,7 @@ import {
   getColorLabel,
 } from '@/src/ui/theme/colors';
 import { getContrastWarnings } from '@/src/ui/theme/contrast';
+import { themeContrastKey } from '@/src/lang/keys';
 import {
   useTheme,
   type PaletteName,
@@ -199,7 +200,7 @@ const ColorSettings = () => {
               key={warning.key}
               style={{ color: palette.toastWarningText }}
             >
-              {t(`theme.contrast.${warning.key}`)}: {warning.ratio}:1
+              {t(themeContrastKey(warning.key))}: {warning.ratio}:1
             </Text>
           ))
         )}

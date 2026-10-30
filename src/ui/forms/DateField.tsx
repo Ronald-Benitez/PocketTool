@@ -9,6 +9,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
+import { dayShortKey, monthKey } from '@/src/lang/keys';
 import useDate from '@/src/hooks/useDate';
 import { useTheme } from '../theme/ThemeProvider';
 import { controlHeight, radii, spacing } from '../theme/tokens';
@@ -179,7 +180,7 @@ export const DateField = ({
             icon={<MaterialIcons name='chevron-left' size={24} color={colors.text} />}
             onPress={() => moveMonth(-1)}
           />
-          <AppText variant='subtitle'>{t(`months.${view.month}`)}</AppText>
+          <AppText variant='subtitle'>{t(monthKey(view.month))}</AppText>
           <IconButton
             label={t('datePicker.nextMonth')}
             icon={<MaterialIcons name='chevron-right' size={24} color={colors.text} />}
@@ -209,7 +210,7 @@ export const DateField = ({
           {Array.from({ length: 7 }, (_, index) => (
             <View key={index} style={styles.cell}>
               <AppText variant='caption' color='muted' align='center'>
-                {t(`daysShort.${index}`)}
+                {t(dayShortKey(index))}
               </AppText>
             </View>
           ))}
@@ -229,7 +230,7 @@ export const DateField = ({
                 key={day}
                 onPress={() => selectDay(day)}
                 accessibilityRole='button'
-                accessibilityLabel={`${day} ${t(`months.${view.month}`)} ${view.year}`}
+                accessibilityLabel={`${day} ${t(monthKey(view.month))} ${view.year}`}
                 accessibilityState={{ selected }}
                 style={[
                   styles.cell,
