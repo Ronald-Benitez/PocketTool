@@ -7,6 +7,8 @@ diario de `docs/phases.md`.
   con checklists, commits y verificaciones.
 - [`ui-history.md`](ui-history.md): historial de ejecución de la Fase 4.
 - [`ui-plan.md`](ui-plan.md): plan original de UI archivado.
+- [`i18n-help-plan.md`](i18n-help-plan.md): plan de traducciones tipadas y
+  centro de ayuda (fases 5 y 6), implementado y archivado.
 - [`db-summary.md`](db-summary.md): resumen anterior de la base de datos,
   reemplazado por [`../database.md`](../database.md).
 

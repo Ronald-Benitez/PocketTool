@@ -7,8 +7,8 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 
 - [`phases.md`](phases.md): estado actual y fases activas. El detalle histórico
   de fases completadas vive en `legacy/`.
-- [`i18n-help-plan.md`](i18n-help-plan.md): plan de traducciones tipadas y centro
-  de ayuda.
+- [`budget-plan.md`](budget-plan.md): plan de mejora de Presupuestos (Fase 7):
+  modelo de datos, plantillas, comparación plan/real, fijos y gráficos Mermaid.
 - [`database.md`](database.md): documentación actual de la base de datos,
   migraciones, triggers y backups.
 - [`schema.md`](schema.md): esquema generado desde
@@ -18,6 +18,8 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
   fases 0–3.
 - [`legacy/ui-history.md`](legacy/ui-history.md): historial de la Fase 4.
 - [`legacy/ui-plan.md`](legacy/ui-plan.md): plan original de UI archivado.
+- [`legacy/i18n-help-plan.md`](legacy/i18n-help-plan.md): plan de traducciones
+  tipadas y centro de ayuda archivado.
 - [`legacy/db-summary.md`](legacy/db-summary.md): resumen anterior de base de
   datos.
 - [`../AGENTS.md`](../AGENTS.md): contexto e instrucciones para agentes.
@@ -34,6 +36,7 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 | Fase 4 — Sistema de UI reutilizable | ✅ Finalizada (2026-10-29) |
 | Fase 5 — Traducciones tipadas | ✅ Finalizada (2026-10-29) |
 | Fase 6 — Centro de ayuda | ✅ Finalizada (2026-10-29) |
+| Fase 7 — Presupuestos | 📝 Planificación |
 
 ## Regla de mantenimiento
 

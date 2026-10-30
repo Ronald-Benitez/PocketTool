@@ -1,6 +1,10 @@
 # Plan de traducciones tipadas y centro de ayuda
 
-**Estado:** ✅ Implementado
+> **Archivado 2026-10-29.** Este plan se implementó en las fases 5 y 6 y se
+> conserva como registro histórico. La documentación vigente vive en
+> [`../phases.md`](../phases.md) y [`../../AGENTS.md`](../../AGENTS.md).
+
+**Estado:** ✅ Implementado (archivado)
 **Fecha:** 2026-10-29
 **Fases:** Fase 5 (i18n) y Fase 6 (ayuda)
 

@@ -13,6 +13,7 @@
 | Fase 4 — Sistema de UI reutilizable | ✅ Finalizada | 2026-10-29 |
 | Fase 5 — Traducciones tipadas | ✅ Finalizada | 2026-10-29 |
 | Fase 6 — Centro de ayuda | ✅ Finalizada | 2026-10-29 |
+| Fase 7 — Presupuestos | 📝 Planificación | — |
 
 El detalle histórico de las fases 0–3 vive en
 [`legacy/phase-history.md`](legacy/phase-history.md). El detalle de la Fase 4
@@ -62,7 +63,7 @@ están en [`legacy/ui-history.md`](legacy/ui-history.md).
 
 ## Fase 5 — Traducciones tipadas (✅ 2026-10-29)
 
-**Documento de referencia:** [`i18n-help-plan.md`](i18n-help-plan.md)
+**Documento de referencia:** [`legacy/i18n-help-plan.md`](legacy/i18n-help-plan.md)
 
 Implementado:
 
@@ -77,7 +78,7 @@ Implementado:
 
 ## Fase 6 — Centro de ayuda (✅ 2026-10-29)
 
-**Documento de referencia:** [`i18n-help-plan.md`](i18n-help-plan.md)
+**Documento de referencia:** [`legacy/i18n-help-plan.md`](legacy/i18n-help-plan.md)
 
 Implementado:
 
@@ -90,12 +91,48 @@ Implementado:
 - Tests en `src/help/__tests__/registry.test.ts`.
 - Instrucciones de mantenimiento en `AGENTS.md`.
 
+## Fase 7 — Presupuestos (📝 Planificación)
+
+**Plan completo:** [`budget-plan.md`](budget-plan.md)
+
+Objetivo: terminar y publicar la sección de Presupuestos con un plan mensual
+comparado contra los registros reales, plantillas reutilizables, integración con
+resúmenes y transacciones fijas, y gráficos Mermaid renderizados en WebView.
+
+Subfases:
+
+- **BUD-0:** validación del plan y spike de Mermaid/WebView offline.
+- **BUD-1:** `BudgetPlans`/`BudgetLines`, migración `0004`, zod y artefactos.
+- **BUD-2:** dominio compartido de resúmenes, comparación, estados, proyección e
+  insights; repositorios y view model.
+- **BUD-3:** plantillas reales, aplicación `merge`/`replace`/`reset`, guardar
+  como plantilla y sugerencias.
+- **BUD-4:** pantalla de presupuestos, editor de plan, detalle de línea, fijos y
+  sin planificar.
+- **BUD-5:** `react-native-webview` + Mermaid vendorizado, tema, accesibilidad y
+  fallback.
+- **BUD-6:** publicar en el drawer, i18n, ayuda, documentación, QA y limpieza
+  de `budgets_legacy`.
+
+Criterios de aceptación principales:
+
+- un plan por grupo y líneas sin duplicados;
+- comparación plan/real consistente con resúmenes;
+- plantillas aplicables y reutilizables;
+- fijos pendientes/confirmados integrados;
+- Mermaid offline con tema claro/oscuro y fallback;
+- migración preservando datos;
+- `npm run ci` y `npm run lint` en verde;
+- ayuda y traducciones actualizadas.
+
 ## Documentación
 
 - [`README.md`](README.md): índice de documentación.
-- [`i18n-help-plan.md`](i18n-help-plan.md): plan de traducciones y ayuda.
+- [`budget-plan.md`](budget-plan.md): plan de mejora de Presupuestos (Fase 7).
 - [`database.md`](database.md): documentación actual de la base de datos.
 - [`schema.md`](schema.md): esquema generado.
+- [`legacy/i18n-help-plan.md`](legacy/i18n-help-plan.md): plan de traducciones y
+  ayuda archivado.
 - [`legacy/phase-history.md`](legacy/phase-history.md): historial de fases 0–3.
 - [`legacy/ui-history.md`](legacy/ui-history.md): historial de la Fase 4.
 - [`legacy/ui-plan.md`](legacy/ui-plan.md): plan original de UI archivado.
