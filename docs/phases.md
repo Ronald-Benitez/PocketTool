@@ -31,7 +31,8 @@ visual de la Fase 4 en iOS/Android/web.
   con `deleted_at`.
 - **Migraciones:** `0001_baseline`, `0002_audit_timestamps`,
   `0003_timestamp_triggers`, `0004_budget_plans`,
-  `0005_drop_budget_legacy`; `SCHEMA_VERSION = 5`.
+  `0005_drop_budget_legacy`, `0006_drop_budget_plan_status`;
+  `SCHEMA_VERSION = 6`.
 - **Presupuestos:** `BudgetPlans` (un plan por grupo), `BudgetLines` (categoría
   o fijo) y plantillas reutilizables. El real se deriva de `Records`; no se
   guarda. `budgets_legacy` se elimina en `0005`.

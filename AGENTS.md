@@ -54,8 +54,8 @@ commits relevantes, archivos tocados y verificaciones realizadas.
   filtro, matcher y orden compartidos.
 - `src/domain/records/filterFields.ts`: campos curados de Records, opciones de
   relaciones y columnas avanzadas.
-- `src/domain/budgets/`: comparación plan/real, estados, proyección, insights y
-  builders de gráficos Mermaid. La UI no calcula dinero.
+- `src/domain/budgets/`: comparación plan/real, estados de línea, proyección,
+  insights y builders de gráficos Mermaid. La UI no calcula dinero.
 - `src/db/repositories/budgets.ts`: repositorios de planes, líneas y plantillas;
   entrega `BudgetPlanView` listo para la UI.
 - `src/ui/charts/MermaidChart.tsx`: WebView offline con Mermaid vendorizado,
@@ -213,6 +213,8 @@ de negocio o se agregue una pantalla.
   `budget_plans`/`budget_lines` y conserva `budgets_legacy` durante una versión.
 - `src/db/migrations/0005_drop_budget_legacy.ts`: elimina la tabla legacy
   después de validar la migración.
+- `src/db/migrations/0006_drop_budget_plan_status.ts`: elimina la columna
+  `status` de `budget_plans`; el plan no tiene estados funcionales.
 - Presupuestos: un plan por grupo, líneas `category` o `fixed`, snapshot del
   monto planificado y comparación derivada desde `Records`. No guardar el real.
 - Gráficos: Mermaid se vendoriza en `assets/vendor/mermaid/mermaid.min.js.txt`

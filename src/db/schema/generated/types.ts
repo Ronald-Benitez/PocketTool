@@ -115,7 +115,6 @@ export interface BudgetPlan extends Entity, SoftDeletable {
   group_id: number;
   template_id?: number | null;
   plan_name?: string | null;
-  status: string;
   alert_threshold_percent: number;
   notes?: string | null;
   applied_template_at?: TimestampMs | null;

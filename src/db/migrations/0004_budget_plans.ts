@@ -85,8 +85,8 @@ const ensurePlan = async (db: SQLiteDatabase, groupId: number) => {
 
   const result = await db.runAsync(
     `INSERT INTO ${quoteIdent(APP_SCHEMA.BudgetPlans.sqlName)}
-     (group_id, plan_name, status, alert_threshold_percent)
-     VALUES (?, ?, 'active', 80)`,
+     (group_id, plan_name, alert_threshold_percent)
+     VALUES (?, ?, 80)`,
     groupId,
     await planNameForGroup(db, groupId)
   );

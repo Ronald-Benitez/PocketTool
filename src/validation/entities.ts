@@ -53,7 +53,6 @@ export const paidCreditInputSchema = z
 
 export const paidCreditUpdateSchema = paidCreditInputSchema.partial().extend(updateMeta);
 
-const budgetStatus = z.enum(['draft', 'active', 'closed']);
 const budgetScope = z.enum(['category', 'fixed']);
 const budgetSource = z.enum([
   'manual',
@@ -70,7 +69,6 @@ export const budgetPlanInputSchema = z
     group_id: z.number().int().positive(),
     template_id: id,
     plan_name: z.string().max(120).nullable().optional(),
-    status: budgetStatus.optional(),
     alert_threshold_percent: z.number().int().min(1).max(100).optional(),
     notes: z.string().nullable().optional(),
     applied_template_at: timestamp.nullable().optional(),

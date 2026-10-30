@@ -22,8 +22,8 @@ fijos y créditos.
 
 La propuesta es reemplazar el modelo plano por:
 
-1. **`BudgetPlans`**: un plan por grupo/mes, con estado, plantilla de origen,
-   umbral de alerta y notas.
+1. **`BudgetPlans`**: un plan por grupo/mes, con plantilla de origen, umbral de
+   alerta y notas.
 2. **`BudgetLines`**: líneas del plan por categoría/tipo, con prioridad, notas y
    vínculo opcional a una transacción fija. Cada línea guarda un snapshot del
    monto planificado.
@@ -173,7 +173,6 @@ Nombre lógico `BudgetPlans`, físico `budget_plans`, entidad `BudgetPlan`.
 | `group_id` | INTEGER NOT NULL | FK `Groups` CASCADE |
 | `template_id` | INTEGER | FK `BudgetTemplates` SET NULL |
 | `plan_name` | TEXT | opcional; la UI genera “Octubre 2026” si falta |
-| `status` | TEXT NOT NULL DEFAULT `'draft'` | `draft` / `active` / `closed` |
 | `alert_threshold_percent` | INTEGER NOT NULL DEFAULT 80 | umbral de aviso por línea |
 | `notes` | TEXT | notas del mes |
 | `applied_template_at` | INTEGER timestamp | última aplicación de plantilla |
@@ -187,7 +186,8 @@ Nombre lógico `BudgetPlans`, físico `budget_plans`, entidad `BudgetPlan`.
 Reglas:
 
 - Crear un plan es idempotente: si ya existe uno para el grupo, se reutiliza.
-- `status = 'closed'` conserva el plan como histórico; no se borra.
+- Para reemplazarlo por otro enfoque se elimina el plan; sus líneas se borran
+  con él.
 - `alert_threshold_percent` se valida entre 1 y 100.
 
 ### 4.3 `BudgetLines` (nueva, reemplaza `Budgets`)
@@ -309,8 +309,8 @@ Derivarlo desde `Records`:
    se puede confiar en el rebuild automático).
 4. Copiar presupuestos existentes:
    - agrupar por `group_id` no nulo y no borrado;
-   - crear un `BudgetPlan` por grupo con `status = 'active'`,
-     `plan_name` generado desde `Groups.month/year`;
+   - crear un `BudgetPlan` por grupo con `plan_name` generado desde
+     `Groups.month/year`;
    - copiar cada `Budgets` a `BudgetLines` con `scope = 'category'`,
      `source = 'manual'`, `planned_amount = amount`, `priority = 2`;
    - preservar `created_at`, `updated_at` y `deleted_at`.
@@ -337,7 +337,7 @@ La migración debe ser idempotente: si se interrumpe, el runner la reintenta y
   - conservar la línea más reciente;
   - sumar las anteriores en `notes` o descartar duplicados con log;
   - nunca fallar por datos duplicados.
-- Los planes existentes quedan en `active`; el usuario puede cerrarlos.
+- Los planes existentes quedan activos y se pueden eliminar para recrearlos.
 
 ### 5.4 Riesgos de migración
 
@@ -418,7 +418,6 @@ type BudgetPlanView = {
   groupId: number;
   month: number;
   year: number;
-  status: 'draft' | 'active' | 'closed';
   templateId: number | null;
   alertThresholdPercent: number;
   totals: {
@@ -641,7 +640,7 @@ para no hardcodear nombres ni IDs.
 
 - `Screen` + `GroupSelector`.
 - Cabecera del plan:
-  - mes/año y estado (`draft`/`active`/`closed`);
+  - mes/año y nombre del plan;
   - botón “Editar plan”;
   - menú de plantillas.
 - Tarjetas de totales:
@@ -894,7 +893,7 @@ Antes de implementar la UI:
 
 - Nuevo dominio `src/lang/messages/budget.ts` con inglés y español.
 - Claves mínimas:
-  - `budget.plan.*`: título, estado, acciones, totales;
+  - `budget.plan.*`: título, acciones, totales;
   - `budget.line.*`: campos, prioridad, notas, estados;
   - `budget.template.*`: lista, editor, modos, confirmaciones;
   - `budget.fixed.*`: compromiso, pendiente, confirmado, sincronizar;

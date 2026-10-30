@@ -3,7 +3,7 @@
 > Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.
 > Fuente de verdad: `src/db/schema/tables.ts`.
 
-Versión de esquema: **5**
+Versión de esquema: **6**
 
 ## Convenciones
 
@@ -26,7 +26,7 @@ Versión de esquema: **5**
 | `PaidCredits` | `paid_credits` | `PaidCredit` | 8 | 3 |
 | `BudgetTemplates` | `budget_templates` | `BudgetTemplate` | 8 | 0 |
 | `BudgetTemplateItems` | `budget_template_items` | `BudgetTemplateItem` | 13 | 4 |
-| `BudgetPlans` | `budget_plans` | `BudgetPlan` | 11 | 2 |
+| `BudgetPlans` | `budget_plans` | `BudgetPlan` | 10 | 2 |
 | `BudgetLines` | `budget_lines` | `BudgetLine` | 15 | 6 |
 | `Savings` | `savings` | `Saving` | 6 | 0 |
 | `SavingsHistory` | `savings_history` | `SavingsHistoryEntry` | 8 | 1 |
@@ -261,7 +261,6 @@ Entidad TypeScript: `BudgetPlan`
 | `group_id` | `INTEGER` | `number` | NOT NULL, FK → Groups.id ON DELETE CASCADE |
 | `template_id` | `INTEGER` | `number` | FK → BudgetTemplates.id ON DELETE SET NULL |
 | `plan_name` | `TEXT` | `string` |  |
-| `status` | `TEXT` | `string` | NOT NULL, default="draft" |
 | `alert_threshold_percent` | `INTEGER` | `number` | NOT NULL, default=80 |
 | `notes` | `TEXT` | `string` |  |
 | `applied_template_at` | `INTEGER` | `TimestampMs` | kind=timestamp |

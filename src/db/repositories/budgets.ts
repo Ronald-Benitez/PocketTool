@@ -126,7 +126,6 @@ export const useBudgetPlansRepository = () => {
       group_id: groupId,
       template_id: templateId ?? null,
       plan_name: group.group_name || `${group.month}/${group.year}`,
-      status: 'active',
       alert_threshold_percent: 80,
     });
 

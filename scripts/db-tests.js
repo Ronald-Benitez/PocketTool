@@ -156,7 +156,10 @@ async function testLegacyMigration() {
 
   const budgetPlan = q(raw, 'SELECT * FROM budget_plans')[0];
   assert.strictEqual(budgetPlan.group_id, 1);
-  assert.strictEqual(budgetPlan.status, 'active');
+  assert.ok(
+    !q(raw, 'PRAGMA table_info(budget_plans)').some((column) => column.name === 'status'),
+    'budget plan status should be removed'
+  );
   const budget = q(raw, 'SELECT * FROM budget_lines')[0];
   assert.strictEqual(budget.budget_plan_id, budgetPlan.id);
   assert.strictEqual(budget.planned_amount, 30033);
@@ -387,7 +390,7 @@ async function testEmptyDatabase() {
   assert.strictEqual(q(raw, 'SELECT goal FROM groups')[0].goal, 500000);
   assert.strictEqual(q(raw, 'SELECT amount FROM records ORDER BY id')[0].amount, 100000);
   assert.strictEqual(q(raw, 'SELECT migration_name FROM migrations')[0].migration_name, '0001_baseline');
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 5);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 6);
   const recordColumns = q(raw, 'PRAGMA table_info(records)').map(c => c.name);
   assert.ok(recordColumns.includes('created_at'));
   assert.ok(recordColumns.includes('updated_at'));
@@ -424,7 +427,7 @@ async function testExportImport() {
   assert.ok(metadata);
   assert.strictEqual(metadata.formatVersion, BACKUP_FORMAT_VERSION);
   assert.strictEqual(metadata.appVersion, 'test-version');
-  assert.strictEqual(metadata.schemaVersion, 5);
+  assert.strictEqual(metadata.schemaVersion, 6);
   assert.ok(metadata.tables.includes('records'));
   assert.doesNotThrow(() => validateSqlDump(backupSql));
   assert.strictEqual(parseBackupMetadata(dump), null);
@@ -477,7 +480,7 @@ async function testAuditTimestampMigration() {
   const backfilled = q(raw, 'SELECT created_at, updated_at FROM records LIMIT 1')[0];
   assert.ok(backfilled.created_at > 0);
   assert.ok(backfilled.updated_at > 0);
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 5);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 6);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,
     1
@@ -525,7 +528,6 @@ async function testValidationSchemas() {
   const plan = budgetPlanInputSchema.parse({
     group_id: 1,
     plan_name: 'Test',
-    status: 'active',
   });
   assert.strictEqual(plan.group_id, 1);
   assert.doesNotThrow(() =>
@@ -733,6 +735,23 @@ async function testTimestampTriggers() {
   console.log('timestamp triggers: OK');
 }
 
+async function testBudgetStatusRemoval() {
+  const raw = new DatabaseSync(':memory:');
+  const db = shim(raw);
+  await migrateDb(db);
+
+  raw.exec("ALTER TABLE budget_plans ADD COLUMN status TEXT NOT NULL DEFAULT 'draft';");
+  raw.exec("DELETE FROM migrations WHERE migration_name = '0006_drop_budget_plan_status';");
+  raw.exec('PRAGMA user_version = 5;');
+
+  await migrateDb(db);
+
+  const columns = q(raw, 'PRAGMA table_info(budget_plans)').map((column) => column.name);
+  assert.ok(!columns.includes('status'), 'status column should be dropped');
+  raw.close();
+  console.log('budget plan status removal: OK');
+}
+
 async function testInterruptedRebuild() {
   const raw = new DatabaseSync(':memory:');
   raw.exec(legacySchema);
@@ -763,6 +782,7 @@ async function testInterruptedRebuild() {
   await testCreditTotalsWithPeriods();
   await testQueryPlans();
   testNoLegacyHandlerImports();
+  await testBudgetStatusRemoval();
   await testInterruptedRebuild();
   console.log('ALL TESTS PASSED');
 })().catch((e) => {

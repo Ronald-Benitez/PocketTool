@@ -25,7 +25,6 @@ const baseInput = (): BudgetComparisonInput => ({
   plan: {
     id: 1,
     group_id: 10,
-    status: 'active',
     alert_threshold_percent: 80,
     plan_name: 'October',
     notes: null,

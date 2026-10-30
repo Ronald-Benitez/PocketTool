@@ -29,7 +29,6 @@ import { EmptyState } from '@/src/ui/feedback/EmptyState';
 import { InlineMessage } from '@/src/ui/feedback/InlineMessage';
 import { LoadingState } from '@/src/ui/feedback/LoadingState';
 import { useToast } from '@/src/ui/feedback/ToastProvider';
-import { SelectField } from '@/src/ui/forms/SelectField';
 import { TextField } from '@/src/ui/forms/TextField';
 import { MermaidChart } from '@/src/ui/charts/MermaidChart';
 import { ConfirmDialog } from '@/src/ui/overlays/Dialog';
@@ -84,7 +83,6 @@ const Index = () => {
   const [deletingPlan, setDeletingPlan] = useState(false);
   const [planEditVisible, setPlanEditVisible] = useState(false);
   const [planName, setPlanName] = useState('');
-  const [planStatus, setPlanStatus] = useState<'draft' | 'active' | 'closed'>('active');
   const [planThreshold, setPlanThreshold] = useState('80');
   const [templateName, setTemplateName] = useState('');
   const [templateDescription, setTemplateDescription] = useState('');
@@ -184,7 +182,6 @@ const Index = () => {
   const openPlanEdit = () => {
     if (!plan) return;
     setPlanName(plan.planName);
-    setPlanStatus(plan.status);
     setPlanThreshold(String(plan.alertThresholdPercent));
     setPlanEditVisible(true);
   };
@@ -200,7 +197,6 @@ const Index = () => {
     try {
       await repository.updatePlan(plan.planId, {
         plan_name: planName.trim(),
-        status: planStatus,
         alert_threshold_percent: Math.round(threshold),
       });
       setPlanEditVisible(false);
@@ -417,20 +413,11 @@ const Index = () => {
               <Stack gap='xxs' style={{ flex: 1 }}>
                 <AppText variant='title'>{plan.planName}</AppText>
                 <AppText color='muted'>{t('budget.planSubtitle')}</AppText>
-                <Row gap='xs' wrap>
-                  <Badge
-                    label={t(
-                      plan.status === 'closed'
-                        ? 'budget.statusClosed'
-                        : plan.status === 'draft'
-                          ? 'budget.statusDraft'
-                          : 'budget.statusActive'
-                    )}
-                    tone='primary'
-                    size='sm'
-                  />
-                  {plan.templateName ? <Badge label={plan.templateName} size='sm' /> : null}
-                </Row>
+                {plan.templateName ? (
+                  <Row gap='xs' wrap>
+                    <Badge label={plan.templateName} size='sm' />
+                  </Row>
+                ) : null}
               </Stack>
               <IconButton
                 label={t('budget.manageTemplates')}
@@ -724,16 +711,6 @@ const Index = () => {
                 required
                 value={planName}
                 onChangeText={setPlanName}
-              />
-              <SelectField
-                label={t('budget.status')}
-                value={planStatus}
-                options={[
-                  { label: t('budget.statusDraft'), value: 'draft' },
-                  { label: t('budget.statusActive'), value: 'active' },
-                  { label: t('budget.statusClosed'), value: 'closed' },
-                ]}
-                onChange={(value) => setPlanStatus(value)}
               />
               <TextField
                 label={t('budget.threshold')}

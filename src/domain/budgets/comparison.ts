@@ -334,8 +334,6 @@ export const calculateBudgetPlanView = ({
     planName,
     month,
     year,
-    status:
-      plan.status === 'active' || plan.status === 'closed' ? plan.status : 'draft',
     templateId: plan.template_id ?? null,
     templateName,
     alertThresholdPercent: threshold,

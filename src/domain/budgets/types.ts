@@ -14,7 +14,6 @@ export type BudgetLineSource =
   | 'previous_month'
   | 'actuals'
   | 'group_average';
-export type BudgetPlanStatus = 'draft' | 'active' | 'closed';
 export type BudgetApplyMode = 'merge' | 'replace' | 'reset';
 export type BudgetLineStatus =
   | 'on_track'
@@ -87,7 +86,6 @@ export type BudgetPlanView = {
   planName: string;
   month: number;
   year: number;
-  status: BudgetPlanStatus;
   templateId: number | null;
   templateName: string | null;
   alertThresholdPercent: number;

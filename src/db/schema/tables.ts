@@ -1,6 +1,6 @@
 import type { TableDefinition, TableSchema } from '../types';
 
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 
 export type TableName =
   | 'Groups'
@@ -289,7 +289,6 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
         references: { table: 'BudgetTemplates', column: 'id', onDelete: 'SET NULL' },
       },
       { name: 'plan_name', type: 'TEXT' },
-      { name: 'status', type: 'TEXT', notNull: true, defaultValue: 'draft' },
       {
         name: 'alert_threshold_percent',
         type: 'INTEGER',

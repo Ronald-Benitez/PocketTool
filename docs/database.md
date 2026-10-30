@@ -80,6 +80,7 @@ Las rutas navegables se generan en `relations.json` a partir de las FKs.
 | 3 | `0003_timestamp_triggers` | Crea triggers y rellena timestamps nulos. |
 | 4 | `0004_budget_plans` | Crea `budget_plans`/`budget_lines`, migra `budgets` a `budgets_legacy` y amplía plantillas. |
 | 5 | `0005_drop_budget_legacy` | Elimina `budgets_legacy` después de validar la migración. |
+| 6 | `0006_drop_budget_plan_status` | Elimina la columna `status` de `budget_plans`. |
 
 Reglas:
 
