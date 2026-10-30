@@ -86,6 +86,18 @@ const buildHtml = (
           fontSize: '14px',
           fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
           xyChart: {
+            backgroundColor: '${colors.background}',
+            titleColor: '${colors.text}',
+            dataLabelColor: '${colors.text}',
+            legendTextColor: '${colors.text}',
+            xAxisTitleColor: '${colors.text}',
+            xAxisLabelColor: '${colors.textMuted}',
+            xAxisTickColor: '${colors.border}',
+            xAxisLineColor: '${colors.border}',
+            yAxisTitleColor: '${colors.text}',
+            yAxisLabelColor: '${colors.textMuted}',
+            yAxisTickColor: '${colors.border}',
+            yAxisLineColor: '${colors.border}',
             plotColorPalette: '${palette.join(',')}'
           }${pieVariables ? `,\n          ${pieVariables}` : ''}
         }
