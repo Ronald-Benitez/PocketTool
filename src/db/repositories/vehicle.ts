@@ -654,7 +654,41 @@ export const useVehicleRemindersRepository = () => {
 
   const deleteReminder = async (id: number) => remindersOrm.delete(id);
 
-  return { fetchReminders, saveReminder, deleteReminder };
+  const findActiveReminder = async (vehicleId: number, serviceType: string) => {
+    const rows = await fetchReminders(vehicleId);
+    return (
+      rows.find(
+        (row) => row.service_type === serviceType && Boolean(row.is_active)
+      ) ?? null
+    );
+  };
+
+  const deactivateReminders = async (
+    vehicleId: number,
+    serviceType: string,
+    exceptId?: number
+  ) => {
+    const rows = await fetchReminders(vehicleId);
+    const targets = rows.filter(
+      (row) =>
+        row.service_type === serviceType &&
+        Boolean(row.is_active) &&
+        row.id !== exceptId
+    );
+    for (const reminder of targets) {
+      if (reminder.id === undefined) continue;
+      await remindersOrm.update(reminder.id, { is_active: false });
+    }
+    return targets.length;
+  };
+
+  return {
+    fetchReminders,
+    saveReminder,
+    deleteReminder,
+    findActiveReminder,
+    deactivateReminders,
+  };
 };
 
 export const useVehicleSettingsRepository = () => {

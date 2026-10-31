@@ -1060,6 +1060,9 @@ Aplica a combustible, mantenimiento y reparaciones:
 - Lista y formulario de mantenimiento.
 - Piezas con nombre, notas, cantidad/unidad/costo opcionales.
 - Recordatorios configurables.
+- Reutilizar un mantenimiento existente al crear/editar un recordatorio.
+- Crear un recordatorio al guardar un mantenimiento. Si ya existe uno activo
+  del mismo vehículo/tipo, confirmar si se cierra el anterior o no se crea.
 - Cambio de aceite inferido desde odómetro.
 - Otros servicios.
 
@@ -1231,6 +1234,10 @@ Implementado:
   settings y vínculos con `Records`.
 - UI con `StackBase`: resumen, combustible, mantenimiento y recordatorios.
 - Formularios de vehículo, combustible, mantenimiento/piezas y recordatorios.
+- Crear un recordatorio desde un mantenimiento, con detección de recordatorio
+  activo del mismo vehículo/tipo y opción de cerrar el anterior.
+- Seleccionar un mantenimiento previo para completar tipo, título, fecha y
+  odómetro del recordatorio.
 - Crear gasto, vincular gasto existente o no vincular.
 - Categorías y pagos por defecto en Ajustes.
 - Gráfico de consumo en combustible y gasto mensual en el resumen.

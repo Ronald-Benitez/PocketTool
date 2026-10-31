@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { useVehicleRemindersRepository } from '@/src/db';
+import {
+  useVehicleMaintenanceRepository,
+  useVehicleRemindersRepository,
+} from '@/src/db';
+import type { VehicleMaintenanceView } from '@/src/db/repositories/vehicle';
 import type { Vehicle, VehicleReminder } from '@/src/interfaces/schema';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { Button } from '@/src/ui/actions/Button';
@@ -14,26 +18,50 @@ import { TextField } from '@/src/ui/forms/TextField';
 import { ConfirmDialog } from '@/src/ui/overlays/Dialog';
 import { Modal } from '@/src/ui/overlays/Modal';
 
+export type ReminderInitialData = {
+  service_type?: string;
+  title?: string;
+  last_service_date?: number | null;
+  last_service_odometer?: number | null;
+  odometer_unit?: string | null;
+};
+
 type ReminderFormProps = {
   visible: boolean;
   vehicle: Vehicle;
   reminder?: VehicleReminder | null;
+  initialData?: ReminderInitialData | null;
+  replaceActiveForType?: string | null;
   onClose: () => void;
   onSaved: () => void;
 };
 
-const serviceTypes = ['oil_change', 'tires', 'filter', 'brakes', 'inspection', 'other'] as const;
+const serviceTypes = [
+  'oil_change',
+  'tires',
+  'filter',
+  'brakes',
+  'battery',
+  'inspection',
+  'repair',
+  'other',
+] as const;
 
 export const ReminderForm = ({
   visible,
   vehicle,
   reminder,
+  initialData,
+  replaceActiveForType = null,
   onClose,
   onSaved,
 }: ReminderFormProps) => {
   const { t } = useLanguage();
   const { showToast } = useToast();
   const repository = useVehicleRemindersRepository();
+  const maintenanceRepository = useVehicleMaintenanceRepository();
+  const [maintenanceEntries, setMaintenanceEntries] = useState<VehicleMaintenanceView[]>([]);
+  const [selectedMaintenanceId, setSelectedMaintenanceId] = useState<number | null>(null);
   const [serviceType, setServiceType] = useState<(typeof serviceTypes)[number]>('oil_change');
   const [title, setTitle] = useState('');
   const [intervalDistance, setIntervalDistance] = useState('');
@@ -49,17 +77,53 @@ export const ReminderForm = ({
 
   useEffect(() => {
     if (!visible) return;
-    setServiceType((reminder?.service_type as (typeof serviceTypes)[number]) ?? 'oil_change');
-    setTitle(reminder?.title ?? '');
+    const source = reminder ?? initialData;
+    setServiceType(
+      (source?.service_type as (typeof serviceTypes)[number]) ?? 'oil_change'
+    );
+    setTitle(source?.title ?? '');
     setIntervalDistance(reminder?.interval_distance?.toString() ?? '');
-    setDistanceUnit(reminder?.interval_distance_unit === 'km' ? 'km' : 'mi');
+    setDistanceUnit(
+      (reminder?.interval_distance_unit ?? initialData?.odometer_unit) === 'km'
+        ? 'km'
+        : 'mi'
+    );
     setIntervalMonths(reminder?.interval_months?.toString() ?? '');
-    setLastServiceDate(reminder?.last_service_date ?? null);
-    setLastServiceOdometer(reminder?.last_service_odometer?.toString() ?? '');
+    setLastServiceDate(
+      reminder?.last_service_date ?? initialData?.last_service_date ?? null
+    );
+    setLastServiceOdometer(
+      (reminder?.last_service_odometer ?? initialData?.last_service_odometer)?.toString() ??
+        ''
+    );
     setActive(reminder ? Boolean(reminder.is_active) : true);
     setNotes(reminder?.notes ?? '');
+    setSelectedMaintenanceId(null);
     setError(null);
-  }, [visible, reminder]);
+  }, [visible, reminder, initialData]);
+
+  useEffect(() => {
+    if (!visible || !vehicle.id) return;
+    let active = true;
+    maintenanceRepository.fetchMaintenance(vehicle.id).then((rows) => {
+      if (active) setMaintenanceEntries(rows);
+    });
+    return () => {
+      active = false;
+    };
+  }, [visible, vehicle.id]);
+
+  const applyMaintenance = (maintenanceId: number) => {
+    setSelectedMaintenanceId(maintenanceId);
+    const source = maintenanceEntries.find((entry) => entry.id === maintenanceId);
+    if (!source) return;
+    setServiceType(source.service_type as (typeof serviceTypes)[number]);
+    setTitle(source.title);
+    setLastServiceDate(source.date);
+    setLastServiceOdometer(source.odometer?.toString() ?? '');
+    setDistanceUnit(source.distance_unit === 'km' ? 'km' : 'mi');
+    setError(null);
+  };
 
   const save = async () => {
     if (!vehicle.id || !title.trim()) {
@@ -73,7 +137,7 @@ export const ReminderForm = ({
     setSaving(true);
     setError(null);
     try {
-      await repository.saveReminder({
+      const savedId = await repository.saveReminder({
         id: reminder?.id,
         vehicle_id: vehicle.id,
         service_type: serviceType,
@@ -89,6 +153,13 @@ export const ReminderForm = ({
         is_active: active,
         notes: notes.trim() || null,
       });
+      if (replaceActiveForType && vehicle.id) {
+        await repository.deactivateReminders(
+          vehicle.id,
+          replaceActiveForType,
+          savedId
+        );
+      }
       showToast({ message: t('vehicle.toast.saved'), type: 'success' });
       onSaved();
       onClose();
@@ -114,6 +185,17 @@ export const ReminderForm = ({
       setSaving(false);
     }
   };
+
+  const maintenanceOptions = maintenanceEntries.flatMap((entry) =>
+    entry.id === undefined
+      ? []
+      : [
+          {
+            value: entry.id,
+            label: `${entry.title} · ${new Date(entry.date).toLocaleDateString()}`,
+          },
+        ]
+  );
 
   return (
     <>
@@ -149,6 +231,17 @@ export const ReminderForm = ({
         }
       >
         <View style={styles.form}>
+          {maintenanceOptions.length > 0 ? (
+            <SelectField
+              label={t('vehicle.reminders.sourceMaintenance')}
+              value={selectedMaintenanceId}
+              options={maintenanceOptions}
+              onChange={applyMaintenance}
+              placeholder={t('vehicle.reminders.sourceMaintenancePlaceholder')}
+              searchable
+              hint={t('vehicle.reminders.sourceMaintenanceHint')}
+            />
+          ) : null}
           <SelectField
             label={t('vehicle.reminders.serviceType')}
             value={serviceType}

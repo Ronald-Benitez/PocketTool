@@ -5,6 +5,7 @@ import {
   useCategories,
   usePaymentMethods,
   useVehicleMaintenanceRepository,
+  useVehicleRemindersRepository,
   useVehicleSettingsRepository,
 } from '@/src/db';
 import type {
@@ -21,12 +22,17 @@ import { useToast } from '@/src/ui/feedback/ToastProvider';
 import { DateField } from '@/src/ui/forms/DateField';
 import { MoneyField } from '@/src/ui/forms/MoneyField';
 import { SelectField } from '@/src/ui/forms/SelectField';
+import { SwitchField } from '@/src/ui/forms/SwitchField';
 import { TextField } from '@/src/ui/forms/TextField';
 import { ConfirmDialog } from '@/src/ui/overlays/Dialog';
 import { Modal } from '@/src/ui/overlays/Modal';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Stack } from '@/src/ui/primitives/Stack';
 import { MaintenanceItemForm, type MaintenanceItemDraft } from './MaintenanceItemForm';
+import {
+  ReminderForm,
+  type ReminderInitialData,
+} from './ReminderForm';
 import { VehicleExpensePicker } from './VehicleExpensePicker';
 
 type MaintenanceFormProps = {
@@ -69,6 +75,7 @@ export const MaintenanceForm = ({
   const { showToast } = useToast();
   const { group } = useRecordsStore();
   const repository = useVehicleMaintenanceRepository();
+  const remindersRepository = useVehicleRemindersRepository();
   const settingsRepository = useVehicleSettingsRepository();
   const categoriesRepository = useCategories();
   const paymentsRepository = usePaymentMethods();
@@ -95,6 +102,12 @@ export const MaintenanceForm = ({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [createReminder, setCreateReminder] = useState(false);
+  const [reminderVisible, setReminderVisible] = useState(false);
+  const [reminderInitialData, setReminderInitialData] =
+    useState<ReminderInitialData | null>(null);
+  const [replaceActiveType, setReplaceActiveType] = useState<string | null>(null);
+  const [conflictVisible, setConflictVisible] = useState(false);
 
   useEffect(() => {
     if (!visible) return;
@@ -131,6 +144,11 @@ export const MaintenanceForm = ({
         : null
     );
     setError(null);
+    setCreateReminder(false);
+    setReminderVisible(false);
+    setReminderInitialData(null);
+    setReplaceActiveType(null);
+    setConflictVisible(false);
   }, [visible, entry, vehicle.distance_unit]);
 
   useEffect(() => {
@@ -255,9 +273,6 @@ export const MaintenanceForm = ({
           paymentMethodId,
         },
       });
-      showToast({ message: t('vehicle.toast.saved'), type: 'success' });
-      onSaved();
-      onClose();
     } catch (cause) {
       if (__DEV__) console.warn('[vehicle] maintenance save failed', cause);
       const message = cause instanceof Error ? cause.message : '';
@@ -270,6 +285,46 @@ export const MaintenanceForm = ({
               ? t('vehicle.records.paymentRequired')
               : t('vehicle.toast.error')
       );
+      setSaving(false);
+      return;
+    }
+
+    showToast({ message: t('vehicle.toast.saved'), type: 'success' });
+    onSaved();
+
+    if (!createReminder || !vehicle.id) {
+      setSaving(false);
+      onClose();
+      return;
+    }
+
+    const draft: ReminderInitialData = {
+      service_type: serviceType,
+      title: title.trim(),
+      last_service_date: date,
+      last_service_odometer: odometer.trim() ? Number(odometer) : null,
+      odometer_unit: odometer.trim() ? distanceUnit : null,
+    };
+    setReminderInitialData(draft);
+
+    try {
+      const existing = await remindersRepository.findActiveReminder(
+        vehicle.id,
+        serviceType
+      );
+      if (existing) {
+        setReplaceActiveType(serviceType);
+        setConflictVisible(true);
+      } else {
+        setReplaceActiveType(null);
+        setReminderVisible(true);
+        onClose();
+      }
+    } catch (cause) {
+      if (__DEV__) console.warn('[vehicle] reminder lookup failed', cause);
+      setReplaceActiveType(null);
+      setReminderVisible(true);
+      onClose();
     } finally {
       setSaving(false);
     }
@@ -398,6 +453,12 @@ export const MaintenanceForm = ({
             multiline
             numberOfLines={3}
           />
+          <SwitchField
+            label={t('vehicle.maintenance.createReminder')}
+            description={t('vehicle.maintenance.createReminderHint')}
+            value={createReminder}
+            onChange={setCreateReminder}
+          />
           <Stack gap='sm'>
             <Button
               label={t('vehicle.maintenance.addItem')}
@@ -484,6 +545,32 @@ export const MaintenanceForm = ({
         loading={saving}
         onConfirm={remove}
         onCancel={() => setConfirmDelete(false)}
+      />
+      <ConfirmDialog
+        visible={conflictVisible}
+        title={t('vehicle.confirm.replaceReminderTitle')}
+        message={t('vehicle.confirm.replaceReminder', {
+          type: t(`vehicle.serviceTypes.${serviceType}` as never),
+        })}
+        confirmLabel={t('vehicle.confirm.replaceReminderConfirm')}
+        cancelLabel={t('vehicle.confirm.replaceReminderCancel')}
+        onConfirm={() => {
+          setConflictVisible(false);
+          setReminderVisible(true);
+          onClose();
+        }}
+        onCancel={() => {
+          setConflictVisible(false);
+          onClose();
+        }}
+      />
+      <ReminderForm
+        visible={reminderVisible}
+        vehicle={vehicle}
+        initialData={reminderInitialData}
+        replaceActiveForType={replaceActiveType}
+        onClose={() => setReminderVisible(false)}
+        onSaved={onSaved}
       />
     </>
   );

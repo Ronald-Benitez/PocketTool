@@ -95,6 +95,9 @@ export const vehicleEn = {
     addTitle: 'Add maintenance',
     editTitle: 'Edit maintenance',
     empty: 'No maintenance entries yet.',
+    createReminder: 'Create a reminder for the next service',
+    createReminderHint:
+      'After saving, complete the interval in the reminder form.',
   },
   serviceTypes: {
     oil_change: 'Oil change',
@@ -119,6 +122,10 @@ export const vehicleEn = {
     addTitle: 'Add reminder',
     editTitle: 'Edit reminder',
     empty: 'No reminders yet.',
+    sourceMaintenance: 'Use a maintenance record',
+    sourceMaintenancePlaceholder: 'Select a maintenance record',
+    sourceMaintenanceHint:
+      'Fills the service type, title, date and odometer from the selected maintenance.',
     remainingDistance: 'Remaining distance',
     remainingDays: 'Remaining days',
     statusOk: 'On track',
@@ -190,6 +197,11 @@ export const vehicleEn = {
     deleteFuel: 'Delete this fuel entry?',
     deleteMaintenance: 'Delete this maintenance entry?',
     deleteReminder: 'Delete this reminder?',
+    replaceReminderTitle: 'Reminder already exists',
+    replaceReminder:
+      'There is already an active {type} reminder for this vehicle. Do you want to create a new one and close the previous one?',
+    replaceReminderConfirm: 'Close previous and create',
+    replaceReminderCancel: 'Do not create',
   },
   toast: {
     saved: 'Saved',
@@ -306,6 +318,9 @@ export const vehicleEs: MessageShape<typeof vehicleEn> = {
     addTitle: 'Agregar mantenimiento',
     editTitle: 'Editar mantenimiento',
     empty: 'Todavía no hay mantenimientos.',
+    createReminder: 'Crear recordatorio para el próximo servicio',
+    createReminderHint:
+      'Al guardar, completa el intervalo en el formulario del recordatorio.',
   },
   serviceTypes: {
     oil_change: 'Cambio de aceite',
@@ -330,6 +345,10 @@ export const vehicleEs: MessageShape<typeof vehicleEn> = {
     addTitle: 'Agregar recordatorio',
     editTitle: 'Editar recordatorio',
     empty: 'Todavía no hay recordatorios.',
+    sourceMaintenance: 'Usar un mantenimiento',
+    sourceMaintenancePlaceholder: 'Selecciona un mantenimiento',
+    sourceMaintenanceHint:
+      'Completa el tipo de servicio, el título, la fecha y el odómetro del mantenimiento seleccionado.',
     remainingDistance: 'Distancia restante',
     remainingDays: 'Días restantes',
     statusOk: 'En orden',
@@ -401,6 +420,11 @@ export const vehicleEs: MessageShape<typeof vehicleEn> = {
     deleteFuel: '¿Eliminar esta carga de combustible?',
     deleteMaintenance: '¿Eliminar este mantenimiento?',
     deleteReminder: '¿Eliminar este recordatorio?',
+    replaceReminderTitle: 'Ya existe un recordatorio',
+    replaceReminder:
+      'Ya existe un recordatorio activo de {type} para este vehículo. ¿Quieres crear uno nuevo y cerrar el anterior?',
+    replaceReminderConfirm: 'Cerrar anterior y crear',
+    replaceReminderCancel: 'No crear',
   },
   toast: {
     saved: 'Guardado',
