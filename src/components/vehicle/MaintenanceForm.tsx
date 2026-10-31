@@ -150,8 +150,20 @@ export const MaintenanceForm = ({
           ? serviceType
           : 'maintenance';
       const setting = nextSettings.find((item) => item.setting_key === key);
-      setCategoryId((current) => current ?? setting?.category_id ?? null);
-      setPaymentMethodId((current) => current ?? setting?.payment_method_id ?? null);
+      setCategoryId(
+        (current) =>
+          current ??
+          setting?.category_id ??
+          nextCategories?.[0]?.id ??
+          null
+      );
+      setPaymentMethodId(
+        (current) =>
+          current ??
+          setting?.payment_method_id ??
+          nextPayments?.[0]?.id ??
+          null
+      );
     });
     return () => {
       active = false;
@@ -239,10 +251,16 @@ export const MaintenanceForm = ({
       onSaved();
       onClose();
     } catch (cause) {
+      if (__DEV__) console.warn('[vehicle] maintenance save failed', cause);
+      const message = cause instanceof Error ? cause.message : '';
       setError(
-        cause instanceof Error && cause.message === 'GROUP_REQUIRED'
+        message === 'GROUP_REQUIRED'
           ? t('vehicle.records.groupRequired')
-          : t('vehicle.toast.error')
+          : message === 'CATEGORY_REQUIRED'
+            ? t('vehicle.records.categoryRequired')
+            : message === 'PAYMENT_METHOD_REQUIRED'
+              ? t('vehicle.records.paymentRequired')
+              : t('vehicle.toast.error')
       );
     } finally {
       setSaving(false);

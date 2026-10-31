@@ -152,9 +152,19 @@ export const FuelEntryForm = ({
   useEffect(() => {
     if (!visible || entry) return;
     const fuelSetting = settings.find((item) => item.setting_key === 'fuel');
-    setCategoryId((current) => current ?? fuelSetting?.category_id ?? null);
-    setPaymentMethodId((current) => current ?? fuelSetting?.payment_method_id ?? null);
-  }, [visible, settings, entry]);
+    const fallbackCategory =
+      categories.find((category) =>
+        /gas|fuel|combustible/i.test(category.category_name)
+      ) ?? categories[0];
+    setCategoryId(
+      (current) =>
+        current ?? fuelSetting?.category_id ?? fallbackCategory?.id ?? null
+    );
+    setPaymentMethodId(
+      (current) =>
+        current ?? fuelSetting?.payment_method_id ?? paymentMethods[0]?.id ?? null
+    );
+  }, [visible, settings, entry, categories, paymentMethods]);
 
   const volumeNumber = parseNumber(volume);
   const categoryOptions = useMemo(
@@ -307,10 +317,16 @@ export const FuelEntryForm = ({
       onSaved();
       onClose();
     } catch (cause) {
+      if (__DEV__) console.warn('[vehicle] fuel save failed', cause);
+      const message = cause instanceof Error ? cause.message : '';
       setError(
-        cause instanceof Error && cause.message === 'GROUP_REQUIRED'
+        message === 'GROUP_REQUIRED'
           ? t('vehicle.records.groupRequired')
-          : t('vehicle.toast.error')
+          : message === 'CATEGORY_REQUIRED'
+            ? t('vehicle.records.categoryRequired')
+            : message === 'PAYMENT_METHOD_REQUIRED'
+              ? t('vehicle.records.paymentRequired')
+              : t('vehicle.toast.error')
       );
     } finally {
       setSaving(false);
