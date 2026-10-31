@@ -182,6 +182,11 @@ export const MaintenanceForm = ({
     group.id === undefined ? [] : [{ label: group.group_name, value: group.id }]
   );
 
+  const selectLinkedRecord = (option: VehicleExpenseOption) => {
+    setLinkedRecord(option);
+    setCost(option.amount);
+  };
+
   const save = async () => {
     if (!vehicle.id || !title.trim()) {
       setError(t('vehicle.toast.empty'));
@@ -193,6 +198,10 @@ export const MaintenanceForm = ({
     }
     if (linkMode === 'link' && !linkedRecord) {
       setError(t('vehicle.records.noResults'));
+      return;
+    }
+    if (linkMode === 'link' && linkedRecord && cost !== linkedRecord.amount) {
+      setError(t('vehicle.records.amountMismatch'));
       return;
     }
     setSaving(true);
@@ -283,6 +292,31 @@ export const MaintenanceForm = ({
       >
         <View style={styles.form}>
           <DateField label={t('vehicle.maintenance.date')} value={date} onChange={setDate} />
+          <SelectField
+            label={t('vehicle.records.mode')}
+            value={linkMode}
+            options={[
+              { label: t('vehicle.records.create'), value: 'create' },
+              { label: t('vehicle.records.link'), value: 'link' },
+              { label: t('vehicle.records.none'), value: 'none' },
+            ]}
+            onChange={(value) => {
+              setLinkMode(value);
+              if (value === 'link') setPickerVisible(true);
+              if (value !== 'link') setLinkedRecord(null);
+            }}
+          />
+          {linkMode === 'link' ? (
+            <Button
+              label={
+                linkedRecord
+                  ? t('vehicle.records.linkedTo', { name: linkedRecord.name })
+                  : t('vehicle.actions.chooseRecord')
+              }
+              variant='outline'
+              onPress={() => setPickerVisible(true)}
+            />
+          ) : null}
           <TextField
             label={t('vehicle.maintenance.odometer')}
             value={odometer}
@@ -359,49 +393,32 @@ export const MaintenanceForm = ({
               />
             ))}
           </Stack>
-          <SelectField
-            label={t('vehicle.records.category')}
-            value={categoryId}
-            options={categoryOptions}
-            onChange={setCategoryId}
-            searchable
-          />
-          <SelectField
-            label={t('vehicle.records.paymentMethod')}
-            value={paymentMethodId}
-            options={paymentOptions}
-            onChange={setPaymentMethodId}
-          />
-          {groups.length > 0 ? (
-            <SelectField
-              label={t('vehicle.records.group')}
-              value={groupId}
-              options={groupOptions}
-              onChange={setGroupId}
-            />
-          ) : (
-            <InlineMessage variant='warning' message={t('vehicle.records.groupRequired')} />
-          )}
-          <SelectField
-            label={t('vehicle.records.create')}
-            value={linkMode}
-            options={[
-              { label: t('vehicle.records.create'), value: 'create' },
-              { label: t('vehicle.records.link'), value: 'link' },
-              { label: t('vehicle.records.none'), value: 'none' },
-            ]}
-            onChange={setLinkMode}
-          />
-          {linkMode === 'link' ? (
-            <Button
-              label={
-                linkedRecord
-                  ? t('vehicle.records.linkedTo', { name: linkedRecord.name })
-                  : t('vehicle.actions.chooseRecord')
-              }
-              variant='outline'
-              onPress={() => setPickerVisible(true)}
-            />
+          {linkMode === 'create' ? (
+            <>
+              <SelectField
+                label={t('vehicle.records.category')}
+                value={categoryId}
+                options={categoryOptions}
+                onChange={setCategoryId}
+                searchable
+              />
+              <SelectField
+                label={t('vehicle.records.paymentMethod')}
+                value={paymentMethodId}
+                options={paymentOptions}
+                onChange={setPaymentMethodId}
+              />
+              {groups.length > 0 ? (
+                <SelectField
+                  label={t('vehicle.records.group')}
+                  value={groupId}
+                  options={groupOptions}
+                  onChange={setGroupId}
+                />
+              ) : (
+                <InlineMessage variant='warning' message={t('vehicle.records.groupRequired')} />
+              )}
+            </>
           ) : null}
           {error ? <InlineMessage variant='error' message={error} /> : null}
         </View>
@@ -424,7 +441,7 @@ export const MaintenanceForm = ({
         date={date}
         amount={cost}
         onClose={() => setPickerVisible(false)}
-        onSelect={setLinkedRecord}
+        onSelect={selectLinkedRecord}
       />
       <ConfirmDialog
         visible={confirmDelete}

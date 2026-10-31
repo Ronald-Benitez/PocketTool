@@ -61,6 +61,9 @@ export const FuelEntryForm = ({
   const [volumeUnit, setVolumeUnit] = useState<'gal' | 'L'>('gal');
   const [pricePerUnit, setPricePerUnit] = useState(0);
   const [totalCost, setTotalCost] = useState(0);
+  const [inferredField, setInferredField] = useState<
+    'volume' | 'price' | 'total' | null
+  >(null);
   const [isFullTank, setIsFullTank] = useState(true);
   const [station, setStation] = useState('');
   const [notes, setNotes] = useState('');
@@ -89,6 +92,7 @@ export const FuelEntryForm = ({
     setVolumeUnit(entry?.volume_unit === 'L' ? 'L' : (vehicle.volume_unit === 'L' ? 'L' : 'gal'));
     setPricePerUnit(entry?.price_per_unit ?? 0);
     setTotalCost(entry?.total_cost ?? 0);
+    setInferredField(null);
     setIsFullTank(entry ? Boolean(entry.is_full_tank) : true);
     setStation(entry?.station ?? '');
     setNotes(entry?.notes ?? '');
@@ -175,28 +179,66 @@ export const FuelEntryForm = ({
   const setVolumeAndRecalculate = (value: string) => {
     setVolume(value);
     const parsed = parseNumber(value);
-    if (parsed > 0 && pricePerUnit > 0) {
-      setTotalCost(Math.round(parsed * pricePerUnit));
-    } else if (parsed > 0 && totalCost > 0) {
+    if (parsed <= 0) return;
+
+    if (inferredField === 'price' && totalCost > 0) {
       setPricePerUnit(Math.round(totalCost / parsed));
+      setInferredField('price');
+    } else if (pricePerUnit > 0) {
+      setTotalCost(Math.round(parsed * pricePerUnit));
+      setInferredField('total');
+    } else if (totalCost > 0) {
+      setPricePerUnit(Math.round(totalCost / parsed));
+      setInferredField('price');
     }
   };
 
   const setPriceAndRecalculate = (value: number) => {
     setPricePerUnit(value);
-    if (value > 0 && volumeNumber > 0) {
-      setTotalCost(Math.round(value * volumeNumber));
-    } else if (value > 0 && totalCost > 0) {
+    if (value <= 0) return;
+
+    if (inferredField === 'volume' && totalCost > 0) {
       setVolume((totalCost / value).toFixed(4));
+      setInferredField('volume');
+    } else if (volumeNumber > 0) {
+      setTotalCost(Math.round(value * volumeNumber));
+      setInferredField('total');
+    } else if (totalCost > 0) {
+      setVolume((totalCost / value).toFixed(4));
+      setInferredField('volume');
     }
   };
 
   const setTotalAndRecalculate = (value: number) => {
     setTotalCost(value);
-    if (value > 0 && volumeNumber > 0) {
-      setPricePerUnit(Math.round(value / volumeNumber));
-    } else if (value > 0 && pricePerUnit > 0) {
+    if (value <= 0) return;
+
+    if (inferredField === 'volume' && pricePerUnit > 0) {
       setVolume((value / pricePerUnit).toFixed(4));
+      setInferredField('volume');
+    } else if (inferredField === 'price' && volumeNumber > 0) {
+      setPricePerUnit(Math.round(value / volumeNumber));
+      setInferredField('price');
+    } else if (volumeNumber > 0) {
+      setPricePerUnit(Math.round(value / volumeNumber));
+      setInferredField('price');
+    } else if (pricePerUnit > 0) {
+      setVolume((value / pricePerUnit).toFixed(4));
+      setInferredField('volume');
+    }
+  };
+
+  const selectLinkedRecord = (option: VehicleExpenseOption) => {
+    setLinkedRecord(option);
+    setTotalCost(option.amount);
+    if (volumeNumber > 0) {
+      setPricePerUnit(Math.round(option.amount / volumeNumber));
+      setInferredField('price');
+    } else if (pricePerUnit > 0) {
+      setVolume((option.amount / pricePerUnit).toFixed(4));
+      setInferredField('volume');
+    } else {
+      setInferredField('total');
     }
   };
 
@@ -215,6 +257,14 @@ export const FuelEntryForm = ({
     }
     if (linkMode === 'link' && !linkedRecord) {
       setError(t('vehicle.records.noResults'));
+      return;
+    }
+    if (
+      linkMode === 'link' &&
+      linkedRecord &&
+      totalCost !== linkedRecord.amount
+    ) {
+      setError(t('vehicle.records.amountMismatch'));
       return;
     }
 
@@ -311,6 +361,31 @@ export const FuelEntryForm = ({
         <View style={styles.form}>
           <DateField label={t('vehicle.fuel.date')} value={date} onChange={setDate} />
           <SelectField
+            label={t('vehicle.records.mode')}
+            value={linkMode}
+            options={[
+              { label: t('vehicle.records.create'), value: 'create' },
+              { label: t('vehicle.records.link'), value: 'link' },
+              { label: t('vehicle.records.none'), value: 'none' },
+            ]}
+            onChange={(value) => {
+              setLinkMode(value);
+              if (value === 'link') setPickerVisible(true);
+              if (value !== 'link') setLinkedRecord(null);
+            }}
+          />
+          {linkMode === 'link' ? (
+            <Button
+              label={
+                linkedRecord
+                  ? t('vehicle.records.linkedTo', { name: linkedRecord.name })
+                  : t('vehicle.actions.chooseRecord')
+              }
+              variant='outline'
+              onPress={() => setPickerVisible(true)}
+            />
+          ) : null}
+          <SelectField
             label={t('vehicle.vehicle.distanceUnit')}
             value={distanceUnit}
             options={[
@@ -378,49 +453,32 @@ export const FuelEntryForm = ({
             value={station}
             onChangeText={setStation}
           />
-          <SelectField
-            label={t('vehicle.records.category')}
-            value={categoryId}
-            options={categoryOptions}
-            onChange={setCategoryId}
-            searchable
-          />
-          <SelectField
-            label={t('vehicle.records.paymentMethod')}
-            value={paymentMethodId}
-            options={paymentOptions}
-            onChange={setPaymentMethodId}
-          />
-          {groups.length > 0 ? (
-            <SelectField
-              label={t('vehicle.records.group')}
-              value={groupId}
-              options={groupOptions}
-              onChange={setGroupId}
-            />
-          ) : (
-            <InlineMessage variant='warning' message={t('vehicle.records.groupRequired')} />
-          )}
-          <SelectField
-            label={t('vehicle.records.create')}
-            value={linkMode}
-            options={[
-              { label: t('vehicle.records.create'), value: 'create' },
-              { label: t('vehicle.records.link'), value: 'link' },
-              { label: t('vehicle.records.none'), value: 'none' },
-            ]}
-            onChange={setLinkMode}
-          />
-          {linkMode === 'link' ? (
-            <Button
-              label={
-                linkedRecord
-                  ? t('vehicle.records.linkedTo', { name: linkedRecord.name })
-                  : t('vehicle.actions.chooseRecord')
-              }
-              variant='outline'
-              onPress={() => setPickerVisible(true)}
-            />
+          {linkMode === 'create' ? (
+            <>
+              <SelectField
+                label={t('vehicle.records.category')}
+                value={categoryId}
+                options={categoryOptions}
+                onChange={setCategoryId}
+                searchable
+              />
+              <SelectField
+                label={t('vehicle.records.paymentMethod')}
+                value={paymentMethodId}
+                options={paymentOptions}
+                onChange={setPaymentMethodId}
+              />
+              {groups.length > 0 ? (
+                <SelectField
+                  label={t('vehicle.records.group')}
+                  value={groupId}
+                  options={groupOptions}
+                  onChange={setGroupId}
+                />
+              ) : (
+                <InlineMessage variant='warning' message={t('vehicle.records.groupRequired')} />
+              )}
+            </>
           ) : null}
           <TextField
             label={t('vehicle.fuel.notes')}
@@ -437,7 +495,7 @@ export const FuelEntryForm = ({
         date={date}
         amount={totalCost}
         onClose={() => setPickerVisible(false)}
-        onSelect={setLinkedRecord}
+        onSelect={selectLinkedRecord}
       />
       <ConfirmDialog
         visible={confirmDelete}

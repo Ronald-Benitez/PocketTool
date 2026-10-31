@@ -167,6 +167,7 @@ export const vehicleEn = {
     noData: 'Not enough data yet.',
   },
   records: {
+    mode: 'Expense',
     create: 'Create a new expense',
     link: 'Link an existing expense',
     none: 'Do not create or link an expense',
@@ -179,6 +180,7 @@ export const vehicleEn = {
     paymentMethod: 'Payment method',
     linked: 'Expense linked',
     linkedTo: 'Linked to {name}',
+    amountMismatch: 'The total must match the amount of the linked expense.',
   },
   confirm: {
     deleteVehicle: 'Delete this vehicle and all its fuel and maintenance entries?',
@@ -373,6 +375,7 @@ export const vehicleEs: MessageShape<typeof vehicleEn> = {
     noData: 'Todavía no hay suficientes datos.',
   },
   records: {
+    mode: 'Gasto',
     create: 'Crear un gasto nuevo',
     link: 'Vincular un gasto existente',
     none: 'No crear ni vincular gasto',
@@ -385,6 +388,7 @@ export const vehicleEs: MessageShape<typeof vehicleEn> = {
     paymentMethod: 'Método de pago',
     linked: 'Gasto vinculado',
     linkedTo: 'Vinculado a {name}',
+    amountMismatch: 'El total debe coincidir con el monto del gasto vinculado.',
   },
   confirm: {
     deleteVehicle: '¿Eliminar este vehículo y todas sus entradas de combustible y mantenimiento?',

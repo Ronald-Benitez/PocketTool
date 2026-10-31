@@ -171,9 +171,10 @@ Implementado hasta ahora:
 Pendiente:
 
 - QA visual Android/iOS y claro/oscuro.
-- Gráficos de vehículo y comparativas.
+- Comparativas avanzadas entre periodos y vehículos.
 - Ajustes finos del formulario y textos largos.
-- Documentación de cierre y pruebas manuales.
+- Pruebas manuales de creación/vinculación de gastos.
+- Documentación de cierre.
 
 Alcance planificado:
 
