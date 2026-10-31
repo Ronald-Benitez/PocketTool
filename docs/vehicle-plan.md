@@ -1,0 +1,975 @@
+# Plan de la sección Vehículo — Fase 8 (VEH)
+
+**Estado:** 📝 Planificación
+**Fecha:** 2026-10-30
+**Objetivo:** convertir la sección Vehículo, hoy oculta y vacía, en un módulo
+funcional para registrar combustible y mantenimiento, calcular consumo y
+rendimiento con unidades configurables, mostrar estadísticas e históricos,
+gestionar recordatorios como el cambio de aceite e integrar los gastos con
+Registros.
+
+> No se modificará código de la aplicación hasta validar este plan.
+
+---
+
+## 1. Resumen ejecutivo
+
+La sección existe solo como rutas de prueba (`app/(vehicle)/index.tsx` y
+`app/(vehicle)/FuelScreen.tsx` muestran “Hola”), está oculta en el drawer y no
+tiene una UI ni un repositorio conectados. Las tablas actuales `FuelRefills` y
+`TripLogs` no cubren lo que se necesita:
+
+- `FuelRefills` asume galones, precio por galón y un odómetro sin unidad.
+- `TripLogs` depende del reinicio del marcador de viaje, justo el mecanismo que
+  se quiere eliminar.
+- Ninguna de las dos tiene vehículo, vínculo con `Records`, mantenimiento ni
+  recordatorios.
+
+Como no hay datos de usuarios en esas tablas, la propuesta es reemplazarlas por
+un modelo normalizado:
+
+1. `Vehicles`.
+2. `VehicleFuelEntries`.
+3. `VehicleMaintenance`.
+4. `VehicleReminders`.
+
+La sección permitirá:
+
+- Registrar compras de combustible con galones o litros, millas o kilómetros.
+- Ingresar dos de tres valores (`volumen`, `precio por unidad`, `total`) y
+  calcular el tercero.
+- Usar el odómetro real, con opción de distancia recorrida para quienes no
+  quieran o no puedan leerlo.
+- Calcular consumo en `mi/gal`, `km/L` y `L/100 km`, costo por milla/km y
+  promedios ponderados.
+- Registrar mantenimiento, piezas y servicios.
+- Programar cambios de aceite, rotación de llantas, filtros, frenos,
+  inspección, seguro y otros recordatorios.
+- Inferir el odómetro actual desde los registros de combustible/mantenimiento
+  para calcular cuánto falta para el próximo servicio.
+- Crear automáticamente el gasto en `Records`, sin doble captura, con opción de
+  no crearlo.
+- Ver históricos, comparativas por periodo y por vehículo, y gráficos Mermaid
+  con colores del tema.
+
+---
+
+## 2. Diagnóstico actual
+
+### 2.1 La sección no está publicada
+
+- `app/_layout.tsx` oculta `(vehicle)` con `drawerItemStyle: { display: 'none' }`.
+- El título del drawer usa `headers.financialsIndex` en vez de un título de
+  vehículo.
+- `app/(vehicle)/_layout.tsx` usa `StackBase` con dos tabs, pero el tab
+  `index` tiene título “Resumen” y el tab `FuelScreen` usa `t('vehicle')` desde
+  la raíz, no desde `headers`.
+- `app/(vehicle)/index.tsx` y `FuelScreen.tsx` solo renderizan “Hola”.
+
+### 2.2 Esquema actual
+
+`FuelRefills`:
+
+- `date`, `odometer_reading`, `total_cost`, `gallons`, `price_per_gallon`,
+  `is_full_tank`, `notes`.
+- No tiene vehículo, unidad de distancia, unidad de volumen, estación,
+  vínculo con `Records`, ni precio por litro.
+- `fuel.ts` calcula `km_per_gallon`, `km_per_liter` y `cost_per_km` usando
+  conversiones fijas y asume que el odómetro está en km.
+- Los bloques de consumo se agrupan por `is_full_tank`, pero no hay soporte para
+  entradas parciales, distancia ingresada directamente ni unidades del usuario.
+
+`TripLogs`:
+
+- `distance_traveled`, `average_consumption`, `is_counter_reset`, `trip_type`,
+  `notes`.
+- Está diseñado para el marcador de viaje que se reinicia. El requerimiento
+  actual es usar el odómetro real, así que este modelo queda obsoleto.
+
+### 2.3 Repositorio y datos
+
+- `src/db/repositories/fuel.ts` contiene SQL directo con nombres y unidades
+  fijas.
+- `src/db/index.ts` expone `useFuelRepository`, pero no hay pantallas que lo
+  usen.
+- No hay seed de vehículos ni de datos de combustible.
+- No hay integración con `Records`.
+
+### 2.4 Conclusión
+
+No conviene reutilizar `FuelRefills`/`TripLogs` con parches:
+
+- habría que renombrar y reinterpretar columnas ambiguas;
+- el modelo seguiría sin vehículo ni vínculo con gastos;
+- `TripLogs` contradice el enfoque de odómetro real;
+- no hay datos que justifiquen preservar esas tablas.
+
+**Decisión propuesta:** eliminarlas y crear un modelo nuevo, manteniendo una
+migración explícita y testeada.
+
+---
+
+## 3. Alcance y principios
+
+### 3.1 Alcance
+
+Incluido en la Fase 8:
+
+- Vehículo(s).
+- Combustible.
+- Mantenimiento y piezas.
+- Recordatorios y cambio de aceite.
+- Estadísticas, históricos y comparativas.
+- Integración con Registros.
+- Publicación en el drawer.
+- Traducciones, ayuda y documentación.
+
+Fuera de alcance en la primera versión:
+
+- GPS o seguimiento en tiempo real.
+- Telemetría OBD-II.
+- Carga de fotos/recibos.
+- Facturación multi-moneda.
+- Vehículos eléctricos con kWh (se puede dejar el campo `fuel_type` para
+  futuro).
+- Gestión avanzada de juegos de llantas con profundidad de dibujo.
+
+### 3.2 Principios
+
+1. **Unidades explícitas.** Toda entrada guarda si usa `mi`/`km` y `gal`/`L`.
+   Nunca se asume una unidad.
+2. **Dos de tres.** Volumen, precio por unidad y total: el usuario ingresa dos y
+   la app calcula el tercero.
+3. **Odómetro real.** La fuente principal es el odómetro; la distancia
+   recorrida es una alternativa explícita.
+4. **Cálculo puro y testeable.** Conversiones, consumo, promedios y
+   recordatorios viven en `src/domain/vehicle`, no en componentes.
+5. **Registros como fuente financiera.** El gasto se refleja en `Records`; la
+   entrada de vehículo guarda el detalle técnico y el vínculo.
+6. **Sin doble captura.** Crear una entrada de combustible o mantenimiento
+   puede crear el gasto en la misma transacción.
+7. **Un vehículo por entrada.** Cada entrada pertenece a un vehículo; se
+   soportan varios vehículos.
+8. **Recordatorios inferidos.** El odómetro actual sale de las entradas más
+   recientes; el aceite y otros servicios se calculan desde el último servicio.
+9. **Colores del tema.** Los gráficos usan tokens editables, no colores
+   hardcodeados.
+10. **Android/iOS.** Web queda fuera de alcance, igual que el resto de la app.
+
+---
+
+## 4. Modelo de datos propuesto
+
+### 4.1 Diagrama
+
+```mermaid
+erDiagram
+  Vehicles ||--o{ VehicleFuelEntries : "tiene"
+  Vehicles ||--o{ VehicleMaintenance : "tiene"
+  Vehicles ||--o{ VehicleReminders : "programa"
+  Records ||--o| VehicleFuelEntries : "gasto"
+  Records ||--o| VehicleMaintenance : "gasto"
+  Categories ||--o{ VehicleFuelEntries : "clasifica"
+  PaymentMethods ||--o{ VehicleFuelEntries : "paga"
+```
+
+### 4.2 `Vehicles`
+
+Nombre lógico `Vehicles`, físico `vehicles`, entidad `Vehicle`.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | INTEGER PK | autoincrement |
+| `name` | TEXT NOT NULL | “Mi carro”, “Camioneta” |
+| `make` | TEXT | marca |
+| `model` | TEXT | modelo |
+| `year` | INTEGER | año |
+| `plate` | TEXT | placa |
+| `color` | TEXT | color |
+| `fuel_type` | TEXT NOT NULL DEFAULT `'gasoline'` | gasoline / diesel / hybrid / other |
+| `distance_unit` | TEXT NOT NULL DEFAULT `'mi'` | `mi` / `km` |
+| `volume_unit` | TEXT NOT NULL DEFAULT `'gal'` | `gal` / `L` |
+| `tank_capacity` | REAL | capacidad opcional |
+| `tank_capacity_unit` | TEXT | `gal` / `L` |
+| `is_default` | INTEGER boolean DEFAULT 0 | vehículo inicial |
+| `notes` | TEXT | notas |
+| `created_at`, `updated_at`, `deleted_at` | INTEGER timestamp | auditoría y soft delete |
+
+Reglas:
+
+- Solo un vehículo predeterminado a la vez; el repositorio desmarca el anterior
+  en la misma transacción.
+- `distance_unit` y `volume_unit` son valores por defecto para nuevas entradas,
+  no una restricción: cada entrada puede usar otra unidad.
+- `fuel_type` permite ocultar campos de combustible en el futuro para eléctricos.
+
+### 4.3 `VehicleFuelEntries`
+
+Nombre lógico `VehicleFuelEntries`, físico `vehicle_fuel_entries`, entidad
+`VehicleFuelEntry`.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | INTEGER PK | autoincrement |
+| `vehicle_id` | INTEGER NOT NULL | FK `Vehicles` CASCADE |
+| `date` | INTEGER timestamp NOT NULL | fecha de la compra |
+| `odometer` | REAL | lectura del odómetro real |
+| `distance_unit` | TEXT NOT NULL DEFAULT `'mi'` | unidad de `odometer`/`distance` |
+| `distance_traveled` | REAL | alternativa si no se ingresa odómetro |
+| `volume` | REAL NOT NULL | galones o litros |
+| `volume_unit` | TEXT NOT NULL DEFAULT `'gal'` | `gal` / `L` |
+| `price_per_unit` | INTEGER money NOT NULL | centavos por galón/litro |
+| `total_cost` | INTEGER money NOT NULL | centavos |
+| `is_full_tank` | INTEGER boolean NOT NULL DEFAULT 1 | tanque lleno |
+| `station` | TEXT | estación opcional |
+| `record_id` | INTEGER | FK `Records` SET NULL |
+| `notes` | TEXT | notas |
+| `created_at`, `updated_at`, `deleted_at` | INTEGER timestamp | auditoría y soft delete |
+
+Índices:
+
+- `(vehicle_id, date)` donde `deleted_at IS NULL`.
+- `(vehicle_id, odometer)` donde `deleted_at IS NULL`.
+- único parcial `(record_id)` donde `record_id IS NOT NULL` y
+  `deleted_at IS NULL`.
+- `(record_id)` para búsquedas.
+
+Reglas:
+
+- `volume > 0`, `price_per_unit > 0`, `total_cost > 0`.
+- Al menos uno de `odometer` o `distance_traveled` debe existir.
+- Si existen ambos, se valida que la diferencia con la entrada anterior sea
+  coherente; si no, se muestra una advertencia y se permite corregir.
+- `price_per_unit` se guarda en centavos y en la unidad de `volume_unit`.
+- `record_id` es opcional: el usuario puede guardar solo el registro técnico.
+- La entrada no duplica el gasto: el dinero vive en `Records`.
+
+### 4.4 `VehicleMaintenance`
+
+Nombre lógico `VehicleMaintenance`, físico `vehicle_maintenance`, entidad
+`VehicleMaintenanceEntry`.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | INTEGER PK | autoincrement |
+| `vehicle_id` | INTEGER NOT NULL | FK `Vehicles` CASCADE |
+| `date` | INTEGER timestamp NOT NULL | fecha del servicio |
+| `odometer` | REAL | odómetro al momento del servicio |
+| `distance_unit` | TEXT NOT NULL DEFAULT `'mi'` | unidad |
+| `service_type` | TEXT NOT NULL | `oil_change`, `tires`, `brakes`, `battery`, `filter`, `inspection`, `repair`, `other` |
+| `title` | TEXT NOT NULL | descripción corta |
+| `cost` | INTEGER money NOT NULL DEFAULT 0 | centavos |
+| `vendor` | TEXT | taller/proveedor |
+| `notes` | TEXT | piezas, detalles o factura |
+| `record_id` | INTEGER | FK `Records` SET NULL |
+| `created_at`, `updated_at`, `deleted_at` | INTEGER timestamp | auditoría y soft delete |
+
+Índices:
+
+- `(vehicle_id, date)` donde `deleted_at IS NULL`.
+- `(vehicle_id, service_type)` donde `deleted_at IS NULL`.
+- único parcial `(record_id)` donde `record_id IS NOT NULL` y
+  `deleted_at IS NULL`.
+
+Reglas:
+
+- `cost` puede ser 0 para servicios gratuitos o garantía.
+- `title` es obligatorio; `service_type` clasifica para estadísticas y
+  recordatorios.
+- Si `service_type = 'oil_change'`, el repositorio actualiza el recordatorio de
+  aceite correspondiente.
+- Para piezas múltiples se puede usar `notes` en la primera versión; una tabla
+  de líneas de piezas queda como mejora futura.
+
+### 4.5 `VehicleReminders`
+
+Nombre lógico `VehicleReminders`, físico `vehicle_reminders`, entidad
+`VehicleReminder`.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | INTEGER PK | autoincrement |
+| `vehicle_id` | INTEGER NOT NULL | FK `Vehicles` CASCADE |
+| `service_type` | TEXT NOT NULL | `oil_change`, `tire_rotation`, `air_filter`, `brake_fluid`, `inspection`, `insurance`, `other` |
+| `title` | TEXT NOT NULL | “Cambio de aceite” |
+| `interval_distance` | REAL | intervalo opcional |
+| `interval_distance_unit` | TEXT | `mi` / `km` |
+| `interval_months` | INTEGER | intervalo opcional |
+| `last_service_date` | INTEGER timestamp | último servicio |
+| `last_service_odometer` | REAL | odómetro del último servicio |
+| `odometer_unit` | TEXT | unidad del odómetro anterior |
+| `next_due_date` | INTEGER timestamp | fecha calculada |
+| `next_due_odometer` | REAL | odómetro calculado |
+| `is_active` | INTEGER boolean DEFAULT 1 | activo |
+| `notes` | TEXT | notas |
+| `created_at`, `updated_at`, `deleted_at` | INTEGER timestamp | auditoría y soft delete |
+
+Reglas:
+
+- Al menos uno de `interval_distance` o `interval_months` debe existir.
+- `next_due_odometer = last_service_odometer + interval_distance` en la misma
+  unidad.
+- `next_due_date = last_service_date + interval_months`.
+- El odómetro actual se obtiene del máximo entre `VehicleFuelEntries.odometer` y
+  `VehicleMaintenance.odometer`.
+- Estado:
+  - `overdue` si ya pasó la fecha o el odómetro.
+  - `due_soon` si queda menos del 10 % del intervalo o menos de 30 días.
+  - `ok` en caso contrario.
+- Los recordatorios no bloquean el registro de servicios; solo avisan.
+- Se pueden crear recordatorios para aceite, rotación de llantas, filtro de
+  aire, líquido de frenos, inspección, seguro y otros.
+
+### 4.6 Por qué no se guarda el gasto dos veces
+
+`VehicleFuelEntries` y `VehicleMaintenance` guardan detalle técnico y un
+`record_id` opcional. El dinero, la categoría, el método de pago y el grupo
+siguen viviendo en `Records`:
+
+- Presupuestos y resúmenes ya leen `Records`.
+- El usuario no captura el gasto dos veces.
+- Si no quiere afectar sus finanzas, guarda la entrada sin `record_id`.
+- El vínculo es uno a uno por el índice único parcial.
+
+---
+
+## 5. Unidades y cálculos
+
+### 5.1 Unidades permitidas
+
+Distancia:
+
+- `mi` (millas).
+- `km` (kilómetros).
+
+Volumen:
+
+- `gal` (galones).
+- `L` (litros).
+
+Combinaciones permitidas por entrada: `mi/gal`, `km/gal`, `mi/L`, `km/L`.
+No se restringe la combinación; se normaliza para comparar.
+
+Constantes:
+
+- `1 mi = 1.609344 km`.
+- `1 gal = 3.785411784 L`.
+
+### 5.2 Conversión de precios
+
+- Si el usuario ingresa precio por galón y cambia a litros, el precio por litro
+  se calcula con `precioGal / 3.785411784`.
+- Si ingresa precio por litro y cambia a galones, se multiplica.
+- El total y el volumen se conservan; el precio por unidad se recalcula.
+- Siempre se guarda el precio en la unidad de volumen de la entrada.
+
+### 5.3 Dos de tres
+
+El formulario permite editar `volumen`, `precio por unidad` y `total`.
+
+- Volumen + precio → `total = round(volumen × precio)`.
+- Volumen + total → `precio = round(total / volumen)`.
+- Precio + total → `volumen = round4(total / precio)`.
+- Si el usuario ingresa los tres y no son consistentes, se muestra una
+  advertencia y se le pide confirmar cuál valor recalcular.
+- El total y el precio se guardan en centavos; el volumen con hasta 4 decimales.
+- El campo calculado se muestra como solo lectura hasta que el usuario lo
+  edite explícitamente.
+
+### 5.4 Consumo y rendimiento
+
+Para una entrada o segmento:
+
+- `mpg = millas / galones`.
+- `km/L = kilómetros / litros`.
+- `L/100 km = (litros / kilómetros) × 100`.
+- `costo por milla = costo total / millas`.
+- `costo por km = costo total / kilómetros`.
+- `precio promedio por galón = costo total / galones`.
+- `precio promedio por litro = costo total / litros`.
+
+Reglas:
+
+- Los promedios de un periodo se calculan con distancia total y volumen total,
+  no con el promedio simple de cada entrada.
+- Se muestran `mi/gal`, `km/L` y `L/100 km` según la preferencia del vehículo.
+- Se redondea solo al mostrar; el cálculo interno conserva precisión.
+
+### 5.5 Entradas parciales y tanque lleno
+
+- `is_full_tank` permite el método preciso entre tanques llenos.
+- Segmento preciso: desde una entrada con tanque lleno hasta la siguiente;
+  distancia = odómetro final - odómetro inicial; volumen = suma de cargas del
+  segmento.
+- Si no hay suficientes tanques llenos, se usa el método estimado:
+  distancia desde la entrada anterior / volumen de la entrada actual.
+- La UI marca claramente “estimado” cuando no hay segmento completo.
+- El usuario puede desactivar “tanque lleno” para una carga parcial.
+
+### 5.6 Odómetro y distancia
+
+- Fuente principal: `odometer` del contador real.
+- Alternativa: `distance_traveled` si el usuario prefiere registrar las millas
+  recorridas.
+- Si se ingresa odómetro:
+  - la distancia se calcula como diferencia con la entrada anterior del mismo
+    vehículo;
+  - si no hay anterior, la entrada se guarda pero no genera consumo todavía.
+- Si se ingresa distancia:
+  - se usa directamente;
+  - si hay odómetro anterior, se puede calcular un odómetro estimado, pero se
+    guarda `odometer` como nulo para no inventar una lectura real.
+- Si ambos existen y no coinciden con la diferencia esperada, se advierte.
+- Nunca se reinicia un contador de viaje para calcular millas.
+
+### 5.7 Recordatorios y aceite
+
+- El odómetro actual es el máximo entre combustible y mantenimiento.
+- Para aceite:
+  - `faltan = next_due_odometer - odómetro_actual`.
+  - `días = next_due_date - hoy`.
+  - si `faltan <= 0` o `días <= 0`, está vencido.
+- El recordatorio se actualiza al registrar un mantenimiento de aceite.
+- Si no hay odómetro suficiente, la UI muestra “faltan datos” en lugar de un
+  valor inventado.
+- Se puede configurar intervalo en millas o kilómetros y en meses.
+
+---
+
+## 6. Integración con Registros
+
+### 6.1 Creación del gasto
+
+Al guardar combustible o mantenimiento:
+
+- La UI muestra “Agregar a Registros” activado por defecto.
+- Si está activo, se crea un `Records` en la misma transacción:
+  - `amount = total_cost` o `cost`;
+  - `date` = fecha de la entrada;
+  - `group_id` = grupo del mes/año de la fecha;
+  - `record_type_id` = tipo de gasto configurado;
+  - `category_id` = combustible o mantenimiento;
+  - `payment_method_id` = método elegido;
+  - `record_name = "Combustible · <vehículo>"` o `<servicio> · <vehículo>`;
+  - `fixed_id`, `paid_credit_id` = null.
+- La entrada guarda `record_id`.
+- Si falla la creación del gasto, no se guarda la entrada (transacción).
+
+### 6.2 Grupo del mes
+
+- Se busca un grupo por `year`/`month` de la fecha.
+- Si hay uno, se usa.
+- Si hay varios, se pide elegir.
+- Si no hay, se ofrece:
+  - crear el grupo del mes;
+  - guardar la entrada sin gasto;
+  - cancelar.
+- No se usa silenciosamente el grupo seleccionado en otra pantalla si no
+  coincide con la fecha.
+
+### 6.3 Edición y borrado
+
+- Editar total/fecha de una entrada con `record_id` ofrece sincronizar el gasto.
+- Borrar una entrada con `record_id` pregunta si también se elimina el gasto.
+- Si el gasto se borra desde Registros, la entrada conserva su detalle y muestra
+  “gasto no vinculado”.
+- Se puede vincular un gasto existente desde el formulario de la entrada
+  (búsqueda por fecha, importe y categoría) como mejora de la fase.
+
+### 6.4 Categorías y métodos de pago
+
+- Combustible: categoría existente `Gas` si existe; si no, se pide elegir/crear.
+- Mantenimiento: categoría de vehículo/mantenimiento; si no existe, se pide
+  elegir/crear.
+- Método de pago: selector con el último usado como sugerencia.
+- No se crean categorías automáticamente sin confirmación.
+
+---
+
+## 7. Experiencia de usuario
+
+### 7.1 Publicación
+
+- Quitar `drawerItemStyle: { display: 'none' }` de `(vehicle)`.
+- Título `headers.vehicle`: “Vehículo” / “Vehicle”.
+- Icono de auto/camión.
+- `StackBase` con tabs:
+  - `index`: Dashboard.
+  - `fuel`: Combustible.
+  - `maintenance`: Mantenimiento.
+  - `reminders`: Recordatorios.
+- No usar `Stack` interno; los editores son componentes/modales o estado local.
+
+### 7.2 Dashboard
+
+- Selector de vehículo y acción “Agregar vehículo”.
+- Tarjetas:
+  - odómetro actual;
+  - último consumo (`mi/gal`, `km/L` o `L/100 km`);
+  - gasto del mes;
+  - costo por milla/km;
+  - próximo cambio de aceite;
+  - mantenimientos próximos.
+- Últimas entradas de combustible y mantenimiento.
+- Acciones rápidas: “Cargar combustible”, “Registrar mantenimiento”,
+  “Agregar recordatorio”.
+- Estado vacío si no hay vehículo.
+
+### 7.3 Combustible
+
+- Lista histórica con:
+  - fecha, odómetro, distancia desde la anterior;
+  - volumen y unidad;
+  - precio por unidad y total;
+  - consumo y costo por distancia;
+  - indicador de tanque lleno/parcial;
+  - vínculo con Registros.
+- Filtros por vehículo, fecha y estación.
+- Formulario:
+  - vehículo, fecha, estación;
+  - odómetro o distancia;
+  - unidad de distancia;
+  - volumen y unidad;
+  - precio por unidad y total con cálculo automático;
+  - tanque lleno;
+  - categoría, método de pago y “Agregar a Registros”;
+  - notas.
+- Al cambiar unidades, convertir los valores mostrados y avisar.
+
+### 7.4 Mantenimiento
+
+- Lista por fecha/tipo.
+- Formulario:
+  - vehículo, fecha, odómetro y unidad;
+  - tipo de servicio;
+  - título/descripción;
+  - costo, proveedor, notas;
+  - recordatorio asociado (opcional);
+  - “Agregar a Registros”.
+- Si es cambio de aceite, actualizar el recordatorio de aceite.
+
+### 7.5 Recordatorios
+
+- Lista con estado: vencido, próximo, en orden, sin datos.
+- Formulario:
+  - vehículo, tipo, título;
+  - intervalo de distancia y unidad;
+  - intervalo en meses;
+  - último servicio: fecha y odómetro;
+  - activo.
+- Ejemplos: aceite, rotación de llantas, filtro de aire, líquido de frenos,
+  inspección, seguro, registro/placa.
+
+### 7.6 Estadísticas y gráficos
+
+- Consumo por periodo (semana/mes/año) en la unidad elegida.
+- Gasto en combustible por periodo.
+- Precio por galón/litro en el tiempo.
+- Gasto de combustible vs. mantenimiento.
+- Comparación periodo actual vs. anterior.
+- Comparación entre vehículos.
+- Rendimiento y costo por milla/km.
+- Mejor y peor consumo.
+- Gráficos con `MermaidChart`:
+  - barras/líneas para consumo y gasto;
+  - pie para distribución de gasto;
+  - siempre con leyenda de colores.
+- Nuevos tokens de tema editables para las series de vehículo:
+  `chartFuelCost`, `chartMaintenanceCost`, `chartConsumption`, `chartDistance`.
+  Deben agregarse a `ThemeColorTokens`, paletas bright/dark, `COLOR_GROUPS` y
+  Settings → Colors.
+
+### 7.7 Históricos y comparativas
+
+- Historial completo por vehículo.
+- Filtros por fecha, tipo y unidad de visualización.
+- Comparativas:
+  - mes actual vs. anterior;
+  - año actual vs. anterior;
+  - vehículo A vs. vehículo B;
+  - combustible vs. mantenimiento.
+- Exportar/importar sigue el sistema general de backup; no se agrega otro
+  formato.
+
+---
+
+## 8. Migración y compatibilidad
+
+### 8.1 Versión
+
+- `SCHEMA_VERSION` pasa de `6` a `7`.
+- Nueva migración `0007_vehicle_module.ts`.
+- Regenerar artefactos con `npm run db:generate`.
+
+### 8.2 Pasos
+
+1. Verificar si `fuel_refills` y `trip_logs` existen.
+2. Contar filas.
+   - Si están vacías, eliminarlas.
+   - Si tienen filas, conservarlas como `fuel_refills_legacy` y
+     `trip_logs_legacy` y registrar el conteo; no migrar automáticamente porque
+     el modelo nuevo requiere unidades y vehículo.
+3. Crear `vehicles`, `vehicle_fuel_entries`, `vehicle_maintenance` y
+   `vehicle_reminders`.
+4. Crear índices, triggers y FKs.
+5. Eliminar `FuelRefills` y `TripLogs` de `APP_SCHEMA`.
+6. Reemplazar `src/db/repositories/fuel.ts` por el repositorio de vehículo.
+7. Actualizar exports, tipos y validaciones.
+8. No crear vehículo por defecto: el usuario crea el primero.
+
+### 8.3 Reversibilidad
+
+- La migración no toca `Records` ni tablas financieras.
+- El backup general sigue funcionando.
+- Si se conservan las tablas legacy, no participan de la UI ni de los cálculos.
+
+---
+
+## 9. Arquitectura técnica propuesta
+
+### 9.1 Dominio
+
+- `src/domain/vehicle/types.ts`: tipos de unidades, entradas, estadísticas y
+  recordatorios.
+- `src/domain/vehicle/units.ts`: conversiones y formato.
+- `src/domain/vehicle/fuel.ts`:
+  - cálculo del tercer valor;
+  - distancia entre entradas;
+  - consumo por entrada y por segmento;
+  - promedios ponderados.
+- `src/domain/vehicle/stats.ts`: dashboard, periodos y comparativas.
+- `src/domain/vehicle/reminders.ts`: estado y cálculos de vencimiento.
+- Tests unitarios para todas las combinaciones de unidades y para los cálculos.
+
+### 9.2 Repositorios
+
+- `src/db/repositories/vehicle.ts`:
+  - `useVehiclesRepository`.
+  - `useVehicleFuelRepository`.
+  - `useVehicleMaintenanceRepository`.
+  - `useVehicleRemindersRepository`.
+  - `useVehicleStatsRepository` o métodos de consulta agregada.
+- Crear/editar/borrar entradas con transacción cuando se crea o sincroniza el
+  `Records`.
+- No SQL en UI.
+
+### 9.3 Estado y hooks
+
+- `src/hooks/useVehicle.ts`:
+  - vehículo seleccionado;
+  - datos del dashboard;
+  - refresco al volver a la pantalla.
+- `useVehicleStore` para el vehículo activo y filtros de periodo.
+- Evitar lógica de dinero en componentes.
+
+### 9.4 UI
+
+- `app/(vehicle)/_layout.tsx` con `StackBase` y tabs.
+- `app/(vehicle)/index.tsx`: dashboard.
+- `app/(vehicle)/fuel.tsx`: lista.
+- `app/(vehicle)/maintenance.tsx`: lista.
+- `app/(vehicle)/reminders.tsx`: lista.
+- `src/components/vehicle/`:
+  - `VehicleForm`;
+  - `FuelEntryForm`;
+  - `MaintenanceForm`;
+  - `ReminderForm`;
+  - `VehicleSelector`;
+  - `FuelEntryRow`;
+  - `MaintenanceRow`;
+  - `ReminderRow`;
+  - `VehicleStatsCards`;
+  - `VehicleCharts`.
+- Reutilizar `src/ui`: `Screen`, `Surface`, `SummaryBlock`, `FinanceValue`,
+  `ListItem`, `Badge`, `Modal`, `Dialog`, `MoneyField`, `SelectField`,
+  `DateField`, `TextField`, `SwitchField`, `MermaidChart`.
+
+---
+
+## 10. Traducciones y ayuda
+
+### 10.1 Traducciones
+
+- Nuevo dominio `src/lang/messages/vehicle.ts` con inglés y español.
+- Claves:
+  - `vehicle.overview.*`;
+  - `vehicle.form.*`;
+  - `vehicle.fuel.*`;
+  - `vehicle.maintenance.*`;
+  - `vehicle.reminders.*`;
+  - `vehicle.stats.*`;
+  - `vehicle.chart.*`;
+  - `vehicle.units.*`;
+  - `vehicle.empty.*`;
+  - `vehicle.records.*`;
+  - `vehicle.confirm.*`;
+  - `vehicle.toast.*`.
+- Agregar `headers.vehicle`.
+
+### 10.2 Ayuda
+
+- Nuevos temas:
+  - `vehicle`: qué es y cómo se organiza.
+  - `vehicleFuel`: odómetro, unidades, dos de tres y consumo.
+  - `vehicleMaintenance`: servicios, piezas y costos.
+  - `vehicleReminders`: aceite, intervalos y cálculo de vencimiento.
+- Cada tema con qué es, cómo funciona, pasos, ejemplo, consejos y error común.
+- Explicar que el consumo puede ser estimado si no hay tanques llenos.
+- Explicar que el gasto se crea en Registros y cómo desvincularlo.
+- Validar ejemplos con datos ficticios y con las mismas fórmulas del dominio.
+- Actualizar `HelpTopicId`, registry, mensajes y tests.
+
+---
+
+## 11. Pruebas y criterios de aceptación
+
+### 11.1 Base de datos
+
+- `test:db` cubre:
+  - migración que elimina las tablas viejas;
+  - creación de las cuatro tablas nuevas;
+  - FKs, índices únicos de `record_id`;
+  - triggers de auditoría;
+  - soft delete;
+  - backup/import.
+- `npm run db:generate` sin diferencias pendientes.
+
+### 11.2 Dominio
+
+- Conversiones mi/km y gal/L.
+- Cálculo del tercer valor en las tres combinaciones.
+- Consumo `mi/gal`, `km/L`, `L/100 km`.
+- Costo por milla/km.
+- Promedios ponderados por periodo.
+- Distancia desde odómetro y desde distancia directa.
+- Segmentos de tanque lleno y modo estimado.
+- Recordatorios: en orden, próximo y vencido.
+- Comparativas por periodo y vehículo.
+
+### 11.3 Integración con Registros
+
+- Crear entrada con “Agregar a Registros” genera un solo gasto.
+- Sin la opción activa no se crea gasto.
+- Grupo del mes correcto.
+- Falla de transacción no deja entradas huérfanas.
+- Editar/borrar sincroniza o desvincula según la confirmación.
+- Presupuestos y resúmenes reciben el gasto.
+
+### 11.4 Manual
+
+- Android/iOS, claro/oscuro.
+- Un vehículo y varios vehículos.
+- mi/km y gal/L en todas las combinaciones.
+- Entradas con solo odómetro, solo distancia y ambas.
+- Cargas parciales y tanque lleno.
+- Cambio de aceite antes/después del intervalo.
+- Gráficos y leyendas.
+- Textos largos y pantallas pequeñas.
+
+### 11.5 Criterios de aceptación
+
+- La sección aparece en el drawer y es navegable.
+- Se puede crear/editar/eliminar vehículo.
+- Se registra combustible con dos de tres valores y unidades explícitas.
+- Se calculan consumo, gasto y promedios.
+- Se registra mantenimiento y piezas.
+- El cambio de aceite muestra millas/km restantes.
+- Los gastos se crean en Registros sin doble captura.
+- Los históricos y comparativas funcionan.
+- Los gráficos usan el tema y tienen leyenda.
+- Migración, `npm run ci` y `npm run lint` en verde.
+- Ayuda y traducciones actualizadas.
+
+---
+
+## 12. Fases de ejecución
+
+### VEH-0 — Validación y decisiones
+
+- Validar este plan.
+- Confirmar múltiples vehículos, entrada de distancia, tanque lleno y creación
+  automática de Registros.
+- Definir categorías/métodos de pago por defecto.
+- Prototipo visual del formulario de combustible.
+
+**Salida:** decisiones cerradas y alcance congelado.
+
+### VEH-1 — Esquema y dominio
+
+- `0007_vehicle_module`, tablas nuevas, eliminación de las viejas.
+- Tipos, validaciones zod y artefactos.
+- `src/domain/vehicle` con unidades, consumo, promedios y recordatorios.
+- Tests de dominio.
+
+**Salida:** base de datos y cálculos probados.
+
+### VEH-2 — Repositorios e integración con Registros
+
+- Repositorios de vehículos, combustible, mantenimiento y recordatorios.
+- Transacción con `Records`.
+- Resolución de grupo, categorías y métodos de pago.
+- Tests de integración.
+
+**Salida:** datos persistentes y gastos vinculados.
+
+### VEH-3 — Vehículos y combustible
+
+- Dashboard inicial, selector y formulario de vehículo.
+- Lista y formulario de combustible con unidades y dos de tres.
+- Historial y vínculo con Registros.
+
+**Salida:** flujo principal de combustible.
+
+### VEH-4 — Mantenimiento y recordatorios
+
+- Lista y formulario de mantenimiento.
+- Recordatorios configurables.
+- Cambio de aceite inferido desde odómetro.
+- Otros servicios y piezas.
+
+**Salida:** seguimiento completo del vehículo.
+
+### VEH-5 — Estadísticas y gráficos
+
+- Dashboard con tarjetas y comparativas.
+- Gráficos Mermaid con nuevos tokens de tema.
+- Filtros de periodo y vehículo.
+- Históricos.
+
+**Salida:** estadísticas y decisiones.
+
+### VEH-6 — Publicación, ayuda y cierre
+
+- Quitar la sección del ocultamiento del drawer.
+- i18n, ayuda, documentación y tests finales.
+- QA Android/iOS.
+- Marcar Fase 8 como finalizada.
+
+---
+
+## 13. Riesgos y mitigaciones
+
+| Riesgo | Impacto | Mitigación |
+| --- | --- | --- |
+| Mezclar unidades y perder precisión | Alto | Guardar unidad explícita, normalizar solo en cálculo y tests |
+| Redondeo de precio/volumen | Medio | Centavos para dinero, 4 decimales para volumen, tolerancia de validación |
+| Odómetros inconsistentes | Medio | Advertir y permitir corrección; no bloquear datos históricos |
+| Cargas parciales | Medio | Método tanque lleno + modo estimado marcado |
+| Grupo del mes inexistente | Medio | Selector/creación explícita; opción sin gasto |
+| Duplicar gastos | Alto | `record_id` único y transacción |
+| Recordatorios con datos incompletos | Bajo | Mostrar “faltan datos”, no inventar |
+| Alcance de mantenimiento demasiado grande | Medio | MVP con entrada simple; líneas de piezas y fotos después |
+| Gráficos ilegibles | Medio | Tokens de tema, leyenda y paletas contrastadas |
+| Migración con datos inesperados | Bajo | Contar filas y conservar tablas legacy si hay datos |
+
+---
+
+## 14. Decisiones abiertas para validar
+
+1. **¿Varios vehículos?** Recomendado: sí, con uno predeterminado.
+2. **¿Odómetro, distancia o ambos?** Recomendado: ambos, odómetro como fuente
+   principal.
+3. **¿Tanque lleno por defecto?** Recomendado: sí, con opción de carga parcial
+   y modo estimado.
+4. **¿Crear el gasto en Registros por defecto?** Recomendado: sí, con toggle.
+5. **¿Qué categoría usar para combustible y mantenimiento?** Recomendado:
+   `Gas` para combustible y una categoría de mantenimiento; selector si no
+   existen.
+6. **¿Qué pasa si no hay grupo del mes?** Recomendado: pedir crear/seleccionar
+   o guardar sin gasto.
+7. **¿Electricidad/kWh?** Fuera de alcance en v1; `fuel_type` queda preparado.
+8. **¿Líneas de piezas?** Recomendado: `notes` en v1; tabla de ítems en una
+   fase futura.
+9. **¿Seguimiento GPS?** Fuera de alcance; el “tracking” es histórico de
+   odómetro, combustible, mantenimiento y recordatorios.
+
+---
+
+## 15. Archivos previstos
+
+### Esquema y datos
+
+- `src/db/schema/tables.ts`
+- `src/db/migrations/0007_vehicle_module.ts`
+- `src/db/migrations/index.ts`
+- `src/db/schema/generated/*` (generado)
+- `src/db/repositories/vehicle.ts`
+- `src/db/index.ts`
+- `src/validation/entities.ts`
+- `docs/schema.md`, `docs/database.md`
+
+### Dominio
+
+- `src/domain/vehicle/types.ts`
+- `src/domain/vehicle/units.ts`
+- `src/domain/vehicle/fuel.ts`
+- `src/domain/vehicle/stats.ts`
+- `src/domain/vehicle/reminders.ts`
+- `src/domain/vehicle/__tests__/*`
+
+### Estado y UI
+
+- `src/hooks/useVehicle.ts`
+- `src/stores/VehicleStore.ts`
+- `app/(vehicle)/_layout.tsx`
+- `app/(vehicle)/index.tsx`
+- `app/(vehicle)/fuel.tsx`
+- `app/(vehicle)/maintenance.tsx`
+- `app/(vehicle)/reminders.tsx`
+- `src/components/vehicle/*`
+- `app/_layout.tsx`
+- `src/ui/charts/MermaidChart.tsx` (reutilizar)
+- `src/ui/theme/*` (nuevos tokens de gráficos)
+
+### i18n y ayuda
+
+- `src/lang/messages/vehicle.ts`
+- `src/lang/messages/index.ts`
+- `src/lang/messages/help.ts`
+- `src/lang/messages/headers.ts`
+- `src/help/types.ts`
+- `src/help/registry.ts`
+- `src/help/__tests__/registry.test.ts`
+- `AGENTS.md`
+
+---
+
+## 16. Comandos de verificación
+
+```bash
+npm run typecheck
+npm run db:generate
+npm run test:db
+npm test
+npm run lint
+npm run ci
+npx expo export --platform android
+```
+
+Además:
+
+- probar con una base desde cero y con una base v6;
+- probar backups;
+- revisar claro/oscuro y textos largos;
+- revisar que los gastos aparezcan en Registros, resúmenes y presupuestos.
+
+---
+
+## 17. Resultado esperado
+
+Al cerrar la Fase 8, el usuario podrá:
+
+1. Abrir Vehículo desde el drawer.
+2. Crear uno o varios vehículos y elegir el predeterminado.
+3. Registrar una carga con odómetro real, galones/litros y precio/total
+   calculado automáticamente.
+4. Ver consumo, gasto, precio promedio, costo por milla/km e históricos.
+5. Comparar periodos y vehículos.
+6. Registrar mantenimiento, piezas y servicios.
+7. Recibir recordatorios de aceite y otros mantenimientos con distancia/fecha
+   restante.
+8. Crear el gasto en Registros sin capturarlo dos veces.
+9. Entender unidades, cálculos y recordatorios desde la ayuda.
+
+Todo con datos locales, unidades explícitas, migración segura y gráficos con el
+tema de la app.

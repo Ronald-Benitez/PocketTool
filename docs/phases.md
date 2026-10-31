@@ -1,6 +1,6 @@
 # Plan de fases
 
-**Última actualización:** 2026-10-29
+**Última actualización:** 2026-10-30
 
 ## Estado
 
@@ -14,6 +14,7 @@
 | Fase 5 — Traducciones tipadas | ✅ Finalizada | 2026-10-29 |
 | Fase 6 — Centro de ayuda | ✅ Finalizada | 2026-10-29 |
 | Fase 7 — Presupuestos | ✅ Finalizada | 2026-10-29 |
+| Fase 8 — Vehículo | 📝 Planificación | 2026-10-30 |
 
 El detalle histórico de las fases 0–3 vive en
 [`legacy/phase-history.md`](legacy/phase-history.md). El detalle de la Fase 4
@@ -145,9 +146,41 @@ Criterios de aceptación principales:
 - `npm run ci` y `npm run lint` en verde;
 - ayuda y traducciones actualizadas.
 
+## Fase 8 — Vehículo (📝 Planificación, 2026-10-30)
+
+**Plan completo:** [`vehicle-plan.md`](vehicle-plan.md)
+
+Objetivo: publicar la sección Vehículo y convertirla en un módulo de combustible,
+mantenimiento, estadísticas y recordatorios, con unidades configurables e
+integración con Registros.
+
+Incluye:
+
+- `Vehicles`, `VehicleFuelEntries`, `VehicleMaintenance` y `VehicleReminders`.
+- Eliminación de `FuelRefills` y `TripLogs` (sin datos de usuarios) y migración
+  `0007_vehicle_module`.
+- Odómetro real, distancia alternativa, unidades `mi`/`km` y `gal`/`L`.
+- Cálculo automático del tercero entre volumen, precio por unidad y total.
+- Consumo `mi/gal`, `km/L`, `L/100 km`, costo por milla/km y promedios.
+- Mantenimiento, piezas, cambio de aceite y recordatorios inferidos.
+- Integración transaccional con `Records`.
+- Dashboard, históricos, comparativas y gráficos Mermaid con leyenda.
+- i18n, ayuda y QA.
+
+Subfases:
+
+- **VEH-0:** validación del plan y decisiones de alcance.
+- **VEH-1:** esquema, migración, dominio de unidades/cálculos y tests.
+- **VEH-2:** repositorios e integración con Registros.
+- **VEH-3:** vehículos y combustible.
+- **VEH-4:** mantenimiento, piezas y recordatorios.
+- **VEH-5:** estadísticas, comparativas y gráficos.
+- **VEH-6:** publicación en drawer, i18n, ayuda, docs y QA.
+
 ## Documentación
 
 - [`README.md`](README.md): índice de documentación.
+- [`vehicle-plan.md`](vehicle-plan.md): plan de Vehículo (Fase 8).
 - [`legacy/budget-plan.md`](legacy/budget-plan.md): plan de Presupuestos
   archivado.
 - [`database.md`](database.md): documentación actual de la base de datos.

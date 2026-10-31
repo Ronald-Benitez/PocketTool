@@ -7,6 +7,8 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 
 - [`phases.md`](phases.md): estado actual y fases activas. El detalle histórico
   de fases completadas vive en `legacy/`.
+- [`vehicle-plan.md`](vehicle-plan.md): plan de la sección Vehículo (Fase 8):
+  combustible, mantenimiento, unidades, estadísticas y Registros.
 - [`database.md`](database.md): documentación actual de la base de datos,
   migraciones, triggers y backups.
 - [`schema.md`](schema.md): esquema generado desde
@@ -37,6 +39,7 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 | Fase 5 — Traducciones tipadas | ✅ Finalizada (2026-10-29) |
 | Fase 6 — Centro de ayuda | ✅ Finalizada (2026-10-29) |
 | Fase 7 — Presupuestos | ✅ Finalizada (2026-10-29) |
+| Fase 8 — Vehículo | 📝 Planificación (2026-10-30) |
 
 ## Regla de mantenimiento
 

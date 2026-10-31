@@ -20,6 +20,8 @@ métodos de pago, créditos, ahorros y vehículo.
 - **Fase 6 — Centro de ayuda: FINALIZADA** (2026-10-29).
 - **Fase 7 — Presupuestos: FINALIZADA** (2026-10-29). El plan archivado vive en
   [`docs/legacy/budget-plan.md`](docs/legacy/budget-plan.md).
+- **Fase 8 — Vehículo: EN PLANIFICACIÓN** (2026-10-30). El plan vive en
+  [`docs/vehicle-plan.md`](docs/vehicle-plan.md); no implementar sin validarlo.
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -313,6 +315,8 @@ npm run ci
 
 - [`docs/README.md`](docs/README.md): índice de documentación.
 - [`docs/phases.md`](docs/phases.md): estado actual y fases activas.
+- [`docs/vehicle-plan.md`](docs/vehicle-plan.md): plan de Vehículo (Fase 8):
+  combustible, mantenimiento, unidades, estadísticas y Registros.
 - [`docs/legacy/budget-plan.md`](docs/legacy/budget-plan.md): plan archivado de
   Presupuestos (Fase 7).
 - [`docs/schema.md`](docs/schema.md): esquema generado.
