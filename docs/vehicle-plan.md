@@ -1250,9 +1250,10 @@ Implementado:
   total, combustible total, precio medio y resumen por periodo.
 - Gráficos de gasto por periodo, progresión del consumo y comparación
   combustible vs mantenimiento.
-- Gráficos Mermaid responsivos: el SVG se escala al ancho disponible y, cuando
-  hay muchos puntos o categorías, el gráfico habilita desplazamiento horizontal
-  en lugar de recortar datos.
+- Gráficos Mermaid responsivos: altura fija, ancho según los datos y
+  desplazamiento horizontal cuando hay más puntos o categorías de los que caben.
+- La vista de datos de cada gráfico permite activar o desactivar categorías y
+  actualizar el gráfico en tiempo real, con opción de mostrar todo.
 - Listas de combustible, mantenimiento y recordatorios ordenadas de fecha más
   reciente a más antigua.
 - Crear gasto, vincular gasto existente o no vincular.

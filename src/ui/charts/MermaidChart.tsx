@@ -7,6 +7,7 @@ import { WebView } from 'react-native-webview';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { Button } from '@/src/ui/actions/Button';
 import { InlineMessage } from '@/src/ui/feedback/InlineMessage';
+import { SwitchField } from '@/src/ui/forms/SwitchField';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Row, Stack } from '@/src/ui/primitives/Stack';
 import { useTheme } from '@/src/ui/theme/ThemeProvider';
@@ -15,12 +16,86 @@ let cachedBundle: string | null = null;
 const EMPTY_PALETTE: string[] = [];
 const EMPTY_LEGEND: MermaidChartLegendItem[] = [];
 
-const estimateMinWidth = (definition: string) => {
+const estimateChartWidth = (definition: string) => {
+  if (!definition.startsWith('xychart')) return null;
   const xAxis = definition.match(/x-axis\s*\[(.*)\]/);
-  if (!xAxis) return null;
-  const labels = xAxis[1].match(/"[^"]*"/g)?.length ?? 0;
-  if (labels === 0) return null;
-  return Math.max(320, labels * 72);
+  const labels = xAxis?.[1].match(/"[^"]*"/g)?.length ?? 0;
+  return Math.max(360, labels * 64);
+};
+
+type ChartDataItem = {
+  key: string;
+  label: string;
+};
+
+const parseChartData = (definition: string): ChartDataItem[] => {
+  if (definition.startsWith('pie')) {
+    return definition.split('\n').flatMap((line, index) => {
+      const match = line.match(/^\s*"([^"]*)"\s*:\s*(.+)$/);
+      return match ? [{ key: `pie-${index}`, label: match[1] }] : [];
+    });
+  }
+
+  if (definition.startsWith('xychart')) {
+    const xAxis = definition.match(/x-axis\s*\[(.*)\]/);
+    return (xAxis?.[1].match(/"[^"]*"/g) ?? []).map((label, index) => ({
+      key: `x-${index}`,
+      label: label.slice(1, -1),
+    }));
+  }
+
+  return [];
+};
+
+const filterChartData = (
+  definition: string,
+  disabled: Set<string>
+): string | null => {
+  if (disabled.size === 0) return definition;
+
+  if (definition.startsWith('pie')) {
+    const lines = definition.split('\n');
+    let dataCount = 0;
+    let keptCount = 0;
+    const kept = lines.filter((line, index) => {
+      const match = line.match(/^\s*"([^"]*)"\s*:\s*(.+)$/);
+      if (!match) return true;
+      dataCount += 1;
+      if (disabled.has(`pie-${index}`)) return false;
+      keptCount += 1;
+      return true;
+    });
+    if (dataCount > 0 && keptCount === 0) return null;
+    return kept.join('\n');
+  }
+
+  if (definition.startsWith('xychart')) {
+    const lines = definition.split('\n');
+    const xAxisIndex = lines.findIndex((line) => /x-axis\s*\[/.test(line));
+    if (xAxisIndex < 0) return definition;
+    const labels = lines[xAxisIndex].match(/"[^"]*"/g) ?? [];
+    const indices = labels.flatMap((label, index) =>
+      disabled.has(`x-${index}`) ? [] : [index]
+    );
+    if (indices.length === 0) return null;
+
+    lines[xAxisIndex] = `  x-axis [${indices
+      .map((index) => labels[index])
+      .join(', ')}]`;
+
+    for (let index = 0; index < lines.length; index += 1) {
+      const match = lines[index].match(/^(\s*(?:bar|line)\s*)\[(.*)\]\s*$/);
+      if (!match) continue;
+      const values = match[2].split(',').map((value) => value.trim());
+      lines[index] = `${match[1]}[${indices
+        .map((valueIndex) => values[valueIndex] ?? '0')
+        .join(', ')}]`;
+    }
+
+    return lines.join('\n');
+  }
+
+  return definition;
 };
 
 const loadMermaidBundle = async () => {
@@ -49,7 +124,8 @@ const buildHtml = (
     income: string;
   },
   palette: string[],
-  minWidth: number | null
+  chartWidth: number | null,
+  chartHeight: number
 ) => {
   const safeBundle = bundle.replace(/<\/script/gi, '<\\/script');
   const pieVariables = palette
@@ -61,9 +137,9 @@ const buildHtml = (
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 <style>
-  html, body { margin: 0; padding: 0; width: 100%; max-width: 100%; overflow-x: auto; background: transparent; color: ${colors.text}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-  #chart { box-sizing: border-box; width: 100%; ${minWidth ? `min-width: ${minWidth}px;` : 'max-width: 100%;'} padding: 0 8px; overflow: visible; display: flex; align-items: center; justify-content: ${minWidth ? 'flex-start' : 'center'}; min-height: 120px; }
-  #chart svg { display: block; width: 100% !important; max-width: none !important; height: auto !important; }
+  html, body { margin: 0; padding: 0; width: 100%; max-width: 100%; overflow-x: auto; overflow-y: hidden; background: transparent; color: ${colors.text}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  #chart { box-sizing: border-box; ${chartWidth ? `width: ${chartWidth}px; min-width: 100%; height: ${chartHeight}px;` : 'width: 100%; max-width: 100%;'} padding: 0 8px; overflow: visible; display: flex; align-items: center; justify-content: ${chartWidth ? 'flex-start' : 'center'}; min-height: 120px; }
+  #chart svg { display: block; width: 100% !important; max-width: none !important; height: ${chartWidth ? '100%' : 'auto'} !important; }
   .error { color: ${colors.expense}; font-size: 13px; padding: 12px; }
 </style>
 </head>
@@ -83,6 +159,7 @@ const buildHtml = (
         startOnLoad: false,
         securityLevel: 'strict',
         theme: 'base',
+        ${chartWidth ? `xyChart: { width: ${chartWidth}, height: ${chartHeight} },` : ''}
         themeVariables: {
           background: '${colors.background}',
           primaryTextColor: '${colors.text}',
@@ -157,6 +234,22 @@ export const MermaidChart = ({
   const [bundle, setBundle] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showData, setShowData] = useState(false);
+  const [disabledData, setDisabledData] = useState<Set<string>>(
+    () => new Set()
+  );
+
+  const dataItems = useMemo(
+    () => (definition ? parseChartData(definition) : []),
+    [definition]
+  );
+  const displayDefinition = useMemo(
+    () => (definition ? filterChartData(definition, disabledData) : null),
+    [definition, disabledData]
+  );
+
+  useEffect(() => {
+    setDisabledData(new Set());
+  }, [definition]);
 
   useEffect(() => {
     let mounted = true;
@@ -174,16 +267,17 @@ export const MermaidChart = ({
     };
   }, []);
 
-  const minWidth = useMemo(
-    () => (definition ? estimateMinWidth(definition) : null),
-    [definition]
+  const chartWidth = useMemo(
+    () => (displayDefinition ? estimateChartWidth(displayDefinition) : null),
+    [displayDefinition]
   );
+  const chartHeight = Math.max(180, height - 16);
 
   const html = useMemo(() => {
-    if (!bundle || !definition) return null;
+    if (!bundle || !displayDefinition) return null;
     return buildHtml(
       bundle,
-      definition,
+      displayDefinition,
       {
         background: colors.surface,
         text: colors.text,
@@ -194,13 +288,15 @@ export const MermaidChart = ({
         income: colors.income,
       },
       palette,
-      minWidth
+      chartWidth,
+      chartHeight
     );
   }, [
     bundle,
-    definition,
+    displayDefinition,
     palette,
-    minWidth,
+    chartWidth,
+    chartHeight,
     colors.border,
     colors.expense,
     colors.income,
@@ -230,7 +326,7 @@ export const MermaidChart = ({
           />
         ) : html ? (
           <WebView
-            key={`${colors.background}-${definition}`}
+            key={`${colors.background}-${displayDefinition}`}
             source={{ html, baseUrl: 'about:blank' }}
             style={[styles.webview, { height }]}
             containerStyle={styles.webviewContainer}
@@ -258,6 +354,8 @@ export const MermaidChart = ({
               }
             }}
           />
+        ) : !displayDefinition ? (
+          <View style={styles.fallback}>{fallback}</View>
         ) : (
           <Stack gap='xs' style={styles.loading}>
             <AppText color='muted'>{t('budget.chart.title')}</AppText>
@@ -289,7 +387,42 @@ export const MermaidChart = ({
         size='sm'
         onPress={() => setShowData((value) => !value)}
       />
-      {showData ? fallback : null}
+      {showData ? (
+        dataItems.length > 0 ? (
+          <Stack gap='sm'>
+            <Row justify='space-between' align='center' gap='sm'>
+              <AppText variant='caption' color='muted' style={{ flex: 1 }}>
+                {t('budget.chart.dataHint')}
+              </AppText>
+              <Button
+                label={t('budget.chart.showAll')}
+                variant='ghost'
+                size='sm'
+                onPress={() => setDisabledData(new Set())}
+              />
+            </Row>
+            <Stack gap='xs'>
+              {dataItems.map((item) => (
+                <SwitchField
+                  key={item.key}
+                  label={item.label}
+                  value={!disabledData.has(item.key)}
+                  onChange={(enabled) => {
+                    setDisabledData((current) => {
+                      const next = new Set(current);
+                      if (enabled) next.delete(item.key);
+                      else next.add(item.key);
+                      return next;
+                    });
+                  }}
+                />
+              ))}
+            </Stack>
+          </Stack>
+        ) : (
+          fallback
+        )
+      ) : null}
     </Stack>
   );
 };
@@ -309,6 +442,11 @@ const styles = StyleSheet.create({
   loading: {
     minHeight: 180,
     alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+  },
+  fallback: {
+    minHeight: 120,
     justifyContent: 'center',
     padding: 16,
   },

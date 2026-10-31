@@ -179,6 +179,8 @@ export const budgetEn = {
     error: 'The chart could not be rendered.',
     viewData: 'View data',
     hideData: 'Hide data',
+    dataHint: 'Turn data on or off to update the chart.',
+    showAll: 'Show all',
   },
   toast: {
     planCreated: 'Plan created',
@@ -379,6 +381,8 @@ export const budgetEs: MessageShape<typeof budgetEn> = {
     error: 'No se pudo renderizar el gráfico.',
     viewData: 'Ver datos',
     hideData: 'Ocultar datos',
+    dataHint: 'Activa o desactiva datos para actualizar el gráfico.',
+    showAll: 'Mostrar todo',
   },
   toast: {
     planCreated: 'Plan creado',
