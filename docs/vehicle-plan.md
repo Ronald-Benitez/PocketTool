@@ -1252,8 +1252,10 @@ Implementado:
   combustible vs mantenimiento.
 - Gráficos Mermaid responsivos: altura fija, ancho según los datos y
   desplazamiento horizontal cuando hay más puntos o categorías de los que caben.
-- La vista de datos de cada gráfico permite activar o desactivar categorías y
-  actualizar el gráfico en tiempo real, con opción de mostrar todo.
+- La vista de datos de cada gráfico permite activar o desactivar categorías con
+  controles compactos y actualizar el gráfico en tiempo real, con opción de
+  mostrar todo.
+- Los gráficos de barra y línea tienen zoom de 75 % a 250 %.
 - Listas de combustible, mantenimiento y recordatorios ordenadas de fecha más
   reciente a más antigua.
 - Crear gasto, vincular gasto existente o no vincular.

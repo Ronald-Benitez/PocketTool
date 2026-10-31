@@ -181,6 +181,9 @@ export const budgetEn = {
     hideData: 'Hide data',
     dataHint: 'Turn data on or off to update the chart.',
     showAll: 'Show all',
+    zoom: 'Zoom',
+    zoomIn: 'Zoom in',
+    zoomOut: 'Zoom out',
   },
   toast: {
     planCreated: 'Plan created',
@@ -383,6 +386,9 @@ export const budgetEs: MessageShape<typeof budgetEn> = {
     hideData: 'Ocultar datos',
     dataHint: 'Activa o desactiva datos para actualizar el gráfico.',
     showAll: 'Mostrar todo',
+    zoom: 'Zoom',
+    zoomIn: 'Acercar',
+    zoomOut: 'Alejar',
   },
   toast: {
     planCreated: 'Plan creado',

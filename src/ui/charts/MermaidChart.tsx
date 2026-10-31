@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, View } from 'react-native';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system/legacy';
 import { WebView } from 'react-native-webview';
@@ -7,7 +7,6 @@ import { WebView } from 'react-native-webview';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { Button } from '@/src/ui/actions/Button';
 import { InlineMessage } from '@/src/ui/feedback/InlineMessage';
-import { SwitchField } from '@/src/ui/forms/SwitchField';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Row, Stack } from '@/src/ui/primitives/Stack';
 import { useTheme } from '@/src/ui/theme/ThemeProvider';
@@ -138,7 +137,7 @@ const buildHtml = (
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 <style>
   html, body { margin: 0; padding: 0; width: 100%; max-width: 100%; overflow-x: auto; overflow-y: hidden; background: transparent; color: ${colors.text}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-  #chart { box-sizing: border-box; ${chartWidth ? `width: ${chartWidth}px; min-width: 100%; height: ${chartHeight}px;` : 'width: 100%; max-width: 100%;'} padding: 0 8px; overflow: visible; display: flex; align-items: center; justify-content: ${chartWidth ? 'flex-start' : 'center'}; min-height: 120px; }
+  #chart { box-sizing: border-box; ${chartWidth ? `width: ${chartWidth}px; min-width: 100%; height: ${chartHeight}px; padding: 0;` : 'width: 100%; max-width: 100%; padding: 0 8px;'} overflow: visible; display: flex; align-items: center; justify-content: ${chartWidth ? 'flex-start' : 'center'}; min-height: 120px; }
   #chart svg { display: block; width: 100% !important; max-width: none !important; height: ${chartWidth ? '100%' : 'auto'} !important; }
   .error { color: ${colors.expense}; font-size: 13px; padding: 12px; }
 </style>
@@ -159,7 +158,13 @@ const buildHtml = (
         startOnLoad: false,
         securityLevel: 'strict',
         theme: 'base',
-        ${chartWidth ? `xyChart: { width: ${chartWidth}, height: ${chartHeight} },` : ''}
+        ${chartWidth ? `xyChart: {
+          width: ${chartWidth},
+          height: ${chartHeight},
+          plotReservedSpacePercent: 60,
+          xAxis: { labelPadding: 8, titlePadding: 8 },
+          yAxis: { labelPadding: 8, titlePadding: 10 }
+        },` : ''}
         themeVariables: {
           background: '${colors.background}',
           primaryTextColor: '${colors.text}',
@@ -237,6 +242,7 @@ export const MermaidChart = ({
   const [disabledData, setDisabledData] = useState<Set<string>>(
     () => new Set()
   );
+  const [zoom, setZoom] = useState(1);
 
   const dataItems = useMemo(
     () => (definition ? parseChartData(definition) : []),
@@ -249,6 +255,7 @@ export const MermaidChart = ({
 
   useEffect(() => {
     setDisabledData(new Set());
+    setZoom(1);
   }, [definition]);
 
   useEffect(() => {
@@ -267,11 +274,15 @@ export const MermaidChart = ({
     };
   }, []);
 
-  const chartWidth = useMemo(
+  const baseChartWidth = useMemo(
     () => (displayDefinition ? estimateChartWidth(displayDefinition) : null),
     [displayDefinition]
   );
-  const chartHeight = Math.max(180, height - 16);
+  const chartWidth = baseChartWidth
+    ? Math.round(baseChartWidth * zoom)
+    : null;
+  const resolvedHeight = baseChartWidth ? Math.max(380, height) : height;
+  const chartHeight = resolvedHeight - 20;
 
   const html = useMemo(() => {
     if (!bundle || !displayDefinition) return null;
@@ -328,7 +339,7 @@ export const MermaidChart = ({
           <WebView
             key={`${colors.background}-${displayDefinition}`}
             source={{ html, baseUrl: 'about:blank' }}
-            style={[styles.webview, { height }]}
+            style={[styles.webview, { height: resolvedHeight }]}
             containerStyle={styles.webviewContainer}
             originWhitelist={['about:blank']}
             javaScriptEnabled
@@ -379,6 +390,39 @@ export const MermaidChart = ({
           ))}
         </Row>
       ) : null}
+      {baseChartWidth ? (
+        <Row justify='space-between' align='center' gap='sm'>
+          <AppText variant='caption' color='muted'>
+            {t('budget.chart.zoom')}: {Math.round(zoom * 100)}%
+          </AppText>
+          <Row gap='xs' align='center'>
+            <Button
+              label='−'
+              variant='outline'
+              size='sm'
+              disabled={zoom <= 0.75}
+              accessibilityLabel={t('budget.chart.zoomOut')}
+              onPress={() =>
+                setZoom((value) =>
+                  Math.max(0.75, Math.round((value - 0.25) * 100) / 100)
+                )
+              }
+            />
+            <Button
+              label='+'
+              variant='outline'
+              size='sm'
+              disabled={zoom >= 2.5}
+              accessibilityLabel={t('budget.chart.zoomIn')}
+              onPress={() =>
+                setZoom((value) =>
+                  Math.min(2.5, Math.round((value + 0.25) * 100) / 100)
+                )
+              }
+            />
+          </Row>
+        </Row>
+      ) : null}
       <Button
         label={
           showData ? t('budget.chart.hideData') : t('budget.chart.viewData')
@@ -401,22 +445,40 @@ export const MermaidChart = ({
                 onPress={() => setDisabledData(new Set())}
               />
             </Row>
-            <Stack gap='xs'>
-              {dataItems.map((item) => (
-                <SwitchField
-                  key={item.key}
-                  label={item.label}
-                  value={!disabledData.has(item.key)}
-                  onChange={(enabled) => {
-                    setDisabledData((current) => {
-                      const next = new Set(current);
-                      if (enabled) next.delete(item.key);
-                      else next.add(item.key);
-                      return next;
-                    });
-                  }}
-                />
-              ))}
+            <Stack gap='xxs'>
+              {dataItems.map((item) => {
+                const enabled = !disabledData.has(item.key);
+                return (
+                  <View key={item.key} style={styles.dataRow}>
+                    <AppText
+                      variant='caption'
+                      numberOfLines={1}
+                      style={styles.dataLabel}
+                    >
+                      {item.label}
+                    </AppText>
+                    <Switch
+                      value={enabled}
+                      onValueChange={(value) => {
+                        setDisabledData((current) => {
+                          const next = new Set(current);
+                          if (value) next.delete(item.key);
+                          else next.add(item.key);
+                          return next;
+                        });
+                      }}
+                      style={styles.dataSwitch}
+                      trackColor={{
+                        false: colors.switchOff,
+                        true: colors.switchOn,
+                      }}
+                      thumbColor={enabled ? colors.onPrimary : colors.surface}
+                      ios_backgroundColor={colors.switchOff}
+                      accessibilityLabel={item.label}
+                    />
+                  </View>
+                );
+              })}
             </Stack>
           </Stack>
         ) : (
@@ -449,6 +511,19 @@ const styles = StyleSheet.create({
     minHeight: 120,
     justifyContent: 'center',
     padding: 16,
+  },
+  dataRow: {
+    minHeight: 34,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  dataLabel: {
+    flex: 1,
+  },
+  dataSwitch: {
+    transform: [{ scale: 0.8 }],
   },
   legendDot: {
     width: 10,
