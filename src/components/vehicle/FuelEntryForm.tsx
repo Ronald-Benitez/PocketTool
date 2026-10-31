@@ -38,6 +38,16 @@ const parseNumber = (value: string) => {
   return Number.isFinite(number) ? number : 0;
 };
 
+const isSameDay = (left: number, right: number) => {
+  const a = new Date(left);
+  const b = new Date(right);
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+};
+
 export const FuelEntryForm = ({
   visible,
   vehicle,
@@ -230,6 +240,7 @@ export const FuelEntryForm = ({
 
   const selectLinkedRecord = (option: VehicleExpenseOption) => {
     setLinkedRecord(option);
+    setDate(option.date);
     setTotalCost(option.amount);
     if (volumeNumber > 0) {
       setPricePerUnit(Math.round(option.amount / volumeNumber));
@@ -265,6 +276,14 @@ export const FuelEntryForm = ({
       totalCost !== linkedRecord.amount
     ) {
       setError(t('vehicle.records.amountMismatch'));
+      return;
+    }
+    if (
+      linkMode === 'link' &&
+      linkedRecord &&
+      !isSameDay(date, linkedRecord.date)
+    ) {
+      setError(t('vehicle.records.dateMismatch'));
       return;
     }
 

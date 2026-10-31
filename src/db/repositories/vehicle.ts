@@ -371,19 +371,20 @@ export const useVehicleFuelRepository = () => {
       finance?: VehicleEntryFinanceInput;
     }
   ) => {
-    const finance = input.finance ?? { linkMode: 'none' as const };
+    const { finance: financeInput, id, ...entryValues } = input;
+    const finance = financeInput ?? { linkMode: 'none' as const };
     return withExclusiveTransaction(db, async (txn) => {
       const fuel = new ORM(txn, 'VehicleFuelEntries');
-      const vehicle = await resolveVehicle(txn, input.vehicle_id);
+      const vehicle = await resolveVehicle(txn, entryValues.vehicle_id);
       if (!vehicle) throw new Error('VEHICLE_NOT_FOUND');
 
       const payload =
-        input.id !== undefined
-          ? vehicleFuelEntryUpdateSchema.parse(input)
-          : vehicleFuelEntryInputSchema.parse(input);
+        id !== undefined
+          ? vehicleFuelEntryUpdateSchema.parse(entryValues)
+          : vehicleFuelEntryInputSchema.parse(entryValues);
       const entryId =
-        input.id !== undefined
-          ? (await fuel.update(input.id, payload), input.id)
+        id !== undefined
+          ? (await fuel.update(id, payload), id)
           : await fuel.insert(payload as Insertable<VehicleFuelEntry>);
       const saved = (await fuel.getById(entryId)) as VehicleFuelEntry;
 
@@ -499,26 +500,32 @@ export const useVehicleMaintenanceRepository = () => {
       finance?: VehicleEntryFinanceInput;
     }
   ) => {
-    const finance = input.finance ?? { linkMode: 'none' as const };
+    const {
+      finance: financeInput,
+      items: itemsInput,
+      id,
+      ...entryValues
+    } = input;
+    const finance = financeInput ?? { linkMode: 'none' as const };
     return withExclusiveTransaction(db, async (txn) => {
       const maintenance = new ORM(txn, 'VehicleMaintenance');
-      const vehicle = await resolveVehicle(txn, input.vehicle_id);
+      const vehicle = await resolveVehicle(txn, entryValues.vehicle_id);
       if (!vehicle) throw new Error('VEHICLE_NOT_FOUND');
 
       const payload =
-        input.id !== undefined
-          ? vehicleMaintenanceUpdateSchema.parse(input)
-          : vehicleMaintenanceInputSchema.parse(input);
+        id !== undefined
+          ? vehicleMaintenanceUpdateSchema.parse(entryValues)
+          : vehicleMaintenanceInputSchema.parse(entryValues);
       const entryId =
-        input.id !== undefined
-          ? (await maintenance.update(input.id, payload), input.id)
+        id !== undefined
+          ? (await maintenance.update(id, payload), id)
           : await maintenance.insert(payload as Insertable<VehicleMaintenanceEntry>);
       const saved = (await maintenance.getById(entryId)) as VehicleMaintenanceEntry;
 
-      if (input.items) {
+      if (itemsInput) {
         const items = new ORM(txn, 'VehicleMaintenanceItems');
         await items.deleteWhere('maintenance_id', entryId);
-        for (const item of input.items) {
+        for (const item of itemsInput) {
           await items.insert(
             vehicleMaintenanceItemInputSchema.parse({
               ...item,
@@ -623,23 +630,24 @@ export const useVehicleRemindersRepository = () => {
   const saveReminder = async (
     input: z.infer<typeof vehicleReminderInputSchema> & { id?: number }
   ) => {
+    const { id, ...values } = input;
     const payload =
-      input.id !== undefined
-        ? vehicleReminderUpdateSchema.parse(input)
-        : vehicleReminderInputSchema.parse(input);
+      id !== undefined
+        ? vehicleReminderUpdateSchema.parse(values)
+        : vehicleReminderInputSchema.parse(values);
     const next = computeNextDue({
-      ...input,
-      service_type: input.service_type,
-      title: input.title,
+      ...values,
+      service_type: values.service_type,
+      title: values.title,
     } as z.infer<typeof vehicleReminderInputSchema>);
     const merged = {
       ...payload,
-      next_due_date: input.next_due_date ?? next.nextDate,
-      next_due_odometer: input.next_due_odometer ?? next.nextOdometer,
+      next_due_date: values.next_due_date ?? next.nextDate,
+      next_due_odometer: values.next_due_odometer ?? next.nextOdometer,
     };
-    if (input.id !== undefined) {
-      await remindersOrm.update(input.id, merged);
-      return input.id;
+    if (id !== undefined) {
+      await remindersOrm.update(id, merged);
+      return id;
     }
     return remindersOrm.insert(merged as Insertable<VehicleReminder>);
   };

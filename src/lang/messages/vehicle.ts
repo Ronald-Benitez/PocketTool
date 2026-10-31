@@ -181,6 +181,7 @@ export const vehicleEn = {
     linked: 'Expense linked',
     linkedTo: 'Linked to {name}',
     amountMismatch: 'The total must match the amount of the linked expense.',
+    dateMismatch: 'The date must match the date of the linked expense.',
   },
   confirm: {
     deleteVehicle: 'Delete this vehicle and all its fuel and maintenance entries?',
@@ -389,6 +390,7 @@ export const vehicleEs: MessageShape<typeof vehicleEn> = {
     linked: 'Gasto vinculado',
     linkedTo: 'Vinculado a {name}',
     amountMismatch: 'El total debe coincidir con el monto del gasto vinculado.',
+    dateMismatch: 'La fecha debe coincidir con la fecha del gasto vinculado.',
   },
   confirm: {
     deleteVehicle: '¿Eliminar este vehículo y todas sus entradas de combustible y mantenimiento?',

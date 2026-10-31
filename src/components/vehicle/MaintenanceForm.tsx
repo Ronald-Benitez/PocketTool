@@ -47,6 +47,16 @@ const serviceTypes = [
   'other',
 ] as const;
 
+const isSameDay = (left: number, right: number) => {
+  const a = new Date(left);
+  const b = new Date(right);
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+};
+
 export const MaintenanceForm = ({
   visible,
   vehicle,
@@ -184,6 +194,7 @@ export const MaintenanceForm = ({
 
   const selectLinkedRecord = (option: VehicleExpenseOption) => {
     setLinkedRecord(option);
+    setDate(option.date);
     setCost(option.amount);
   };
 
@@ -202,6 +213,14 @@ export const MaintenanceForm = ({
     }
     if (linkMode === 'link' && linkedRecord && cost !== linkedRecord.amount) {
       setError(t('vehicle.records.amountMismatch'));
+      return;
+    }
+    if (
+      linkMode === 'link' &&
+      linkedRecord &&
+      !isSameDay(date, linkedRecord.date)
+    ) {
+      setError(t('vehicle.records.dateMismatch'));
       return;
     }
     setSaving(true);
