@@ -4,13 +4,13 @@ import { StyleSheet, View } from 'react-native';
 import {
   useCategories,
   usePaymentMethods,
-  useVehicleExpenseLinksRepository,
   useVehicleFuelRepository,
   useVehicleSettingsRepository,
 } from '@/src/db';
 import type { VehicleFuelEntryView } from '@/src/db/repositories/vehicle';
 import type { VehicleExpenseOption } from '@/src/db/repositories/vehicle';
 import type { Vehicle, VehicleSetting } from '@/src/interfaces/schema';
+import useRecordsStore from '@/src/stores/RecordsStore';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { Button } from '@/src/ui/actions/Button';
 import { InlineMessage } from '@/src/ui/feedback/InlineMessage';
@@ -22,6 +22,7 @@ import { SwitchField } from '@/src/ui/forms/SwitchField';
 import { TextField } from '@/src/ui/forms/TextField';
 import { ConfirmDialog } from '@/src/ui/overlays/Dialog';
 import { Modal } from '@/src/ui/overlays/Modal';
+import { AppText } from '@/src/ui/primitives/AppText';
 import { VehicleExpensePicker } from './VehicleExpensePicker';
 
 type FuelEntryFormProps = {
@@ -57,8 +58,8 @@ export const FuelEntryForm = ({
 }: FuelEntryFormProps) => {
   const { t } = useLanguage();
   const { showToast } = useToast();
+  const { group } = useRecordsStore();
   const repository = useVehicleFuelRepository();
-  const expenseRepository = useVehicleExpenseLinksRepository();
   const settingsRepository = useVehicleSettingsRepository();
   const categoriesRepository = useCategories();
   const paymentsRepository = usePaymentMethods();
@@ -80,7 +81,6 @@ export const FuelEntryForm = ({
   const [categories, setCategories] = useState<{ id?: number; category_name: string }[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<{ id?: number; method_name: string }[]>([]);
   const [settings, setSettings] = useState<VehicleSetting[]>([]);
-  const [groups, setGroups] = useState<{ id?: number; group_name: string }[]>([]);
   const [groupId, setGroupId] = useState<number | null>(null);
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [paymentMethodId, setPaymentMethodId] = useState<number | null>(null);
@@ -106,7 +106,7 @@ export const FuelEntryForm = ({
     setIsFullTank(entry ? Boolean(entry.is_full_tank) : true);
     setStation(entry?.station ?? '');
     setNotes(entry?.notes ?? '');
-    setLinkMode(entry?.record_id ? 'create' : 'create');
+    setLinkMode(entry?.record_id ? 'link' : 'create');
     setLinkedRecord(
       entry?.record_id
         ? {
@@ -146,17 +146,8 @@ export const FuelEntryForm = ({
 
   useEffect(() => {
     if (!visible) return;
-    let active = true;
-    expenseRepository.listGroupsForDate(date).then((rows) => {
-      if (!active) return;
-      setGroups(rows);
-      if (rows.length === 1) setGroupId(rows[0].id ?? null);
-      else if (rows.length === 0) setGroupId(null);
-    });
-    return () => {
-      active = false;
-    };
-  }, [visible, date]);
+    setGroupId(group?.id ?? null);
+  }, [visible, group?.id, date]);
 
   useEffect(() => {
     if (!visible || entry) return;
@@ -182,9 +173,7 @@ export const FuelEntryForm = ({
       ),
     [paymentMethods]
   );
-  const groupOptions = groups.flatMap((group) =>
-    group.id === undefined ? [] : [{ label: group.group_name, value: group.id }]
-  );
+
 
   const setVolumeAndRecalculate = (value: string) => {
     setVolume(value);
@@ -487,13 +476,10 @@ export const FuelEntryForm = ({
                 options={paymentOptions}
                 onChange={setPaymentMethodId}
               />
-              {groups.length > 0 ? (
-                <SelectField
-                  label={t('vehicle.records.group')}
-                  value={groupId}
-                  options={groupOptions}
-                  onChange={setGroupId}
-                />
+              {group ? (
+                <AppText variant='caption' color='muted'>
+                  {t('vehicle.records.group')}: {group.group_name}
+                </AppText>
               ) : (
                 <InlineMessage variant='warning' message={t('vehicle.records.groupRequired')} />
               )}

@@ -4,7 +4,6 @@ import { StyleSheet, View } from 'react-native';
 import {
   useCategories,
   usePaymentMethods,
-  useVehicleExpenseLinksRepository,
   useVehicleMaintenanceRepository,
   useVehicleSettingsRepository,
 } from '@/src/db';
@@ -13,6 +12,7 @@ import type {
   VehicleMaintenanceView,
 } from '@/src/db/repositories/vehicle';
 import type { Vehicle, VehicleSetting } from '@/src/interfaces/schema';
+import useRecordsStore from '@/src/stores/RecordsStore';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { Button } from '@/src/ui/actions/Button';
 import { ListItem } from '@/src/ui/data-display/ListItem';
@@ -24,6 +24,7 @@ import { SelectField } from '@/src/ui/forms/SelectField';
 import { TextField } from '@/src/ui/forms/TextField';
 import { ConfirmDialog } from '@/src/ui/overlays/Dialog';
 import { Modal } from '@/src/ui/overlays/Modal';
+import { AppText } from '@/src/ui/primitives/AppText';
 import { Stack } from '@/src/ui/primitives/Stack';
 import { MaintenanceItemForm, type MaintenanceItemDraft } from './MaintenanceItemForm';
 import { VehicleExpensePicker } from './VehicleExpensePicker';
@@ -66,8 +67,8 @@ export const MaintenanceForm = ({
 }: MaintenanceFormProps) => {
   const { t } = useLanguage();
   const { showToast } = useToast();
+  const { group } = useRecordsStore();
   const repository = useVehicleMaintenanceRepository();
-  const expenseRepository = useVehicleExpenseLinksRepository();
   const settingsRepository = useVehicleSettingsRepository();
   const categoriesRepository = useCategories();
   const paymentsRepository = usePaymentMethods();
@@ -85,7 +86,6 @@ export const MaintenanceForm = ({
   const [categories, setCategories] = useState<{ id?: number; category_name: string }[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<{ id?: number; method_name: string }[]>([]);
   const [settings, setSettings] = useState<VehicleSetting[]>([]);
-  const [groups, setGroups] = useState<{ id?: number; group_name: string }[]>([]);
   const [groupId, setGroupId] = useState<number | null>(null);
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [paymentMethodId, setPaymentMethodId] = useState<number | null>(null);
@@ -113,7 +113,7 @@ export const MaintenanceForm = ({
       unit: item.unit,
       cost: item.cost,
     })) ?? []);
-    setLinkMode('create');
+    setLinkMode(entry?.record_id ? 'link' : 'create');
     setLinkedRecord(
       entry?.record_id
         ? {
@@ -160,17 +160,8 @@ export const MaintenanceForm = ({
 
   useEffect(() => {
     if (!visible) return;
-    let active = true;
-    expenseRepository.listGroupsForDate(date).then((rows) => {
-      if (!active) return;
-      setGroups(rows);
-      if (rows.length === 1) setGroupId(rows[0].id ?? null);
-      else if (rows.length === 0) setGroupId(null);
-    });
-    return () => {
-      active = false;
-    };
-  }, [visible, date]);
+    setGroupId(group?.id ?? null);
+  }, [visible, group?.id]);
 
   const categoryOptions = useMemo(
     () =>
@@ -188,9 +179,7 @@ export const MaintenanceForm = ({
       ),
     [paymentMethods]
   );
-  const groupOptions = groups.flatMap((group) =>
-    group.id === undefined ? [] : [{ label: group.group_name, value: group.id }]
-  );
+
 
   const selectLinkedRecord = (option: VehicleExpenseOption) => {
     setLinkedRecord(option);
@@ -427,13 +416,10 @@ export const MaintenanceForm = ({
                 options={paymentOptions}
                 onChange={setPaymentMethodId}
               />
-              {groups.length > 0 ? (
-                <SelectField
-                  label={t('vehicle.records.group')}
-                  value={groupId}
-                  options={groupOptions}
-                  onChange={setGroupId}
-                />
+              {group ? (
+                <AppText variant='caption' color='muted'>
+                  {t('vehicle.records.group')}: {group.group_name}
+                </AppText>
               ) : (
                 <InlineMessage variant='warning' message={t('vehicle.records.groupRequired')} />
               )}
