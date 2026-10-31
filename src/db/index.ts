@@ -10,6 +10,12 @@ export {
   useBudgetTemplatesRepository,
   usePaymentMethodsRepository,
   usePaidCreditsRepository,
+  useVehiclesRepository,
+  useVehicleFuelRepository,
+  useVehicleMaintenanceRepository,
+  useVehicleRemindersRepository,
+  useVehicleSettingsRepository,
+  useVehicleExpenseLinksRepository,
 } from './repositories';
 
 export { useRecordsRepository as useRecords } from './repositories';
@@ -22,14 +28,7 @@ export { useBudgetPlansRepository as useBudgetPlans } from './repositories';
 export { useBudgetTemplatesRepository as useBudgetTemplates } from './repositories';
 export { usePaymentMethodsRepository as usePaymentMethods } from './repositories';
 export { usePaidCreditsRepository as usePaidCredits } from './repositories';
-export { useFuelRepository } from './repositories/fuel';
-export type {
-  FuelBlockAnalytics,
-  FuelRefillRow,
-  FuelSummary,
-  TripLogRow,
-  TripMetrics,
-} from './repositories/fuel';
+
 
 export interface ResumeByCreditCards {
   creditCardName: string;

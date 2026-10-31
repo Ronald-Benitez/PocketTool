@@ -37,6 +37,22 @@ export {
   useBudgetPlansRepository,
   useBudgetTemplatesRepository,
 } from './budgets';
+export {
+  useVehiclesRepository,
+  useVehicleFuelRepository,
+  useVehicleMaintenanceRepository,
+  useVehicleRemindersRepository,
+  useVehicleSettingsRepository,
+  useVehicleExpenseLinksRepository,
+} from './vehicle';
+export type {
+  VehicleEntryFinanceInput,
+  VehicleExpenseOption,
+  VehicleFuelEntryView,
+  VehicleLinkMode,
+  VehicleMaintenanceItemView,
+  VehicleMaintenanceView,
+} from './vehicle';
 export type {
   BudgetLineInput,
   BudgetPlanInput,

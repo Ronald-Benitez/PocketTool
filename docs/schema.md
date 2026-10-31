@@ -3,7 +3,7 @@
 > Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.
 > Fuente de verdad: `src/db/schema/tables.ts`.
 
-Versión de esquema: **6**
+Versión de esquema: **7**
 
 ## Convenciones
 
@@ -31,8 +31,13 @@ Versión de esquema: **6**
 | `Savings` | `savings` | `Saving` | 6 | 0 |
 | `SavingsHistory` | `savings_history` | `SavingsHistoryEntry` | 8 | 1 |
 | `Migrations` | `migrations` | `Migration` | 3 | 0 |
-| `FuelRefills` | `fuel_refills` | `FuelRefill` | 11 | 1 |
-| `TripLogs` | `trip_logs` | `TripLog` | 10 | 1 |
+| `Vehicles` | `vehicles` | `Vehicle` | 18 | 1 |
+| `VehicleFuelEntries` | `vehicle_fuel_entries` | `VehicleFuelEntry` | 18 | 2 |
+| `VehicleMaintenance` | `vehicle_maintenance` | `VehicleMaintenanceEntry` | 13 | 2 |
+| `VehicleMaintenanceItems` | `vehicle_maintenance_items` | `VehicleMaintenanceItem` | 10 | 1 |
+| `VehicleReminders` | `vehicle_reminders` | `VehicleReminder` | 17 | 1 |
+| `VehicleSettings` | `vehicle_settings` | `VehicleSetting` | 6 | 0 |
+| `VehicleExpenseLinks` | `vehicle_expense_links` | `VehicleExpenseLink` | 6 | 3 |
 
 ## Groups (`groups`)
 
@@ -357,48 +362,188 @@ Entidad TypeScript: `Migration`
 | `migration_name` | `TEXT` | `string` | NOT NULL, UNIQUE |
 | `applied_at` | `INTEGER` | `TimestampMs` | NOT NULL, kind=timestamp |
 
-## FuelRefills (`fuel_refills`)
+## Vehicles (`vehicles`)
 
-Entidad TypeScript: `FuelRefill`
+Entidad TypeScript: `Vehicle`
 
 | Columna | SQL | TS | Notas |
 | --- | --- | --- | --- |
 | `id` | `INTEGER` | `number` | PK, autoincrement |
-| `date` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
-| `odometer_reading` | `REAL` | `number` | NOT NULL |
-| `total_cost` | `INTEGER` | `Cents` | NOT NULL, kind=money |
-| `gallons` | `REAL` | `number` | NOT NULL |
-| `price_per_gallon` | `INTEGER` | `Cents` | NOT NULL, kind=money |
-| `is_full_tank` | `INTEGER` | `boolean | number` | NOT NULL, kind=boolean |
+| `name` | `TEXT` | `string` | NOT NULL |
+| `make` | `TEXT` | `string` |  |
+| `model` | `TEXT` | `string` |  |
+| `year` | `INTEGER` | `number` |  |
+| `plate` | `TEXT` | `string` |  |
+| `color` | `TEXT` | `string` |  |
+| `fuel_type` | `TEXT` | `string` | NOT NULL, default="gasoline" |
+| `distance_unit` | `TEXT` | `string` | NOT NULL, default="mi" |
+| `volume_unit` | `TEXT` | `string` | NOT NULL, default="gal" |
+| `consumption_format` | `TEXT` | `string` | NOT NULL, default="mi_gal" |
+| `tank_capacity` | `REAL` | `number` |  |
+| `tank_capacity_unit` | `TEXT` | `string` |  |
+| `is_default` | `INTEGER` | `boolean | number` | NOT NULL, kind=boolean, default=0 |
 | `notes` | `TEXT` | `string` |  |
 | `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 
 Índices:
-- `idx_fuel_refills_active` (odometer_reading) WHERE deleted_at IS NULL
+- `idx_vehicles_default` (is_default) UNIQUE WHERE is_default = 1 AND deleted_at IS NULL
 
 Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
 
-## TripLogs (`trip_logs`)
+## VehicleFuelEntries (`vehicle_fuel_entries`)
 
-Entidad TypeScript: `TripLog`
+Entidad TypeScript: `VehicleFuelEntry`
 
 | Columna | SQL | TS | Notas |
 | --- | --- | --- | --- |
 | `id` | `INTEGER` | `number` | PK, autoincrement |
-| `date` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
-| `distance_traveled` | `REAL` | `number` | NOT NULL |
-| `average_consumption` | `REAL` | `number` |  |
-| `is_counter_reset` | `INTEGER` | `boolean | number` | kind=boolean |
-| `trip_type` | `TEXT` | `string` |  |
+| `vehicle_id` | `INTEGER` | `number` | NOT NULL, FK → Vehicles.id ON DELETE CASCADE |
+| `date` | `INTEGER` | `TimestampMs` | NOT NULL, kind=timestamp |
+| `odometer` | `REAL` | `number` |  |
+| `odometer_source` | `TEXT` | `string` |  |
+| `distance_unit` | `TEXT` | `string` | NOT NULL, default="mi" |
+| `distance_traveled` | `REAL` | `number` |  |
+| `distance_source` | `TEXT` | `string` |  |
+| `volume` | `REAL` | `number` | NOT NULL |
+| `volume_unit` | `TEXT` | `string` | NOT NULL, default="gal" |
+| `price_per_unit` | `INTEGER` | `Cents` | NOT NULL, kind=money |
+| `total_cost` | `INTEGER` | `Cents` | NOT NULL, kind=money |
+| `is_full_tank` | `INTEGER` | `boolean | number` | NOT NULL, kind=boolean, default=1 |
+| `station` | `TEXT` | `string` |  |
 | `notes` | `TEXT` | `string` |  |
 | `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 
+Relaciones navegables: `Vehicles`
+
 Índices:
-- `idx_trip_logs_active` (date) WHERE deleted_at IS NULL
+- `idx_vehicle_fuel_vehicle_date` (vehicle_id, date) WHERE deleted_at IS NULL
+- `idx_vehicle_fuel_vehicle_odometer` (vehicle_id, odometer) WHERE deleted_at IS NULL
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
+## VehicleMaintenance (`vehicle_maintenance`)
+
+Entidad TypeScript: `VehicleMaintenanceEntry`
+
+| Columna | SQL | TS | Notas |
+| --- | --- | --- | --- |
+| `id` | `INTEGER` | `number` | PK, autoincrement |
+| `vehicle_id` | `INTEGER` | `number` | NOT NULL, FK → Vehicles.id ON DELETE CASCADE |
+| `date` | `INTEGER` | `TimestampMs` | NOT NULL, kind=timestamp |
+| `odometer` | `REAL` | `number` |  |
+| `distance_unit` | `TEXT` | `string` | NOT NULL, default="mi" |
+| `service_type` | `TEXT` | `string` | NOT NULL |
+| `title` | `TEXT` | `string` | NOT NULL |
+| `cost` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
+| `vendor` | `TEXT` | `string` |  |
+| `notes` | `TEXT` | `string` |  |
+| `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Relaciones navegables: `Vehicles`
+
+Índices:
+- `idx_vehicle_maintenance_vehicle_date` (vehicle_id, date) WHERE deleted_at IS NULL
+- `idx_vehicle_maintenance_vehicle_type` (vehicle_id, service_type) WHERE deleted_at IS NULL
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
+## VehicleMaintenanceItems (`vehicle_maintenance_items`)
+
+Entidad TypeScript: `VehicleMaintenanceItem`
+
+| Columna | SQL | TS | Notas |
+| --- | --- | --- | --- |
+| `id` | `INTEGER` | `number` | PK, autoincrement |
+| `maintenance_id` | `INTEGER` | `number` | NOT NULL, FK → VehicleMaintenance.id ON DELETE CASCADE |
+| `name` | `TEXT` | `string` | NOT NULL |
+| `notes` | `TEXT` | `string` |  |
+| `quantity` | `REAL` | `number` |  |
+| `unit` | `TEXT` | `string` |  |
+| `cost` | `INTEGER` | `Cents` | kind=money |
+| `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Relaciones navegables: `VehicleMaintenance`, `VehicleMaintenance.Vehicles`
+
+Índices:
+- `idx_vehicle_maintenance_items_maintenance` (maintenance_id) WHERE deleted_at IS NULL
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
+## VehicleReminders (`vehicle_reminders`)
+
+Entidad TypeScript: `VehicleReminder`
+
+| Columna | SQL | TS | Notas |
+| --- | --- | --- | --- |
+| `id` | `INTEGER` | `number` | PK, autoincrement |
+| `vehicle_id` | `INTEGER` | `number` | NOT NULL, FK → Vehicles.id ON DELETE CASCADE |
+| `service_type` | `TEXT` | `string` | NOT NULL |
+| `title` | `TEXT` | `string` | NOT NULL |
+| `interval_distance` | `REAL` | `number` |  |
+| `interval_distance_unit` | `TEXT` | `string` |  |
+| `interval_months` | `INTEGER` | `number` |  |
+| `last_service_date` | `INTEGER` | `TimestampMs` | kind=timestamp |
+| `last_service_odometer` | `REAL` | `number` |  |
+| `odometer_unit` | `TEXT` | `string` |  |
+| `next_due_date` | `INTEGER` | `TimestampMs` | kind=timestamp |
+| `next_due_odometer` | `REAL` | `number` |  |
+| `is_active` | `INTEGER` | `boolean | number` | NOT NULL, kind=boolean, default=1 |
+| `notes` | `TEXT` | `string` |  |
+| `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Relaciones navegables: `Vehicles`
+
+Índices:
+- `idx_vehicle_reminders_vehicle_active` (vehicle_id, is_active) WHERE deleted_at IS NULL
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
+## VehicleSettings (`vehicle_settings`)
+
+Entidad TypeScript: `VehicleSetting`
+
+| Columna | SQL | TS | Notas |
+| --- | --- | --- | --- |
+| `id` | `INTEGER` | `number` | PK, autoincrement |
+| `setting_key` | `TEXT` | `string` | NOT NULL, UNIQUE |
+| `category_id` | `INTEGER` | `number` | FK → Categories.id ON DELETE SET NULL |
+| `payment_method_id` | `INTEGER` | `number` | FK → PaymentMethods.id ON DELETE SET NULL |
+| `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Relaciones navegables: `Categories`, `PaymentMethods`, `PaymentMethods.PaymentTypes`
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
+## VehicleExpenseLinks (`vehicle_expense_links`)
+
+Entidad TypeScript: `VehicleExpenseLink`
+
+| Columna | SQL | TS | Notas |
+| --- | --- | --- | --- |
+| `id` | `INTEGER` | `number` | PK, autoincrement |
+| `record_id` | `INTEGER` | `number` | NOT NULL, FK → Records.id ON DELETE CASCADE |
+| `fuel_entry_id` | `INTEGER` | `number` | FK → VehicleFuelEntries.id ON DELETE CASCADE |
+| `maintenance_id` | `INTEGER` | `number` | FK → VehicleMaintenance.id ON DELETE CASCADE |
+| `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Relaciones navegables: `Records`, `Records.RecordTypes`, `Records.Groups`, `Records.Categories`, `Records.PaymentMethods`, `Records.PaymentMethods.PaymentTypes`, `Records.Fixed`, `Records.Fixed.RecordTypes`, `Records.Fixed.Categories`, `Records.Fixed.PaymentMethods`, `Records.Fixed.PaymentMethods.PaymentTypes`, `Records.PaidCredits`, `Records.PaidCredits.Groups`, `Records.PaidCredits.PaymentMethods`, `Records.PaidCredits.PaymentMethods.PaymentTypes`, `VehicleFuelEntries`, `VehicleFuelEntries.Vehicles`, `VehicleMaintenance`, `VehicleMaintenance.Vehicles`
+
+Índices:
+- `idx_vehicle_expense_links_record` (record_id) UNIQUE
+- `idx_vehicle_expense_links_fuel` (fuel_entry_id) UNIQUE WHERE fuel_entry_id IS NOT NULL
+- `idx_vehicle_expense_links_maintenance` (maintenance_id) UNIQUE WHERE maintenance_id IS NOT NULL
 
 Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
 

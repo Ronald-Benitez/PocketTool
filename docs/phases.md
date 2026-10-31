@@ -14,7 +14,7 @@
 | Fase 5 — Traducciones tipadas | ✅ Finalizada | 2026-10-29 |
 | Fase 6 — Centro de ayuda | ✅ Finalizada | 2026-10-29 |
 | Fase 7 — Presupuestos | ✅ Finalizada | 2026-10-29 |
-| Fase 8 — Vehículo | 📝 Planificación | 2026-10-30 |
+| Fase 8 — Vehículo | 🚧 En implementación | 2026-10-30 |
 
 El detalle histórico de las fases 0–3 vive en
 [`legacy/phase-history.md`](legacy/phase-history.md). El detalle de la Fase 4
@@ -32,8 +32,8 @@ visual de la Fase 4 en iOS/Android/web.
   con `deleted_at`.
 - **Migraciones:** `0001_baseline`, `0002_audit_timestamps`,
   `0003_timestamp_triggers`, `0004_budget_plans`,
-  `0005_drop_budget_legacy`, `0006_drop_budget_plan_status`;
-  `SCHEMA_VERSION = 6`.
+  `0005_drop_budget_legacy`, `0006_drop_budget_plan_status`,
+  `0007_vehicle_module`; `SCHEMA_VERSION = 7`.
 - **Presupuestos:** `BudgetPlans` (un plan por grupo), `BudgetLines` (categoría
   o fijo) y plantillas reutilizables. El real se deriva de `Records`; no se
   guarda. `budgets_legacy` se elimina en `0005`.
@@ -146,7 +146,7 @@ Criterios de aceptación principales:
 - `npm run ci` y `npm run lint` en verde;
 - ayuda y traducciones actualizadas.
 
-## Fase 8 — Vehículo (📝 Planificación, 2026-10-30)
+## Fase 8 — Vehículo (🚧 En implementación, 2026-10-30)
 
 **Plan completo:** [`vehicle-plan.md`](vehicle-plan.md)
 
@@ -154,7 +154,28 @@ Objetivo: publicar la sección Vehículo y convertirla en un módulo de combusti
 mantenimiento, estadísticas y recordatorios, con unidades configurables e
 integración con Registros.
 
-Incluye:
+Implementado hasta ahora:
+
+- Esquema `0007_vehicle_module` y `SCHEMA_VERSION = 7`.
+- Tablas de vehículos, combustible, mantenimiento, piezas, recordatorios,
+  settings y vínculos de gastos.
+- Eliminación de `fuel_refills`/`trip_logs` con conservación legacy si tienen
+  datos.
+- Dominio de unidades, consumo, promedios y recordatorios.
+- Repositorios de vehículo, combustible, mantenimiento, recordatorios, settings
+  y vínculos con `Records`.
+- UI inicial con tabs de resumen, combustible, mantenimiento y recordatorios.
+- Crear gasto, vincular gasto existente o no vincular.
+- Categorías de vehículo en Ajustes.
+
+Pendiente:
+
+- QA visual Android/iOS y claro/oscuro.
+- Gráficos de vehículo y comparativas.
+- Ajustes finos del formulario y textos largos.
+- Documentación de cierre y pruebas manuales.
+
+Alcance planificado:
 
 - `Vehicles`, `VehicleFuelEntries`, `VehicleMaintenance`,
   `VehicleMaintenanceItems`, `VehicleReminders`, `VehicleSettings` y

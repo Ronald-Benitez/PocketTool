@@ -52,9 +52,14 @@ No editar esos archivos a mano.
 | `BudgetLines` | `budget_lines` | Líneas planificadas por categoría o fijo. |
 | `Savings` | `savings` | Cuentas/metas de ahorro. |
 | `SavingsHistory` | `savings_history` | Historial de ahorros. |
+| `Vehicles` | `vehicles` | Vehículos y unidades por defecto. |
+| `VehicleFuelEntries` | `vehicle_fuel_entries` | Cargas de combustible con odómetro y unidades. |
+| `VehicleMaintenance` | `vehicle_maintenance` | Servicios, reparaciones y costos. |
+| `VehicleMaintenanceItems` | `vehicle_maintenance_items` | Piezas y detalles flexibles. |
+| `VehicleReminders` | `vehicle_reminders` | Recordatorios e intervalos de servicio. |
+| `VehicleSettings` | `vehicle_settings` | Categorías y pagos por defecto. |
+| `VehicleExpenseLinks` | `vehicle_expense_links` | Vínculo uno a uno con `Records`. |
 | `Migrations` | `migrations` | Historial de migraciones. |
-| `FuelRefills` | `fuel_refills` | Cargas de combustible. |
-| `TripLogs` | `trip_logs` | Viajes y consumo. |
 
 ## Relaciones
 
@@ -67,6 +72,12 @@ No editar esos archivos a mano.
 - `BudgetPlans` → `Groups`, `BudgetTemplates`
 - `BudgetLines` → `BudgetPlans`, `Categories`, `RecordTypes`, `Fixed`,
   `BudgetTemplateItems`
+- `VehicleFuelEntries` → `Vehicles`
+- `VehicleMaintenance` → `Vehicles`
+- `VehicleMaintenanceItems` → `VehicleMaintenance`
+- `VehicleReminders` → `Vehicles`
+- `VehicleSettings` → `Categories`, `PaymentMethods`
+- `VehicleExpenseLinks` → `Records`, `VehicleFuelEntries`, `VehicleMaintenance`
 - `SavingsHistory` → `Savings`
 
 Las rutas navegables se generan en `relations.json` a partir de las FKs.
@@ -81,6 +92,7 @@ Las rutas navegables se generan en `relations.json` a partir de las FKs.
 | 4 | `0004_budget_plans` | Crea `budget_plans`/`budget_lines`, migra `budgets` a `budgets_legacy` y amplía plantillas. |
 | 5 | `0005_drop_budget_legacy` | Elimina `budgets_legacy` después de validar la migración. |
 | 6 | `0006_drop_budget_plan_status` | Elimina la columna `status` de `budget_plans`. |
+| 7 | `0007_vehicle_module` | Reemplaza `fuel_refills`/`trip_logs` por el módulo de vehículo y crea sus tablas. |
 
 Reglas:
 

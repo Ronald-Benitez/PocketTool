@@ -159,6 +159,177 @@ export const budgetTemplateItemInputSchema = z
 export const budgetTemplateItemUpdateSchema =
   budgetTemplateItemInputSchema.partial().extend(updateMeta);
 
+const distanceUnit = z.enum(['mi', 'km']);
+const volumeUnit = z.enum(['gal', 'L']);
+const consumptionFormat = z.enum([
+  'mi_gal',
+  'km_gal',
+  'mi_l',
+  'km_l',
+  'l_100km',
+  'gal_100km',
+  'l_60mi',
+  'gal_60mi',
+]);
+const odometerSource = z.enum(['manual', 'inferred']);
+const distanceSource = z.enum(['odometer', 'manual', 'inferred']);
+const fuelType = z.enum(['gasoline']);
+const vehicleServiceType = z.enum([
+  'oil_change',
+  'tires',
+  'brakes',
+  'battery',
+  'filter',
+  'inspection',
+  'repair',
+  'other',
+]);
+const vehicleSettingKey = z.enum([
+  'fuel',
+  'maintenance',
+  'repair',
+  'tires',
+  'oil_change',
+  'insurance',
+  'inspection',
+  'other',
+]);
+const optionalPositiveReal = z.number().finite().positive().nullable().optional();
+
+export const vehicleInputSchema = z
+  .object({
+    name: z.string().min(1).max(120),
+    make: z.string().max(120).nullable().optional(),
+    model: z.string().max(120).nullable().optional(),
+    year: z.number().int().min(1900).max(2200).nullable().optional(),
+    plate: z.string().max(40).nullable().optional(),
+    color: z.string().max(40).nullable().optional(),
+    fuel_type: fuelType.optional(),
+    distance_unit: distanceUnit.optional(),
+    volume_unit: volumeUnit.optional(),
+    consumption_format: consumptionFormat.optional(),
+    tank_capacity: optionalPositiveReal,
+    tank_capacity_unit: volumeUnit.nullable().optional(),
+    is_default: z.boolean().or(z.number().int().min(0).max(1)).optional(),
+    notes: z.string().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const vehicleUpdateSchema = vehicleInputSchema.partial().extend(updateMeta);
+
+export const vehicleFuelEntryInputSchema = z
+  .object({
+    vehicle_id: z.number().int().positive(),
+    date: timestamp,
+    odometer: optionalPositiveReal,
+    odometer_source: odometerSource.nullable().optional(),
+    distance_unit: distanceUnit.optional(),
+    distance_traveled: optionalPositiveReal,
+    distance_source: distanceSource.nullable().optional(),
+    volume: z.number().finite().positive(),
+    volume_unit: volumeUnit.optional(),
+    price_per_unit: cents.nonnegative(),
+    total_cost: cents.nonnegative(),
+    is_full_tank: z.boolean().or(z.number().int().min(0).max(1)).optional(),
+    station: z.string().max(120).nullable().optional(),
+    notes: z.string().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict()
+  .refine((value) => value.odometer != null || value.distance_traveled != null, {
+    message: 'Odometer or distance is required',
+    path: ['odometer'],
+  });
+
+export const vehicleFuelEntryUpdateSchema =
+  vehicleFuelEntryInputSchema.innerType().partial().extend(updateMeta);
+
+export const vehicleMaintenanceInputSchema = z
+  .object({
+    vehicle_id: z.number().int().positive(),
+    date: timestamp,
+    odometer: optionalPositiveReal,
+    distance_unit: distanceUnit.optional(),
+    service_type: vehicleServiceType,
+    title: z.string().min(1).max(160),
+    cost: cents.nonnegative().optional(),
+    vendor: z.string().max(120).nullable().optional(),
+    notes: z.string().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const vehicleMaintenanceUpdateSchema =
+  vehicleMaintenanceInputSchema.partial().extend(updateMeta);
+
+export const vehicleMaintenanceItemInputSchema = z
+  .object({
+    maintenance_id: z.number().int().positive(),
+    name: z.string().min(1).max(120),
+    notes: z.string().nullable().optional(),
+    quantity: z.number().finite().positive().nullable().optional(),
+    unit: z.string().max(40).nullable().optional(),
+    cost: cents.nonnegative().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const vehicleMaintenanceItemUpdateSchema =
+  vehicleMaintenanceItemInputSchema.partial().extend(updateMeta);
+
+export const vehicleReminderInputSchema = z
+  .object({
+    vehicle_id: z.number().int().positive(),
+    service_type: vehicleServiceType,
+    title: z.string().min(1).max(160),
+    interval_distance: optionalPositiveReal,
+    interval_distance_unit: distanceUnit.nullable().optional(),
+    interval_months: z.number().int().positive().nullable().optional(),
+    last_service_date: timestamp.nullable().optional(),
+    last_service_odometer: optionalPositiveReal,
+    odometer_unit: distanceUnit.nullable().optional(),
+    next_due_date: timestamp.nullable().optional(),
+    next_due_odometer: optionalPositiveReal,
+    is_active: z.boolean().or(z.number().int().min(0).max(1)).optional(),
+    notes: z.string().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict()
+  .refine(
+    (value) => value.interval_distance != null || value.interval_months != null,
+    { message: 'A distance or month interval is required', path: ['interval_distance'] }
+  );
+
+export const vehicleReminderUpdateSchema =
+  vehicleReminderInputSchema.innerType().partial().extend(updateMeta);
+
+export const vehicleSettingInputSchema = z
+  .object({
+    setting_key: vehicleSettingKey,
+    category_id: id,
+    payment_method_id: id,
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const vehicleSettingUpdateSchema =
+  vehicleSettingInputSchema.partial().extend(updateMeta);
+
+export const vehicleExpenseLinkInputSchema = z
+  .object({
+    record_id: z.number().int().positive(),
+    fuel_entry_id: id,
+    maintenance_id: id,
+  })
+  .strict()
+  .refine(
+    (value) =>
+      (value.fuel_entry_id != null && value.maintenance_id == null) ||
+      (value.fuel_entry_id == null && value.maintenance_id != null),
+    { message: 'Exactly one vehicle entry is required', path: ['fuel_entry_id'] }
+  );
+
 export const savingInputSchema = z
   .object({
     saving_name: z.string().min(1),

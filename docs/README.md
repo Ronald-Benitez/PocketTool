@@ -39,7 +39,7 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 | Fase 5 — Traducciones tipadas | ✅ Finalizada (2026-10-29) |
 | Fase 6 — Centro de ayuda | ✅ Finalizada (2026-10-29) |
 | Fase 7 — Presupuestos | ✅ Finalizada (2026-10-29) |
-| Fase 8 — Vehículo | 📝 Planificación (2026-10-30) |
+| Fase 8 — Vehículo | 🚧 En implementación (2026-10-30) |
 
 ## Regla de mantenimiento
 

@@ -89,6 +89,30 @@ const seeds: HelpTopicSeed[] = [
     related: ['budgets', 'fixeds'],
   },
   {
+    id: 'vehicle',
+    icon: 'directions-car',
+    category: 'tools',
+    related: ['vehicleFuel', 'vehicleMaintenance', 'vehicleReminders'],
+  },
+  {
+    id: 'vehicleFuel',
+    icon: 'local-gas-station',
+    category: 'tools',
+    related: ['vehicle', 'vehicleMaintenance'],
+  },
+  {
+    id: 'vehicleMaintenance',
+    icon: 'build',
+    category: 'tools',
+    related: ['vehicle', 'vehicleReminders'],
+  },
+  {
+    id: 'vehicleReminders',
+    icon: 'event-repeat',
+    category: 'tools',
+    related: ['vehicleMaintenance', 'vehicleFuel'],
+  },
+  {
     id: 'credits',
     icon: 'credit-card',
     category: 'money',

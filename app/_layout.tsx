@@ -162,11 +162,10 @@ const AppDrawer = () => {
       <Drawer.Screen
         name="(vehicle)"
         options={{
-          drawerItemStyle: { display: 'none' },
-          title: t('headers.financialsIndex'),
+          title: t('headers.vehicle'),
           headerShown: false,
           drawerIcon: ({ color, size }) => (
-            <Ionicons name="stats-chart-outline" size={size} color={color as string | undefined} />
+            <Ionicons name="car-outline" size={size} color={color as string | undefined} />
           ),
         }}
       />

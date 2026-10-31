@@ -32,8 +32,19 @@ import type {
   SavingsHistoryEntry,
   SavingsHistoryWithRelations,
   Migration,
-  FuelRefill,
-  TripLog,
+  Vehicle,
+  VehicleExpenseLink,
+  VehicleFuelEntry,
+  VehicleFuelEntryWithRelations,
+  VehicleMaintenanceEntry,
+  VehicleMaintenanceEntryWithRelations,
+  VehicleMaintenanceItem,
+  VehicleMaintenanceItemWithRelations,
+  VehicleReminder,
+  VehicleReminderWithRelations,
+  VehicleSetting,
+  VehicleSettingWithRelations,
+  VehicleExpenseLinkWithRelations,
   Insertable,
   UpdateEntity,
 } from '../interfaces/schema';
@@ -53,9 +64,14 @@ export type BaseSchemaMap = {
   BudgetLines: BudgetLine;
   Savings: Saving;
   SavingsHistory: SavingsHistoryEntry;
+  Vehicles: Vehicle;
+  VehicleFuelEntries: VehicleFuelEntry;
+  VehicleMaintenance: VehicleMaintenanceEntry;
+  VehicleMaintenanceItems: VehicleMaintenanceItem;
+  VehicleReminders: VehicleReminder;
+  VehicleSettings: VehicleSetting;
+  VehicleExpenseLinks: VehicleExpenseLink;
   Migrations: Migration;
-  FuelRefills: FuelRefill;
-  TripLogs: TripLog;
 };
 
 export type TableOption = TableName;
@@ -75,9 +91,14 @@ export type RelationsSchemaMap = {
   BudgetLines: BudgetLineWithRelations;
   Savings: Saving;
   SavingsHistory: SavingsHistoryWithRelations;
+  Vehicles: Vehicle;
+  VehicleFuelEntries: VehicleFuelEntryWithRelations;
+  VehicleMaintenance: VehicleMaintenanceEntryWithRelations;
+  VehicleMaintenanceItems: VehicleMaintenanceItemWithRelations;
+  VehicleReminders: VehicleReminderWithRelations;
+  VehicleSettings: VehicleSettingWithRelations;
+  VehicleExpenseLinks: VehicleExpenseLinkWithRelations;
   Migrations: Migration;
-  FuelRefills: FuelRefill;
-  TripLogs: TripLog;
 };
 
 const RELATION_TREE = relations as Record<string, Record<string, string>>;

@@ -131,11 +131,19 @@ async function testLegacyMigration() {
   await migrateDb(db);
 
   const tables = q(raw, "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").map(r => r.name);
-  for (const expected of ['groups', 'payment_types', 'payment_methods', 'categories', 'record_types', 'fixed_records', 'records', 'paid_credits', 'budget_templates', 'budget_template_items', 'budget_plans', 'budget_lines', 'savings', 'savings_history', 'migrations', 'fuel_refills', 'trip_logs']) {
+  for (const expected of ['groups', 'payment_types', 'payment_methods', 'categories', 'record_types', 'fixed_records', 'records', 'paid_credits', 'budget_templates', 'budget_template_items', 'budget_plans', 'budget_lines', 'savings', 'savings_history', 'migrations', 'vehicles', 'vehicle_fuel_entries', 'vehicle_maintenance', 'vehicle_maintenance_items', 'vehicle_reminders', 'vehicle_settings', 'vehicle_expense_links', 'fuel_refills_legacy', 'trip_logs_legacy']) {
     assert.ok(tables.includes(expected), `missing table ${expected}`);
   }
   assert.ok(!tables.includes('Groups'), 'legacy Groups should be gone');
   assert.ok(!tables.some(t => t.startsWith('__legacy_')), 'temp tables should be gone');
+  assert.ok(!tables.includes('fuel_refills'), 'old fuel table should be replaced');
+  assert.ok(!tables.includes('trip_logs'), 'old trip table should be replaced');
+  assert.strictEqual(q(raw, 'SELECT COUNT(*) AS c FROM vehicle_settings')[0].c, 8);
+  assert.ok(
+    q(raw, 'PRAGMA table_info(vehicle_expense_links)').some(
+      (column) => column.name === 'record_id'
+    )
+  );
 
   const group = q(raw, 'SELECT * FROM groups')[0];
   assert.strictEqual(group.goal, 500050, 'goal should be cents');
@@ -195,13 +203,12 @@ async function testLegacyMigration() {
   assert.strictEqual(history.new_amount, 12345);
   assert.strictEqual(history.change_date, 1700000000000, 'seconds should become ms');
 
-  const fuel = q(raw, 'SELECT * FROM fuel_refills')[0];
-  assert.strictEqual(fuel.total_cost, 4567);
-  assert.strictEqual(fuel.price_per_gallon, 350);
-  assert.strictEqual(fuel.date, Date.UTC(2024, 0, 15, 10, 0, 0));
+  const fuel = q(raw, 'SELECT * FROM fuel_refills_legacy')[0];
+  assert.strictEqual(fuel.total_cost, 45.67);
+  assert.strictEqual(fuel.price_per_gallon, 3.5);
 
-  const trip = q(raw, 'SELECT * FROM trip_logs')[0];
-  assert.strictEqual(trip.date, Date.UTC(2024, 0, 15));
+  const trip = q(raw, 'SELECT * FROM trip_logs_legacy')[0];
+  assert.strictEqual(trip.distance_traveled, 10.5);
 
   const indexes = q(raw, "SELECT name FROM sqlite_master WHERE type='index'").map(r => r.name);
   assert.ok(indexes.includes('idx_groups_active'));
@@ -390,7 +397,7 @@ async function testEmptyDatabase() {
   assert.strictEqual(q(raw, 'SELECT goal FROM groups')[0].goal, 500000);
   assert.strictEqual(q(raw, 'SELECT amount FROM records ORDER BY id')[0].amount, 100000);
   assert.strictEqual(q(raw, 'SELECT migration_name FROM migrations')[0].migration_name, '0001_baseline');
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 6);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 7);
   const recordColumns = q(raw, 'PRAGMA table_info(records)').map(c => c.name);
   assert.ok(recordColumns.includes('created_at'));
   assert.ok(recordColumns.includes('updated_at'));
@@ -427,7 +434,7 @@ async function testExportImport() {
   assert.ok(metadata);
   assert.strictEqual(metadata.formatVersion, BACKUP_FORMAT_VERSION);
   assert.strictEqual(metadata.appVersion, 'test-version');
-  assert.strictEqual(metadata.schemaVersion, 6);
+  assert.strictEqual(metadata.schemaVersion, 7);
   assert.ok(metadata.tables.includes('records'));
   assert.doesNotThrow(() => validateSqlDump(backupSql));
   assert.strictEqual(parseBackupMetadata(dump), null);
@@ -480,7 +487,7 @@ async function testAuditTimestampMigration() {
   const backfilled = q(raw, 'SELECT created_at, updated_at FROM records LIMIT 1')[0];
   assert.ok(backfilled.created_at > 0);
   assert.ok(backfilled.updated_at > 0);
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 6);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 7);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,
     1

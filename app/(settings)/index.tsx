@@ -3,6 +3,7 @@ import { View } from 'react-native';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
 import ColorSettings from "@/src/components/settings/colors-settings"
+import { VehicleSettingsPanel } from '@/src/components/vehicle/VehicleSettingsPanel';
 import { useDBExport } from '@/src/db/utils';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useConfigs } from '@/src/hooks/useConfigs';
@@ -132,6 +133,7 @@ const SettingsScreen = () => {
                     />
                 </View>
 
+                <VehicleSettingsPanel />
                 <ColorSettings />
             </Stack>
         </Screen>

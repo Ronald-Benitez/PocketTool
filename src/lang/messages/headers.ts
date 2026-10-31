@@ -15,6 +15,7 @@ export const headersEn = {
         "settings": "Settings",
         "credits": "Credits",
         "help": "Help",
+        "vehicle": "Vehicle",
         "fixeds": "Fixed transactions"
     }
 } as const;
@@ -34,6 +35,7 @@ export const headersEs: MessageShape<typeof headersEn> = {
         "settings": "Configuraciones",
         "credits": "Créditos",
         "help": "Ayuda",
+        "vehicle": "Vehículo",
         "fixeds": "Transacciones fijas"
     }
 };

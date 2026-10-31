@@ -229,6 +229,126 @@ export const helpEn = {
                 "body": "Replace deletes every current line. Check the preview before applying it to a plan with manual changes."
             }
         },
+        "vehicle": {
+            "title": "Vehicle",
+            "summary": "Track fuel, maintenance and real running costs for one or more vehicles.",
+            "what": {
+                "title": "What it is",
+                "body": "The Vehicle section groups fuel entries, maintenance, parts and reminders for each vehicle. It is separate from the monthly financial groups but can create or link an expense in Records."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "Each vehicle has default distance and volume units and a preferred consumption format. Fuel and maintenance entries use explicit units, and the odometer or distance can be entered or inferred. A default vehicle is used when you open the section."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Add a vehicle and choose its default units.",
+                "step2": "Register fuel and maintenance from their tabs.",
+                "step3": "Review the dashboard, reminders and histories."
+            },
+            "example": {
+                "title": "Example",
+                "body": "A car uses miles and gallons. Its default format is mi/gal. A fuel entry with 8.5 gallons and 300 miles shows about 35.3 mi/gal."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Use the real odometer whenever possible. It gives better consumption and oil-change estimates than a trip meter."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "A vehicle entry does not affect your finances until you create or link an expense in Records."
+            }
+        },
+        "vehicleFuel": {
+            "title": "Fuel entries",
+            "summary": "Record fill-ups with real units and calculate consumption from distance and volume.",
+            "what": {
+                "title": "What it is",
+                "body": "A fuel entry stores date, odometer or distance, volume, price per unit, total, station and whether the tank was full. Volume can be in gallons or liters and distance in miles or kilometers."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "Enter any two of volume, price per unit and total; the third is calculated. Consumption can be shown as mi/gal, km/gal, mi/L, km/L, L/100 km, gal/100 km, L/60 mi or gal/60 mi. Full-tank segments are the most accurate method; partial fills accumulate until the next full tank."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Choose the vehicle, date and units.",
+                "step2": "Enter odometer or distance and two of volume, price and total.",
+                "step3": "Mark full tank, choose whether to create or link an expense, and save."
+            },
+            "example": {
+                "title": "Example",
+                "body": "8.5399 gallons and 300 miles give about 35.1 mi/gal. If the tank was partial, the entry is shown as accumulating until the next full fill."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Changing the volume unit converts the displayed price so the total stays consistent."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "A partial fill is not an error, but its consumption is not final until the next full tank."
+            }
+        },
+        "vehicleMaintenance": {
+            "title": "Maintenance and parts",
+            "summary": "Track services, repairs, parts and their cost.",
+            "what": {
+                "title": "What it is",
+                "body": "A maintenance entry stores date, odometer, service type, description, cost, vendor, notes and optional parts. Parts can include a name, notes, optional quantity, unit and cost."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "The total cost belongs to the maintenance entry. Parts are a flexible breakdown: quantity is not required, so you can record a tire change without deciding whether it was one or four. Oil changes update the oil reminder when saved."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Choose the vehicle, date, service type and odometer.",
+                "step2": "Add the cost, notes and any parts.",
+                "step3": "Create or link the expense and save."
+            },
+            "example": {
+                "title": "Example",
+                "body": "A tire service can have one part named Tires with the note “4 tires, brand X” and no quantity, plus the total cost of the service."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Use notes for sizes, brands and details that do not fit a fixed number."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "Part costs are optional and do not automatically replace the maintenance total."
+            }
+        },
+        "vehicleReminders": {
+            "title": "Vehicle reminders",
+            "summary": "Know how much distance or time is left before the next service.",
+            "what": {
+                "title": "What it is",
+                "body": "A reminder defines a service interval in distance, months or both. Examples are oil changes, tire rotation, filters, brakes, inspection and insurance."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "PocketTool takes the latest odometer from fuel and maintenance entries. It compares it with the last service odometer and adds the interval. It also calculates the remaining days from the last service date. Status is on track, due soon or overdue."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Add a reminder and choose the service type.",
+                "step2": "Set the distance interval, month interval or both.",
+                "step3": "Register the service later; the reminder updates automatically."
+            },
+            "example": {
+                "title": "Example",
+                "body": "Oil interval 5,000 miles and 6 months. If the last change was at 20,000 miles and the current odometer is 24,800, 200 miles remain."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Keep fuel entries up to date so the current odometer and remaining distance stay accurate."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "If there is no odometer data, the reminder shows “not enough data” instead of inventing a value."
+            }
+        },
         "credits": {
             "title": "Credits",
             "summary": "Understand credit payments, closing dates, and pending balances.",
@@ -579,6 +699,126 @@ export const helpEs: MessageShape<typeof helpEn> = {
             "warning": {
                 "title": "Error común",
                 "body": "Reemplazar elimina todas las líneas actuales. Revisa la vista previa antes de aplicarla a un plan con cambios manuales."
+            }
+        },
+        "vehicle": {
+            "title": "Vehículo",
+            "summary": "Controla combustible, mantenimiento y costo real de uso de uno o varios vehículos.",
+            "what": {
+                "title": "Qué es",
+                "body": "La sección Vehículo agrupa cargas de combustible, mantenimiento, piezas y recordatorios de cada vehículo. Es independiente de los grupos financieros mensuales, pero puede crear o vincular un gasto en Registros."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "Cada vehículo tiene unidades por defecto de distancia y volumen y un formato de consumo preferido. Las entradas de combustible y mantenimiento usan unidades explícitas, y el odómetro o la distancia se pueden ingresar o inferir. Al abrir la sección se usa el vehículo predeterminado."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Agrega un vehículo y elige sus unidades por defecto.",
+                "step2": "Registra combustible y mantenimiento desde sus pestañas.",
+                "step3": "Revisa el resumen, los recordatorios y los históricos."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "Un carro usa millas y galones. Su formato por defecto es mi/gal. Una carga de 8.5 galones y 300 millas muestra aproximadamente 35.3 mi/gal."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Usa el odómetro real siempre que puedas. Da mejores estimaciones de consumo y de cambio de aceite que el marcador de viaje."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "Una entrada de vehículo no afecta tus finanzas hasta que creas o vinculas un gasto en Registros."
+            }
+        },
+        "vehicleFuel": {
+            "title": "Cargas de combustible",
+            "summary": "Registra cargas con unidades reales y calcula el consumo desde distancia y volumen.",
+            "what": {
+                "title": "Qué es",
+                "body": "Una carga guarda fecha, odómetro o distancia, volumen, precio por unidad, total, estación y si el tanque quedó lleno. El volumen puede ser galones o litros y la distancia millas o kilómetros."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "Ingresa dos de tres valores entre volumen, precio por unidad y total; el tercero se calcula. El consumo se puede mostrar como mi/gal, km/gal, mi/L, km/L, L/100 km, gal/100 km, L/60 mi o gal/60 mi. Los segmentos de tanque lleno son el método más preciso; las cargas parciales se acumulan hasta el siguiente tanque lleno."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Elige el vehículo, la fecha y las unidades.",
+                "step2": "Ingresa odómetro o distancia y dos de volumen, precio y total.",
+                "step3": "Marca tanque lleno, elige crear o vincular un gasto y guarda."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "8.5399 galones y 300 millas dan aproximadamente 35.1 mi/gal. Si el tanque fue parcial, la entrada se muestra acumulando hasta la siguiente carga completa."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Al cambiar la unidad de volumen se convierte el precio mostrado para que el total siga siendo coherente."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "Una carga parcial no es un error, pero su consumo no es definitivo hasta el siguiente tanque lleno."
+            }
+        },
+        "vehicleMaintenance": {
+            "title": "Mantenimiento y piezas",
+            "summary": "Registra servicios, reparaciones, piezas y su costo.",
+            "what": {
+                "title": "Qué es",
+                "body": "Un mantenimiento guarda fecha, odómetro, tipo de servicio, descripción, costo, proveedor, notas y piezas opcionales. Las piezas pueden tener nombre, notas, cantidad, unidad y costo opcionales."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "El costo total pertenece al mantenimiento. Las piezas son un desglose flexible: la cantidad no es obligatoria, así que puedes registrar un cambio de llantas sin decidir si fue una o cuatro. Los cambios de aceite actualizan el recordatorio de aceite al guardar."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Elige el vehículo, la fecha, el tipo de servicio y el odómetro.",
+                "step2": "Agrega el costo, las notas y las piezas que quieras.",
+                "step3": "Crea o vincula el gasto y guarda."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "Un servicio de llantas puede tener una pieza llamada Llantas con la nota “4 llantas, marca X” y sin cantidad, además del costo total del servicio."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Usa las notas para medidas, marcas y detalles que no encajan en un número fijo."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "El costo de las piezas es opcional y no reemplaza automáticamente el total del mantenimiento."
+            }
+        },
+        "vehicleReminders": {
+            "title": "Recordatorios del vehículo",
+            "summary": "Consulta cuánta distancia o tiempo falta para el próximo servicio.",
+            "what": {
+                "title": "Qué es",
+                "body": "Un recordatorio define un intervalo de servicio en distancia, meses o ambos. Ejemplos: cambio de aceite, rotación de llantas, filtros, frenos, inspección y seguro."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "PocketTool toma el último odómetro de combustible y mantenimiento. Lo compara con el odómetro del último servicio y suma el intervalo. También calcula los días restantes desde la fecha del último servicio. El estado puede ser en orden, próximo o vencido."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Agrega un recordatorio y elige el tipo de servicio.",
+                "step2": "Define el intervalo de distancia, el de meses o ambos.",
+                "step3": "Registra el servicio después; el recordatorio se actualiza solo."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "Intervalo de aceite 5,000 millas y 6 meses. Si el último cambio fue a las 20,000 millas y el odómetro actual es 24,800, faltan 200 millas."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Mantén actualizadas las cargas de combustible para que el odómetro actual y la distancia restante sean precisos."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "Si no hay datos de odómetro, el recordatorio muestra “faltan datos” en lugar de inventar un valor."
             }
         },
         "credits": {

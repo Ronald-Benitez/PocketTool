@@ -45,6 +45,10 @@ export type ThemeColorTokens = {
   chartPlanned: string;
   chartActual: string;
   chartProjected: string;
+  chartFuelCost: string;
+  chartMaintenanceCost: string;
+  chartConsumption: string;
+  chartDistance: string;
 
   modalHeaderBg: string;
   modalHeaderText: string;

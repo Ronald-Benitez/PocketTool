@@ -1,6 +1,6 @@
 # Plan de la sección Vehículo — Fase 8 (VEH)
 
-**Estado:** 📝 Planificación
+**Estado:** 🚧 En implementación
 **Fecha:** 2026-10-30
 **Objetivo:** convertir la sección Vehículo, hoy oculta y vacía, en un módulo
 funcional para registrar combustible y mantenimiento, calcular consumo y
@@ -1216,3 +1216,31 @@ Al cerrar la Fase 8, el usuario podrá:
 
 Todo con datos locales, unidades explícitas, migración segura y gráficos con el
 tema de la app.
+
+---
+
+## 18. Estado de implementación (2026-10-30)
+
+Implementado:
+
+- `0007_vehicle_module` y `SCHEMA_VERSION = 7`.
+- Tablas nuevas y eliminación de `fuel_refills`/`trip_logs`.
+- Dominio de unidades, consumo en los ocho formatos, promedios y
+  recordatorios.
+- Repositorios de vehículo, combustible, mantenimiento, piezas, recordatorios,
+  settings y vínculos con `Records`.
+- UI con `StackBase`: resumen, combustible, mantenimiento y recordatorios.
+- Formularios de vehículo, combustible, mantenimiento/piezas y recordatorios.
+- Crear gasto, vincular gasto existente o no vincular.
+- Categorías y pagos por defecto en Ajustes.
+- Gráfico de consumo en combustible y gasto mensual en el resumen.
+- Ayuda bilingüe de vehículo, combustible, mantenimiento y recordatorios.
+- Tokens de tema para gráficos de vehículo.
+
+Pendiente:
+
+- QA visual Android/iOS y claro/oscuro.
+- Ajustes finos de textos largos y layouts.
+- Comparativas avanzadas entre periodos/vehículos.
+- Pruebas manuales de linking con datos reales.
+- Cierre de Fase 8 y actualización final de documentación.

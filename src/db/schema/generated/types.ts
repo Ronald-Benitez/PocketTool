@@ -159,25 +159,99 @@ export interface Migration extends Entity {
   applied_at: TimestampMs;
 }
 
-export interface FuelRefill extends Entity, SoftDeletable {
-  date?: TimestampMs | null;
-  odometer_reading: number;
-  total_cost: Cents;
-  gallons: number;
-  price_per_gallon: Cents;
-  is_full_tank: boolean | number;
+export interface Vehicle extends Entity, SoftDeletable {
+  name: string;
+  make?: string | null;
+  model?: string | null;
+  year?: number | null;
+  plate?: string | null;
+  color?: string | null;
+  fuel_type: string;
+  distance_unit: string;
+  volume_unit: string;
+  consumption_format: string;
+  tank_capacity?: number | null;
+  tank_capacity_unit?: string | null;
+  is_default: boolean | number;
   notes?: string | null;
   created_at?: TimestampMs | null;
   updated_at?: TimestampMs | null;
 }
 
-export interface TripLog extends Entity, SoftDeletable {
-  date?: TimestampMs | null;
-  distance_traveled: number;
-  average_consumption?: number | null;
-  is_counter_reset?: boolean | number | null;
-  trip_type?: string | null;
+export interface VehicleFuelEntry extends Entity, SoftDeletable {
+  vehicle_id: number;
+  date: TimestampMs;
+  odometer?: number | null;
+  odometer_source?: string | null;
+  distance_unit: string;
+  distance_traveled?: number | null;
+  distance_source?: string | null;
+  volume: number;
+  volume_unit: string;
+  price_per_unit: Cents;
+  total_cost: Cents;
+  is_full_tank: boolean | number;
+  station?: string | null;
   notes?: string | null;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
+export interface VehicleMaintenanceEntry extends Entity, SoftDeletable {
+  vehicle_id: number;
+  date: TimestampMs;
+  odometer?: number | null;
+  distance_unit: string;
+  service_type: string;
+  title: string;
+  cost: Cents;
+  vendor?: string | null;
+  notes?: string | null;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
+export interface VehicleMaintenanceItem extends Entity, SoftDeletable {
+  maintenance_id: number;
+  name: string;
+  notes?: string | null;
+  quantity?: number | null;
+  unit?: string | null;
+  cost?: Cents | null;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
+export interface VehicleReminder extends Entity, SoftDeletable {
+  vehicle_id: number;
+  service_type: string;
+  title: string;
+  interval_distance?: number | null;
+  interval_distance_unit?: string | null;
+  interval_months?: number | null;
+  last_service_date?: TimestampMs | null;
+  last_service_odometer?: number | null;
+  odometer_unit?: string | null;
+  next_due_date?: TimestampMs | null;
+  next_due_odometer?: number | null;
+  is_active: boolean | number;
+  notes?: string | null;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
+export interface VehicleSetting extends Entity {
+  setting_key: string;
+  category_id?: number | null;
+  payment_method_id?: number | null;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
+export interface VehicleExpenseLink extends Entity {
+  record_id: number;
+  fuel_entry_id?: number | null;
+  maintenance_id?: number | null;
   created_at?: TimestampMs | null;
   updated_at?: TimestampMs | null;
 }

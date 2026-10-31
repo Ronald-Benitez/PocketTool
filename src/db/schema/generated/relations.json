@@ -74,6 +74,44 @@
     "Savings": "Savings"
   },
   "Migrations": {},
-  "FuelRefills": {},
-  "TripLogs": {}
+  "Vehicles": {},
+  "VehicleFuelEntries": {
+    "Vehicles": "Vehicles"
+  },
+  "VehicleMaintenance": {
+    "Vehicles": "Vehicles"
+  },
+  "VehicleMaintenanceItems": {
+    "VehicleMaintenance": "VehicleMaintenance",
+    "VehicleMaintenance.Vehicles": "VehicleMaintenance.Vehicles"
+  },
+  "VehicleReminders": {
+    "Vehicles": "Vehicles"
+  },
+  "VehicleSettings": {
+    "Categories": "Categories",
+    "PaymentMethods": "PaymentMethods",
+    "PaymentMethods.PaymentTypes": "PaymentMethods.PaymentTypes"
+  },
+  "VehicleExpenseLinks": {
+    "Records": "Records",
+    "Records.RecordTypes": "Records.RecordTypes",
+    "Records.Groups": "Records.Groups",
+    "Records.Categories": "Records.Categories",
+    "Records.PaymentMethods": "Records.PaymentMethods",
+    "Records.PaymentMethods.PaymentTypes": "Records.PaymentMethods.PaymentTypes",
+    "Records.Fixed": "Records.Fixed",
+    "Records.Fixed.RecordTypes": "Records.Fixed.RecordTypes",
+    "Records.Fixed.Categories": "Records.Fixed.Categories",
+    "Records.Fixed.PaymentMethods": "Records.Fixed.PaymentMethods",
+    "Records.Fixed.PaymentMethods.PaymentTypes": "Records.Fixed.PaymentMethods.PaymentTypes",
+    "Records.PaidCredits": "Records.PaidCredits",
+    "Records.PaidCredits.Groups": "Records.PaidCredits.Groups",
+    "Records.PaidCredits.PaymentMethods": "Records.PaidCredits.PaymentMethods",
+    "Records.PaidCredits.PaymentMethods.PaymentTypes": "Records.PaidCredits.PaymentMethods.PaymentTypes",
+    "VehicleFuelEntries": "VehicleFuelEntries",
+    "VehicleFuelEntries.Vehicles": "VehicleFuelEntries.Vehicles",
+    "VehicleMaintenance": "VehicleMaintenance",
+    "VehicleMaintenance.Vehicles": "VehicleMaintenance.Vehicles"
+  }
 }

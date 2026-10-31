@@ -1,6 +1,6 @@
 import type { TableDefinition, TableSchema } from '../types';
 
-export const SCHEMA_VERSION = 6;
+export const SCHEMA_VERSION = 7;
 
 export type TableName =
   | 'Groups'
@@ -17,9 +17,14 @@ export type TableName =
   | 'BudgetLines'
   | 'Savings'
   | 'SavingsHistory'
-  | 'Migrations'
-  | 'FuelRefills'
-  | 'TripLogs';
+  | 'Vehicles'
+  | 'VehicleFuelEntries'
+  | 'VehicleMaintenance'
+  | 'VehicleMaintenanceItems'
+  | 'VehicleReminders'
+  | 'VehicleSettings'
+  | 'VehicleExpenseLinks'
+  | 'Migrations';
 
 const softDelete = { name: 'deleted_at', type: 'INTEGER', kind: 'timestamp', defaultValue: null } as const;
 const createdAt = { name: 'created_at', type: 'INTEGER', kind: 'timestamp', defaultValue: null } as const;
@@ -413,43 +418,212 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
       { name: 'applied_at', type: 'INTEGER', kind: 'timestamp', notNull: true },
     ],
   },
-  FuelRefills: {
-    name: 'FuelRefills',
-    sqlName: 'fuel_refills',
-    entity: 'FuelRefill',
+  Vehicles: {
+    name: 'Vehicles',
+    sqlName: 'vehicles',
+    entity: 'Vehicle',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
-      { name: 'date', type: 'INTEGER', kind: 'timestamp', defaultValue: null },
-      { name: 'odometer_reading', type: 'REAL', notNull: true },
-      { name: 'total_cost', type: 'INTEGER', kind: 'money', notNull: true },
-      { name: 'gallons', type: 'REAL', notNull: true },
-      { name: 'price_per_gallon', type: 'INTEGER', kind: 'money', notNull: true },
-      { name: 'is_full_tank', type: 'INTEGER', kind: 'boolean', notNull: true },
+      { name: 'name', type: 'TEXT', notNull: true },
+      { name: 'make', type: 'TEXT' },
+      { name: 'model', type: 'TEXT' },
+      { name: 'year', type: 'INTEGER' },
+      { name: 'plate', type: 'TEXT' },
+      { name: 'color', type: 'TEXT' },
+      { name: 'fuel_type', type: 'TEXT', notNull: true, defaultValue: 'gasoline' },
+      { name: 'distance_unit', type: 'TEXT', notNull: true, defaultValue: 'mi' },
+      { name: 'volume_unit', type: 'TEXT', notNull: true, defaultValue: 'gal' },
+      { name: 'consumption_format', type: 'TEXT', notNull: true, defaultValue: 'mi_gal' },
+      { name: 'tank_capacity', type: 'REAL' },
+      { name: 'tank_capacity_unit', type: 'TEXT' },
+      { name: 'is_default', type: 'INTEGER', kind: 'boolean', notNull: true, defaultValue: 0 },
       { name: 'notes', type: 'TEXT' },
       ...timestamps,
       softDelete,
     ],
     indexes: [
-      { name: 'idx_fuel_refills_active', columns: ['odometer_reading'], where: 'deleted_at IS NULL' },
+      {
+        name: 'idx_vehicles_default',
+        columns: ['is_default'],
+        unique: true,
+        where: 'is_default = 1 AND deleted_at IS NULL',
+      },
     ],
   },
-  TripLogs: {
-    name: 'TripLogs',
-    sqlName: 'trip_logs',
-    entity: 'TripLog',
+  VehicleFuelEntries: {
+    name: 'VehicleFuelEntries',
+    sqlName: 'vehicle_fuel_entries',
+    entity: 'VehicleFuelEntry',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
-      { name: 'date', type: 'INTEGER', kind: 'timestamp', defaultValue: null },
-      { name: 'distance_traveled', type: 'REAL', notNull: true },
-      { name: 'average_consumption', type: 'REAL' },
-      { name: 'is_counter_reset', type: 'INTEGER', kind: 'boolean' },
-      { name: 'trip_type', type: 'TEXT' },
+      {
+        name: 'vehicle_id',
+        type: 'INTEGER',
+        references: { table: 'Vehicles', column: 'id', onDelete: 'CASCADE' },
+        notNull: true,
+      },
+      { name: 'date', type: 'INTEGER', kind: 'timestamp', notNull: true },
+      { name: 'odometer', type: 'REAL' },
+      { name: 'odometer_source', type: 'TEXT' },
+      { name: 'distance_unit', type: 'TEXT', notNull: true, defaultValue: 'mi' },
+      { name: 'distance_traveled', type: 'REAL' },
+      { name: 'distance_source', type: 'TEXT' },
+      { name: 'volume', type: 'REAL', notNull: true },
+      { name: 'volume_unit', type: 'TEXT', notNull: true, defaultValue: 'gal' },
+      { name: 'price_per_unit', type: 'INTEGER', kind: 'money', notNull: true },
+      { name: 'total_cost', type: 'INTEGER', kind: 'money', notNull: true },
+      { name: 'is_full_tank', type: 'INTEGER', kind: 'boolean', notNull: true, defaultValue: 1 },
+      { name: 'station', type: 'TEXT' },
       { name: 'notes', type: 'TEXT' },
       ...timestamps,
       softDelete,
     ],
     indexes: [
-      { name: 'idx_trip_logs_active', columns: ['date'], where: 'deleted_at IS NULL' },
+      { name: 'idx_vehicle_fuel_vehicle_date', columns: ['vehicle_id', 'date'], where: 'deleted_at IS NULL' },
+      { name: 'idx_vehicle_fuel_vehicle_odometer', columns: ['vehicle_id', 'odometer'], where: 'deleted_at IS NULL' },
+    ],
+  },
+  VehicleMaintenance: {
+    name: 'VehicleMaintenance',
+    sqlName: 'vehicle_maintenance',
+    entity: 'VehicleMaintenanceEntry',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      {
+        name: 'vehicle_id',
+        type: 'INTEGER',
+        references: { table: 'Vehicles', column: 'id', onDelete: 'CASCADE' },
+        notNull: true,
+      },
+      { name: 'date', type: 'INTEGER', kind: 'timestamp', notNull: true },
+      { name: 'odometer', type: 'REAL' },
+      { name: 'distance_unit', type: 'TEXT', notNull: true, defaultValue: 'mi' },
+      { name: 'service_type', type: 'TEXT', notNull: true },
+      { name: 'title', type: 'TEXT', notNull: true },
+      { name: 'cost', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'vendor', type: 'TEXT' },
+      { name: 'notes', type: 'TEXT' },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      { name: 'idx_vehicle_maintenance_vehicle_date', columns: ['vehicle_id', 'date'], where: 'deleted_at IS NULL' },
+      { name: 'idx_vehicle_maintenance_vehicle_type', columns: ['vehicle_id', 'service_type'], where: 'deleted_at IS NULL' },
+    ],
+  },
+  VehicleMaintenanceItems: {
+    name: 'VehicleMaintenanceItems',
+    sqlName: 'vehicle_maintenance_items',
+    entity: 'VehicleMaintenanceItem',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      {
+        name: 'maintenance_id',
+        type: 'INTEGER',
+        references: { table: 'VehicleMaintenance', column: 'id', onDelete: 'CASCADE' },
+        notNull: true,
+      },
+      { name: 'name', type: 'TEXT', notNull: true },
+      { name: 'notes', type: 'TEXT' },
+      { name: 'quantity', type: 'REAL' },
+      { name: 'unit', type: 'TEXT' },
+      { name: 'cost', type: 'INTEGER', kind: 'money' },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      { name: 'idx_vehicle_maintenance_items_maintenance', columns: ['maintenance_id'], where: 'deleted_at IS NULL' },
+    ],
+  },
+  VehicleReminders: {
+    name: 'VehicleReminders',
+    sqlName: 'vehicle_reminders',
+    entity: 'VehicleReminder',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      {
+        name: 'vehicle_id',
+        type: 'INTEGER',
+        references: { table: 'Vehicles', column: 'id', onDelete: 'CASCADE' },
+        notNull: true,
+      },
+      { name: 'service_type', type: 'TEXT', notNull: true },
+      { name: 'title', type: 'TEXT', notNull: true },
+      { name: 'interval_distance', type: 'REAL' },
+      { name: 'interval_distance_unit', type: 'TEXT' },
+      { name: 'interval_months', type: 'INTEGER' },
+      { name: 'last_service_date', type: 'INTEGER', kind: 'timestamp' },
+      { name: 'last_service_odometer', type: 'REAL' },
+      { name: 'odometer_unit', type: 'TEXT' },
+      { name: 'next_due_date', type: 'INTEGER', kind: 'timestamp' },
+      { name: 'next_due_odometer', type: 'REAL' },
+      { name: 'is_active', type: 'INTEGER', kind: 'boolean', notNull: true, defaultValue: 1 },
+      { name: 'notes', type: 'TEXT' },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      { name: 'idx_vehicle_reminders_vehicle_active', columns: ['vehicle_id', 'is_active'], where: 'deleted_at IS NULL' },
+    ],
+  },
+  VehicleSettings: {
+    name: 'VehicleSettings',
+    sqlName: 'vehicle_settings',
+    entity: 'VehicleSetting',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      { name: 'setting_key', type: 'TEXT', notNull: true, unique: true },
+      {
+        name: 'category_id',
+        type: 'INTEGER',
+        references: { table: 'Categories', column: 'id', onDelete: 'SET NULL' },
+      },
+      {
+        name: 'payment_method_id',
+        type: 'INTEGER',
+        references: { table: 'PaymentMethods', column: 'id', onDelete: 'SET NULL' },
+      },
+      ...timestamps,
+    ],
+  },
+  VehicleExpenseLinks: {
+    name: 'VehicleExpenseLinks',
+    sqlName: 'vehicle_expense_links',
+    entity: 'VehicleExpenseLink',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      {
+        name: 'record_id',
+        type: 'INTEGER',
+        references: { table: 'Records', column: 'id', onDelete: 'CASCADE' },
+        notNull: true,
+      },
+      {
+        name: 'fuel_entry_id',
+        type: 'INTEGER',
+        references: { table: 'VehicleFuelEntries', column: 'id', onDelete: 'CASCADE' },
+      },
+      {
+        name: 'maintenance_id',
+        type: 'INTEGER',
+        references: { table: 'VehicleMaintenance', column: 'id', onDelete: 'CASCADE' },
+      },
+      ...timestamps,
+    ],
+    indexes: [
+      { name: 'idx_vehicle_expense_links_record', columns: ['record_id'], unique: true },
+      {
+        name: 'idx_vehicle_expense_links_fuel',
+        columns: ['fuel_entry_id'],
+        unique: true,
+        where: 'fuel_entry_id IS NOT NULL',
+      },
+      {
+        name: 'idx_vehicle_expense_links_maintenance',
+        columns: ['maintenance_id'],
+        unique: true,
+        where: 'maintenance_id IS NOT NULL',
+      },
     ],
   },
 };

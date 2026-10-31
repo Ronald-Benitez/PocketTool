@@ -20,8 +20,8 @@ métodos de pago, créditos, ahorros y vehículo.
 - **Fase 6 — Centro de ayuda: FINALIZADA** (2026-10-29).
 - **Fase 7 — Presupuestos: FINALIZADA** (2026-10-29). El plan archivado vive en
   [`docs/legacy/budget-plan.md`](docs/legacy/budget-plan.md).
-- **Fase 8 — Vehículo: EN PLANIFICACIÓN** (2026-10-30). El plan vive en
-  [`docs/vehicle-plan.md`](docs/vehicle-plan.md); no implementar sin validarlo.
+- **Fase 8 — Vehículo: EN IMPLEMENTACIÓN** (2026-10-30). El plan vive en
+  [`docs/vehicle-plan.md`](docs/vehicle-plan.md); queda QA, gráficos y cierre.
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -64,6 +64,13 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 - `src/ui/charts/MermaidChart.tsx`: WebView offline con Mermaid vendorizado,
   tema y fallback accesible.
 - `src/hooks/useBudgetPlan.ts`: carga y refresco del plan mensual y plantillas.
+- `src/domain/vehicle/`: unidades, consumo, promedios y recordatorios.
+- `src/db/repositories/vehicle.ts`: vehículos, combustible, mantenimiento,
+  piezas, recordatorios, settings y vínculos con `Records`.
+- `src/hooks/useVehicle.ts` y `src/stores/VehicleStore.ts`: vehículo activo y
+  refresco.
+- `app/(vehicle)/`: `StackBase` con tabs de resumen, combustible, mantenimiento
+  y recordatorios.
 - `src/ui/filters/`: `FilterModal`, `FilterRow`, `OrderRow` y
   `FilterValueInput`; `RecordsFilterModal` es el wrapper de Records.
 - `SelectField` y `MultiSelectField` aceptan `searchable` para buscar opciones.

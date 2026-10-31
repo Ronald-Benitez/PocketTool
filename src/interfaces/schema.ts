@@ -14,7 +14,6 @@ import type {
   Cents,
   Entity,
   FixedRecord,
-  FuelRefill,
   Group,
   Migration,
   PaidCredit,
@@ -26,7 +25,13 @@ import type {
   SavingsHistoryEntry,
   SoftDeletable,
   TimestampMs,
-  TripLog,
+  Vehicle,
+  VehicleExpenseLink,
+  VehicleFuelEntry,
+  VehicleMaintenanceEntry,
+  VehicleMaintenanceItem,
+  VehicleReminder,
+  VehicleSetting,
 } from '../db/schema/generated/types';
 
 export type {
@@ -38,7 +43,6 @@ export type {
   Cents,
   Entity,
   FixedRecord,
-  FuelRefill,
   Group,
   Migration,
   PaidCredit,
@@ -50,7 +54,13 @@ export type {
   SavingsHistoryEntry,
   SoftDeletable,
   TimestampMs,
-  TripLog,
+  Vehicle,
+  VehicleExpenseLink,
+  VehicleFuelEntry,
+  VehicleMaintenanceEntry,
+  VehicleMaintenanceItem,
+  VehicleReminder,
+  VehicleSetting,
 } from '../db/schema/generated/types';
 
 export type RecordFormEntry = Partial<RecordWithRelations> & {
@@ -115,6 +125,34 @@ export interface BudgetLineWithRelations extends BudgetLine {
 
 export interface SavingsHistoryWithRelations extends SavingsHistoryEntry {
   Savings?: Saving | null;
+}
+
+export interface VehicleFuelEntryWithRelations extends VehicleFuelEntry {
+  Vehicles?: Vehicle | null;
+}
+
+export interface VehicleMaintenanceItemWithRelations extends VehicleMaintenanceItem {
+  VehicleMaintenance?: VehicleMaintenanceEntry | null;
+}
+
+export interface VehicleMaintenanceEntryWithRelations extends VehicleMaintenanceEntry {
+  Vehicles?: Vehicle | null;
+  VehicleMaintenanceItems?: VehicleMaintenanceItemWithRelations[];
+}
+
+export interface VehicleReminderWithRelations extends VehicleReminder {
+  Vehicles?: Vehicle | null;
+}
+
+export interface VehicleSettingWithRelations extends VehicleSetting {
+  Categories?: Category | null;
+  PaymentMethods?: PaymentMethodWithRelations | null;
+}
+
+export interface VehicleExpenseLinkWithRelations extends VehicleExpenseLink {
+  Records?: RecordWithRelations | null;
+  VehicleFuelEntries?: VehicleFuelEntry | null;
+  VehicleMaintenance?: VehicleMaintenanceEntry | null;
 }
 
 /**

@@ -70,7 +70,15 @@ export const COLOR_GROUPS: ColorGroup[] = [
   },
   {
     key: 'charts',
-    tokens: ['chartPlanned', 'chartActual', 'chartProjected'],
+    tokens: [
+      'chartPlanned',
+      'chartActual',
+      'chartProjected',
+      'chartFuelCost',
+      'chartMaintenanceCost',
+      'chartConsumption',
+      'chartDistance',
+    ],
   },
   {
     key: 'overlays',
@@ -155,6 +163,10 @@ export const COLOR_LABELS_ES: Record<keyof ThemeColorTokens, string> = {
   chartPlanned: 'Planificado en gráficos',
   chartActual: 'Real en gráficos',
   chartProjected: 'Proyectado en gráficos',
+  chartFuelCost: 'Costo de combustible',
+  chartMaintenanceCost: 'Costo de mantenimiento',
+  chartConsumption: 'Consumo',
+  chartDistance: 'Distancia',
   modalHeaderBg: 'Fondo de encabezado de modal',
   modalHeaderText: 'Texto de encabezado de modal',
   toastSuccessBg: 'Fondo toast éxito',
