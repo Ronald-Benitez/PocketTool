@@ -125,7 +125,7 @@ const FuelScreen = () => {
         />
 
         <Surface variant='muted' padding='md'>
-          <Row justify='space-between'>
+          <Stack gap='xxs'>
             <AppText>
               {t('vehicle.stats.totalSpent')}: {formatMoneyWithSymbol(stats.totalSpentCents)}
             </AppText>
@@ -134,7 +134,7 @@ const FuelScreen = () => {
               {selectConsumption(stats.averageMetrics, format)?.toFixed(2) ?? '—'}{' '}
               {consumptionUnits(format)}
             </AppText>
-          </Row>
+          </Stack>
         </Surface>
 
         {consumptionChart ? (
@@ -203,6 +203,26 @@ const FuelScreen = () => {
                     : segment.status === 'in_progress'
                       ? t('vehicle.fuel.accumulating')
                       : t('vehicle.fuel.segmentNoBaselineHint');
+                const distanceLabel =
+                  vehicle.distance_unit === 'km'
+                    ? t('vehicle.vehicle.kilometers')
+                    : t('vehicle.vehicle.miles');
+                const volumeLabel =
+                  vehicle.volume_unit === 'L'
+                    ? t('vehicle.vehicle.liters')
+                    : t('vehicle.vehicle.gallons');
+                const costPerDistance =
+                  segment.metrics != null
+                    ? vehicle.distance_unit === 'km'
+                      ? segment.metrics.costPerKm
+                      : segment.metrics.costPerMi
+                    : null;
+                const averagePrice =
+                  segment.metrics != null
+                    ? vehicle.volume_unit === 'L'
+                      ? segment.metrics.pricePerL
+                      : segment.metrics.pricePerGal
+                    : null;
 
                 return (
                   <Surface key={segment.id} variant='outlined' padding='none'>
@@ -213,6 +233,24 @@ const FuelScreen = () => {
                           <AppText variant='caption' color='muted'>
                             {detail}
                           </AppText>
+                          {costPerDistance != null ? (
+                            <AppText variant='caption' color='muted'>
+                              {t('vehicle.fuel.costPerDistance')}:{' '}
+                              {formatMoneyWithSymbol(
+                                Math.round(costPerDistance * 100)
+                              )}{' '}
+                              / {distanceLabel}
+                            </AppText>
+                          ) : null}
+                          {averagePrice != null ? (
+                            <AppText variant='caption' color='muted'>
+                              {t('vehicle.fuel.averagePrice')}:{' '}
+                              {formatMoneyWithSymbol(
+                                Math.round(averagePrice * 100)
+                              )}{' '}
+                              / {volumeLabel}
+                            </AppText>
+                          ) : null}
                         </Stack>
                         <Badge
                           label={badgeLabel}

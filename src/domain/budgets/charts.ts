@@ -22,12 +22,12 @@ const clean = (value: string, fallback: string) => {
     .replace(/\s+/g, ' ')
     .trim();
   if (!normalized) return fallback;
-  return normalized.length > 24 ? `${normalized.slice(0, 21)}...` : normalized;
+  return normalized.length > 16 ? `${normalized.slice(0, 13)}...` : normalized;
 };
 
 const moneyLabel = (cents: number) => Math.round(cents) / 100;
 
-const topExpenseLines = (view: BudgetPlanView, limit = 8) =>
+const topExpenseLines = (view: BudgetPlanView, limit = 6) =>
   view.lines
     .filter((line) => line.effect === '-')
     .sort((a, b) => b.plannedCents - a.plannedCents)

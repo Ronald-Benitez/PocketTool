@@ -4,16 +4,27 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import {
+  useGroups,
   useVehicleFuelRepository,
   useVehicleMaintenanceRepository,
   useVehicleRemindersRepository,
 } from '@/src/db';
 import { VehicleForm } from '@/src/components/vehicle/VehicleForm';
 import { buildFuelStats } from '@/src/domain/vehicle/fuel';
-import { buildMonthlySpendChart } from '@/src/domain/vehicle/charts';
+import {
+  buildConsumptionChart,
+  buildFuelMaintenanceComparisonChart,
+  buildPeriodSpendChart,
+} from '@/src/domain/vehicle/charts';
+import {
+  buildFuelHistory,
+  buildMaintenanceHistory,
+  type VehicleHistoryMode,
+} from '@/src/domain/vehicle/history';
 import { buildReminderStatus, latestOdometerKm } from '@/src/domain/vehicle/reminders';
 import {
   consumptionUnits,
+  convertPricePerUnit,
   distanceUnitOf,
   fromKm,
   selectConsumption,
@@ -23,7 +34,7 @@ import type {
   VehicleMaintenanceView,
 } from '@/src/db/repositories/vehicle';
 import { useVehicle } from '@/src/hooks/useVehicle';
-import type { Vehicle, VehicleReminder } from '@/src/interfaces/schema';
+import type { Group, Vehicle, VehicleReminder } from '@/src/interfaces/schema';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { formatMoneyWithSymbol } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
@@ -47,11 +58,15 @@ const Index = () => {
   const fuelRepository = useVehicleFuelRepository();
   const maintenanceRepository = useVehicleMaintenanceRepository();
   const remindersRepository = useVehicleRemindersRepository();
+  const groupsRepository = useGroups();
   const [vehicleFormVisible, setVehicleFormVisible] = useState(false);
   const [formVehicle, setFormVehicle] = useState<Vehicle | null>(null);
   const [fuelEntries, setFuelEntries] = useState<VehicleFuelEntryView[]>([]);
   const [maintenance, setMaintenance] = useState<VehicleMaintenanceView[]>([]);
   const [reminders, setReminders] = useState<VehicleReminder[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [historyMode, setHistoryMode] =
+    useState<VehicleHistoryMode>('calendar');
   const [refreshKey, setRefreshKey] = useState(0);
 
   useFocusEffect(
@@ -73,11 +88,13 @@ const Index = () => {
       fuelRepository.fetchFuelEntries(vehicle.id),
       maintenanceRepository.fetchMaintenance(vehicle.id),
       remindersRepository.fetchReminders(vehicle.id),
-    ]).then(([fuelRows, maintenanceRows, reminderRows]) => {
+      groupsRepository.fetchGroups(),
+    ]).then(([fuelRows, maintenanceRows, reminderRows, groupRows]) => {
       if (!active) return;
       setFuelEntries(fuelRows);
       setMaintenance(maintenanceRows);
       setReminders(reminderRows);
+      setGroups(groupRows);
     });
     return () => {
       active = false;
@@ -94,10 +111,76 @@ const Index = () => {
     | 'l_60mi'
     | 'gal_60mi') ?? 'mi_gal';
   const stats = useMemo(() => buildFuelStats(fuelEntries, format), [fuelEntries, format]);
-  const spendChart = useMemo(
-    () => buildMonthlySpendChart(fuelEntries, t('vehicle.chart.spend')),
-    [fuelEntries, t]
+  const fuelHistory = useMemo(
+    () =>
+      buildFuelHistory(
+        fuelEntries,
+        historyMode,
+        groups,
+        t('vehicle.history.noGroup')
+      ),
+    [fuelEntries, historyMode, groups, t]
   );
+  const maintenanceHistory = useMemo(
+    () =>
+      buildMaintenanceHistory(
+        maintenance,
+        historyMode,
+        groups,
+        t('vehicle.history.noGroup')
+      ),
+    [maintenance, historyMode, groups, t]
+  );
+  const spendChart = useMemo(
+    () => buildPeriodSpendChart(fuelHistory, t('vehicle.chart.spendByPeriod')),
+    [fuelHistory, t]
+  );
+  const consumptionChart = useMemo(
+    () =>
+      buildConsumptionChart(
+        stats.entries,
+        format,
+        t('vehicle.chart.consumptionProgress')
+      ),
+    [stats.entries, format, t]
+  );
+  const comparisonChart = useMemo(
+    () =>
+      buildFuelMaintenanceComparisonChart(fuelHistory, maintenanceHistory, {
+        title: t('vehicle.chart.fuelVsMaintenance'),
+        fuel: t('vehicle.fuel.title'),
+        maintenance: t('vehicle.maintenance.title'),
+      }),
+    [fuelHistory, maintenanceHistory, t]
+  );
+  const bestValue = selectConsumption(stats.best?.segmentMetrics ?? null, format);
+  const worstValue = selectConsumption(stats.worst?.segmentMetrics ?? null, format);
+  const bestDate = stats.best
+    ? new Date(stats.best.entry.date).toLocaleDateString()
+    : null;
+  const worstDate = stats.worst
+    ? new Date(stats.worst.entry.date).toLocaleDateString()
+    : null;
+  const distanceLabel =
+    vehicle?.distance_unit === 'km'
+      ? t('vehicle.vehicle.kilometers')
+      : t('vehicle.vehicle.miles');
+  const volumeLabel =
+    vehicle?.volume_unit === 'L'
+      ? t('vehicle.vehicle.liters')
+      : t('vehicle.vehicle.gallons');
+  const totalDistance = fromKm(
+    stats.totalDistanceKm,
+    distanceUnitOf(vehicle?.distance_unit)
+  );
+  const averageFuelPrice =
+    stats.averagePricePerL != null
+      ? convertPricePerUnit(
+          stats.averagePricePerL,
+          'L',
+          vehicle?.volume_unit === 'L' ? 'L' : 'gal'
+        )
+      : null;
   const currentOdometerKm = useMemo(
     () => latestOdometerKm(fuelEntries, maintenance),
     [fuelEntries, maintenance]
@@ -269,14 +352,188 @@ const Index = () => {
           </Stack>
         </Surface>
 
+        <Surface variant='outlined' padding='lg'>
+          <Stack gap='md'>
+            <Stack gap='xxs'>
+              <AppText variant='subtitle'>{t('vehicle.history.title')}</AppText>
+              <AppText color='muted'>{t('vehicle.history.subtitle')}</AppText>
+            </Stack>
+            <SelectField
+              label={t('vehicle.history.mode')}
+              value={historyMode}
+              options={[
+                { label: t('vehicle.history.calendar'), value: 'calendar' },
+                { label: t('vehicle.history.group'), value: 'group' },
+              ]}
+              onChange={setHistoryMode}
+            />
+            <Row gap='md'>
+              <SummaryBlock
+                label={t('vehicle.history.bestSegment')}
+                value={
+                  bestValue != null
+                    ? `${bestValue.toFixed(2)} ${consumptionUnits(format)}`
+                    : t('vehicle.stats.noData')
+                }
+                hint={bestDate ?? undefined}
+                size='sm'
+                accentColor={colors.success}
+                style={{ flex: 1 }}
+              />
+              <SummaryBlock
+                label={t('vehicle.history.worstSegment')}
+                value={
+                  worstValue != null
+                    ? `${worstValue.toFixed(2)} ${consumptionUnits(format)}`
+                    : t('vehicle.stats.noData')
+                }
+                hint={worstDate ?? undefined}
+                size='sm'
+                accentColor={colors.warning}
+                style={{ flex: 1 }}
+              />
+            </Row>
+            <Row gap='md'>
+              <SummaryBlock
+                label={t('vehicle.history.totalDistance')}
+                value={`${totalDistance.toFixed(0)} ${distanceLabel}`}
+                size='sm'
+                accentColor={colors.chartPlanned}
+                style={{ flex: 1 }}
+              />
+              <SummaryBlock
+                label={t('vehicle.history.averagePrice')}
+                value={
+                  averageFuelPrice != null
+                    ? `${formatMoneyWithSymbol(
+                        Math.round(averageFuelPrice * 100)
+                      )} / ${volumeLabel}`
+                    : t('vehicle.stats.noData')
+                }
+                size='sm'
+                accentColor={colors.chartFuelCost}
+                style={{ flex: 1 }}
+              />
+            </Row>
+            <Stack gap='sm'>
+              <AppText variant='subtitle'>
+                {t('vehicle.history.periods')}
+              </AppText>
+              {fuelHistory.length === 0 ? (
+                <AppText color='muted'>{t('vehicle.history.noData')}</AppText>
+              ) : (
+                fuelHistory
+                  .slice(-6)
+                  .reverse()
+                  .map((row) => {
+                    const consumption = selectConsumption(
+                      row.averageMetrics,
+                      format
+                    );
+                    const price =
+                      row.averagePricePerL != null
+                        ? convertPricePerUnit(
+                            row.averagePricePerL,
+                            'L',
+                            vehicle?.volume_unit === 'L' ? 'L' : 'gal'
+                          )
+                        : null;
+                    const distance = fromKm(
+                      row.distanceKm,
+                      distanceUnitOf(vehicle?.distance_unit)
+                    );
+                    return (
+                      <Surface key={row.key} variant='muted' padding='md'>
+                        <Stack gap='xxs'>
+                          <Row justify='space-between' gap='sm'>
+                            <AppText weight='600' style={{ flex: 1 }}>
+                              {row.label}
+                            </AppText>
+                            <AppText>
+                              {formatMoneyWithSymbol(row.totalCostCents)}
+                            </AppText>
+                          </Row>
+                          <AppText variant='caption' color='muted'>
+                            {t('vehicle.history.distance')}:{' '}
+                            {distance.toFixed(0)} {distanceLabel} ·{' '}
+                            {t('vehicle.history.consumption')}:{' '}
+                            {consumption != null
+                              ? `${consumption.toFixed(2)} ${consumptionUnits(
+                                  format
+                                )}`
+                              : '—'}
+                          </AppText>
+                          <AppText variant='caption' color='muted'>
+                            {t('vehicle.history.price')}:{' '}
+                            {price != null
+                              ? `${formatMoneyWithSymbol(
+                                  Math.round(price * 100)
+                                )} / ${volumeLabel}`
+                              : '—'}{' '}
+                            ·{' '}
+                            {t('vehicle.history.fills', {
+                              count: row.fills,
+                            })}{' '}
+                            ·{' '}
+                            {t('vehicle.history.segments', {
+                              count: row.completedSegments,
+                            })}
+                          </AppText>
+                        </Stack>
+                      </Surface>
+                    );
+                  })
+              )}
+            </Stack>
+          </Stack>
+        </Surface>
+
         {spendChart ? (
           <MermaidChart
             definition={spendChart}
             height={260}
-            accessibilityLabel={t('vehicle.chart.spend')}
+            accessibilityLabel={t('vehicle.chart.spendByPeriod')}
             palette={[colors.chartFuelCost]}
             legend={[
-              { label: t('vehicle.chart.spend'), color: colors.chartFuelCost },
+              {
+                label: t('vehicle.chart.spendByPeriod'),
+                color: colors.chartFuelCost,
+              },
+            ]}
+            fallback={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
+          />
+        ) : null}
+
+        {consumptionChart ? (
+          <MermaidChart
+            definition={consumptionChart}
+            height={260}
+            accessibilityLabel={t('vehicle.chart.consumptionProgress')}
+            palette={[colors.chartConsumption]}
+            legend={[
+              {
+                label: `${t('vehicle.chart.consumption')} (${consumptionUnits(
+                  format
+                )})`,
+                color: colors.chartConsumption,
+              },
+            ]}
+            fallback={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
+          />
+        ) : null}
+
+        {comparisonChart ? (
+          <MermaidChart
+            definition={comparisonChart}
+            height={260}
+            accessibilityLabel={t('vehicle.chart.fuelVsMaintenance')}
+            palette={[colors.chartFuelCost, colors.chartMaintenanceCost]}
+            legend={[
+              { label: t('vehicle.fuel.title'), color: colors.chartFuelCost },
+              {
+                label: t('vehicle.maintenance.title'),
+                color: colors.chartMaintenanceCost,
+              },
             ]}
             fallback={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
           />

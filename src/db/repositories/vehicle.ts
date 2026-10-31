@@ -42,6 +42,7 @@ export type VehicleFuelEntryView = VehicleFuelEntry & {
   record_id?: number | null;
   record_name?: string | null;
   record_amount?: number | null;
+  record_group_id?: number | null;
 };
 
 export type VehicleMaintenanceItemView = VehicleMaintenanceItem;
@@ -51,6 +52,7 @@ export type VehicleMaintenanceView = VehicleMaintenanceEntry & {
   record_id?: number | null;
   record_name?: string | null;
   record_amount?: number | null;
+  record_group_id?: number | null;
 };
 
 export type VehicleExpenseOption = {
@@ -362,6 +364,7 @@ export const useVehicleFuelRepository = () => {
           record_id: link?.record_id ?? null,
           record_name: record?.record_name ?? null,
           record_amount: record?.amount ?? null,
+          record_group_id: record?.group_id ?? null,
         };
       })
       .sort((a, b) => b.date - a.date || (b.id ?? 0) - (a.id ?? 0));
@@ -492,6 +495,7 @@ export const useVehicleMaintenanceRepository = () => {
           record_id: link?.record_id ?? null,
           record_name: record?.record_name ?? null,
           record_amount: record?.amount ?? null,
+          record_group_id: record?.group_id ?? null,
         };
       })
       .sort((a, b) => b.date - a.date || (b.id ?? 0) - (a.id ?? 0));

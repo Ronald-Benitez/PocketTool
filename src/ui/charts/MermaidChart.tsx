@@ -52,9 +52,9 @@ const buildHtml = (
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 <style>
-  html, body { margin: 0; padding: 0; background: transparent; color: ${colors.text}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-  #chart { display: flex; align-items: center; justify-content: center; min-height: 120px; }
-  #chart svg { max-width: 100%; height: auto; }
+  html, body { margin: 0; padding: 0; width: 100%; max-width: 100%; overflow-x: hidden; background: transparent; color: ${colors.text}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  #chart { box-sizing: border-box; width: 100%; max-width: 100%; padding: 0 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; min-height: 120px; }
+  #chart svg { display: block; width: 100% !important; max-width: 100% !important; height: auto !important; }
   .error { color: ${colors.expense}; font-size: 13px; padding: 12px; }
 </style>
 </head>

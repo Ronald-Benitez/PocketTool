@@ -1,4 +1,8 @@
 import type { ConsumptionFormat, FuelEntryAnalysis } from './types';
+import type {
+  FuelPeriodSummary,
+  MaintenancePeriodSummary,
+} from './history';
 import { consumptionUnits, selectConsumption } from './units';
 
 const clean = (value: string, fallback: string) => {
@@ -17,7 +21,7 @@ export const buildConsumptionChart = (
       value: selectConsumption(entry.segmentMetrics, format),
     }))
     .filter((point): point is { date: number; value: number } => point.value != null)
-    .slice(-12);
+    .slice(-6);
 
   if (points.length < 2) return null;
   const values = points.map((point) => Number(point.value.toFixed(3)));
@@ -32,6 +36,76 @@ export const buildConsumptionChart = (
       .join(', ')}]`,
     `  y-axis "${clean(consumptionUnits(format), consumptionUnits(format))}" 0 --> ${axisMax}`,
     `  line [${values.join(', ')}]`,
+  ].join('\n');
+};
+
+export const buildPeriodSpendChart = (
+  rows: FuelPeriodSummary[],
+  title: string,
+  limit = 6
+) => {
+  const periodRows = rows.slice(-limit);
+  if (periodRows.length < 2) return null;
+  const values = periodRows.map((row) => Number((row.totalCostCents / 100).toFixed(2)));
+  const max = Math.max(...values, 1);
+  const axisMax = Math.ceil(max * 1.15);
+
+  return [
+    'xychart-beta',
+    `  title "${clean(title, title)}"`,
+    `  x-axis [${periodRows.map((row) => `"${clean(row.label, '')}"`).join(', ')}]`,
+    `  y-axis "Total" 0 --> ${axisMax}`,
+    `  bar [${values.join(', ')}]`,
+  ].join('\n');
+};
+
+export const buildFuelMaintenanceComparisonChart = (
+  fuel: FuelPeriodSummary[],
+  maintenance: MaintenancePeriodSummary[],
+  labels: {
+    title: string;
+    fuel: string;
+    maintenance: string;
+  },
+  limit = 6
+) => {
+  const maintenanceByKey = new Map(
+    maintenance.map((row) => [row.key, row] as const)
+  );
+  const fuelByKey = new Map(fuel.map((row) => [row.key, row] as const));
+  const keys = new Map<
+    string,
+    { key: string; label: string; sort: number }
+  >();
+  for (const row of [...fuel, ...maintenance]) {
+    if (!keys.has(row.key)) {
+      keys.set(row.key, { key: row.key, label: row.label, sort: row.sort });
+    }
+  }
+  const rows = [...keys.values()]
+    .sort((a, b) => a.sort - b.sort)
+    .slice(-limit);
+  if (rows.length < 2) return null;
+
+  const fuelValues = rows.map((row) =>
+    Number(((fuelByKey.get(row.key)?.totalCostCents ?? 0) / 100).toFixed(2))
+  );
+  const maintenanceValues = rows.map((row) =>
+    Number(((maintenanceByKey.get(row.key)?.totalCostCents ?? 0) / 100).toFixed(2))
+  );
+  const max = Math.max(...fuelValues, ...maintenanceValues, 1);
+  const axisMax = Math.ceil(max * 1.15);
+
+  return [
+    'xychart-beta',
+    `  title "${clean(labels.title, labels.title)}"`,
+    `  x-axis [${rows.map((row) => `"${clean(row.label, '')}"`).join(', ')}]`,
+    `  y-axis "${clean(labels.fuel, labels.fuel)} / ${clean(
+      labels.maintenance,
+      labels.maintenance
+    )}" 0 --> ${axisMax}`,
+    `  bar [${fuelValues.join(', ')}]`,
+    `  bar [${maintenanceValues.join(', ')}]`,
   ].join('\n');
 };
 
