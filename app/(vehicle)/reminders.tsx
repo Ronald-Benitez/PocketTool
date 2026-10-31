@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useFocusEffect } from 'expo-router';
 
 import {
   useVehicleFuelRepository,
@@ -47,6 +48,12 @@ const RemindersScreen = () => {
   const [formVisible, setFormVisible] = useState(false);
   const [selected, setSelected] = useState<VehicleReminder | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      setRefreshKey((value) => value + 1);
+    }, [])
+  );
 
   useEffect(() => {
     if (!vehicle?.id) {

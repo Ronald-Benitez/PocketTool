@@ -29,16 +29,19 @@ import { Modal } from '@/src/ui/overlays/Modal';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Stack } from '@/src/ui/primitives/Stack';
 import { MaintenanceItemForm, type MaintenanceItemDraft } from './MaintenanceItemForm';
-import {
-  ReminderForm,
-  type ReminderInitialData,
-} from './ReminderForm';
+import type { ReminderInitialData } from './ReminderForm';
 import { VehicleExpensePicker } from './VehicleExpensePicker';
+
+export type MaintenanceReminderRequest = {
+  initialData: ReminderInitialData;
+  replaceActiveType: string | null;
+};
 
 type MaintenanceFormProps = {
   visible: boolean;
   vehicle: Vehicle;
   entry?: VehicleMaintenanceView | null;
+  onCreateReminder?: (request: MaintenanceReminderRequest) => void;
   onClose: () => void;
   onSaved: () => void;
 };
@@ -68,6 +71,7 @@ export const MaintenanceForm = ({
   visible,
   vehicle,
   entry,
+  onCreateReminder,
   onClose,
   onSaved,
 }: MaintenanceFormProps) => {
@@ -103,8 +107,7 @@ export const MaintenanceForm = ({
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [createReminder, setCreateReminder] = useState(false);
-  const [reminderVisible, setReminderVisible] = useState(false);
-  const [reminderInitialData, setReminderInitialData] =
+  const [pendingReminder, setPendingReminder] =
     useState<ReminderInitialData | null>(null);
   const [replaceActiveType, setReplaceActiveType] = useState<string | null>(null);
   const [conflictVisible, setConflictVisible] = useState(false);
@@ -145,8 +148,7 @@ export const MaintenanceForm = ({
     );
     setError(null);
     setCreateReminder(false);
-    setReminderVisible(false);
-    setReminderInitialData(null);
+    setPendingReminder(null);
     setReplaceActiveType(null);
     setConflictVisible(false);
   }, [visible, entry, vehicle.distance_unit]);
@@ -292,7 +294,7 @@ export const MaintenanceForm = ({
     showToast({ message: t('vehicle.toast.saved'), type: 'success' });
     onSaved();
 
-    if (!createReminder || !vehicle.id) {
+    if (!createReminder || !vehicle.id || !onCreateReminder) {
       setSaving(false);
       onClose();
       return;
@@ -305,7 +307,7 @@ export const MaintenanceForm = ({
       last_service_odometer: odometer.trim() ? Number(odometer) : null,
       odometer_unit: odometer.trim() ? distanceUnit : null,
     };
-    setReminderInitialData(draft);
+    setPendingReminder(draft);
 
     try {
       const existing = await remindersRepository.findActiveReminder(
@@ -316,14 +318,12 @@ export const MaintenanceForm = ({
         setReplaceActiveType(serviceType);
         setConflictVisible(true);
       } else {
-        setReplaceActiveType(null);
-        setReminderVisible(true);
+        onCreateReminder({ initialData: draft, replaceActiveType: null });
         onClose();
       }
     } catch (cause) {
       if (__DEV__) console.warn('[vehicle] reminder lookup failed', cause);
-      setReplaceActiveType(null);
-      setReminderVisible(true);
+      onCreateReminder({ initialData: draft, replaceActiveType: null });
       onClose();
     } finally {
       setSaving(false);
@@ -556,21 +556,18 @@ export const MaintenanceForm = ({
         cancelLabel={t('vehicle.confirm.replaceReminderCancel')}
         onConfirm={() => {
           setConflictVisible(false);
-          setReminderVisible(true);
+          if (pendingReminder && onCreateReminder) {
+            onCreateReminder({
+              initialData: pendingReminder,
+              replaceActiveType,
+            });
+          }
           onClose();
         }}
         onCancel={() => {
           setConflictVisible(false);
           onClose();
         }}
-      />
-      <ReminderForm
-        visible={reminderVisible}
-        vehicle={vehicle}
-        initialData={reminderInitialData}
-        replaceActiveForType={replaceActiveType}
-        onClose={() => setReminderVisible(false)}
-        onSaved={onSaved}
       />
     </>
   );

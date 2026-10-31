@@ -131,7 +131,7 @@ export const ReminderForm = ({
       return;
     }
     if (!intervalDistance.trim() && !intervalMonths.trim()) {
-      setError(t('vehicle.toast.empty'));
+      setError(t('vehicle.reminders.intervalRequired'));
       return;
     }
     setSaving(true);
@@ -163,8 +163,10 @@ export const ReminderForm = ({
       showToast({ message: t('vehicle.toast.saved'), type: 'success' });
       onSaved();
       onClose();
-    } catch {
+    } catch (cause) {
+      if (__DEV__) console.warn('[vehicle] reminder save failed', cause);
       setError(t('vehicle.toast.error'));
+      showToast({ message: t('vehicle.toast.error'), type: 'error' });
     } finally {
       setSaving(false);
     }
@@ -231,6 +233,7 @@ export const ReminderForm = ({
         }
       >
         <View style={styles.form}>
+          {error ? <InlineMessage variant='error' message={error} /> : null}
           {maintenanceOptions.length > 0 ? (
             <SelectField
               label={t('vehicle.reminders.sourceMaintenance')}
@@ -301,7 +304,6 @@ export const ReminderForm = ({
             multiline
             numberOfLines={3}
           />
-          {error ? <InlineMessage variant='error' message={error} /> : null}
         </View>
       </Modal>
       <ConfirmDialog

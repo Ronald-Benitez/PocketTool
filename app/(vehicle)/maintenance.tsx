@@ -2,7 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { useVehicleMaintenanceRepository } from '@/src/db';
-import { MaintenanceForm } from '@/src/components/vehicle/MaintenanceForm';
+import {
+  MaintenanceForm,
+  type MaintenanceReminderRequest,
+} from '@/src/components/vehicle/MaintenanceForm';
+import {
+  ReminderForm,
+  type ReminderInitialData,
+} from '@/src/components/vehicle/ReminderForm';
 import type { VehicleMaintenanceView } from '@/src/db/repositories/vehicle';
 import { useVehicle } from '@/src/hooks/useVehicle';
 import { useLanguage } from '@/src/lang/LanguageContext';
@@ -25,7 +32,17 @@ const MaintenanceScreen = () => {
   const [entries, setEntries] = useState<VehicleMaintenanceView[]>([]);
   const [formVisible, setFormVisible] = useState(false);
   const [selected, setSelected] = useState<VehicleMaintenanceView | null>(null);
+  const [reminderVisible, setReminderVisible] = useState(false);
+  const [reminderInitialData, setReminderInitialData] =
+    useState<ReminderInitialData | null>(null);
+  const [replaceActiveType, setReplaceActiveType] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleCreateReminder = (request: MaintenanceReminderRequest) => {
+    setReminderInitialData(request.initialData);
+    setReplaceActiveType(request.replaceActiveType);
+    setReminderVisible(true);
+  };
 
   useEffect(() => {
     if (!vehicle?.id) {
@@ -115,7 +132,16 @@ const MaintenanceScreen = () => {
         visible={formVisible}
         vehicle={vehicle}
         entry={selected}
+        onCreateReminder={handleCreateReminder}
         onClose={() => setFormVisible(false)}
+        onSaved={() => setRefreshKey((value) => value + 1)}
+      />
+      <ReminderForm
+        visible={reminderVisible}
+        vehicle={vehicle}
+        initialData={reminderInitialData}
+        replaceActiveForType={replaceActiveType}
+        onClose={() => setReminderVisible(false)}
         onSaved={() => setRefreshKey((value) => value + 1)}
       />
     </Screen>

@@ -126,6 +126,7 @@ export const vehicleEn = {
     sourceMaintenancePlaceholder: 'Select a maintenance record',
     sourceMaintenanceHint:
       'Fills the service type, title, date and odometer from the selected maintenance.',
+    intervalRequired: 'Set a distance interval or a month interval.',
     remainingDistance: 'Remaining distance',
     remainingDays: 'Remaining days',
     statusOk: 'On track',
@@ -349,6 +350,7 @@ export const vehicleEs: MessageShape<typeof vehicleEn> = {
     sourceMaintenancePlaceholder: 'Selecciona un mantenimiento',
     sourceMaintenanceHint:
       'Completa el tipo de servicio, el título, la fecha y el odómetro del mantenimiento seleccionado.',
+    intervalRequired: 'Define un intervalo de distancia o un intervalo en meses.',
     remainingDistance: 'Distancia restante',
     remainingDays: 'Días restantes',
     statusOk: 'En orden',
