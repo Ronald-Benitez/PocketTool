@@ -25,6 +25,7 @@ import { buildReminderStatus, latestOdometerKm } from '@/src/domain/vehicle/remi
 import {
   consumptionUnits,
   convertPricePerUnit,
+  convertVolume,
   distanceUnitOf,
   fromKm,
   selectConsumption,
@@ -172,6 +173,11 @@ const Index = () => {
   const totalDistance = fromKm(
     stats.totalDistanceKm,
     distanceUnitOf(vehicle?.distance_unit)
+  );
+  const totalFuel = convertVolume(
+    fuelHistory.reduce((total, row) => total + row.totalVolumeL, 0),
+    'L',
+    vehicle?.volume_unit === 'L' ? 'L' : 'gal'
   );
   const averageFuelPrice =
     stats.averagePricePerL != null
@@ -415,6 +421,12 @@ const Index = () => {
                 style={{ flex: 1 }}
               />
             </Row>
+            <SummaryBlock
+              label={t('vehicle.history.totalFuel')}
+              value={`${totalFuel.toFixed(2)} ${volumeLabel}`}
+              size='sm'
+              accentColor={colors.chartConsumption}
+            />
             <Stack gap='sm'>
               <AppText variant='subtitle'>
                 {t('vehicle.history.periods')}
@@ -423,7 +435,7 @@ const Index = () => {
                 <AppText color='muted'>{t('vehicle.history.noData')}</AppText>
               ) : (
                 fuelHistory
-                  .slice(-6)
+                  .slice()
                   .reverse()
                   .map((row) => {
                     const consumption = selectConsumption(
@@ -456,21 +468,29 @@ const Index = () => {
                           <AppText variant='caption' color='muted'>
                             {t('vehicle.history.distance')}:{' '}
                             {distance.toFixed(0)} {distanceLabel} ·{' '}
+                            {t('vehicle.history.fuel')}:{' '}
+                            {convertVolume(
+                              row.totalVolumeL,
+                              'L',
+                              vehicle?.volume_unit === 'L' ? 'L' : 'gal'
+                            ).toFixed(2)}{' '}
+                            {volumeLabel}
+                          </AppText>
+                          <AppText variant='caption' color='muted'>
                             {t('vehicle.history.consumption')}:{' '}
                             {consumption != null
                               ? `${consumption.toFixed(2)} ${consumptionUnits(
                                   format
                                 )}`
-                              : '—'}
-                          </AppText>
-                          <AppText variant='caption' color='muted'>
-                            {t('vehicle.history.price')}:{' '}
+                              : '—'}{' '}
+                            · {t('vehicle.history.price')}:{' '}
                             {price != null
                               ? `${formatMoneyWithSymbol(
                                   Math.round(price * 100)
                                 )} / ${volumeLabel}`
-                              : '—'}{' '}
-                            ·{' '}
+                              : '—'}
+                          </AppText>
+                          <AppText variant='caption' color='muted'>
                             {t('vehicle.history.fills', {
                               count: row.fills,
                             })}{' '}

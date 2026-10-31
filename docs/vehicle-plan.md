@@ -1247,11 +1247,12 @@ Implementado:
   odómetro.
 - Detalle por segmento con costo por milla/km y precio medio por galón/litro.
 - Historial por mes real o por grupo del mes, con mejor/peor segmento, distancia
-  total, precio medio y resumen por periodo.
+  total, combustible total, precio medio y resumen por periodo.
 - Gráficos de gasto por periodo, progresión del consumo y comparación
   combustible vs mantenimiento.
-- Gráficos Mermaid responsivos: el SVG se escala al ancho disponible y las
-  series se limitan para evitar recortes horizontales.
+- Gráficos Mermaid responsivos: el SVG se escala al ancho disponible y, cuando
+  hay muchos puntos o categorías, el gráfico habilita desplazamiento horizontal
+  en lugar de recortar datos.
 - Listas de combustible, mantenimiento y recordatorios ordenadas de fecha más
   reciente a más antigua.
 - Crear gasto, vincular gasto existente o no vincular.

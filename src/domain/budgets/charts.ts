@@ -27,11 +27,10 @@ const clean = (value: string, fallback: string) => {
 
 const moneyLabel = (cents: number) => Math.round(cents) / 100;
 
-const topExpenseLines = (view: BudgetPlanView, limit = 6) =>
+const topExpenseLines = (view: BudgetPlanView) =>
   view.lines
     .filter((line) => line.effect === '-')
-    .sort((a, b) => b.plannedCents - a.plannedCents)
-    .slice(0, limit);
+    .sort((a, b) => b.plannedCents - a.plannedCents);
 
 export const buildBudgetHealthPie = (
   view: BudgetPlanView,

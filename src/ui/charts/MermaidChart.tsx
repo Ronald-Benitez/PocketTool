@@ -15,6 +15,14 @@ let cachedBundle: string | null = null;
 const EMPTY_PALETTE: string[] = [];
 const EMPTY_LEGEND: MermaidChartLegendItem[] = [];
 
+const estimateMinWidth = (definition: string) => {
+  const xAxis = definition.match(/x-axis\s*\[(.*)\]/);
+  if (!xAxis) return null;
+  const labels = xAxis[1].match(/"[^"]*"/g)?.length ?? 0;
+  if (labels === 0) return null;
+  return Math.max(320, labels * 72);
+};
+
 const loadMermaidBundle = async () => {
   if (cachedBundle) return cachedBundle;
   const asset = Asset.fromModule(
@@ -40,7 +48,8 @@ const buildHtml = (
     expense: string;
     income: string;
   },
-  palette: string[]
+  palette: string[],
+  minWidth: number | null
 ) => {
   const safeBundle = bundle.replace(/<\/script/gi, '<\\/script');
   const pieVariables = palette
@@ -52,9 +61,9 @@ const buildHtml = (
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 <style>
-  html, body { margin: 0; padding: 0; width: 100%; max-width: 100%; overflow-x: hidden; background: transparent; color: ${colors.text}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-  #chart { box-sizing: border-box; width: 100%; max-width: 100%; padding: 0 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; min-height: 120px; }
-  #chart svg { display: block; width: 100% !important; max-width: 100% !important; height: auto !important; }
+  html, body { margin: 0; padding: 0; width: 100%; max-width: 100%; overflow-x: auto; background: transparent; color: ${colors.text}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  #chart { box-sizing: border-box; width: 100%; ${minWidth ? `min-width: ${minWidth}px;` : 'max-width: 100%;'} padding: 0 8px; overflow: visible; display: flex; align-items: center; justify-content: ${minWidth ? 'flex-start' : 'center'}; min-height: 120px; }
+  #chart svg { display: block; width: 100% !important; max-width: none !important; height: auto !important; }
   .error { color: ${colors.expense}; font-size: 13px; padding: 12px; }
 </style>
 </head>
@@ -165,6 +174,11 @@ export const MermaidChart = ({
     };
   }, []);
 
+  const minWidth = useMemo(
+    () => (definition ? estimateMinWidth(definition) : null),
+    [definition]
+  );
+
   const html = useMemo(() => {
     if (!bundle || !definition) return null;
     return buildHtml(
@@ -179,12 +193,14 @@ export const MermaidChart = ({
         expense: colors.expense,
         income: colors.income,
       },
-      palette
+      palette,
+      minWidth
     );
   }, [
     bundle,
     definition,
     palette,
+    minWidth,
     colors.border,
     colors.expense,
     colors.income,
@@ -221,7 +237,8 @@ export const MermaidChart = ({
             originWhitelist={['about:blank']}
             javaScriptEnabled
             domStorageEnabled={false}
-            scrollEnabled={false}
+            scrollEnabled
+            bounces={false}
             mixedContentMode='never'
             onShouldStartLoadWithRequest={(request) =>
               request.url.startsWith('about:blank')

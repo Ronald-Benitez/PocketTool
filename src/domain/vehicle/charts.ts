@@ -20,8 +20,7 @@ export const buildConsumptionChart = (
       date: entry.entry.date,
       value: selectConsumption(entry.segmentMetrics, format),
     }))
-    .filter((point): point is { date: number; value: number } => point.value != null)
-    .slice(-6);
+    .filter((point): point is { date: number; value: number } => point.value != null);
 
   if (points.length < 2) return null;
   const values = points.map((point) => Number(point.value.toFixed(3)));
@@ -41,10 +40,9 @@ export const buildConsumptionChart = (
 
 export const buildPeriodSpendChart = (
   rows: FuelPeriodSummary[],
-  title: string,
-  limit = 6
+  title: string
 ) => {
-  const periodRows = rows.slice(-limit);
+  const periodRows = rows;
   if (periodRows.length < 2) return null;
   const values = periodRows.map((row) => Number((row.totalCostCents / 100).toFixed(2)));
   const max = Math.max(...values, 1);
@@ -66,8 +64,7 @@ export const buildFuelMaintenanceComparisonChart = (
     title: string;
     fuel: string;
     maintenance: string;
-  },
-  limit = 6
+  }
 ) => {
   const maintenanceByKey = new Map(
     maintenance.map((row) => [row.key, row] as const)
@@ -82,9 +79,7 @@ export const buildFuelMaintenanceComparisonChart = (
       keys.set(row.key, { key: row.key, label: row.label, sort: row.sort });
     }
   }
-  const rows = [...keys.values()]
-    .sort((a, b) => a.sort - b.sort)
-    .slice(-limit);
+  const rows = [...keys.values()].sort((a, b) => a.sort - b.sort);
   if (rows.length < 2) return null;
 
   const fuelValues = rows.map((row) =>
@@ -125,7 +120,7 @@ export const buildMonthlySpendChart = (
     current.total += entry.total_cost / 100;
     months.set(key, current);
   }
-  const rows = [...months.values()].sort((a, b) => a.sort - b.sort).slice(-12);
+  const rows = [...months.values()].sort((a, b) => a.sort - b.sort);
   if (rows.length < 2) return null;
   const max = Math.max(...rows.map((row) => row.total), 1);
   const axisMax = Math.ceil(max * 1.15);
