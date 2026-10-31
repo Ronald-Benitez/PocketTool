@@ -208,6 +208,14 @@ export const MaintenanceForm = ({
       setError(t('vehicle.records.groupRequired'));
       return;
     }
+    if (linkMode === 'create' && !categoryId) {
+      setError(t('vehicle.records.categoryRequired'));
+      return;
+    }
+    if (linkMode === 'create' && !paymentMethodId) {
+      setError(t('vehicle.records.paymentRequired'));
+      return;
+    }
     if (linkMode === 'link' && !linkedRecord) {
       setError(t('vehicle.records.noResults'));
       return;
