@@ -34,6 +34,7 @@ un modelo normalizado:
 4. `VehicleMaintenanceItems`.
 5. `VehicleReminders`.
 6. `VehicleSettings`.
+7. `VehicleExpenseLinks`.
 
 La sección permitirá:
 
@@ -52,8 +53,8 @@ La sección permitirá:
   inspección, seguro y otros recordatorios.
 - Inferir el odómetro actual desde los registros de combustible/mantenimiento
   para calcular cuánto falta para el próximo servicio.
-- Crear automáticamente el gasto en `Records` por defecto, con toggle y sin
-  doble captura.
+- Crear automáticamente el gasto en `Records` por defecto, vincular un gasto ya
+  registrado o no vincular ninguno, sin doble captura.
 - Ver históricos, comparativas por periodo y por vehículo, y gráficos Mermaid
   con colores del tema.
 - Empezar solo con gasolina, dejando preparado el modelo para eléctrico,
@@ -180,9 +181,9 @@ erDiagram
   Vehicles ||--o{ VehicleMaintenance : "tiene"
   Vehicles ||--o{ VehicleReminders : "programa"
   VehicleMaintenance ||--o{ VehicleMaintenanceItems : "detalla"
-  Records ||--o| VehicleFuelEntries : "gasto"
-  Records ||--o| VehicleMaintenance : "gasto"
-  Categories ||--o{ VehicleFuelEntries : "clasifica"
+  Records ||--o| VehicleExpenseLinks : "gasto"
+  VehicleFuelEntries ||--o| VehicleExpenseLinks : "vincula"
+  VehicleMaintenance ||--o| VehicleExpenseLinks : "vincula"
   Categories ||--o{ VehicleSettings : "categoria por defecto"
   PaymentMethods ||--o{ VehicleSettings : "pago por defecto"
 ```
@@ -240,7 +241,6 @@ Nombre lógico `VehicleFuelEntries`, físico `vehicle_fuel_entries`, entidad
 | `total_cost` | INTEGER money NOT NULL | centavos |
 | `is_full_tank` | INTEGER boolean NOT NULL DEFAULT 1 | tanque lleno |
 | `station` | TEXT | estación opcional |
-| `record_id` | INTEGER | FK `Records` SET NULL |
 | `notes` | TEXT | notas |
 | `created_at`, `updated_at`, `deleted_at` | INTEGER timestamp | auditoría y soft delete |
 
@@ -248,9 +248,6 @@ Nombre lógico `VehicleFuelEntries`, físico `vehicle_fuel_entries`, entidad
 
 - `(vehicle_id, date)` donde `deleted_at IS NULL`.
 - `(vehicle_id, odometer)` donde `deleted_at IS NULL`.
-- único parcial `(record_id)` donde `record_id IS NOT NULL` y
-  `deleted_at IS NULL`.
-- `(record_id)` para búsquedas.
 
 Reglas:
 
@@ -263,8 +260,8 @@ Reglas:
 - `distance_source = inferred` cuando se calcula desde la diferencia de
   odómetros.
 - `price_per_unit` se guarda en centavos y en la unidad de `volume_unit`.
-- `record_id` es opcional: el usuario puede guardar solo el registro técnico.
-- La entrada no duplica el gasto: el dinero vive en `Records`.
+- La entrada no duplica el gasto: el vínculo financiero vive en
+  `VehicleExpenseLinks`.
 
 ### 4.4 `VehicleMaintenance`
 
@@ -283,15 +280,12 @@ Nombre lógico `VehicleMaintenance`, físico `vehicle_maintenance`, entidad
 | `cost` | INTEGER money NOT NULL DEFAULT 0 | centavos |
 | `vendor` | TEXT | taller/proveedor |
 | `notes` | TEXT | piezas, detalles o factura |
-| `record_id` | INTEGER | FK `Records` SET NULL |
 | `created_at`, `updated_at`, `deleted_at` | INTEGER timestamp | auditoría y soft delete |
 
 Índices:
 
 - `(vehicle_id, date)` donde `deleted_at IS NULL`.
 - `(vehicle_id, service_type)` donde `deleted_at IS NULL`.
-- único parcial `(record_id)` donde `record_id IS NOT NULL` y
-  `deleted_at IS NULL`.
 
 Reglas:
 
@@ -302,6 +296,7 @@ Reglas:
   aceite correspondiente.
 - El costo total del servicio vive en `VehicleMaintenance.cost`; las piezas
   pueden desglosarse en `VehicleMaintenanceItems`.
+- El vínculo financiero vive en `VehicleExpenseLinks`.
 
 ### 4.5 `VehicleMaintenanceItems`
 
@@ -391,16 +386,46 @@ Reglas:
 - Claves iniciales: gasolina, mantenimiento, reparación, llantas, cambio de
   aceite, seguro, inspección y otros.
 
-### 4.8 Por qué no se guarda el gasto dos veces
+### 4.8 `VehicleExpenseLinks`
 
-`VehicleFuelEntries` y `VehicleMaintenance` guardan detalle técnico y un
-`record_id` opcional. El dinero, la categoría, el método de pago y el grupo
-siguen viviendo en `Records`:
+Nombre lógico `VehicleExpenseLinks`, físico `vehicle_expense_links`, entidad
+`VehicleExpenseLink`.
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | INTEGER PK | autoincrement |
+| `record_id` | INTEGER NOT NULL | FK `Records` CASCADE |
+| `fuel_entry_id` | INTEGER | FK `VehicleFuelEntries` CASCADE |
+| `maintenance_id` | INTEGER | FK `VehicleMaintenance` CASCADE |
+| `created_at`, `updated_at` | INTEGER timestamp | auditoría |
+
+Índices:
+
+- único parcial `(record_id)` para impedir que un gasto se vincule dos veces.
+- único parcial `(fuel_entry_id)` donde no es nulo.
+- único parcial `(maintenance_id)` donde no es nulo.
+
+Reglas:
+
+- Exactamente uno de `fuel_entry_id` o `maintenance_id` debe existir.
+- Un `Records` solo puede estar vinculado a una entrada de vehículo, sea de
+  combustible o de mantenimiento.
+- Una entrada de vehículo solo puede tener un gasto vinculado.
+- El vínculo se crea al crear el gasto o al seleccionar un gasto existente.
+- Si el gasto se borra físicamente, el vínculo se elimina por CASCADE; si se
+  borra lógicamente, la UI muestra “gasto eliminado” y permite desvincular.
+- Esta tabla centraliza la unicidad global entre combustible y mantenimiento,
+  cosa que dos columnas `record_id` separadas no podrían garantizar.
+
+### 4.9 Por qué no se guarda el gasto dos veces
+
+`VehicleFuelEntries` y `VehicleMaintenance` guardan detalle técnico. El dinero,
+la categoría, el método de pago y el grupo siguen viviendo en `Records`:
 
 - Presupuestos y resúmenes ya leen `Records`.
 - El usuario no captura el gasto dos veces.
-- Si no quiere afectar sus finanzas, guarda la entrada sin `record_id`.
-- El vínculo es uno a uno por el índice único parcial.
+- Si no quiere afectar sus finanzas, guarda la entrada sin vínculo.
+- El vínculo es uno a uno mediante `VehicleExpenseLinks`.
 
 ---
 
@@ -535,25 +560,57 @@ Reglas:
 
 ## 6. Integración con Registros
 
-### 6.1 Creación del gasto
+### 6.1 Opciones al guardar
 
-Al guardar combustible o mantenimiento:
+Al guardar combustible o mantenimiento, el usuario elige una de estas opciones:
 
-- La UI muestra “Agregar a Registros” activado por defecto.
-- Si está activo, se crea un `Records` en la misma transacción:
-  - `amount = total_cost` o `cost`;
-  - `date` = fecha de la entrada;
-  - `group_id` = grupo del mes/año de la fecha;
-  - `record_type_id` = tipo de gasto configurado;
-  - `category_id` = combustible o mantenimiento;
-  - `payment_method_id` = método elegido;
-  - `record_name = "Combustible · <vehículo>"` o `<servicio> · <vehículo>`;
-  - `fixed_id`, `paid_credit_id` = null.
-- La entrada guarda `record_id`.
-- Si falla la creación del gasto, no se guarda la entrada (transacción).
+1. **Crear gasto nuevo** (por defecto): se crea un `Records` y se vincula.
+2. **Vincular gasto existente**: no se crea nada; se selecciona un gasto ya
+   registrado y se crea el vínculo.
+3. **No vincular gasto**: la entrada queda solo en Vehículo.
 
-### 6.2 Grupo del mes
+Si elige “Crear gasto nuevo”, en la misma transacción se crea:
 
+- `amount = total_cost` o `cost`;
+- `date` = fecha de la entrada;
+- `group_id` = grupo del mes/año de la fecha;
+- `record_type_id` = tipo de gasto configurado;
+- `category_id` = categoría configurada para combustible/mantenimiento;
+- `payment_method_id` = método elegido;
+- `record_name = "Combustible · <vehículo>"` o `<servicio> · <vehículo>`;
+- `fixed_id`, `paid_credit_id` = null.
+
+Luego se crea `VehicleExpenseLinks` con el `record_id` y la entrada
+correspondiente.
+
+### 6.2 Vincular un gasto existente
+
+Aplica a combustible, mantenimiento y reparaciones:
+
+- El formulario muestra “Vincular gasto existente”.
+- Se abre un buscador de `Records` con:
+  - fecha (rango cercano a la entrada, configurable);
+  - importe;
+  - categoría;
+  - método de pago;
+  - nombre del registro.
+- Por defecto se ocultan los gastos que ya están vinculados a otra entrada de
+  vehículo.
+- El usuario puede ampliar el rango de búsqueda si no encuentra el gasto.
+- Al seleccionar un gasto:
+  - se crea `VehicleExpenseLinks`;
+  - no se crea un nuevo `Records`;
+  - se conserva la categoría y el grupo originales del gasto.
+- Si el gasto seleccionado no coincide con la categoría esperada, se muestra una
+  advertencia, pero se permite vincular.
+- Un gasto solo puede estar vinculado a una entrada; un intento de doble
+  vínculo se bloquea.
+- Si el usuario ya había creado un gasto desde la entrada, puede desvincularlo
+  y elegir otro, o eliminarlo.
+
+### 6.3 Grupo del mes
+
+- Solo aplica cuando se crea un gasto nuevo.
 - Se busca un grupo por `year`/`month` de la fecha.
 - Si hay uno, se usa.
 - Si hay varios, se pide elegir.
@@ -563,18 +620,23 @@ Al guardar combustible o mantenimiento:
   - crear el grupo del mes;
   - continuar sin gasto;
   - cancelar.
+- Al vincular un gasto existente no se busca grupo: el gasto ya pertenece a uno.
 - Nunca se guarda silenciosamente en un grupo de otro mes.
 
-### 6.3 Edición y borrado
+### 6.4 Edición y borrado
 
-- Editar total/fecha de una entrada con `record_id` ofrece sincronizar el gasto.
-- Borrar una entrada con `record_id` pregunta si también se elimina el gasto.
+- Editar total/fecha de una entrada vinculada ofrece sincronizar el gasto.
+- Borrar una entrada vinculada pregunta si también se elimina el gasto.
 - Si el gasto se borra desde Registros, la entrada conserva su detalle y muestra
-  “gasto no vinculado”.
-- Se puede vincular un gasto existente desde el formulario de la entrada
-  (búsqueda por fecha, importe y categoría) como mejora de la fase.
+  “gasto eliminado/no vinculado”.
+- La entrada permite:
+  - crear un gasto nuevo;
+  - vincular otro gasto existente;
+  - desvincular sin borrar el gasto.
+- El vínculo se elimina en cascada si se borra la entrada o el gasto
+  físicamente; el soft delete se trata en la UI.
 
-### 6.4 Categorías y métodos de pago
+### 6.5 Categorías y métodos de pago
 
 - Las categorías salen de `VehicleSettings` → Ajustes → Vehículo:
   - gasolina;
@@ -630,7 +692,7 @@ Al guardar combustible o mantenimiento:
   - precio por unidad y total;
   - consumo y costo por distancia;
   - indicador de tanque lleno/parcial;
-  - vínculo con Registros.
+  - vínculo con Registros o gasto existente.
 - Filtros por vehículo, fecha y estación.
 - Formulario:
   - vehículo, fecha, estación;
@@ -640,7 +702,8 @@ Al guardar combustible o mantenimiento:
   - precio por unidad y total con cálculo automático;
   - tanque lleno activado por defecto, con opción de carga parcial;
   - categoría y método de pago desde Ajustes → Vehículo, con override;
-  - “Agregar a Registros” activado por defecto;
+  - opción “Crear gasto nuevo” (por defecto), “Vincular gasto existente” o
+    “No vincular gasto”;
   - notas.
 - Si no existe el grupo del mes, se muestra una alerta y se permite guardar sin
   gasto.
@@ -657,7 +720,8 @@ Al guardar combustible o mantenimiento:
   - piezas con nombre, notas, cantidad opcional, unidad opcional y costo
     opcional;
   - recordatorio asociado (opcional);
-  - “Agregar a Registros” activado por defecto.
+  - opción “Crear gasto nuevo”, “Vincular gasto existente” o “No vincular
+    gasto”.
 - La cantidad de piezas no es obligatoria: el usuario puede escribir “cambio de
   llantas” en notas sin indicar 1 o 4.
 - Si es cambio de aceite, actualizar el recordatorio de aceite.
@@ -744,7 +808,8 @@ Al guardar combustible o mantenimiento:
      `trip_logs_legacy` y registrar el conteo; no migrar automáticamente porque
      el modelo nuevo requiere unidades y vehículo.
 3. Crear `vehicles`, `vehicle_fuel_entries`, `vehicle_maintenance`,
-   `vehicle_maintenance_items`, `vehicle_reminders` y `vehicle_settings`.
+   `vehicle_maintenance_items`, `vehicle_reminders`, `vehicle_settings` y
+   `vehicle_expense_links`.
 4. Crear índices, triggers y FKs.
 5. Eliminar `FuelRefills` y `TripLogs` de `APP_SCHEMA`.
 6. Reemplazar `src/db/repositories/fuel.ts` por el repositorio de vehículo.
@@ -786,9 +851,11 @@ Al guardar combustible o mantenimiento:
   - `useVehicleMaintenanceRepository` con piezas.
   - `useVehicleRemindersRepository`.
   - `useVehicleSettingsRepository`.
+  - `useVehicleExpenseLinkRepository`: buscar gastos disponibles, vincular,
+    desvincular y validar unicidad global.
   - `useVehicleStatsRepository` o métodos de consulta agregada.
-- Crear/editar/borrar entradas con transacción cuando se crea o sincroniza el
-  `Records`.
+- Crear/editar/borrar entradas con transacción cuando se crea, vincula o
+  sincroniza el `Records`.
 - No SQL en UI.
 
 ### 9.3 Estado y hooks
@@ -857,8 +924,8 @@ Al guardar combustible o mantenimiento:
 - Explicar los ocho formatos de consumo y cuándo un número menor es mejor.
 - Explicar que las cargas parciales se acumulan hasta el siguiente tanque lleno.
 - Explicar que el consumo puede ser estimado si no hay segmentos completos.
-- Explicar que el gasto se crea en Registros, cómo desvincularlo y qué pasa si
-  no hay grupo del mes.
+- Explicar que el gasto se puede crear, vincular a uno existente o dejar sin
+  vínculo; cómo desvincularlo y qué pasa si no hay grupo del mes.
 - Explicar las categorías configurables y las piezas con cantidad opcional.
 - Explicar que la v1 es solo gasolina y que eléctrico/híbrido enchufable/propano
   quedan para una fase futura.
@@ -873,8 +940,8 @@ Al guardar combustible o mantenimiento:
 
 - `test:db` cubre:
   - migración que elimina las tablas viejas;
-  - creación de las seis tablas nuevas;
-  - FKs, índices únicos de `record_id`;
+  - creación de las siete tablas nuevas;
+  - FKs e índices únicos de `VehicleExpenseLinks`;
   - triggers de auditoría;
   - soft delete;
   - settings de categorías;
@@ -898,14 +965,19 @@ Al guardar combustible o mantenimiento:
 
 ### 11.3 Integración con Registros
 
-- Crear entrada con “Agregar a Registros” genera un solo gasto.
-- Sin la opción activa no se crea gasto.
-- Grupo del mes correcto.
+- Crear entrada con “Crear gasto nuevo” genera un solo gasto y un vínculo.
+- “Vincular gasto existente” no crea un segundo registro y usa el grupo
+  original del gasto.
+- “No vincular gasto” no crea ni vincula nada.
+- Un gasto no se puede vincular a dos entradas, ni de combustible ni de
+  mantenimiento.
+- Una entrada no puede tener dos gastos.
+- Grupo del mes correcto al crear.
 - Sin grupo del mes se muestra alerta y se permite guardar sin gasto.
 - Categorías configuradas se usan; si faltan, se pide elegir.
 - Falla de transacción no deja entradas huérfanas.
-- Editar/borrar sincroniza o desvincula según la confirmación.
-- Presupuestos y resúmenes reciben el gasto.
+- Editar/borrar sincroniza, desvincula o elimina según la confirmación.
+- Presupuestos y resúmenes reciben el gasto, sea creado o vinculado.
 
 ### 11.4 Manual
 
@@ -916,6 +988,8 @@ Al guardar combustible o mantenimiento:
 - Entradas con solo odómetro, solo distancia, ambas e inferidas.
 - Cargas parciales, tanque lleno y unión al llenar.
 - Configuración de categorías y formato de consumo.
+- Crear gasto, vincular gasto existente y no vincular.
+- Intentar vincular el mismo gasto dos veces.
 - Piezas con y sin cantidad.
 - Cambio de aceite antes/después del intervalo.
 - Gráficos y leyendas.
@@ -930,7 +1004,8 @@ Al guardar combustible o mantenimiento:
 - Se registra mantenimiento y piezas con cantidad opcional.
 - Se configuran categorías y formato de consumo en Ajustes.
 - El cambio de aceite muestra millas/km restantes.
-- Los gastos se crean en Registros sin doble captura.
+- Los gastos se crean en Registros sin doble captura o se vinculan a un gasto
+  existente.
 - Los históricos y comparativas funcionan.
 - Los gráficos usan el tema y tienen leyenda.
 - Migración, `npm run ci` y `npm run lint` en verde.
@@ -962,12 +1037,13 @@ Al guardar combustible o mantenimiento:
 
 ### VEH-2 — Repositorios e integración con Registros
 
-- Repositorios de vehículos, combustible, mantenimiento, piezas, recordatorios
-  y settings.
-- Transacción con `Records`.
+- Repositorios de vehículos, combustible, mantenimiento, piezas, recordatorios,
+  settings y vínculos de gastos.
+- Transacción con `Records` al crear.
+- Búsqueda y vínculo de gastos existentes.
 - Resolución de grupo, categorías configuradas y métodos de pago.
 - Alerta/guardado sin gasto cuando no existe el grupo del mes.
-- Tests de integración.
+- Tests de integración y unicidad de vínculos.
 
 **Salida:** datos persistentes y gastos vinculados.
 
@@ -1016,7 +1092,7 @@ Al guardar combustible o mantenimiento:
 | Odómetros inconsistentes | Medio | Advertir y permitir corrección; no bloquear datos históricos |
 | Cargas parciales | Medio | Método tanque lleno + modo estimado marcado |
 | Grupo del mes inexistente | Medio | Selector/creación explícita; opción sin gasto |
-| Duplicar gastos | Alto | `record_id` único y transacción |
+| Duplicar gastos | Alto | `VehicleExpenseLinks` con `record_id` único y transacción |
 | Recordatorios con datos incompletos | Bajo | Mostrar “faltan datos”, no inventar |
 | Alcance de mantenimiento demasiado grande | Medio | Piezas flexibles con cantidad opcional; fotos/ítems avanzados después |
 | Gráficos ilegibles | Medio | Tokens de tema, leyenda y paletas contrastadas |
@@ -1033,7 +1109,8 @@ Cerradas para la v1:
    se puede inferir o ingresar directamente.
 3. **Tanque lleno por defecto**, con cargas parciales que se acumulan hasta el
    siguiente tanque lleno.
-4. **Gasto en Registros por defecto**, con toggle para no crearlo.
+4. **Gasto en Registros por defecto**, con opción de crear uno nuevo, vincular
+   un gasto existente o no vincular ninguno.
 5. **Categorías configurables** para gasolina, mantenimiento, reparación,
    llantas, aceite, seguro, inspección y otros.
 6. **Si no existe el grupo del mes**, se alerta y se permite guardar sin gasto.

@@ -157,7 +157,8 @@ integración con Registros.
 Incluye:
 
 - `Vehicles`, `VehicleFuelEntries`, `VehicleMaintenance`,
-  `VehicleMaintenanceItems`, `VehicleReminders` y `VehicleSettings`.
+  `VehicleMaintenanceItems`, `VehicleReminders`, `VehicleSettings` y
+  `VehicleExpenseLinks`.
 - Eliminación de `FuelRefills` y `TripLogs` (sin datos de usuarios) y migración
   `0007_vehicle_module`.
 - Varios vehículos con predeterminado; odómetro real, distancia alternativa e
@@ -167,9 +168,11 @@ Incluye:
   `L/60 mi` y `gal/60 mi`, costo por milla/km y promedios.
 - Tanque lleno por defecto, cargas parciales acumuladas y modo estimado.
 - Mantenimiento, piezas flexibles, cambio de aceite y recordatorios inferidos.
-- Categorías configurables desde Ajustes y creación de gasto por defecto con
-  toggle; si falta el grupo del mes se alerta y se permite guardar sin gasto.
-- Integración transaccional con `Records`.
+- Categorías configurables desde Ajustes; al guardar se puede crear un gasto,
+  vincular un gasto existente o no vincular; si falta el grupo del mes se alerta
+  y se permite guardar sin gasto.
+- Integración transaccional con `Records` y vínculo único mediante
+  `VehicleExpenseLinks`.
 - Dashboard, históricos, comparativas y gráficos Mermaid con leyenda.
 - v1 solo gasolina; eléctrico, híbrido enchufable y propano quedan para futuro.
 - i18n, ayuda y QA.
