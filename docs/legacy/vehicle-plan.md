@@ -1,14 +1,16 @@
 # Plan de la sección Vehículo — Fase 8 (VEH)
 
-**Estado:** 🚧 En implementación
-**Fecha:** 2026-10-30
+**Estado:** ✅ Finalizada y archivada
+**Fecha de cierre:** 2026-10-31
+**Fecha original:** 2026-10-30
 **Objetivo:** convertir la sección Vehículo, hoy oculta y vacía, en un módulo
 funcional para registrar combustible y mantenimiento, calcular consumo y
 rendimiento con unidades configurables, mostrar estadísticas e históricos,
 gestionar recordatorios como el cambio de aceite e integrar los gastos con
 Registros.
 
-> No se modificará código de la aplicación hasta validar este plan.
+> Documento histórico. La implementación fue validada y la Fase 8 está cerrada.
+> El estado vigente vive en [`../phases.md`](../phases.md).
 
 ---
 

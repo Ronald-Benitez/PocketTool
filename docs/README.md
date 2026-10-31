@@ -7,8 +7,6 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 
 - [`phases.md`](phases.md): estado actual y fases activas. El detalle histórico
   de fases completadas vive en `legacy/`.
-- [`vehicle-plan.md`](vehicle-plan.md): plan de la sección Vehículo (Fase 8):
-  combustible, mantenimiento, unidades, estadísticas y Registros.
 - [`database.md`](database.md): documentación actual de la base de datos,
   migraciones, triggers y backups.
 - [`schema.md`](schema.md): esquema generado desde
@@ -22,6 +20,8 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
   tipadas y centro de ayuda archivado.
 - [`legacy/budget-plan.md`](legacy/budget-plan.md): plan de Presupuestos (Fase 7)
   implementado y archivado.
+- [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md): plan de Vehículo (Fase 8)
+  implementado, validado y archivado.
 - [`legacy/db-summary.md`](legacy/db-summary.md): resumen anterior de base de
   datos.
 - [`../AGENTS.md`](../AGENTS.md): contexto e instrucciones para agentes.
@@ -39,7 +39,7 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 | Fase 5 — Traducciones tipadas | ✅ Finalizada (2026-10-29) |
 | Fase 6 — Centro de ayuda | ✅ Finalizada (2026-10-29) |
 | Fase 7 — Presupuestos | ✅ Finalizada (2026-10-29) |
-| Fase 8 — Vehículo | 🚧 En implementación (2026-10-30) |
+| Fase 8 — Vehículo | ✅ Finalizada (2026-10-31) |
 
 ## Regla de mantenimiento
 

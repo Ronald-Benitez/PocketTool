@@ -1,6 +1,6 @@
 # Plan de fases
 
-**Última actualización:** 2026-10-30
+**Última actualización:** 2026-10-31
 
 ## Estado
 
@@ -14,13 +14,15 @@
 | Fase 5 — Traducciones tipadas | ✅ Finalizada | 2026-10-29 |
 | Fase 6 — Centro de ayuda | ✅ Finalizada | 2026-10-29 |
 | Fase 7 — Presupuestos | ✅ Finalizada | 2026-10-29 |
-| Fase 8 — Vehículo | 🚧 En implementación | 2026-10-30 |
+| Fase 8 — Vehículo | ✅ Finalizada | 2026-10-31 |
 
 El detalle histórico de las fases 0–3 vive en
 [`legacy/phase-history.md`](legacy/phase-history.md). El detalle de la Fase 4
 vive en [`legacy/ui-history.md`](legacy/ui-history.md) y su plan original en
 [`legacy/ui-plan.md`](legacy/ui-plan.md). Queda pendiente únicamente el checklist
-visual de la Fase 4 en iOS/Android/web.
+visual de la Fase 4 en iOS/Android/web. Los planes de Presupuestos y Vehículo
+están archivados en [`legacy/budget-plan.md`](legacy/budget-plan.md) y
+[`legacy/vehicle-plan.md`](legacy/vehicle-plan.md).
 
 ## Arquitectura actual (resumen)
 
@@ -37,6 +39,10 @@ visual de la Fase 4 en iOS/Android/web.
 - **Presupuestos:** `BudgetPlans` (un plan por grupo), `BudgetLines` (categoría
   o fijo) y plantillas reutilizables. El real se deriva de `Records`; no se
   guarda. `budgets_legacy` se elimina en `0005`.
+- **Vehículo:** `Vehicles`, `VehicleFuelEntries`, `VehicleMaintenance`,
+  `VehicleMaintenanceItems`, `VehicleReminders`, `VehicleSettings` y
+  `VehicleExpenseLinks`; dominio de unidades, segmentos de consumo, históricos y
+  recordatorios. Los gastos se crean o vinculan con `Records`.
 - **Gráficos:** `src/ui/charts/MermaidChart.tsx` renderiza Mermaid vendorizado
   en WebView, sin CDN, con tema y fallback a tabla.
 - **Acceso a datos:** ORM tipado + repositorios. La UI no usa `useORM` ni SQL.
@@ -146,75 +152,76 @@ Criterios de aceptación principales:
 - `npm run ci` y `npm run lint` en verde;
 - ayuda y traducciones actualizadas.
 
-## Fase 8 — Vehículo (🚧 En implementación, 2026-10-30)
+## Fase 8 — Vehículo (✅ 2026-10-31)
 
-**Plan completo:** [`vehicle-plan.md`](vehicle-plan.md)
+**Plan completo:** [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md)
 
 Objetivo: publicar la sección Vehículo y convertirla en un módulo de combustible,
 mantenimiento, estadísticas y recordatorios, con unidades configurables e
 integración con Registros.
 
-Implementado hasta ahora:
+Estado: **Fase finalizada y validada en dispositivo**. El plan original queda
+archivado como referencia histórica.
 
-- Esquema `0007_vehicle_module` y `SCHEMA_VERSION = 7`.
-- Tablas de vehículos, combustible, mantenimiento, piezas, recordatorios,
-  settings y vínculos de gastos.
-- Eliminación de `fuel_refills`/`trip_logs` con conservación legacy si tienen
-  datos.
-- Dominio de unidades, consumo, promedios y recordatorios.
-- Repositorios de vehículo, combustible, mantenimiento, recordatorios, settings
-  y vínculos con `Records`.
-- UI inicial con tabs de resumen, combustible, mantenimiento y recordatorios.
-- Crear gasto, vincular gasto existente o no vincular.
-- Categorías de vehículo en Ajustes.
+Implementado:
 
-Pendiente:
+- **VEH-1:** migración `0007_vehicle_module`, `SCHEMA_VERSION = 7`, tablas de
+  vehículos, combustible, mantenimiento, piezas, recordatorios, settings y
+  vínculos de gastos. Eliminación de `fuel_refills`/`trip_logs` con conservación
+  legacy.
+- **VEH-2:** dominio de unidades, consumo, promedios, segmentos de tanque lleno y
+  recordatorios; repositorios y vínculos transaccionales con `Records`.
+- **VEH-3:** varios vehículos con predeterminado, odómetro/distancia manual,
+  unidades `mi`/`km` y `gal`/`L`, cálculo del tercer valor entre volumen, precio
+  y total, y ocho formatos de consumo.
+- **VEH-4:** mantenimiento, piezas flexibles, cambio de aceite, recordatorios,
+  reutilización de mantenimientos y creación de recordatorios con detección de
+  duplicados.
+- **VEH-5:** resumen, estadísticas, históricos por mes real o grupo, mejor/peor
+  segmento, distancia total, combustible total, precio medio, gráficos de gasto,
+  progresión y comparación combustible vs mantenimiento.
+- **VEH-6:** sección publicada en el drawer, i18n bilingüe, centro de ayuda, QA
+  visual Android/iOS y cierre documental.
 
-- QA visual Android/iOS y claro/oscuro.
-- Comparativas avanzadas entre periodos y vehículos.
-- Ajustes finos del formulario y textos largos.
-- Pruebas manuales de creación/vinculación de gastos.
-- Documentación de cierre.
+Ajustes finales validados:
 
-Alcance planificado:
+- Crear, vincular o no vincular gastos desde combustible y mantenimiento.
+- Grupo del mes desde el selector global de Registros.
+- Segmentos de tanque lleno con cargas parciales agrupadas con el siguiente
+  tanque lleno.
+- Listas ordenadas por fecha descendente.
+- Recordatorios inactivos etiquetados como “Inactivo”.
+- Recordatorios próximos o vencidos visibles en el inicio.
+- Historial por mes real o grupo, con totales de combustible, distancia, consumo
+  y precio.
+- Gráficos Mermaid responsivos con scroll, zoom, límite de datos y switches para
+  activar/desactivar categorías.
 
-- `Vehicles`, `VehicleFuelEntries`, `VehicleMaintenance`,
-  `VehicleMaintenanceItems`, `VehicleReminders`, `VehicleSettings` y
-  `VehicleExpenseLinks`.
-- Eliminación de `FuelRefills` y `TripLogs` (sin datos de usuarios) y migración
-  `0007_vehicle_module`.
-- Varios vehículos con predeterminado; odómetro real, distancia alternativa e
-  inferencia en ambos sentidos; unidades `mi`/`km` y `gal`/`L`.
-- Cálculo automático del tercero entre volumen, precio por unidad y total.
-- Consumo en `mi/gal`, `km/gal`, `mi/L`, `km/L`, `L/100 km`, `gal/100 km`,
-  `L/60 mi` y `gal/60 mi`, costo por milla/km y promedios.
-- Tanque lleno por defecto, cargas parciales acumuladas y modo estimado.
-- Mantenimiento, piezas flexibles, cambio de aceite y recordatorios inferidos.
-- Categorías configurables desde Ajustes; al guardar se puede crear un gasto,
-  vincular un gasto existente o no vincular; si falta el grupo del mes se alerta
-  y se permite guardar sin gasto.
-- Integración transaccional con `Records` y vínculo único mediante
-  `VehicleExpenseLinks`.
-- Dashboard, históricos, comparativas y gráficos Mermaid con leyenda.
+Decisiones y límites vigentes:
+
 - v1 solo gasolina; eléctrico, híbrido enchufable y propano quedan para futuro.
-- i18n, ayuda y QA.
+- Web fuera del alcance de soporte.
+- Los gastos sin vínculo aparecen como “Sin grupo” en el historial agrupado.
 
-Subfases:
+Commits principales: `d1e7e13`, `1fbb2ec`, `8e51999`, `918bf45`, `e926413`,
+`2d7280b`, `a8ee207`, `099c3b4`, `5158797`, `e6069af`, `8b30c42`, `e7de4de`,
+`f54963d`, `70aa777`, `6a27346`, `0f61fb2`.
 
-- **VEH-0:** validación del plan y decisiones de alcance.
-- **VEH-1:** esquema, migración, dominio de unidades/cálculos y tests.
-- **VEH-2:** repositorios e integración con Registros.
-- **VEH-3:** vehículos y combustible.
-- **VEH-4:** mantenimiento, piezas y recordatorios.
-- **VEH-5:** estadísticas, comparativas y gráficos.
-- **VEH-6:** publicación en drawer, i18n, ayuda, docs y QA.
+Verificaciones de cierre:
+
+- `npm run typecheck`
+- `npm test` (63 tests)
+- `npm run test:db`
+- `npm run lint` (0 errores)
+- `npx expo export --platform android`
 
 ## Documentación
 
 - [`README.md`](README.md): índice de documentación.
-- [`vehicle-plan.md`](vehicle-plan.md): plan de Vehículo (Fase 8).
 - [`legacy/budget-plan.md`](legacy/budget-plan.md): plan de Presupuestos
   archivado.
+- [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md): plan de Vehículo (Fase 8)
+  implementado y archivado.
 - [`database.md`](database.md): documentación actual de la base de datos.
 - [`schema.md`](schema.md): esquema generado.
 - [`legacy/i18n-help-plan.md`](legacy/i18n-help-plan.md): plan de traducciones y

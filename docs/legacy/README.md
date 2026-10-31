@@ -11,6 +11,8 @@ diario de `docs/phases.md`.
   centro de ayuda (fases 5 y 6), implementado y archivado.
 - [`budget-plan.md`](budget-plan.md): plan de Presupuestos (Fase 7), implementado,
   validado y archivado.
+- [`vehicle-plan.md`](vehicle-plan.md): plan de Vehículo (Fase 8), implementado,
+  validado y archivado.
 - [`db-summary.md`](db-summary.md): resumen anterior de la base de datos,
   reemplazado por [`../database.md`](../database.md).
 
