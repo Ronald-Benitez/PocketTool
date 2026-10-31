@@ -163,8 +163,19 @@ const buildHtml = (
           width: ${chartWidth},
           height: ${chartHeight},
           plotReservedSpacePercent: 65,
-          xAxis: { showTitle: false, labelPadding: 8, titlePadding: 8 },
-          yAxis: { showTitle: false, labelPadding: 10, titlePadding: 10 }
+          xAxis: {
+            showTitle: false,
+            labelFontSize: 12,
+            labelPadding: 10,
+            titlePadding: 8,
+            labelRotation: -40
+          },
+          yAxis: {
+            showTitle: false,
+            labelFontSize: 12,
+            labelPadding: 10,
+            titlePadding: 10
+          }
         },` : ''}
         themeVariables: {
           background: '${colors.background}',
@@ -283,7 +294,7 @@ export const MermaidChart = ({
     ? Math.round(baseChartWidth * zoom)
     : null;
   const fillWidth = zoom >= 1;
-  const resolvedHeight = baseChartWidth ? Math.max(380, height) : height;
+  const resolvedHeight = baseChartWidth ? Math.max(420, height) : height;
   const chartHeight = resolvedHeight - 20;
 
   const html = useMemo(() => {
