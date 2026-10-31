@@ -291,7 +291,7 @@ const Index = () => {
               {fuelEntries.slice(0, 4).map((entry, index) => {
                 const analysis = stats.entries.find((item) => item.entry.id === entry.id);
                 const value = selectConsumption(
-                  analysis?.segmentMetrics ?? analysis?.metrics ?? null,
+                  analysis?.segmentMetrics ?? null,
                   format
                 );
                 return (

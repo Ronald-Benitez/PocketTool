@@ -56,6 +56,17 @@ export type FuelEntryAnalysis = {
   previousEntry?: FuelEntryLike;
 };
 
+export type FuelSegmentStatus = 'complete' | 'in_progress' | 'no_baseline';
+
+export type FuelSegment = {
+  id: number;
+  status: FuelSegmentStatus;
+  startEntry: FuelEntryLike;
+  endEntry: FuelEntryLike;
+  entries: FuelEntryAnalysis[];
+  metrics: FuelMetrics | null;
+};
+
 export type FuelStats = {
   totalDistanceKm: number;
   totalVolumeL: number;

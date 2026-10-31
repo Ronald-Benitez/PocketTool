@@ -353,16 +353,18 @@ export const useVehicleFuelRepository = () => {
       )
     );
 
-    return entries.map((entry) => {
-      const link = linkByEntry.get(entry.id as number);
-      const record = link ? recordById.get(link.record_id) : null;
-      return {
-        ...entry,
-        record_id: link?.record_id ?? null,
-        record_name: record?.record_name ?? null,
-        record_amount: record?.amount ?? null,
-      };
-    });
+    return entries
+      .map((entry) => {
+        const link = linkByEntry.get(entry.id as number);
+        const record = link ? recordById.get(link.record_id) : null;
+        return {
+          ...entry,
+          record_id: link?.record_id ?? null,
+          record_name: record?.record_name ?? null,
+          record_amount: record?.amount ?? null,
+        };
+      })
+      .sort((a, b) => b.date - a.date || (b.id ?? 0) - (a.id ?? 0));
   };
 
   const saveFuelEntry = async (
@@ -480,17 +482,19 @@ export const useVehicleMaintenanceRepository = () => {
       )
     );
 
-    return entries.map((entry) => {
-      const link = linkByEntry.get(entry.id as number);
-      const record = link ? recordById.get(link.record_id) : null;
-      return {
-        ...entry,
-        items: items.filter((item) => item.maintenance_id === entry.id),
-        record_id: link?.record_id ?? null,
-        record_name: record?.record_name ?? null,
-        record_amount: record?.amount ?? null,
-      };
-    });
+    return entries
+      .map((entry) => {
+        const link = linkByEntry.get(entry.id as number);
+        const record = link ? recordById.get(link.record_id) : null;
+        return {
+          ...entry,
+          items: items.filter((item) => item.maintenance_id === entry.id),
+          record_id: link?.record_id ?? null,
+          record_name: record?.record_name ?? null,
+          record_amount: record?.amount ?? null,
+        };
+      })
+      .sort((a, b) => b.date - a.date || (b.id ?? 0) - (a.id ?? 0));
   };
 
   const saveMaintenance = async (
@@ -624,7 +628,15 @@ export const useVehicleRemindersRepository = () => {
 
   const fetchReminders = async (vehicleId?: number): Promise<VehicleReminder[]> => {
     const rows = (await remindersOrm.getAll()) as VehicleReminder[];
-    return vehicleId ? rows.filter((row) => row.vehicle_id === vehicleId) : rows;
+    const filtered = vehicleId
+      ? rows.filter((row) => row.vehicle_id === vehicleId)
+      : rows;
+    return filtered.sort(
+      (a, b) =>
+        (b.last_service_date ?? b.created_at ?? 0) -
+          (a.last_service_date ?? a.created_at ?? 0) ||
+        (b.id ?? 0) - (a.id ?? 0)
+    );
   };
 
   const saveReminder = async (
@@ -677,7 +689,7 @@ export const useVehicleRemindersRepository = () => {
     );
     for (const reminder of targets) {
       if (reminder.id === undefined) continue;
-      await remindersOrm.update(reminder.id, { is_active: false });
+      await remindersOrm.update(reminder.id, { is_active: 0 });
     }
     return targets.length;
   };

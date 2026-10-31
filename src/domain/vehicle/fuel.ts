@@ -2,6 +2,8 @@ import type {
   ConsumptionFormat,
   FuelEntryAnalysis,
   FuelEntryLike,
+  FuelSegment,
+  FuelSegmentStatus,
   FuelStats,
 } from './types';
 import {
@@ -97,6 +99,96 @@ export const analyzeFuelEntries = (entries: FuelEntryLike[]): FuelEntryAnalysis[
   });
 };
 
+const isFullTank = (entry: FuelEntryLike) => Boolean(entry.is_full_tank ?? 1);
+
+export const groupFuelSegments = (entries: FuelEntryLike[]): FuelSegment[] => {
+  const analyses = analyzeFuelEntries(entries);
+  const segments: FuelSegment[] = [];
+  let baseline: FuelEntryAnalysis | null = null;
+  let current: FuelEntryAnalysis[] = [];
+  let prelude: FuelEntryAnalysis[] = [];
+  let nextId = 0;
+
+  const push = (
+    status: FuelSegmentStatus,
+    start: FuelEntryLike,
+    end: FuelEntryLike,
+    items: FuelEntryAnalysis[],
+    metrics: FuelSegment['metrics']
+  ) => {
+    segments.push({
+      id: nextId,
+      status,
+      startEntry: start,
+      endEntry: end,
+      entries: [...items],
+      metrics,
+    });
+    nextId += 1;
+  };
+
+  for (const analysis of analyses) {
+    const full = isFullTank(analysis.entry);
+
+    if (!baseline) {
+      if (!full) {
+        prelude.push(analysis);
+        continue;
+      }
+      if (prelude.length > 0) {
+        push(
+          'no_baseline',
+          prelude[0].entry,
+          prelude[prelude.length - 1].entry,
+          prelude,
+          null
+        );
+        prelude = [];
+      }
+      baseline = analysis;
+      current = [analysis];
+      continue;
+    }
+
+    if (!full) {
+      current.push(analysis);
+      continue;
+    }
+
+    push(
+      'complete',
+      baseline.entry,
+      analysis.entry,
+      current,
+      analysis.segmentMetrics
+    );
+    baseline = analysis;
+    current = [analysis];
+  }
+
+  if (prelude.length > 0) {
+    push(
+      'no_baseline',
+      prelude[0].entry,
+      prelude[prelude.length - 1].entry,
+      prelude,
+      null
+    );
+  }
+
+  if (baseline) {
+    push(
+      'in_progress',
+      baseline.entry,
+      current[current.length - 1]?.entry ?? baseline.entry,
+      current,
+      null
+    );
+  }
+
+  return segments;
+};
+
 export const buildFuelStats = (
   entries: FuelEntryLike[],
   format: ConsumptionFormat
@@ -108,14 +200,30 @@ export const buildFuelStats = (
   );
   const totalVolumeL = analyses.reduce((total, item) => total + item.volumeL, 0);
   const totalSpentCents = entries.reduce((total, item) => total + item.total_cost, 0);
-  const averageMetrics = buildFuelMetrics({
-    distanceKm: totalDistanceKm,
-    volumeL: totalVolumeL,
-    totalCost: totalSpentCents,
-  });
+  const completed = analyses.filter((item) => item.segmentMetrics != null);
+  const completedDistanceKm = completed.reduce(
+    (total, item) => total + (item.segmentMetrics?.distanceKm ?? 0),
+    0
+  );
+  const completedVolumeL = completed.reduce(
+    (total, item) => total + (item.segmentMetrics?.volumeL ?? 0),
+    0
+  );
+  const completedCostCents = completed.reduce((total, item) => {
+    const metrics = item.segmentMetrics;
+    return total + (metrics?.pricePerL ?? 0) * (metrics?.volumeL ?? 0) * 100;
+  }, 0);
+  const averageMetrics =
+    completed.length > 0
+      ? buildFuelMetrics({
+          distanceKm: completedDistanceKm,
+          volumeL: completedVolumeL,
+          totalCost: completedCostCents,
+        })
+      : null;
 
   const comparable = analyses.flatMap((item) => {
-    const value = selectConsumption(item.segmentMetrics ?? item.metrics, format);
+    const value = selectConsumption(item.segmentMetrics, format);
     return value == null || !Number.isFinite(value) ? [] : [{ item, value }];
   });
   const sorted = [...comparable].sort((a, b) => a.value - b.value);

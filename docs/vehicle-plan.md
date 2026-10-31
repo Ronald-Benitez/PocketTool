@@ -1238,6 +1238,12 @@ Implementado:
   activo del mismo vehículo/tipo y opción de cerrar el anterior.
 - Seleccionar un mantenimiento previo para completar tipo, título, fecha y
   odómetro del recordatorio.
+- Recordatorios inactivos se muestran como “Inactivo”, no como “En orden”.
+- Combustible agrupado por segmentos de tanque lleno: el consumo solo se muestra
+  al cerrar un segmento, las cargas parciales quedan como acumulando y la media
+  general usa únicamente segmentos completos.
+- Listas de combustible, mantenimiento y recordatorios ordenadas de fecha más
+  reciente a más antigua.
 - Crear gasto, vincular gasto existente o no vincular.
 - Categorías y pagos por defecto en Ajustes.
 - Gráfico de consumo en combustible y gasto mensual en el resumen.

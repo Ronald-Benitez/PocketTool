@@ -310,7 +310,7 @@ export const FuelEntryForm = ({
         volume_unit: volumeUnit,
         price_per_unit: pricePerUnit,
         total_cost: totalCost,
-        is_full_tank: isFullTank,
+        is_full_tank: isFullTank ? 1 : 0,
         station: station.trim() || null,
         notes: notes.trim() || null,
         finance: {

@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { useVehicleFuelRepository } from '@/src/db';
 import { FuelEntryForm } from '@/src/components/vehicle/FuelEntryForm';
-import { buildFuelStats } from '@/src/domain/vehicle/fuel';
+import { buildFuelStats, groupFuelSegments } from '@/src/domain/vehicle/fuel';
 import { buildConsumptionChart } from '@/src/domain/vehicle/charts';
 import {
   consumptionUnits,
@@ -24,6 +25,7 @@ import { AppText } from '@/src/ui/primitives/AppText';
 import { Screen } from '@/src/ui/primitives/Screen';
 import { Row, Stack } from '@/src/ui/primitives/Stack';
 import { Surface } from '@/src/ui/primitives/Surface';
+import { spacing } from '@/src/ui/theme/tokens';
 import { useTheme } from '@/src/ui/theme/ThemeProvider';
 
 const formats = [
@@ -71,6 +73,7 @@ const FuelScreen = () => {
     () => buildFuelStats(entries, format),
     [entries, format]
   );
+  const segments = useMemo(() => groupFuelSegments(entries), [entries]);
   const consumptionChart = useMemo(
     () =>
       buildConsumptionChart(
@@ -158,61 +161,121 @@ const FuelScreen = () => {
             icon={<MaterialIcons name='local-gas-station' size={28} color={colors.textMuted} />}
           />
         ) : (
-          <Surface variant='outlined' padding='none'>
-            {stats.entries
+          <Stack gap='md'>
+            {segments
               .slice()
               .reverse()
-              .map((analysis, index) => {
-                const entry = analysis.entry as VehicleFuelEntryView;
-                const value = selectConsumption(
-                  analysis.segmentMetrics ?? analysis.metrics,
-                  format
-                );
+              .map((segment) => {
+                const value = selectConsumption(segment.metrics, format);
+                const startDate = new Date(
+                  segment.startEntry.date
+                ).toLocaleDateString();
+                const endDate = new Date(
+                  segment.endEntry.date
+                ).toLocaleDateString();
+                const title =
+                  segment.status === 'complete'
+                    ? `${startDate} → ${endDate}`
+                    : segment.status === 'in_progress'
+                      ? t('vehicle.fuel.segmentSince', { date: startDate })
+                      : t('vehicle.fuel.segmentNoBaseline');
+                const badgeLabel =
+                  segment.status === 'complete'
+                    ? t('vehicle.fuel.segmentComplete')
+                    : segment.status === 'in_progress'
+                      ? t('vehicle.fuel.segmentInProgress')
+                      : t('vehicle.fuel.segmentNoBaseline');
+                const badgeTone =
+                  segment.status === 'complete'
+                    ? 'success'
+                    : segment.status === 'in_progress'
+                      ? 'warning'
+                      : 'neutral';
+                const fillCount =
+                  segment.status === 'complete'
+                    ? segment.entries.length + 1
+                    : segment.entries.length;
+                const detail =
+                  segment.status === 'complete'
+                    ? value != null
+                      ? `${t('vehicle.fuel.segmentAverage')}: ${value.toFixed(2)} ${consumptionUnits(format)} · ${t('vehicle.fuel.fillUps', { count: fillCount })}`
+                      : t('vehicle.stats.noData')
+                    : segment.status === 'in_progress'
+                      ? t('vehicle.fuel.accumulating')
+                      : t('vehicle.fuel.segmentNoBaselineHint');
+
                 return (
-                  <ListItem
-                    key={entry.id ?? index}
-                    title={new Date(entry.date).toLocaleDateString()}
-                    subtitle={`${entry.volume.toFixed(3)} ${
-                      entry.volume_unit === 'L'
-                        ? t('vehicle.vehicle.liters')
-                        : t('vehicle.vehicle.gallons')
-                    } · ${formatMoneyWithSymbol(entry.total_cost)}${
-                      entry.station ? ` · ${entry.station}` : ''
-                    }`}
-                    leading={
-                      <MaterialIcons
-                        name='local-gas-station'
-                        size={20}
-                        color={colors.chartPlanned}
-                      />
-                    }
-                    trailing={
-                      <Stack gap='xxs' align='flex-end'>
-                        <AppText variant='caption'>
-                          {value != null
-                            ? `${value.toFixed(2)} ${consumptionUnits(format)}`
-                            : t('vehicle.fuel.accumulating')}
-                        </AppText>
+                  <Surface key={segment.id} variant='outlined' padding='none'>
+                    <View style={styles.segmentHeader}>
+                      <Row justify='space-between' align='flex-start' gap='sm'>
+                        <Stack gap='xxs' style={{ flex: 1 }}>
+                          <AppText variant='subtitle'>{title}</AppText>
+                          <AppText variant='caption' color='muted'>
+                            {detail}
+                          </AppText>
+                        </Stack>
                         <Badge
-                          label={
-                            entry.record_id
-                              ? t('vehicle.records.linked')
-                              : t('vehicle.fuel.recordUnlinked')
-                          }
-                          tone={entry.record_id ? 'success' : 'neutral'}
+                          label={badgeLabel}
+                          tone={badgeTone}
                           size='sm'
                         />
-                      </Stack>
-                    }
-                    onPress={() => {
-                      setSelected(entry);
-                      setFormVisible(true);
-                    }}
-                    showDivider={index < stats.entries.length - 1}
-                  />
+                      </Row>
+                    </View>
+                    {[...segment.entries].reverse().map((analysis, index) => {
+                      const entry = analysis.entry as VehicleFuelEntryView;
+                      const isFull = Boolean(entry.is_full_tank ?? 1);
+                      return (
+                        <ListItem
+                          key={entry.id ?? `${segment.id}-${index}`}
+                          title={new Date(entry.date).toLocaleDateString()}
+                          subtitle={`${entry.volume.toFixed(3)} ${
+                            entry.volume_unit === 'L'
+                              ? t('vehicle.vehicle.liters')
+                              : t('vehicle.vehicle.gallons')
+                          } · ${formatMoneyWithSymbol(entry.total_cost)}${
+                            entry.station ? ` · ${entry.station}` : ''
+                          }`}
+                          leading={
+                            <MaterialIcons
+                              name='local-gas-station'
+                              size={20}
+                              color={colors.chartPlanned}
+                            />
+                          }
+                          trailing={
+                            <Stack gap='xxs' align='flex-end'>
+                              <Badge
+                                label={
+                                  isFull
+                                    ? t('vehicle.fuel.fullTank')
+                                    : t('vehicle.fuel.partialTank')
+                                }
+                                tone={isFull ? 'success' : 'warning'}
+                                size='sm'
+                              />
+                              <Badge
+                                label={
+                                  entry.record_id
+                                    ? t('vehicle.records.linked')
+                                    : t('vehicle.fuel.recordUnlinked')
+                                }
+                                tone={entry.record_id ? 'success' : 'neutral'}
+                                size='sm'
+                              />
+                            </Stack>
+                          }
+                          onPress={() => {
+                            setSelected(entry);
+                            setFormVisible(true);
+                          }}
+                          showDivider={index < segment.entries.length - 1}
+                        />
+                      );
+                    })}
+                  </Surface>
                 );
               })}
-          </Surface>
+          </Stack>
         )}
       </Stack>
 
@@ -226,5 +289,9 @@ const FuelScreen = () => {
     </Screen>
   );
 };
+
+const styles = StyleSheet.create({
+  segmentHeader: { padding: spacing.md },
+});
 
 export default FuelScreen;

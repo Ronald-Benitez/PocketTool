@@ -25,7 +25,7 @@ import { useTheme } from '@/src/ui/theme/ThemeProvider';
 const toneFor = (status: string): BadgeTone => {
   if (status === 'overdue') return 'danger';
   if (status === 'due_soon') return 'warning';
-  if (status === 'no_data') return 'neutral';
+  if (status === 'no_data' || status === 'inactive') return 'neutral';
   return 'success';
 };
 
@@ -33,6 +33,7 @@ const labelFor = (t: ReturnType<typeof useLanguage>['t'], status: string) => {
   if (status === 'overdue') return t('vehicle.reminders.statusOverdue');
   if (status === 'due_soon') return t('vehicle.reminders.statusDueSoon');
   if (status === 'no_data') return t('vehicle.reminders.statusNoData');
+  if (status === 'inactive') return t('vehicle.reminders.statusInactive');
   return t('vehicle.reminders.statusOk');
 };
 
@@ -114,7 +115,9 @@ const RemindersScreen = () => {
         ) : (
           <Surface variant='outlined' padding='none'>
             {reminders.map((reminder, index) => {
+              const inactive = !Boolean(reminder.is_active);
               const status = buildReminderStatus(reminder, currentOdometerKm);
+              const displayStatus = inactive ? 'inactive' : status.status;
               const unit = reminder.odometer_unit === 'km'
                 ? t('vehicle.vehicle.kilometers')
                 : t('vehicle.vehicle.miles');
@@ -122,22 +125,28 @@ const RemindersScreen = () => {
                 <ListItem
                   key={reminder.id ?? index}
                   title={reminder.title}
-                  subtitle={`${t(
-                    `vehicle.serviceTypes.${reminder.service_type}` as never
-                  )}${
-                    status.remainingDistance != null
-                      ? ` · ${status.remainingDistance.toFixed(0)} ${unit}`
-                      : ''
-                  }${
-                    status.remainingDays != null
-                      ? ` · ${status.remainingDays} ${t('vehicle.reminders.remainingDays')}`
-                      : ''
-                  }`}
+                  subtitle={
+                    inactive
+                      ? `${t(
+                          `vehicle.serviceTypes.${reminder.service_type}` as never
+                        )} · ${t('vehicle.reminders.statusInactive')}`
+                      : `${t(
+                          `vehicle.serviceTypes.${reminder.service_type}` as never
+                        )}${
+                          status.remainingDistance != null
+                            ? ` · ${status.remainingDistance.toFixed(0)} ${unit}`
+                            : ''
+                        }${
+                          status.remainingDays != null
+                            ? ` · ${status.remainingDays} ${t('vehicle.reminders.remainingDays')}`
+                            : ''
+                        }`
+                  }
                   leading={<MaterialIcons name='event-repeat' size={20} color={colors.info} />}
                   trailing={
                     <Badge
-                      label={labelFor(t, status.status)}
-                      tone={toneFor(status.status)}
+                      label={labelFor(t, displayStatus)}
+                      tone={toneFor(displayStatus)}
                       size='sm'
                     />
                   }

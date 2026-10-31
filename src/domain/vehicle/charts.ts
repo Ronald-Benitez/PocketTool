@@ -14,7 +14,7 @@ export const buildConsumptionChart = (
   const points = entries
     .map((entry) => ({
       date: entry.entry.date,
-      value: selectConsumption(entry.segmentMetrics ?? entry.metrics, format),
+      value: selectConsumption(entry.segmentMetrics, format),
     }))
     .filter((point): point is { date: number; value: number } => point.value != null)
     .slice(-12);

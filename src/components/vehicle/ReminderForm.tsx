@@ -150,7 +150,7 @@ export const ReminderForm = ({
           ? Number(lastServiceOdometer)
           : null,
         odometer_unit: lastServiceOdometer.trim() ? distanceUnit : null,
-        is_active: active,
+        is_active: active ? 1 : 0,
         notes: notes.trim() || null,
       });
       if (replaceActiveForType && vehicle.id) {
