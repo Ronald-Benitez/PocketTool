@@ -39,6 +39,7 @@ import type { Group, Vehicle, VehicleReminder } from '@/src/interfaces/schema';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { formatMoneyWithSymbol } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
+import { Badge, type BadgeTone } from '@/src/ui/data-display/Badge';
 import { ListItem } from '@/src/ui/data-display/ListItem';
 import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock';
 import { EmptyState } from '@/src/ui/feedback/EmptyState';
@@ -50,6 +51,17 @@ import { Screen } from '@/src/ui/primitives/Screen';
 import { Row, Stack } from '@/src/ui/primitives/Stack';
 import { Surface } from '@/src/ui/primitives/Surface';
 import { useTheme } from '@/src/ui/theme/ThemeProvider';
+
+const reminderTone = (status: string): BadgeTone =>
+  status === 'overdue' ? 'danger' : 'warning';
+
+const reminderLabel = (
+  t: ReturnType<typeof useLanguage>['t'],
+  status: string
+) =>
+  status === 'overdue'
+    ? t('vehicle.reminders.statusOverdue')
+    : t('vehicle.reminders.statusDueSoon');
 
 const Index = () => {
   const { t } = useLanguage();
@@ -201,6 +213,28 @@ const Index = () => {
   const oilStatus = oilReminder
     ? buildReminderStatus(oilReminder, currentOdometerKm)
     : null;
+  const dueReminders = useMemo(() => {
+    const rank: Record<string, number> = { overdue: 0, due_soon: 1 };
+    return reminders
+      .filter((reminder) => Boolean(reminder.is_active))
+      .map((reminder) => ({
+        reminder,
+        status: buildReminderStatus(reminder, currentOdometerKm),
+      }))
+      .filter(
+        (item) =>
+          item.status.status === 'overdue' ||
+          item.status.status === 'due_soon'
+      )
+      .sort(
+        (a, b) =>
+          (rank[a.status.status] ?? 2) - (rank[b.status.status] ?? 2) ||
+          (a.status.remainingDays ?? Number.MAX_SAFE_INTEGER) -
+            (b.status.remainingDays ?? Number.MAX_SAFE_INTEGER) ||
+          (a.status.remainingDistance ?? Number.MAX_SAFE_INTEGER) -
+            (b.status.remainingDistance ?? Number.MAX_SAFE_INTEGER)
+      );
+  }, [reminders, currentOdometerKm]);
   const monthStart = new Date();
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
@@ -357,6 +391,59 @@ const Index = () => {
             </Row>
           </Stack>
         </Surface>
+
+        {dueReminders.length > 0 ? (
+          <Stack gap='sm'>
+            <AppText variant='subtitle'>{t('vehicle.reminders.title')}</AppText>
+            <Surface variant='outlined' padding='none'>
+              {dueReminders.map(({ reminder, status }, index) => {
+                const unit =
+                  reminder.odometer_unit === 'km'
+                    ? t('vehicle.vehicle.kilometers')
+                    : t('vehicle.vehicle.miles');
+                const details = [
+                  status.remainingDistance != null
+                    ? `${status.remainingDistance.toFixed(0)} ${unit}`
+                    : null,
+                  status.remainingDays != null
+                    ? `${status.remainingDays} ${t(
+                        'vehicle.reminders.remainingDays'
+                      )}`
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ');
+                return (
+                  <ListItem
+                    key={reminder.id ?? index}
+                    title={reminder.title}
+                    subtitle={`${t(
+                      `vehicle.serviceTypes.${reminder.service_type}` as never
+                    )}${details ? ` · ${details}` : ''}`}
+                    leading={
+                      <MaterialIcons
+                        name='event-repeat'
+                        size={20}
+                        color={colors.warning}
+                      />
+                    }
+                    trailing={
+                      <Badge
+                        label={reminderLabel(t, status.status)}
+                        tone={reminderTone(status.status)}
+                        size='sm'
+                      />
+                    }
+                    onPress={() =>
+                      router.push('/(vehicle)/reminders' as never)
+                    }
+                    showDivider={index < dueReminders.length - 1}
+                  />
+                );
+              })}
+            </Surface>
+          </Stack>
+        ) : null}
 
         <Surface variant='outlined' padding='lg'>
           <Stack gap='md'>

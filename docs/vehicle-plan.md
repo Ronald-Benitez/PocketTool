@@ -1253,8 +1253,10 @@ Implementado:
 - Gráficos Mermaid responsivos: altura fija, ancho según los datos y
   desplazamiento horizontal cuando hay más puntos o categorías de los que caben.
 - La vista de datos de cada gráfico permite activar o desactivar categorías con
-  controles compactos y actualizar el gráfico en tiempo real, con opción de
-  mostrar todo.
+  controles compactos, limitar a los primeros o últimos N datos y actualizar el
+  gráfico en tiempo real, con opción de mostrar todo.
+- El inicio del vehículo muestra solo los recordatorios activos próximos a
+  cumplirse o vencidos, ordenados por urgencia.
 - Los gráficos de barra y línea tienen zoom de 25 % a 250 %.
 - Al 100 % o más las categorías se muestran completas y sin rotación; por debajo
   del 100 % se rotan y se recortan para evitar superposición.

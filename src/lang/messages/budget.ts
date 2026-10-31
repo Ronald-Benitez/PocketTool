@@ -184,6 +184,11 @@ export const budgetEn = {
     zoom: 'Zoom',
     zoomIn: 'Zoom in',
     zoomOut: 'Zoom out',
+    dataLimit: 'Number of data points',
+    allData: 'All',
+    limitFromEnd: 'Take from the end',
+    first: 'First',
+    last: 'Last',
   },
   toast: {
     planCreated: 'Plan created',
@@ -389,6 +394,11 @@ export const budgetEs: MessageShape<typeof budgetEn> = {
     zoom: 'Zoom',
     zoomIn: 'Acercar',
     zoomOut: 'Alejar',
+    dataLimit: 'Cantidad de datos',
+    allData: 'Todos',
+    limitFromEnd: 'Tomar desde el final',
+    first: 'Primeros',
+    last: 'Últimos',
   },
   toast: {
     planCreated: 'Plan creado',

@@ -7,6 +7,8 @@ import { WebView } from 'react-native-webview';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { Button } from '@/src/ui/actions/Button';
 import { InlineMessage } from '@/src/ui/feedback/InlineMessage';
+import { SwitchField } from '@/src/ui/forms/SwitchField';
+import { TextField } from '@/src/ui/forms/TextField';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Row, Stack } from '@/src/ui/primitives/Stack';
 import { useTheme } from '@/src/ui/theme/ThemeProvider';
@@ -280,15 +282,32 @@ export const MermaidChart = ({
     () => new Set()
   );
   const [zoom, setZoom] = useState(1);
+  const [limitCount, setLimitCount] = useState('');
+  const [limitFromEnd, setLimitFromEnd] = useState(true);
 
   const dataItems = useMemo(
     () => (definition ? parseChartData(definition) : []),
     [definition]
   );
-  const filteredDefinition = useMemo(
-    () => (definition ? filterChartData(definition, disabledData) : null),
-    [definition, disabledData]
+  const dataLimit = Math.max(0, Math.floor(Number(limitCount)));
+  const limitedItems = useMemo(
+    () =>
+      dataLimit > 0
+        ? limitFromEnd
+          ? dataItems.slice(-dataLimit)
+          : dataItems.slice(0, dataLimit)
+        : dataItems,
+    [dataItems, dataLimit, limitFromEnd]
   );
+  const filteredDefinition = useMemo(() => {
+    if (!definition) return null;
+    const allowed = new Set(limitedItems.map((item) => item.key));
+    const disabled = new Set(disabledData);
+    for (const item of dataItems) {
+      if (!allowed.has(item.key)) disabled.add(item.key);
+    }
+    return filterChartData(definition, disabled);
+  }, [definition, dataItems, limitedItems, disabledData]);
   const rotateLabels = zoom < 1;
   const labelLimit = zoom < 0.5 ? 6 : zoom < 1 ? 10 : null;
   const displayDefinition = useMemo(
@@ -302,6 +321,8 @@ export const MermaidChart = ({
   useEffect(() => {
     setDisabledData(new Set());
     setZoom(1);
+    setLimitCount('');
+    setLimitFromEnd(true);
   }, [definition]);
 
   useEffect(() => {
@@ -493,11 +514,30 @@ export const MermaidChart = ({
                 label={t('budget.chart.showAll')}
                 variant='ghost'
                 size='sm'
-                onPress={() => setDisabledData(new Set())}
+                onPress={() => {
+                  setDisabledData(new Set());
+                  setLimitCount('');
+                }}
               />
             </Row>
+            <TextField
+              label={t('budget.chart.dataLimit')}
+              value={limitCount}
+              onChangeText={(value) =>
+                setLimitCount(value.replace(/[^0-9]/g, ''))
+              }
+              keyboardType='number-pad'
+              placeholder={t('budget.chart.allData')}
+            />
+            <SwitchField
+              label={t('budget.chart.limitFromEnd')}
+              value={limitFromEnd}
+              onChange={setLimitFromEnd}
+              onLabel={t('budget.chart.last')}
+              offLabel={t('budget.chart.first')}
+            />
             <Stack gap='xxs'>
-              {dataItems.map((item) => {
+              {limitedItems.map((item) => {
                 const enabled = !disabledData.has(item.key);
                 return (
                   <View key={item.key} style={styles.dataRow}>
