@@ -193,13 +193,13 @@ const FuelScreen = () => {
                       : 'neutral';
                 const fillCount =
                   segment.status === 'complete'
-                    ? segment.entries.length + 1
+                    ? segment.entries.filter(
+                        (item) => item.entry.id !== segment.startEntry.id
+                      ).length
                     : segment.entries.length;
                 const detail =
                   segment.status === 'complete'
-                    ? value != null
-                      ? `${t('vehicle.fuel.segmentAverage')}: ${value.toFixed(2)} ${consumptionUnits(format)} · ${t('vehicle.fuel.fillUps', { count: fillCount })}`
-                      : t('vehicle.stats.noData')
+                    ? t('vehicle.fuel.fillUps', { count: fillCount })
                     : segment.status === 'in_progress'
                       ? t('vehicle.fuel.accumulating')
                       : t('vehicle.fuel.segmentNoBaselineHint');
@@ -244,6 +244,14 @@ const FuelScreen = () => {
                           }
                           trailing={
                             <Stack gap='xxs' align='flex-end'>
+                              {segment.status === 'complete' &&
+                              entry.id === segment.endEntry.id ? (
+                                <AppText variant='caption' color='muted'>
+                                  {value != null
+                                    ? `${value.toFixed(2)} ${consumptionUnits(format)}`
+                                    : t('vehicle.stats.noData')}
+                                </AppText>
+                              ) : null}
                               <Badge
                                 label={
                                   isFull

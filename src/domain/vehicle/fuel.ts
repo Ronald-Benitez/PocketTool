@@ -25,7 +25,7 @@ export const analyzeFuelEntries = (entries: FuelEntryLike[]): FuelEntryAnalysis[
   const sorted = sortEntries(entries);
   let previous: FuelEntryLike | undefined;
   let previousOdometerKm: number | null = null;
-  let lastFullOdometerKm: number | null = null;
+  let hasBaselineFull = false;
   let segmentDistanceKm = 0;
   let segmentVolumeL = 0;
   let segmentCostCents = 0;
@@ -57,14 +57,14 @@ export const analyzeFuelEntries = (entries: FuelEntryLike[]): FuelEntryAnalysis[
     let segmentStatus: FuelEntryAnalysis['segmentStatus'] =
       distanceKm == null ? 'accumulating' : 'estimated';
 
-    if (lastFullOdometerKm != null) {
+    if (hasBaselineFull) {
       if (distanceKm != null) segmentDistanceKm += distanceKm;
       segmentVolumeL += volumeL;
       segmentCostCents += entry.total_cost;
     }
 
     if (isFull) {
-      if (lastFullOdometerKm != null && segmentDistanceKm > 0) {
+      if (hasBaselineFull && segmentDistanceKm > 0) {
         segmentMetrics = buildFuelMetrics({
           distanceKm: segmentDistanceKm,
           volumeL: segmentVolumeL,
@@ -72,13 +72,13 @@ export const analyzeFuelEntries = (entries: FuelEntryLike[]): FuelEntryAnalysis[
         });
         segmentStatus = 'complete';
       } else {
-        segmentStatus = 'accumulating';
+        segmentStatus = hasBaselineFull ? 'accumulating' : 'estimated';
       }
-      lastFullOdometerKm = odometerKm;
+      hasBaselineFull = true;
       segmentDistanceKm = 0;
       segmentVolumeL = 0;
       segmentCostCents = 0;
-    } else if (lastFullOdometerKm != null) {
+    } else if (hasBaselineFull) {
       segmentStatus = 'accumulating';
     }
 
@@ -107,6 +107,7 @@ export const groupFuelSegments = (entries: FuelEntryLike[]): FuelSegment[] => {
   let baseline: FuelEntryAnalysis | null = null;
   let current: FuelEntryAnalysis[] = [];
   let prelude: FuelEntryAnalysis[] = [];
+  let firstBaselineIncluded = false;
   let nextId = 0;
 
   const push = (
@@ -125,6 +126,12 @@ export const groupFuelSegments = (entries: FuelEntryLike[]): FuelSegment[] => {
       metrics,
     });
     nextId += 1;
+  };
+
+  const includeBaseline = (items: FuelEntryAnalysis[]) => {
+    if (firstBaselineIncluded || !baseline) return [...items];
+    firstBaselineIncluded = true;
+    return [baseline, ...items];
   };
 
   for (const analysis of analyses) {
@@ -146,24 +153,23 @@ export const groupFuelSegments = (entries: FuelEntryLike[]): FuelSegment[] => {
         prelude = [];
       }
       baseline = analysis;
-      current = [analysis];
+      current = [];
       continue;
     }
 
-    if (!full) {
-      current.push(analysis);
-      continue;
-    }
+    current.push(analysis);
+
+    if (!full) continue;
 
     push(
       'complete',
       baseline.entry,
       analysis.entry,
-      current,
+      includeBaseline(current),
       analysis.segmentMetrics
     );
     baseline = analysis;
-    current = [analysis];
+    current = [];
   }
 
   if (prelude.length > 0) {
@@ -177,13 +183,16 @@ export const groupFuelSegments = (entries: FuelEntryLike[]): FuelSegment[] => {
   }
 
   if (baseline) {
-    push(
-      'in_progress',
-      baseline.entry,
-      current[current.length - 1]?.entry ?? baseline.entry,
-      current,
-      null
-    );
+    const items = includeBaseline(current);
+    if (items.length > 0) {
+      push(
+        'in_progress',
+        baseline.entry,
+        items[items.length - 1].entry,
+        items,
+        null
+      );
+    }
   }
 
   return segments;

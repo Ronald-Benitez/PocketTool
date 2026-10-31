@@ -45,15 +45,12 @@ describe('vehicle fuel analysis', () => {
     ];
     const segments = groupFuelSegments(entries);
 
-    expect(segments).toHaveLength(2);
+    expect(segments).toHaveLength(1);
     expect(segments[0].status).toBe('complete');
     expect(segments[0].startEntry.id).toBe(1);
     expect(segments[0].endEntry.id).toBe(3);
-    expect(segments[0].entries.map((item) => item.entry.id)).toEqual([1, 2]);
+    expect(segments[0].entries.map((item) => item.entry.id)).toEqual([1, 2, 3]);
     expect(segments[0].metrics?.miPerGal).toBeCloseTo(40, 6);
-    expect(segments[1].status).toBe('in_progress');
-    expect(segments[1].startEntry.id).toBe(3);
-    expect(segments[1].entries.map((item) => item.entry.id)).toEqual([3]);
   });
 
   it('changes segment boundaries when a partial fill becomes full', () => {
@@ -64,15 +61,82 @@ describe('vehicle fuel analysis', () => {
     ];
     const segments = groupFuelSegments(partialMiddle);
 
-    expect(segments).toHaveLength(3);
+    expect(segments).toHaveLength(2);
     expect(segments.map((segment) => segment.status)).toEqual([
       'complete',
       'complete',
-      'in_progress',
     ]);
-    expect(segments[0].entries.map((item) => item.entry.id)).toEqual([1]);
-    expect(segments[1].entries.map((item) => item.entry.id)).toEqual([2]);
-    expect(segments[2].entries.map((item) => item.entry.id)).toEqual([3]);
+    expect(segments[0].entries.map((item) => item.entry.id)).toEqual([1, 2]);
+    expect(segments[1].entries.map((item) => item.entry.id)).toEqual([3]);
+  });
+
+  it('calculates full-tank segments using manual distance without odometer', () => {
+    const entries = [
+      { ...base, id: 1, date: 1, volume: 10, is_full_tank: 1 },
+      { ...base, id: 2, date: 2, volume: 5, is_full_tank: 0 },
+      {
+        ...base,
+        id: 3,
+        date: 3,
+        volume: 5,
+        distance_traveled: 300,
+        is_full_tank: 1,
+      },
+    ];
+    const analysis = analyzeFuelEntries(entries);
+    expect(analysis[2].segmentStatus).toBe('complete');
+    expect(analysis[2].segmentMetrics?.miPerGal).toBeCloseTo(30, 6);
+
+    const segments = groupFuelSegments(entries);
+    expect(segments).toHaveLength(1);
+    expect(segments[0].metrics?.miPerGal).toBeCloseTo(30, 6);
+  });
+
+  it('shows consumption for every full tank that closes a cycle', () => {
+    const entries = [
+      { ...base, id: 1, date: 1, volume: 3.233, is_full_tank: 0 },
+      { ...base, id: 2, date: 2, volume: 8.5399, is_full_tank: 1 },
+      { ...base, id: 3, date: 3, volume: 3.112, is_full_tank: 0 },
+      {
+        ...base,
+        id: 4,
+        date: 4,
+        volume: 7.984,
+        distance_traveled: 344.7,
+        is_full_tank: 1,
+      },
+      {
+        ...base,
+        id: 5,
+        date: 5,
+        volume: 8.539,
+        distance_traveled: 255.8,
+        is_full_tank: 1,
+      },
+      { ...base, id: 6, date: 6, volume: 3.1, is_full_tank: 0 },
+      {
+        ...base,
+        id: 7,
+        date: 7,
+        volume: 7.938,
+        distance_traveled: 316.3,
+        is_full_tank: 1,
+      },
+    ];
+
+    const segments = groupFuelSegments(entries);
+    const completed = segments.filter(
+      (segment) => segment.status === 'complete'
+    );
+
+    expect(completed).toHaveLength(3);
+    expect(completed.every((segment) => segment.metrics != null)).toBe(true);
+
+    const weekTwo = completed.find((segment) => segment.endEntry.id === 4);
+    expect(weekTwo?.entries.map((item) => item.entry.id)).toEqual([2, 3, 4]);
+
+    const weekThree = completed.find((segment) => segment.endEntry.id === 5);
+    expect(weekThree?.entries.map((item) => item.entry.id)).toEqual([5]);
   });
 
   it('builds weighted stats', () => {

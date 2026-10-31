@@ -1239,9 +1239,12 @@ Implementado:
 - Seleccionar un mantenimiento previo para completar tipo, título, fecha y
   odómetro del recordatorio.
 - Recordatorios inactivos se muestran como “Inactivo”, no como “En orden”.
-- Combustible agrupado por segmentos de tanque lleno: el consumo solo se muestra
-  al cerrar un segmento, las cargas parciales quedan como acumulando y la media
-  general usa únicamente segmentos completos.
+- Combustible agrupado por segmentos de tanque lleno: las cargas parciales se
+  agrupan con el siguiente tanque lleno que cierra el ciclo, el consumo se
+  muestra en ese tanque lleno y la media general usa únicamente segmentos
+  completos.
+- El ciclo de tanque lleno funciona también cuando se usa distancia manual sin
+  odómetro.
 - Listas de combustible, mantenimiento y recordatorios ordenadas de fecha más
   reciente a más antigua.
 - Crear gasto, vincular gasto existente o no vincular.
