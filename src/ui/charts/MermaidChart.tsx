@@ -124,7 +124,8 @@ const buildHtml = (
   },
   palette: string[],
   chartWidth: number | null,
-  chartHeight: number
+  chartHeight: number,
+  fillWidth: boolean
 ) => {
   const safeBundle = bundle.replace(/<\/script/gi, '<\\/script');
   const pieVariables = palette
@@ -137,7 +138,7 @@ const buildHtml = (
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 <style>
   html, body { margin: 0; padding: 0; width: 100%; max-width: 100%; overflow-x: auto; overflow-y: hidden; background: transparent; color: ${colors.text}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-  #chart { box-sizing: border-box; ${chartWidth ? `width: ${chartWidth}px; min-width: 100%; height: ${chartHeight}px; padding: 0;` : 'width: 100%; max-width: 100%; padding: 0 8px;'} overflow: visible; display: flex; align-items: center; justify-content: ${chartWidth ? 'flex-start' : 'center'}; min-height: 120px; }
+  #chart { box-sizing: border-box; ${chartWidth ? `width: ${chartWidth}px; ${fillWidth ? 'min-width: 100%;' : ''} height: ${chartHeight}px; padding: 0;` : 'width: 100%; max-width: 100%; padding: 0 8px;'} overflow: visible; display: flex; align-items: center; justify-content: ${chartWidth ? 'flex-start' : 'center'}; min-height: 120px; }
   #chart svg { display: block; width: 100% !important; max-width: none !important; height: ${chartWidth ? '100%' : 'auto'} !important; }
   .error { color: ${colors.expense}; font-size: 13px; padding: 12px; }
 </style>
@@ -161,9 +162,9 @@ const buildHtml = (
         ${chartWidth ? `xyChart: {
           width: ${chartWidth},
           height: ${chartHeight},
-          plotReservedSpacePercent: 60,
-          xAxis: { labelPadding: 8, titlePadding: 8 },
-          yAxis: { labelPadding: 8, titlePadding: 10 }
+          plotReservedSpacePercent: 65,
+          xAxis: { showTitle: false, labelPadding: 8, titlePadding: 8 },
+          yAxis: { showTitle: false, labelPadding: 10, titlePadding: 10 }
         },` : ''}
         themeVariables: {
           background: '${colors.background}',
@@ -281,6 +282,7 @@ export const MermaidChart = ({
   const chartWidth = baseChartWidth
     ? Math.round(baseChartWidth * zoom)
     : null;
+  const fillWidth = zoom >= 1;
   const resolvedHeight = baseChartWidth ? Math.max(380, height) : height;
   const chartHeight = resolvedHeight - 20;
 
@@ -300,7 +302,8 @@ export const MermaidChart = ({
       },
       palette,
       chartWidth,
-      chartHeight
+      chartHeight,
+      fillWidth
     );
   }, [
     bundle,
@@ -308,6 +311,7 @@ export const MermaidChart = ({
     palette,
     chartWidth,
     chartHeight,
+    fillWidth,
     colors.border,
     colors.expense,
     colors.income,
@@ -400,11 +404,11 @@ export const MermaidChart = ({
               label='−'
               variant='outline'
               size='sm'
-              disabled={zoom <= 0.75}
+              disabled={zoom <= 0.25}
               accessibilityLabel={t('budget.chart.zoomOut')}
               onPress={() =>
                 setZoom((value) =>
-                  Math.max(0.75, Math.round((value - 0.25) * 100) / 100)
+                  Math.max(0.25, Math.round((value - 0.25) * 100) / 100)
                 )
               }
             />

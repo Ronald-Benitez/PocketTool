@@ -1255,7 +1255,7 @@ Implementado:
 - La vista de datos de cada gráfico permite activar o desactivar categorías con
   controles compactos y actualizar el gráfico en tiempo real, con opción de
   mostrar todo.
-- Los gráficos de barra y línea tienen zoom de 75 % a 250 %.
+- Los gráficos de barra y línea tienen zoom de 25 % a 250 %.
 - Listas de combustible, mantenimiento y recordatorios ordenadas de fecha más
   reciente a más antigua.
 - Crear gasto, vincular gasto existente o no vincular.
