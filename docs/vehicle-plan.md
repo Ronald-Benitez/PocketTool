@@ -1256,6 +1256,8 @@ Implementado:
   controles compactos y actualizar el gráfico en tiempo real, con opción de
   mostrar todo.
 - Los gráficos de barra y línea tienen zoom de 25 % a 250 %.
+- Al 100 % o más las categorías se muestran completas y sin rotación; por debajo
+  del 100 % se rotan y se recortan para evitar superposición.
 - Listas de combustible, mantenimiento y recordatorios ordenadas de fecha más
   reciente a más antigua.
 - Crear gasto, vincular gasto existente o no vincular.

@@ -46,6 +46,30 @@ const parseChartData = (definition: string): ChartDataItem[] => {
   return [];
 };
 
+const truncateXAxisLabels = (
+  definition: string,
+  maxChars: number | null
+): string => {
+  if (maxChars == null || !definition.startsWith('xychart')) return definition;
+  const lines = definition.split('\n');
+  const xAxisIndex = lines.findIndex((line) => /x-axis\s*\[/.test(line));
+  if (xAxisIndex < 0) return definition;
+  const labels = lines[xAxisIndex].match(/"[^"]*"/g) ?? [];
+  if (labels.length === 0) return definition;
+  lines[xAxisIndex] = `  x-axis [${labels
+    .map((raw) => {
+      const label = raw.slice(1, -1);
+      const chars = Array.from(label);
+      const value =
+        chars.length > maxChars
+          ? `${chars.slice(0, maxChars).join('')}…`
+          : label;
+      return `"${value}"`;
+    })
+    .join(', ')}]`;
+  return lines.join('\n');
+};
+
 const filterChartData = (
   definition: string,
   disabled: Set<string>
@@ -125,7 +149,8 @@ const buildHtml = (
   palette: string[],
   chartWidth: number | null,
   chartHeight: number,
-  fillWidth: boolean
+  fillWidth: boolean,
+  rotateLabels: boolean
 ) => {
   const safeBundle = bundle.replace(/<\/script/gi, '<\\/script');
   const pieVariables = palette
@@ -168,7 +193,7 @@ const buildHtml = (
             labelFontSize: 12,
             labelPadding: 10,
             titlePadding: 8,
-            labelRotation: -40
+            labelRotation: ${rotateLabels ? -40 : 0}
           },
           yAxis: {
             showTitle: false,
@@ -260,9 +285,18 @@ export const MermaidChart = ({
     () => (definition ? parseChartData(definition) : []),
     [definition]
   );
-  const displayDefinition = useMemo(
+  const filteredDefinition = useMemo(
     () => (definition ? filterChartData(definition, disabledData) : null),
     [definition, disabledData]
+  );
+  const rotateLabels = zoom < 1;
+  const labelLimit = zoom < 0.5 ? 6 : zoom < 1 ? 10 : null;
+  const displayDefinition = useMemo(
+    () =>
+      filteredDefinition
+        ? truncateXAxisLabels(filteredDefinition, labelLimit)
+        : null,
+    [filteredDefinition, labelLimit]
   );
 
   useEffect(() => {
@@ -314,7 +348,8 @@ export const MermaidChart = ({
       palette,
       chartWidth,
       chartHeight,
-      fillWidth
+      fillWidth,
+      rotateLabels
     );
   }, [
     bundle,
@@ -323,6 +358,7 @@ export const MermaidChart = ({
     chartWidth,
     chartHeight,
     fillWidth,
+    rotateLabels,
     colors.border,
     colors.expense,
     colors.income,
