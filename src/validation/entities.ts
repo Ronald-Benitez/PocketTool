@@ -191,6 +191,44 @@ const vehicleType = z.enum([
   'grua',
   'other',
 ]);
+const paymentVisualKind = z.enum([
+  'credit_card',
+  'debit_card',
+  'cash',
+  'piggy_bank',
+  'transfer',
+  'wallet',
+  'gift_card',
+  'other',
+]);
+const cardBrand = z.enum([
+  'visa',
+  'mastercard',
+  'amex',
+  'discover',
+  'diners',
+  'jcb',
+  'unionpay',
+  'other',
+]);
+const cardStyle = z.enum(['matte', 'metallic', 'gradient', 'transparent']);
+const financingKind = z.enum([
+  'installment_purchase',
+  'bank_loan',
+  'mortgage',
+  'auto_loan',
+  'personal_loan',
+  'shared_loan',
+  'other',
+]);
+const financingStatus = z.enum(['active', 'paid', 'refinanced', 'cancelled']);
+const financingRateType = z.enum(['fixed', 'variable']);
+const financingAdjustmentKind = z.enum([
+  'refinance',
+  'rate_change',
+  'term_change',
+  'payment_change',
+]);
 const vehicleServiceType = z.enum([
   'oil_change',
   'tires',
@@ -412,8 +450,100 @@ export const paymentMethodInputSchema = z
     closing_date: z.number().int().min(0).max(31).nullable().optional(),
     payment_date: z.number().int().min(0).max(31).nullable().optional(),
     payment_type_id: id,
+    is_credit_card: z.boolean().or(z.number().int().min(0).max(1)).optional(),
+    credit_limit: cents.nonnegative().nullable().optional(),
+    visual_kind: paymentVisualKind.optional(),
+    card_brand: cardBrand.nullable().optional(),
+    card_style: cardStyle.nullable().optional(),
+    card_color: z.string().max(40).nullable().optional(),
+    card_last4: z.string().max(4).nullable().optional(),
+    card_holder: z.string().max(120).nullable().optional(),
+    card_issuer: z.string().max(120).nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    const isCredit =
+      value.is_credit_card === true || value.is_credit_card === 1;
+    if (isCredit && (value.credit_limit == null || value.credit_limit <= 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A credit card requires a positive credit limit',
+        path: ['credit_limit'],
+      });
+    }
+  });
+
+export const paymentMethodUpdateSchema = paymentMethodInputSchema.innerType().partial().extend(updateMeta);
+
+export const financingInputSchema = z
+  .object({
+    name: z.string().min(1).max(160),
+    kind: financingKind,
+    lender: z.string().max(120).nullable().optional(),
+    principal_cents: cents.nonnegative(),
+    down_payment_cents: cents.nonnegative().optional(),
+    financed_cents: cents.nonnegative(),
+    annual_rate_bps: z.number().int().min(0).max(100000),
+    rate_type: financingRateType.optional(),
+    term_months: z.number().int().positive(),
+    start_date: timestamp,
+    first_payment_date: timestamp.nullable().optional(),
+    payment_day: z.number().int().min(1).max(31).nullable().optional(),
+    payment_method_id: id,
+    category_id: id,
+    record_type_id: id,
+    paid_installments_before_app: z.number().int().min(0).optional(),
+    capital_paid_before_app_cents: cents.nonnegative().optional(),
+    is_shared: z.boolean().or(z.number().int().min(0).max(1)).optional(),
+    shared_percent: z.number().finite().min(0).max(100).nullable().optional(),
+    shared_counterparty: z.string().max(120).nullable().optional(),
+    status: financingStatus.optional(),
+    notes: z.string().nullable().optional(),
     ...auditTimestamps,
   })
   .strict();
 
-export const paymentMethodUpdateSchema = paymentMethodInputSchema.partial().extend(updateMeta);
+export const financingUpdateSchema = financingInputSchema.partial().extend(updateMeta);
+
+export const financingPaymentInputSchema = z
+  .object({
+    financing_id: z.number().int().positive(),
+    date: timestamp,
+    amount_cents: cents.nonnegative(),
+    principal_cents: cents.nonnegative().optional(),
+    interest_cents: cents.nonnegative().optional(),
+    insurance_cents: cents.nonnegative().optional(),
+    fees_cents: cents.nonnegative().optional(),
+    extra_principal_cents: cents.nonnegative().optional(),
+    extra_reduce_payment_cents: cents.nonnegative().optional(),
+    is_shared: z.boolean().or(z.number().int().min(0).max(1)).optional(),
+    shared_amount_cents: cents.nonnegative().nullable().optional(),
+    group_id: id,
+    payment_method_id: id,
+    record_id: id,
+    notes: z.string().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const financingPaymentUpdateSchema =
+  financingPaymentInputSchema.partial().extend(updateMeta);
+
+export const financingAdjustmentInputSchema = z
+  .object({
+    financing_id: z.number().int().positive(),
+    date: timestamp,
+    kind: financingAdjustmentKind,
+    new_annual_rate_bps: z.number().int().min(0).max(100000).nullable().optional(),
+    new_term_months: z.number().int().positive().nullable().optional(),
+    new_payment_cents: cents.nonnegative().nullable().optional(),
+    capitalized_interest_cents: cents.nonnegative().nullable().optional(),
+    fees_cents: cents.nonnegative().nullable().optional(),
+    notes: z.string().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const financingAdjustmentUpdateSchema =
+  financingAdjustmentInputSchema.partial().extend(updateMeta);

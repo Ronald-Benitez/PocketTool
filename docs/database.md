@@ -46,6 +46,9 @@ No editar esos archivos a mano.
 | `Fixed` | `fixed_records` | Movimientos recurrentes. |
 | `Records` | `records` | Movimientos principales. |
 | `PaidCredits` | `paid_credits` | Pagos de créditos. |
+| `Financings` | `financings` | Compras a plazo y préstamos con tasa, plazo y estado inicial. |
+| `FinancingPayments` | `financing_payments` | Pagos, capital, interés, seguros, honorarios y abonos. |
+| `FinancingAdjustments` | `financing_adjustments` | Refinanciamientos y cambios de tasa/plazo. |
 | `BudgetTemplates` | `budget_templates` | Plantillas de presupuesto reutilizables. |
 | `BudgetTemplateItems` | `budget_template_items` | Líneas de plantilla (categoría o fijo). |
 | `BudgetPlans` | `budget_plans` | Plan mensual por grupo. |
@@ -96,6 +99,7 @@ Las rutas navegables se generan en `relations.json` a partir de las FKs.
 | 8 | `0008_fuel_baseline` | Agrega `is_baseline` y hace nullables volumen/precio/total para el registro base. |
 | 9 | `0009_vehicle_type` | Agrega `vehicle_type` a `vehicles` con valor inicial `car`. |
 | 10 | `0010_vehicle_type_models` | Normaliza `car`→`sedan` y `van`→`furgon` para los modelos nuevos. |
+| 11 | `0011_credit_cards_and_financings` | Agrega campos visuales/tarjeta a `payment_methods` y crea `financings`, `financing_payments` y `financing_adjustments`. |
 
 Reglas:
 

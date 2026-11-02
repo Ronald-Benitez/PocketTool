@@ -1,6 +1,6 @@
 import type { TableDefinition, TableSchema } from '../types';
 
-export const SCHEMA_VERSION = 10;
+export const SCHEMA_VERSION = 11;
 
 export type TableName =
   | 'Groups'
@@ -11,6 +11,9 @@ export type TableName =
   | 'Fixed'
   | 'Records'
   | 'PaidCredits'
+  | 'Financings'
+  | 'FinancingPayments'
+  | 'FinancingAdjustments'
   | 'BudgetTemplates'
   | 'BudgetTemplateItems'
   | 'BudgetPlans'
@@ -75,6 +78,15 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
         type: 'INTEGER',
         references: { table: 'PaymentTypes', column: 'id', onDelete: 'SET NULL' },
       },
+      { name: 'is_credit_card', type: 'INTEGER', kind: 'boolean', notNull: true, defaultValue: 0 },
+      { name: 'credit_limit', type: 'INTEGER', kind: 'money' },
+      { name: 'visual_kind', type: 'TEXT', notNull: true, defaultValue: 'other' },
+      { name: 'card_brand', type: 'TEXT' },
+      { name: 'card_style', type: 'TEXT' },
+      { name: 'card_color', type: 'TEXT' },
+      { name: 'card_last4', type: 'TEXT' },
+      { name: 'card_holder', type: 'TEXT' },
+      { name: 'card_issuer', type: 'TEXT' },
       ...timestamps,
       softDelete,
     ],
@@ -216,6 +228,123 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
       { name: 'idx_paid_credits_group', columns: ['group_id'], where: 'deleted_at IS NULL' },
       { name: 'idx_paid_credits_payment_method', columns: ['payment_method_id'], where: 'deleted_at IS NULL' },
       { name: 'idx_paid_credits_date', columns: ['date'], where: 'deleted_at IS NULL' },
+    ],
+  },
+  Financings: {
+    name: 'Financings',
+    sqlName: 'financings',
+    entity: 'Financing',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      { name: 'name', type: 'TEXT', notNull: true },
+      { name: 'kind', type: 'TEXT', notNull: true },
+      { name: 'lender', type: 'TEXT' },
+      { name: 'principal_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'down_payment_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'financed_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'annual_rate_bps', type: 'INTEGER', notNull: true, defaultValue: 0 },
+      { name: 'rate_type', type: 'TEXT', notNull: true, defaultValue: 'fixed' },
+      { name: 'term_months', type: 'INTEGER', notNull: true, defaultValue: 1 },
+      { name: 'start_date', type: 'INTEGER', kind: 'timestamp', notNull: true },
+      { name: 'first_payment_date', type: 'INTEGER', kind: 'timestamp' },
+      { name: 'payment_day', type: 'INTEGER' },
+      {
+        name: 'payment_method_id',
+        type: 'INTEGER',
+        references: { table: 'PaymentMethods', column: 'id', onDelete: 'SET NULL' },
+      },
+      {
+        name: 'category_id',
+        type: 'INTEGER',
+        references: { table: 'Categories', column: 'id', onDelete: 'SET NULL' },
+      },
+      {
+        name: 'record_type_id',
+        type: 'INTEGER',
+        references: { table: 'RecordTypes', column: 'id', onDelete: 'SET NULL' },
+      },
+      { name: 'paid_installments_before_app', type: 'INTEGER', notNull: true, defaultValue: 0 },
+      { name: 'capital_paid_before_app_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'is_shared', type: 'INTEGER', kind: 'boolean', notNull: true, defaultValue: 0 },
+      { name: 'shared_percent', type: 'REAL' },
+      { name: 'shared_counterparty', type: 'TEXT' },
+      { name: 'status', type: 'TEXT', notNull: true, defaultValue: 'active' },
+      { name: 'notes', type: 'TEXT' },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      { name: 'idx_financings_status', columns: ['status', 'first_payment_date'], where: 'deleted_at IS NULL' },
+      { name: 'idx_financings_payment_method', columns: ['payment_method_id'], where: 'deleted_at IS NULL' },
+    ],
+  },
+  FinancingPayments: {
+    name: 'FinancingPayments',
+    sqlName: 'financing_payments',
+    entity: 'FinancingPayment',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      {
+        name: 'financing_id',
+        type: 'INTEGER',
+        references: { table: 'Financings', column: 'id', onDelete: 'CASCADE' },
+        notNull: true,
+      },
+      { name: 'date', type: 'INTEGER', kind: 'timestamp', notNull: true },
+      { name: 'amount_cents', type: 'INTEGER', kind: 'money', notNull: true },
+      { name: 'principal_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'interest_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'insurance_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'fees_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'extra_principal_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'extra_reduce_payment_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'is_shared', type: 'INTEGER', kind: 'boolean', notNull: true, defaultValue: 0 },
+      { name: 'shared_amount_cents', type: 'INTEGER', kind: 'money' },
+      {
+        name: 'group_id',
+        type: 'INTEGER',
+        references: { table: 'Groups', column: 'id', onDelete: 'SET NULL' },
+      },
+      {
+        name: 'payment_method_id',
+        type: 'INTEGER',
+        references: { table: 'PaymentMethods', column: 'id', onDelete: 'SET NULL' },
+      },
+      { name: 'record_id', type: 'INTEGER' },
+      { name: 'notes', type: 'TEXT' },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      { name: 'idx_financing_payments_financing_date', columns: ['financing_id', 'date'], where: 'deleted_at IS NULL' },
+      { name: 'idx_financing_payments_group', columns: ['group_id'], where: 'deleted_at IS NULL' },
+    ],
+  },
+  FinancingAdjustments: {
+    name: 'FinancingAdjustments',
+    sqlName: 'financing_adjustments',
+    entity: 'FinancingAdjustment',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      {
+        name: 'financing_id',
+        type: 'INTEGER',
+        references: { table: 'Financings', column: 'id', onDelete: 'CASCADE' },
+        notNull: true,
+      },
+      { name: 'date', type: 'INTEGER', kind: 'timestamp', notNull: true },
+      { name: 'kind', type: 'TEXT', notNull: true },
+      { name: 'new_annual_rate_bps', type: 'INTEGER' },
+      { name: 'new_term_months', type: 'INTEGER' },
+      { name: 'new_payment_cents', type: 'INTEGER', kind: 'money' },
+      { name: 'capitalized_interest_cents', type: 'INTEGER', kind: 'money' },
+      { name: 'fees_cents', type: 'INTEGER', kind: 'money' },
+      { name: 'notes', type: 'TEXT' },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      { name: 'idx_financing_adjustments_financing_date', columns: ['financing_id', 'date'], where: 'deleted_at IS NULL' },
     ],
   },
   BudgetTemplates: {

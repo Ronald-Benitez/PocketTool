@@ -1,4 +1,5 @@
 import { useSQLiteContext } from 'expo-sqlite';
+import { z } from 'zod';
 
 import { ORM, useORM } from '@/src/orm';
 import { withExclusiveTransaction } from '@/src/db/transaction';
@@ -579,10 +580,21 @@ export const usePaymentMethodsRepository = () => {
     return rows.map((row) => flattenPaymentMethod(row as never));
   };
 
-  const addPaymentMethod = async (method: Insertable<PaymentMethod>) =>
-    methodsOrm.insert(paymentMethodInputSchema.parse(method));
+  const addPaymentMethod = async (
+    method: z.infer<typeof paymentMethodInputSchema>
+  ) => {
+    const parsed = paymentMethodInputSchema.parse(method);
+    return methodsOrm.insert({
+      is_credit_card: 0,
+      visual_kind: 'other',
+      ...parsed,
+    } as Insertable<PaymentMethod>);
+  };
 
-  const updatePaymentMethod = async (id: number, method: Partial<PaymentMethod>) => {
+  const updatePaymentMethod = async (
+    id: number,
+    method: z.infer<typeof paymentMethodUpdateSchema>
+  ) => {
     await methodsOrm.update(id, paymentMethodUpdateSchema.parse(method));
   };
 

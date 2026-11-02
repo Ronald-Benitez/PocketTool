@@ -13,6 +13,9 @@ import type {
   Category,
   Cents,
   Entity,
+  Financing,
+  FinancingAdjustment,
+  FinancingPayment,
   FixedRecord,
   Group,
   Migration,
@@ -42,6 +45,9 @@ export type {
   Category,
   Cents,
   Entity,
+  Financing,
+  FinancingAdjustment,
+  FinancingPayment,
   FixedRecord,
   Group,
   Migration,
@@ -87,6 +93,24 @@ export interface FixedRecordWithRelations extends FixedRecord {
 export interface PaidCreditWithRelations extends PaidCredit {
   Groups?: Group | null;
   PaymentMethods?: PaymentMethodWithRelations | null;
+}
+
+export interface FinancingWithRelations extends Financing {
+  PaymentMethods?: PaymentMethodWithRelations | null;
+  Categories?: Category | null;
+  RecordTypes?: RecordType | null;
+  FinancingPayments?: FinancingPaymentWithRelations[];
+  FinancingAdjustments?: FinancingAdjustmentWithRelations[];
+}
+
+export interface FinancingPaymentWithRelations extends FinancingPayment {
+  Financings?: FinancingWithRelations | null;
+  Groups?: Group | null;
+  PaymentMethods?: PaymentMethodWithRelations | null;
+}
+
+export interface FinancingAdjustmentWithRelations extends FinancingAdjustment {
+  Financings?: FinancingWithRelations | null;
 }
 
 export interface RecordWithRelations extends RecordEntry {

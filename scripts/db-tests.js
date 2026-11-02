@@ -132,7 +132,7 @@ async function testLegacyMigration() {
   await migrateDb(db);
 
   const tables = q(raw, "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").map(r => r.name);
-  for (const expected of ['groups', 'payment_types', 'payment_methods', 'categories', 'record_types', 'fixed_records', 'records', 'paid_credits', 'budget_templates', 'budget_template_items', 'budget_plans', 'budget_lines', 'savings', 'savings_history', 'migrations', 'vehicles', 'vehicle_fuel_entries', 'vehicle_maintenance', 'vehicle_maintenance_items', 'vehicle_reminders', 'vehicle_settings', 'vehicle_expense_links', 'fuel_refills_legacy', 'trip_logs_legacy']) {
+  for (const expected of ['groups', 'payment_types', 'payment_methods', 'categories', 'record_types', 'fixed_records', 'records', 'paid_credits', 'budget_templates', 'budget_template_items', 'budget_plans', 'budget_lines', 'savings', 'savings_history', 'migrations', 'financings', 'financing_payments', 'financing_adjustments', 'vehicles', 'vehicle_fuel_entries', 'vehicle_maintenance', 'vehicle_maintenance_items', 'vehicle_reminders', 'vehicle_settings', 'vehicle_expense_links', 'fuel_refills_legacy', 'trip_logs_legacy']) {
     assert.ok(tables.includes(expected), `missing table ${expected}`);
   }
   assert.ok(!tables.includes('Groups'), 'legacy Groups should be gone');
@@ -410,7 +410,7 @@ async function testEmptyDatabase() {
   assert.strictEqual(q(raw, 'SELECT goal FROM groups')[0].goal, 500000);
   assert.strictEqual(q(raw, 'SELECT amount FROM records ORDER BY id')[0].amount, 100000);
   assert.strictEqual(q(raw, 'SELECT migration_name FROM migrations')[0].migration_name, '0001_baseline');
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 10);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 11);
   const recordColumns = q(raw, 'PRAGMA table_info(records)').map(c => c.name);
   assert.ok(recordColumns.includes('created_at'));
   assert.ok(recordColumns.includes('updated_at'));
@@ -447,7 +447,7 @@ async function testExportImport() {
   assert.ok(metadata);
   assert.strictEqual(metadata.formatVersion, BACKUP_FORMAT_VERSION);
   assert.strictEqual(metadata.appVersion, 'test-version');
-  assert.strictEqual(metadata.schemaVersion, 10);
+  assert.strictEqual(metadata.schemaVersion, 11);
   assert.ok(metadata.tables.includes('records'));
   assert.doesNotThrow(() => validateSqlDump(backupSql));
   assert.strictEqual(parseBackupMetadata(dump), null);
@@ -500,7 +500,7 @@ async function testAuditTimestampMigration() {
   const backfilled = q(raw, 'SELECT created_at, updated_at FROM records LIMIT 1')[0];
   assert.ok(backfilled.created_at > 0);
   assert.ok(backfilled.updated_at > 0);
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 10);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 11);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,
     1
@@ -772,6 +772,75 @@ async function testBudgetStatusRemoval() {
   console.log('budget plan status removal: OK');
 }
 
+async function testCreditCardsAndFinancingsMigration() {
+  const raw = new DatabaseSync(':memory:');
+  raw.exec(`
+    CREATE TABLE payment_types (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      payment_type_name TEXT,
+      payment_color TEXT DEFAULT '#000000',
+      deleted_at INTEGER
+    );
+    CREATE TABLE payment_methods (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      method_name TEXT NOT NULL,
+      closing_date INTEGER,
+      payment_date INTEGER,
+      payment_type_id INTEGER,
+      deleted_at INTEGER
+    );
+    INSERT INTO payment_types (payment_type_name, payment_color) VALUES ('Credit', '#112233');
+    INSERT INTO payment_methods (method_name, closing_date, payment_date, payment_type_id)
+      VALUES ('Visa', 15, 5, 1);
+    INSERT INTO payment_methods (method_name, payment_date, payment_type_id)
+      VALUES ('Cash', 1, 1);
+  `);
+  const migration = require(path.join(
+    ROOT,
+    'src/db/migrations/0011_credit_cards_and_financings.ts'
+  )).default;
+  await migration.up(shim(raw));
+
+  const columns = q(raw, 'PRAGMA table_info(payment_methods)').map(
+    (column) => column.name
+  );
+  for (const name of [
+    'is_credit_card',
+    'credit_limit',
+    'visual_kind',
+    'card_brand',
+    'card_style',
+    'card_color',
+    'card_last4',
+    'card_holder',
+    'card_issuer',
+  ]) {
+    assert.ok(columns.includes(name), `payment_methods missing ${name}`);
+  }
+  const rows = q(
+    raw,
+    'SELECT method_name, is_credit_card, visual_kind, card_color FROM payment_methods ORDER BY id'
+  );
+  assert.strictEqual(rows[0].is_credit_card, 1);
+  assert.strictEqual(rows[0].visual_kind, 'credit_card');
+  assert.strictEqual(rows[0].card_color, '#112233');
+  assert.strictEqual(rows[1].is_credit_card, 0);
+  assert.strictEqual(rows[1].visual_kind, 'debit_card');
+  const tables = q(
+    raw,
+    "SELECT name FROM sqlite_master WHERE type='table'"
+  ).map((row) => row.name);
+  for (const name of [
+    'financings',
+    'financing_payments',
+    'financing_adjustments',
+  ]) {
+    assert.ok(tables.includes(name), `missing table ${name}`);
+  }
+  raw.close();
+  console.log('credit cards and financings migration: OK');
+}
+
 async function testVehicleInsert() {
   const raw = new DatabaseSync(':memory:');
   const db = shim(raw);
@@ -946,6 +1015,7 @@ async function testInterruptedRebuild() {
   await testQueryPlans();
   testNoLegacyHandlerImports();
   await testBudgetStatusRemoval();
+  await testCreditCardsAndFinancingsMigration();
   await testVehicleInsert();
   await testVehicleTypeMigration();
   await testVehicleTypeModelsMigration();

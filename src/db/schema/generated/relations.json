@@ -33,6 +33,29 @@
     "PaymentMethods": "PaymentMethods",
     "PaymentMethods.PaymentTypes": "PaymentMethods.PaymentTypes"
   },
+  "Financings": {
+    "PaymentMethods": "PaymentMethods",
+    "PaymentMethods.PaymentTypes": "PaymentMethods.PaymentTypes",
+    "Categories": "Categories",
+    "RecordTypes": "RecordTypes"
+  },
+  "FinancingPayments": {
+    "Financings": "Financings",
+    "Financings.PaymentMethods": "Financings.PaymentMethods",
+    "Financings.PaymentMethods.PaymentTypes": "Financings.PaymentMethods.PaymentTypes",
+    "Financings.Categories": "Financings.Categories",
+    "Financings.RecordTypes": "Financings.RecordTypes",
+    "Groups": "Groups",
+    "PaymentMethods": "PaymentMethods",
+    "PaymentMethods.PaymentTypes": "PaymentMethods.PaymentTypes"
+  },
+  "FinancingAdjustments": {
+    "Financings": "Financings",
+    "Financings.PaymentMethods": "Financings.PaymentMethods",
+    "Financings.PaymentMethods.PaymentTypes": "Financings.PaymentMethods.PaymentTypes",
+    "Financings.Categories": "Financings.Categories",
+    "Financings.RecordTypes": "Financings.RecordTypes"
+  },
   "BudgetTemplates": {},
   "BudgetTemplateItems": {
     "BudgetTemplates": "BudgetTemplates",

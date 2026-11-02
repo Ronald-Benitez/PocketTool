@@ -43,7 +43,7 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 | Fase 6 — Centro de ayuda | ✅ Finalizada (2026-10-29) |
 | Fase 7 — Presupuestos | ✅ Finalizada (2026-10-29) |
 | Fase 8 — Vehículo | ✅ Finalizada (2026-10-31) |
-| Fase 9 — Gastos fijos y Créditos | 📝 Planificada (2026-11-01) |
+| Fase 9 — Gastos fijos y Créditos | 🚧 En implementación (2026-11-01) |
 
 ## Regla de mantenimiento
 

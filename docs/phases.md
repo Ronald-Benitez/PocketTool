@@ -15,7 +15,7 @@
 | Fase 6 — Centro de ayuda | ✅ Finalizada | 2026-10-29 |
 | Fase 7 — Presupuestos | ✅ Finalizada | 2026-10-29 |
 | Fase 8 — Vehículo | ✅ Finalizada | 2026-10-31 |
-| Fase 9 — Gastos fijos y Créditos | 📝 Planificada | 2026-11-01 |
+| Fase 9 — Gastos fijos y Créditos | 🚧 En implementación | 2026-11-01 |
 
 El detalle histórico de las fases 0–3 vive en
 [`legacy/phase-history.md`](legacy/phase-history.md). El detalle de la Fase 4
@@ -213,7 +213,7 @@ Commits principales: `d1e7e13`, `1fbb2ec`, `8e51999`, `918bf45`, `e926413`,
 Verificaciones de cierre:
 
 - `npm run typecheck`
-- `npm test` (78 tests)
+- `npm test` (82 tests)
 - `npm run test:db`
 - `npm run lint` (0 errores)
 - `npm run doctor` (20/20 checks)
@@ -234,7 +234,7 @@ Ajustes posteriores implementados el 2026-11-01:
 
 Detalle en [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md), sección 19.
 
-## Fase 9 — Gastos fijos y Créditos (📝 Planificada, 2026-11-01)
+## Fase 9 — Gastos fijos y Créditos (🚧 En implementación, 2026-11-01)
 
 **Plan completo:** [`credits-fixed-plan.md`](credits-fixed-plan.md)
 
@@ -257,9 +257,29 @@ Alcance principal:
 - Simulaciones de abono único/recurrente y cambio de tasa/plazo.
 - Formularios separados por caso para evitar capturas largas.
 
-Subfases: CRED-0 a CRED-6, detalladas en el plan. La fase no está implementada;
-su cierre requiere typecheck, Jest, `test:db`, lint, `expo-doctor` y export
-Android.
+Implementado hasta ahora:
+
+- Migración `0011_credit_cards_and_financings` y `SCHEMA_VERSION = 11`.
+- Campos de tarjeta en `PaymentMethods`: tarjeta de crédito explícita, límite,
+  visual, marca, acabado, color, últimos cuatro, titular y emisor.
+- Backfill legacy: tarjetas por `closing_date` y color desde el tipo de pago.
+- Tablas `Financings`, `FinancingPayments` y `FinancingAdjustments`.
+- Dominio inicial de amortización, utilización de tarjeta, diferencia a
+  seguros/honorarios y préstamos compartidos.
+- Constructor visual de tarjetas y modelos no crediticios
+  (`PaymentMethodVisual`), con color picker, paleta y animación Reanimated.
+- Pantalla de métodos de pago con vista previa y edición de piezas.
+- Pantalla de Créditos con visual, límite, disponible y utilización.
+
+Pendiente:
+
+- Formularios de compras a plazo y préstamos.
+- Registro de pagos, abonos a capital y reducción de cuota.
+- Refinanciamientos, resumen de deuda y simulaciones.
+- Ayuda/i18n de todos los flujos y QA final.
+- `expo-doctor` y verificación completa de cierre.
+
+Subfases: CRED-0 a CRED-6, detalladas en el plan.
 
 ## Documentación
 

@@ -17,6 +17,46 @@ export const catalogsEn = {
             "label": "Type",
             "credit": "Credit",
             "debit": "Debit"
+        },
+        "creditCard": "Credit card",
+        "creditCardToggle": "Is this a credit card?",
+        "creditLimit": "Credit limit",
+        "cardBrand": "Card network",
+        "cardStyle": "Card finish",
+        "cardColor": "Card color",
+        "cardLast4": "Last 4 digits",
+        "cardHolder": "Card holder",
+        "cardIssuer": "Issuer / bank",
+        "limitShort": "Limit",
+        "availableShort": "Avail.",
+        "closingShort": "Close",
+        "paymentShort": "Due",
+        "visualKind": "Representation",
+        "visual": {
+            "credit_card": "Credit card",
+            "debit_card": "Debit card",
+            "cash": "Cash",
+            "piggy_bank": "Piggy bank",
+            "transfer": "Bank transfer",
+            "wallet": "Wallet",
+            "gift_card": "Gift card",
+            "other": "Other"
+        },
+        "brands": {
+            "visa": "Visa",
+            "mastercard": "Mastercard",
+            "amex": "American Express",
+            "discover": "Discover",
+            "diners": "Diners Club",
+            "jcb": "JCB",
+            "unionpay": "UnionPay",
+            "other": "Other"
+        },
+        "styles": {
+            "matte": "Matte",
+            "metallic": "Metallic",
+            "gradient": "Gradient",
+            "transparent": "Transparent"
         }
     },
     "categories": {
@@ -61,7 +101,47 @@ export const catalogsEs: MessageShape<typeof catalogsEn> = {
             "credit": "Crédito",
             "debit": "Débito"
         },
-        "paidDate": "Fecha de pago"
+        "paidDate": "Fecha de pago",
+        "creditCard": "Tarjeta de crédito",
+        "creditCardToggle": "¿Es tarjeta de crédito?",
+        "creditLimit": "Límite de crédito",
+        "cardBrand": "Red de la tarjeta",
+        "cardStyle": "Acabado",
+        "cardColor": "Color de la tarjeta",
+        "cardLast4": "Últimos 4 dígitos",
+        "cardHolder": "Titular",
+        "cardIssuer": "Emisor / banco",
+        "limitShort": "Límite",
+        "availableShort": "Disp.",
+        "closingShort": "Corte",
+        "paymentShort": "Pago",
+        "visualKind": "Representación",
+        "visual": {
+            "credit_card": "Tarjeta de crédito",
+            "debit_card": "Tarjeta de débito",
+            "cash": "Efectivo",
+            "piggy_bank": "Cerdito de ahorros",
+            "transfer": "Transferencia",
+            "wallet": "Billetera",
+            "gift_card": "Tarjeta de regalo",
+            "other": "Otro"
+        },
+        "brands": {
+            "visa": "Visa",
+            "mastercard": "Mastercard",
+            "amex": "American Express",
+            "discover": "Discover",
+            "diners": "Diners Club",
+            "jcb": "JCB",
+            "unionpay": "UnionPay",
+            "other": "Otra"
+        },
+        "styles": {
+            "matte": "Mate",
+            "metallic": "Metálico",
+            "gradient": "Degradado",
+            "transparent": "Transparente"
+        }
     },
     "categories": {
         "header": "Administrar Categorías",

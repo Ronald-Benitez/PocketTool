@@ -3,7 +3,7 @@
 > Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.
 > Fuente de verdad: `src/db/schema/tables.ts`.
 
-Versión de esquema: **10**
+Versión de esquema: **11**
 
 ## Convenciones
 
@@ -18,12 +18,15 @@ Versión de esquema: **10**
 | --- | --- | --- | ---: | ---: |
 | `Groups` | `groups` | `Group` | 8 | 1 |
 | `PaymentTypes` | `payment_types` | `PaymentType` | 6 | 0 |
-| `PaymentMethods` | `payment_methods` | `PaymentMethod` | 8 | 1 |
+| `PaymentMethods` | `payment_methods` | `PaymentMethod` | 17 | 1 |
 | `Categories` | `categories` | `Category` | 5 | 0 |
 | `RecordTypes` | `record_types` | `RecordType` | 7 | 0 |
 | `Fixed` | `fixed_records` | `FixedRecord` | 10 | 4 |
 | `Records` | `records` | `RecordEntry` | 13 | 6 |
 | `PaidCredits` | `paid_credits` | `PaidCredit` | 8 | 3 |
+| `Financings` | `financings` | `Financing` | 26 | 2 |
+| `FinancingPayments` | `financing_payments` | `FinancingPayment` | 19 | 2 |
+| `FinancingAdjustments` | `financing_adjustments` | `FinancingAdjustment` | 13 | 1 |
 | `BudgetTemplates` | `budget_templates` | `BudgetTemplate` | 8 | 0 |
 | `BudgetTemplateItems` | `budget_template_items` | `BudgetTemplateItem` | 13 | 4 |
 | `BudgetPlans` | `budget_plans` | `BudgetPlan` | 10 | 2 |
@@ -85,6 +88,15 @@ Entidad TypeScript: `PaymentMethod`
 | `closing_date` | `INTEGER` | `number` |  |
 | `payment_date` | `INTEGER` | `number` |  |
 | `payment_type_id` | `INTEGER` | `number` | FK → PaymentTypes.id ON DELETE SET NULL |
+| `is_credit_card` | `INTEGER` | `boolean | number` | NOT NULL, kind=boolean, default=0 |
+| `credit_limit` | `INTEGER` | `Cents` | kind=money |
+| `visual_kind` | `TEXT` | `string` | NOT NULL, default="other" |
+| `card_brand` | `TEXT` | `string` |  |
+| `card_style` | `TEXT` | `string` |  |
+| `card_color` | `TEXT` | `string` |  |
+| `card_last4` | `TEXT` | `string` |  |
+| `card_holder` | `TEXT` | `string` |  |
+| `card_issuer` | `TEXT` | `string` |  |
 | `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
@@ -206,6 +218,108 @@ Relaciones navegables: `Groups`, `PaymentMethods`, `PaymentMethods.PaymentTypes`
 - `idx_paid_credits_group` (group_id) WHERE deleted_at IS NULL
 - `idx_paid_credits_payment_method` (payment_method_id) WHERE deleted_at IS NULL
 - `idx_paid_credits_date` (date) WHERE deleted_at IS NULL
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
+## Financings (`financings`)
+
+Entidad TypeScript: `Financing`
+
+| Columna | SQL | TS | Notas |
+| --- | --- | --- | --- |
+| `id` | `INTEGER` | `number` | PK, autoincrement |
+| `name` | `TEXT` | `string` | NOT NULL |
+| `kind` | `TEXT` | `string` | NOT NULL |
+| `lender` | `TEXT` | `string` |  |
+| `principal_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
+| `down_payment_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
+| `financed_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
+| `annual_rate_bps` | `INTEGER` | `number` | NOT NULL, default=0 |
+| `rate_type` | `TEXT` | `string` | NOT NULL, default="fixed" |
+| `term_months` | `INTEGER` | `number` | NOT NULL, default=1 |
+| `start_date` | `INTEGER` | `TimestampMs` | NOT NULL, kind=timestamp |
+| `first_payment_date` | `INTEGER` | `TimestampMs` | kind=timestamp |
+| `payment_day` | `INTEGER` | `number` |  |
+| `payment_method_id` | `INTEGER` | `number` | FK → PaymentMethods.id ON DELETE SET NULL |
+| `category_id` | `INTEGER` | `number` | FK → Categories.id ON DELETE SET NULL |
+| `record_type_id` | `INTEGER` | `number` | FK → RecordTypes.id ON DELETE SET NULL |
+| `paid_installments_before_app` | `INTEGER` | `number` | NOT NULL, default=0 |
+| `capital_paid_before_app_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
+| `is_shared` | `INTEGER` | `boolean | number` | NOT NULL, kind=boolean, default=0 |
+| `shared_percent` | `REAL` | `number` |  |
+| `shared_counterparty` | `TEXT` | `string` |  |
+| `status` | `TEXT` | `string` | NOT NULL, default="active" |
+| `notes` | `TEXT` | `string` |  |
+| `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Relaciones navegables: `PaymentMethods`, `PaymentMethods.PaymentTypes`, `Categories`, `RecordTypes`
+
+Índices:
+- `idx_financings_status` (status, first_payment_date) WHERE deleted_at IS NULL
+- `idx_financings_payment_method` (payment_method_id) WHERE deleted_at IS NULL
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
+## FinancingPayments (`financing_payments`)
+
+Entidad TypeScript: `FinancingPayment`
+
+| Columna | SQL | TS | Notas |
+| --- | --- | --- | --- |
+| `id` | `INTEGER` | `number` | PK, autoincrement |
+| `financing_id` | `INTEGER` | `number` | NOT NULL, FK → Financings.id ON DELETE CASCADE |
+| `date` | `INTEGER` | `TimestampMs` | NOT NULL, kind=timestamp |
+| `amount_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money |
+| `principal_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
+| `interest_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
+| `insurance_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
+| `fees_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
+| `extra_principal_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
+| `extra_reduce_payment_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
+| `is_shared` | `INTEGER` | `boolean | number` | NOT NULL, kind=boolean, default=0 |
+| `shared_amount_cents` | `INTEGER` | `Cents` | kind=money |
+| `group_id` | `INTEGER` | `number` | FK → Groups.id ON DELETE SET NULL |
+| `payment_method_id` | `INTEGER` | `number` | FK → PaymentMethods.id ON DELETE SET NULL |
+| `record_id` | `INTEGER` | `number` |  |
+| `notes` | `TEXT` | `string` |  |
+| `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Relaciones navegables: `Financings`, `Financings.PaymentMethods`, `Financings.PaymentMethods.PaymentTypes`, `Financings.Categories`, `Financings.RecordTypes`, `Groups`, `PaymentMethods`, `PaymentMethods.PaymentTypes`
+
+Índices:
+- `idx_financing_payments_financing_date` (financing_id, date) WHERE deleted_at IS NULL
+- `idx_financing_payments_group` (group_id) WHERE deleted_at IS NULL
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
+## FinancingAdjustments (`financing_adjustments`)
+
+Entidad TypeScript: `FinancingAdjustment`
+
+| Columna | SQL | TS | Notas |
+| --- | --- | --- | --- |
+| `id` | `INTEGER` | `number` | PK, autoincrement |
+| `financing_id` | `INTEGER` | `number` | NOT NULL, FK → Financings.id ON DELETE CASCADE |
+| `date` | `INTEGER` | `TimestampMs` | NOT NULL, kind=timestamp |
+| `kind` | `TEXT` | `string` | NOT NULL |
+| `new_annual_rate_bps` | `INTEGER` | `number` |  |
+| `new_term_months` | `INTEGER` | `number` |  |
+| `new_payment_cents` | `INTEGER` | `Cents` | kind=money |
+| `capitalized_interest_cents` | `INTEGER` | `Cents` | kind=money |
+| `fees_cents` | `INTEGER` | `Cents` | kind=money |
+| `notes` | `TEXT` | `string` |  |
+| `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Relaciones navegables: `Financings`, `Financings.PaymentMethods`, `Financings.PaymentMethods.PaymentTypes`, `Financings.Categories`, `Financings.RecordTypes`
+
+Índices:
+- `idx_financing_adjustments_financing_date` (financing_id, date) WHERE deleted_at IS NULL
 
 Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
 

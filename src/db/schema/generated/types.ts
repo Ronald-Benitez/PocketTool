@@ -36,6 +36,15 @@ export interface PaymentMethod extends Entity, SoftDeletable {
   closing_date?: number | null;
   payment_date?: number | null;
   payment_type_id?: number | null;
+  is_credit_card: boolean | number;
+  credit_limit?: Cents | null;
+  visual_kind: string;
+  card_brand?: string | null;
+  card_style?: string | null;
+  card_color?: string | null;
+  card_last4?: string | null;
+  card_holder?: string | null;
+  card_issuer?: string | null;
   created_at?: TimestampMs | null;
   updated_at?: TimestampMs | null;
 }
@@ -84,6 +93,67 @@ export interface PaidCredit extends Entity, SoftDeletable {
   date: TimestampMs;
   group_id?: number | null;
   payment_method_id?: number | null;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
+export interface Financing extends Entity, SoftDeletable {
+  name: string;
+  kind: string;
+  lender?: string | null;
+  principal_cents: Cents;
+  down_payment_cents: Cents;
+  financed_cents: Cents;
+  annual_rate_bps: number;
+  rate_type: string;
+  term_months: number;
+  start_date: TimestampMs;
+  first_payment_date?: TimestampMs | null;
+  payment_day?: number | null;
+  payment_method_id?: number | null;
+  category_id?: number | null;
+  record_type_id?: number | null;
+  paid_installments_before_app: number;
+  capital_paid_before_app_cents: Cents;
+  is_shared: boolean | number;
+  shared_percent?: number | null;
+  shared_counterparty?: string | null;
+  status: string;
+  notes?: string | null;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
+export interface FinancingPayment extends Entity, SoftDeletable {
+  financing_id: number;
+  date: TimestampMs;
+  amount_cents: Cents;
+  principal_cents: Cents;
+  interest_cents: Cents;
+  insurance_cents: Cents;
+  fees_cents: Cents;
+  extra_principal_cents: Cents;
+  extra_reduce_payment_cents: Cents;
+  is_shared: boolean | number;
+  shared_amount_cents?: Cents | null;
+  group_id?: number | null;
+  payment_method_id?: number | null;
+  record_id?: number | null;
+  notes?: string | null;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
+export interface FinancingAdjustment extends Entity, SoftDeletable {
+  financing_id: number;
+  date: TimestampMs;
+  kind: string;
+  new_annual_rate_bps?: number | null;
+  new_term_months?: number | null;
+  new_payment_cents?: Cents | null;
+  capitalized_interest_cents?: Cents | null;
+  fees_cents?: Cents | null;
+  notes?: string | null;
   created_at?: TimestampMs | null;
   updated_at?: TimestampMs | null;
 }

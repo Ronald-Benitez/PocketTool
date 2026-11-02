@@ -1,6 +1,6 @@
 # Plan de Gastos fijos y Créditos — Fase 9 (CRED)
 
-**Estado:** 📝 Planificada
+**Estado:** 🚧 En implementación (CRED-1/2 parcial)
 **Fecha:** 2026-11-01
 **Objetivo:** convertir Gastos fijos y Créditos en un módulo de obligaciones
 reales: tarjetas de crédito con límite, compras a plazo, préstamos, pagos,
@@ -599,3 +599,33 @@ npx expo export --platform android
 ```
 
 `npm run doctor` es obligatorio además de los tests para cerrar la fase.
+
+---
+
+## 12. Estado de implementación (2026-11-01)
+
+Implementado:
+
+- Migración `0011_credit_cards_and_financings` y `SCHEMA_VERSION = 11`.
+- `PaymentMethods` con `is_credit_card`, `credit_limit`, `visual_kind`,
+  `card_brand`, `card_style`, `card_color`, `card_last4`, `card_holder` y
+  `card_issuer`.
+- Backfill legacy de tarjetas por fecha de corte y color desde el tipo de pago.
+- Tablas `Financings`, `FinancingPayments` y `FinancingAdjustments`.
+- Dominio inicial en `src/domain/credits/` para amortización, utilización de
+  tarjeta, diferencia a seguros/honorarios y partes compartidas.
+- `PaymentMethodVisual`: tarjeta animada con marca, acabado, chip, contacto,
+  titular, últimos cuatro, límite, disponible, corte y pago; modelos para
+  efectivo, cerdito, transferencia, billetera, regalo y otros.
+- Constructor visual en el formulario de métodos de pago.
+- Lista de métodos de pago con visual.
+- Pantalla de Créditos con visual, límite, disponible y utilización.
+
+Pendiente:
+
+- Formularios y pantallas de compras a plazo y préstamos.
+- Registro de pagos, abonos a capital, reducción de cuota y refinanciamientos.
+- Resumen general de deuda, tasa media y años restantes.
+- Simulaciones.
+- Ayuda, i18n y QA de los flujos nuevos.
+- Verificación completa con `expo-doctor` y export Android antes del cierre.

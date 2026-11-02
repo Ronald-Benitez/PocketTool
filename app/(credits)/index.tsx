@@ -4,6 +4,8 @@ import { useThemedStyles } from '@/src/styles/useThemedStyles';
 import useColorStore from '@/src/stores/ColorsStore';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { useCreditStore } from '@/src/stores/CreditsStore';
+import { PaymentMethodVisual } from '@/src/components/payments/PaymentMethodVisual';
+import { cardUtilization } from '@/src/domain/credits/amortization';
 import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock';
 
 import useDate from '@/src/hooks/useDate';
@@ -69,8 +71,29 @@ const Index = () => {
                         const previousBalance = credit.totalPrevious;
                         const pendingCents = (previousBalance || 0) - (amountPaid || 0);
                         const pendingAmount = formatMoney(pendingCents);
+                        const utilization = cardUtilization({
+                            limitCents: credit.credit_limit ?? 0,
+                            usedCents: Math.max(0, pendingCents),
+                        });
                         return (
                             <View key={credit.id} style={[localStyles.creditBlock, { backgroundColor: colors?.surfaceMuted, shadowColor: colors?.shadow }]}>
+                                <View style={{ marginBottom: 12 }}>
+                                    <PaymentMethodVisual
+                                        kind={credit.is_credit_card ? 'credit_card' : credit.visual_kind}
+                                        brand={credit.card_brand}
+                                        style={credit.card_style}
+                                        color={credit.card_color ?? colors?.GoalColor}
+                                        name={credit.method_name}
+                                        last4={credit.card_last4}
+                                        holder={credit.card_holder}
+                                        issuer={credit.card_issuer}
+                                        limitCents={credit.credit_limit}
+                                        usedCents={Math.max(0, pendingCents)}
+                                        closingDate={credit.closing_date}
+                                        paymentDate={credit.payment_date}
+                                        height={110}
+                                    />
+                                </View>
                                 <View style={[localStyles.headerRow, { borderBottomColor: colors?.border }]}>
                                     <Text style={[localStyles.creditName, { color: colors?.text }]}>
                                         {credit.method_name}
@@ -94,6 +117,24 @@ const Index = () => {
                                             <Text style={[localStyles.detailLabel, { color: colors?.textMuted }]}>{t("credits.pending")}:</Text>
                                             <Text style={[localStyles.amountValue, { color: colors?.text }]}>
                                                 ${pendingAmount}
+                                            </Text>
+                                        </View>
+                                        <View style={localStyles.detailItem}>
+                                            <Text style={[localStyles.detailLabel, { color: colors?.textMuted }]}>{t("credits.limit")}:</Text>
+                                            <Text style={[localStyles.amountValue, { color: colors?.text }]}>
+                                                {credit.credit_limit != null ? `$${formatMoney(credit.credit_limit)}` : '—'}
+                                            </Text>
+                                        </View>
+                                        <View style={localStyles.detailItem}>
+                                            <Text style={[localStyles.detailLabel, { color: colors?.textMuted }]}>{t("credits.available")}:</Text>
+                                            <Text style={[localStyles.amountValue, { color: colors?.text }]}>
+                                                {credit.credit_limit != null ? `$${formatMoney(utilization.availableCents)}` : '—'}
+                                            </Text>
+                                        </View>
+                                        <View style={localStyles.detailItem}>
+                                            <Text style={[localStyles.detailLabel, { color: colors?.textMuted }]}>{t("credits.utilization")}:</Text>
+                                            <Text style={[localStyles.amountValue, { color: colors?.text }]}>
+                                                {credit.credit_limit != null ? `${utilization.utilizationPercent.toFixed(0)}%` : '—'}
                                             </Text>
                                         </View>
                                     </View>

@@ -22,8 +22,8 @@ métodos de pago, créditos, ahorros y vehículo.
   [`docs/legacy/budget-plan.md`](docs/legacy/budget-plan.md).
 - **Fase 8 — Vehículo: FINALIZADA** (2026-10-31). El plan archivado vive en
   [`docs/legacy/vehicle-plan.md`](docs/legacy/vehicle-plan.md).
-- **Fase 9 — Gastos fijos y Créditos: PLANIFICADA** (2026-11-01). El plan vive
-  en [`docs/credits-fixed-plan.md`](docs/credits-fixed-plan.md).
+- **Fase 9 — Gastos fijos y Créditos: EN IMPLEMENTACIÓN** (2026-11-01). El plan
+  vive en [`docs/credits-fixed-plan.md`](docs/credits-fixed-plan.md).
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay

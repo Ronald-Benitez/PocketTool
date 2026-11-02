@@ -29,7 +29,12 @@ export const useCreditStore = () => {
     }, [records, creditType])
 
     const calculatePaymentTotal = async () => {
-        const filteredPayments = PaymentMethods.filter(p => (p?.closing_date || 0) > 0)
+        const filteredPayments = PaymentMethods.filter(
+          p =>
+            Boolean(p?.is_credit_card) ||
+            (p?.closing_date || 0) > 0 ||
+            p?.visual_kind === 'credit_card'
+        )
         
         const credits = await Promise.all(filteredPayments.map(async payment => {
             if (!payment.id) return {

@@ -20,6 +20,12 @@ import type {
   RecordWithRelations,
   PaidCredit,
   PaidCreditWithRelations,
+  Financing,
+  FinancingWithRelations,
+  FinancingPayment,
+  FinancingPaymentWithRelations,
+  FinancingAdjustment,
+  FinancingAdjustmentWithRelations,
   BudgetTemplate,
   BudgetTemplateWithRelations,
   BudgetTemplateItem,
@@ -58,6 +64,9 @@ export type BaseSchemaMap = {
   Fixed: FixedRecord;
   Records: RecordEntry;
   PaidCredits: PaidCredit;
+  Financings: Financing;
+  FinancingPayments: FinancingPayment;
+  FinancingAdjustments: FinancingAdjustment;
   BudgetTemplates: BudgetTemplate;
   BudgetTemplateItems: BudgetTemplateItem;
   BudgetPlans: BudgetPlan;
@@ -85,6 +94,9 @@ export type RelationsSchemaMap = {
   Fixed: FixedRecordWithRelations;
   Records: RecordWithRelations;
   PaidCredits: PaidCreditWithRelations;
+  Financings: FinancingWithRelations;
+  FinancingPayments: FinancingPaymentWithRelations;
+  FinancingAdjustments: FinancingAdjustmentWithRelations;
   BudgetTemplates: BudgetTemplateWithRelations;
   BudgetTemplateItems: BudgetTemplateItemWithRelations;
   BudgetPlans: BudgetPlanWithRelations;

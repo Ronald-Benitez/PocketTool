@@ -30,7 +30,10 @@ export const summariesEn = {
         "pending": "Pending",
         "previousTotal": "Previous Total",
         "currentTotal": "Current Total",
-        "nextPaymentDate": "Next payment date"
+        "nextPaymentDate": "Next payment date",
+        "limit": "Credit limit",
+        "available": "Available credit",
+        "utilization": "Utilization"
     },
     "savings": {
         "select": "Select a saving",
@@ -76,7 +79,10 @@ export const summariesEs: MessageShape<typeof summariesEn> = {
         "pending": "Pendiente",
         "previousTotal": "Total Anterior",
         "currentTotal": "Total Actual",
-        "nextPaymentDate": "Fecha del próximo pago"
+        "nextPaymentDate": "Fecha del próximo pago",
+        "limit": "Límite de crédito",
+        "available": "Crédito disponible",
+        "utilization": "Utilización"
     },
     "savings": {
         "select": "Selecciona un ahorro",
