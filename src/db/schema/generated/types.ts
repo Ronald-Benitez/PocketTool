@@ -186,11 +186,12 @@ export interface VehicleFuelEntry extends Entity, SoftDeletable {
   distance_unit: string;
   distance_traveled?: number | null;
   distance_source?: string | null;
-  volume: number;
+  volume?: number | null;
   volume_unit: string;
-  price_per_unit: Cents;
-  total_cost: Cents;
+  price_per_unit?: Cents | null;
+  total_cost?: Cents | null;
   is_full_tank: boolean | number;
+  is_baseline: boolean | number;
   station?: string | null;
   notes?: string | null;
   created_at?: TimestampMs | null;

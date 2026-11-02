@@ -3,7 +3,7 @@
 > Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.
 > Fuente de verdad: `src/db/schema/tables.ts`.
 
-Versión de esquema: **7**
+Versión de esquema: **8**
 
 ## Convenciones
 
@@ -32,7 +32,7 @@ Versión de esquema: **7**
 | `SavingsHistory` | `savings_history` | `SavingsHistoryEntry` | 8 | 1 |
 | `Migrations` | `migrations` | `Migration` | 3 | 0 |
 | `Vehicles` | `vehicles` | `Vehicle` | 18 | 1 |
-| `VehicleFuelEntries` | `vehicle_fuel_entries` | `VehicleFuelEntry` | 18 | 2 |
+| `VehicleFuelEntries` | `vehicle_fuel_entries` | `VehicleFuelEntry` | 19 | 2 |
 | `VehicleMaintenance` | `vehicle_maintenance` | `VehicleMaintenanceEntry` | 13 | 2 |
 | `VehicleMaintenanceItems` | `vehicle_maintenance_items` | `VehicleMaintenanceItem` | 10 | 1 |
 | `VehicleReminders` | `vehicle_reminders` | `VehicleReminder` | 17 | 1 |
@@ -406,11 +406,12 @@ Entidad TypeScript: `VehicleFuelEntry`
 | `distance_unit` | `TEXT` | `string` | NOT NULL, default="mi" |
 | `distance_traveled` | `REAL` | `number` |  |
 | `distance_source` | `TEXT` | `string` |  |
-| `volume` | `REAL` | `number` | NOT NULL |
+| `volume` | `REAL` | `number` |  |
 | `volume_unit` | `TEXT` | `string` | NOT NULL, default="gal" |
-| `price_per_unit` | `INTEGER` | `Cents` | NOT NULL, kind=money |
-| `total_cost` | `INTEGER` | `Cents` | NOT NULL, kind=money |
+| `price_per_unit` | `INTEGER` | `Cents` | kind=money |
+| `total_cost` | `INTEGER` | `Cents` | kind=money |
 | `is_full_tank` | `INTEGER` | `boolean | number` | NOT NULL, kind=boolean, default=1 |
+| `is_baseline` | `INTEGER` | `boolean | number` | NOT NULL, kind=boolean, default=0 |
 | `station` | `TEXT` | `string` |  |
 | `notes` | `TEXT` | `string` |  |
 | `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |

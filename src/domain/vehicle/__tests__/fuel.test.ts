@@ -2,6 +2,7 @@ import {
   analyzeFuelEntries,
   buildFuelStats,
   groupFuelSegments,
+  resolvePartialOdometer,
 } from '../fuel';
 
 const base = {
@@ -137,6 +138,101 @@ describe('vehicle fuel analysis', () => {
 
     const weekThree = completed.find((segment) => segment.endEntry.id === 5);
     expect(weekThree?.entries.map((item) => item.entry.id)).toEqual([5]);
+  });
+
+  it('uses an odometer-only baseline as the first segment start', () => {
+    const entries = [
+      {
+        ...base,
+        id: 1,
+        date: 1,
+        odometer: 1000,
+        volume: null,
+        price_per_unit: null,
+        total_cost: null,
+        is_full_tank: 0,
+        is_baseline: 1,
+      },
+      { ...base, id: 2, date: 2, odometer: 1300, volume: 10, is_full_tank: 1 },
+    ];
+
+    const analysis = analyzeFuelEntries(entries);
+    expect(analysis[1].segmentStatus).toBe('complete');
+    expect(analysis[1].segmentMetrics?.miPerGal).toBeCloseTo(30, 6);
+
+    const segments = groupFuelSegments(entries);
+    expect(segments).toHaveLength(1);
+    expect(segments[0].entries.map((item) => item.entry.id)).toEqual([1, 2]);
+    expect(segments[0].metrics?.miPerGal).toBeCloseTo(30, 6);
+
+    const stats = buildFuelStats(entries, 'mi_gal');
+    expect(stats.totalSpentCents).toBe(3500);
+    expect(stats.totalVolumeL).toBeCloseTo(37.85411784, 6);
+  });
+
+  it('keeps partial volume when its odometer equals the previous entry', () => {
+    const entries = [
+      { ...base, id: 1, date: 1, odometer: 1000, volume: 10, is_full_tank: 1 },
+      { ...base, id: 2, date: 2, odometer: 1000, volume: 5, is_full_tank: 0 },
+      { ...base, id: 3, date: 3, odometer: 1300, volume: 5, is_full_tank: 1 },
+    ];
+
+    const analysis = analyzeFuelEntries(entries);
+    expect(analysis[2].segmentStatus).toBe('complete');
+    expect(analysis[2].segmentMetrics?.miPerGal).toBeCloseTo(30, 6);
+  });
+
+  it('resolves a partial fill from the previous odometer', () => {
+    const missing = resolvePartialOdometer({
+      distanceTraveled: null,
+      distanceUnit: 'mi',
+      previousOdometer: 1000,
+      previousDistanceUnit: 'mi',
+    });
+    expect(missing).toMatchObject({
+      ok: true,
+      odometer: 1000,
+      distanceTraveled: 0,
+      odometerSource: 'inferred',
+      distanceSource: 'inferred',
+    });
+
+    const withDistance = resolvePartialOdometer({
+      distanceTraveled: 300,
+      distanceUnit: 'mi',
+      previousOdometer: 1000,
+      previousDistanceUnit: 'mi',
+    });
+    expect(withDistance).toMatchObject({
+      ok: true,
+      odometer: 1300,
+      distanceTraveled: 300,
+      distanceSource: 'manual',
+    });
+  });
+
+  it('converts the previous odometer to the current distance unit', () => {
+    const resolution = resolvePartialOdometer({
+      distanceTraveled: 100,
+      distanceUnit: 'km',
+      previousOdometer: 1000,
+      previousDistanceUnit: 'mi',
+    });
+    expect(resolution.ok).toBe(true);
+    if (resolution.ok) {
+      expect(resolution.odometer).toBeCloseTo(1609.344 + 100, 6);
+    }
+  });
+
+  it('requires a previous odometer for a partial fill', () => {
+    expect(
+      resolvePartialOdometer({
+        distanceTraveled: null,
+        distanceUnit: 'mi',
+        previousOdometer: null,
+        previousDistanceUnit: null,
+      })
+    ).toEqual({ ok: false, error: 'PREVIOUS_ODOMETER_REQUIRED' });
   });
 
   it('builds weighted stats', () => {

@@ -154,8 +154,8 @@ export const buildFuelHistory = (
       period.label,
       period.sort
     );
-    bucket.totalCostCents += entry.total_cost;
-    bucket.fills += 1;
+    bucket.totalCostCents += entry.total_cost ?? 0;
+    if (!entry.is_baseline) bucket.fills += 1;
   }
 
   for (const analysis of analyzeFuelEntries(entries)) {

@@ -195,6 +195,7 @@ const vehicleSettingKey = z.enum([
   'other',
 ]);
 const optionalPositiveReal = z.number().finite().positive().nullable().optional();
+const optionalNonNegativeReal = z.number().finite().nonnegative().nullable().optional();
 
 export const vehicleInputSchema = z
   .object({
@@ -222,24 +223,71 @@ export const vehicleFuelEntryInputSchema = z
   .object({
     vehicle_id: z.number().int().positive(),
     date: timestamp,
-    odometer: optionalPositiveReal,
+    odometer: optionalNonNegativeReal,
     odometer_source: odometerSource.nullable().optional(),
     distance_unit: distanceUnit.optional(),
-    distance_traveled: optionalPositiveReal,
+    distance_traveled: optionalNonNegativeReal,
     distance_source: distanceSource.nullable().optional(),
-    volume: z.number().finite().positive(),
+    volume: z.number().finite().positive().nullable().optional(),
     volume_unit: volumeUnit.optional(),
-    price_per_unit: cents.nonnegative(),
-    total_cost: cents.nonnegative(),
+    price_per_unit: cents.nonnegative().nullable().optional(),
+    total_cost: cents.nonnegative().nullable().optional(),
     is_full_tank: z.boolean().or(z.number().int().min(0).max(1)).optional(),
+    is_baseline: z.boolean().or(z.number().int().min(0).max(1)).optional(),
     station: z.string().max(120).nullable().optional(),
     notes: z.string().nullable().optional(),
     ...auditTimestamps,
   })
   .strict()
-  .refine((value) => value.odometer != null || value.distance_traveled != null, {
-    message: 'Odometer or distance is required',
-    path: ['odometer'],
+  .superRefine((value, ctx) => {
+    const baseline = value.is_baseline === true || value.is_baseline === 1;
+    if (baseline) {
+      if (value.odometer == null || value.odometer <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'A baseline entry requires an odometer',
+          path: ['odometer'],
+        });
+      }
+      return;
+    }
+
+    if (value.volume == null || value.volume <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Volume is required',
+        path: ['volume'],
+      });
+    }
+    if (value.price_per_unit == null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Price per unit is required',
+        path: ['price_per_unit'],
+      });
+    }
+    if (value.total_cost == null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Total cost is required',
+        path: ['total_cost'],
+      });
+    }
+
+    const full =
+      value.is_full_tank == null ||
+      value.is_full_tank === true ||
+      value.is_full_tank === 1;
+    const hasOdometer = value.odometer != null && value.odometer > 0;
+    const hasDistance =
+      value.distance_traveled != null && value.distance_traveled > 0;
+    if (full && !hasOdometer && !hasDistance) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A full tank requires an odometer or distance',
+        path: ['odometer'],
+      });
+    }
   });
 
 export const vehicleFuelEntryUpdateSchema =

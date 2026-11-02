@@ -77,6 +77,38 @@ describe('vehicle history', () => {
     expect(history[1].label).toBe('January');
   });
 
+  it('excludes baseline entries from fills and spend', () => {
+    const entries = [
+      {
+        ...base,
+        id: 1,
+        date: new Date(2026, 0, 1).getTime(),
+        odometer: 1000,
+        volume: null,
+        price_per_unit: null,
+        total_cost: null,
+        is_full_tank: 0,
+        is_baseline: 1,
+        record_group_id: 1,
+      },
+      {
+        ...base,
+        id: 2,
+        date: new Date(2026, 0, 20).getTime(),
+        odometer: 1300,
+        volume: 10,
+        record_group_id: 1,
+      },
+    ];
+
+    const history = buildFuelHistory(entries, 'calendar', groups, 'No group');
+    expect(history).toHaveLength(1);
+    expect(history[0].fills).toBe(1);
+    expect(history[0].totalCostCents).toBe(3500);
+    expect(history[0].totalVolumeL).toBeCloseTo(37.85411784, 6);
+    expect(history[0].averageMetrics?.miPerGal).toBeCloseTo(30, 6);
+  });
+
   it('groups maintenance costs by calendar month', () => {
     const history = buildMaintenanceHistory(
       [

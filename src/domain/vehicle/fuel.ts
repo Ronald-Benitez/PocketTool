@@ -8,6 +8,7 @@ import type {
 } from './types';
 import {
   buildFuelMetrics,
+  convertDistance,
   distanceUnitOf,
   selectConsumption,
   toKm,
@@ -33,7 +34,8 @@ export const analyzeFuelEntries = (entries: FuelEntryLike[]): FuelEntryAnalysis[
   return sorted.map((entry) => {
     const distanceUnit = distanceUnitOf(entry.distance_unit);
     const volumeUnit = volumeUnitOf(entry.volume_unit);
-    const volumeL = toLiters(entry.volume, volumeUnit);
+    const volumeL = toLiters(entry.volume ?? 0, volumeUnit);
+    const totalCostCents = entry.total_cost ?? 0;
     const odometerKm = entry.odometer != null ? toKm(entry.odometer, distanceUnit) : null;
 
     let distanceKm: number | null = null;
@@ -44,42 +46,51 @@ export const analyzeFuelEntries = (entries: FuelEntryLike[]): FuelEntryAnalysis[
     }
 
     const metrics =
-      distanceKm != null && distanceKm > 0
+      distanceKm != null && distanceKm > 0 && volumeL > 0
         ? buildFuelMetrics({
             distanceKm,
             volumeL,
-            totalCost: entry.total_cost,
+            totalCost: totalCostCents,
           })
         : null;
 
-    const isFull = Boolean(entry.is_full_tank ?? 1);
+    const isBaseline = Boolean(entry.is_baseline ?? 0);
+    const isFull = isBaseline || Boolean(entry.is_full_tank ?? 1);
     let segmentMetrics = null;
     let segmentStatus: FuelEntryAnalysis['segmentStatus'] =
       distanceKm == null ? 'accumulating' : 'estimated';
 
-    if (hasBaselineFull) {
-      if (distanceKm != null) segmentDistanceKm += distanceKm;
-      segmentVolumeL += volumeL;
-      segmentCostCents += entry.total_cost;
-    }
-
-    if (isFull) {
-      if (hasBaselineFull && segmentDistanceKm > 0) {
-        segmentMetrics = buildFuelMetrics({
-          distanceKm: segmentDistanceKm,
-          volumeL: segmentVolumeL,
-          totalCost: segmentCostCents,
-        });
-        segmentStatus = 'complete';
-      } else {
-        segmentStatus = hasBaselineFull ? 'accumulating' : 'estimated';
-      }
+    if (isBaseline) {
       hasBaselineFull = true;
       segmentDistanceKm = 0;
       segmentVolumeL = 0;
       segmentCostCents = 0;
-    } else if (hasBaselineFull) {
-      segmentStatus = 'accumulating';
+      segmentStatus = 'estimated';
+    } else {
+      if (hasBaselineFull) {
+        if (distanceKm != null) segmentDistanceKm += distanceKm;
+        segmentVolumeL += volumeL;
+        segmentCostCents += totalCostCents;
+      }
+
+      if (isFull) {
+        if (hasBaselineFull && segmentDistanceKm > 0) {
+          segmentMetrics = buildFuelMetrics({
+            distanceKm: segmentDistanceKm,
+            volumeL: segmentVolumeL,
+            totalCost: segmentCostCents,
+          });
+          segmentStatus = 'complete';
+        } else {
+          segmentStatus = hasBaselineFull ? 'accumulating' : 'estimated';
+        }
+        hasBaselineFull = true;
+        segmentDistanceKm = 0;
+        segmentVolumeL = 0;
+        segmentCostCents = 0;
+      } else if (hasBaselineFull) {
+        segmentStatus = 'accumulating';
+      }
     }
 
     if (odometerKm != null) previousOdometerKm = odometerKm;
@@ -99,7 +110,8 @@ export const analyzeFuelEntries = (entries: FuelEntryLike[]): FuelEntryAnalysis[
   });
 };
 
-const isFullTank = (entry: FuelEntryLike) => Boolean(entry.is_full_tank ?? 1);
+const isFullTank = (entry: FuelEntryLike) =>
+  Boolean(entry.is_baseline ?? 0) || Boolean(entry.is_full_tank ?? 1);
 
 export const groupFuelSegments = (entries: FuelEntryLike[]): FuelSegment[] => {
   const analyses = analyzeFuelEntries(entries);
@@ -157,6 +169,12 @@ export const groupFuelSegments = (entries: FuelEntryLike[]): FuelSegment[] => {
       continue;
     }
 
+    if (Boolean(analysis.entry.is_baseline ?? 0)) {
+      baseline = analysis;
+      current = [];
+      continue;
+    }
+
     current.push(analysis);
 
     if (!full) continue;
@@ -198,6 +216,59 @@ export const groupFuelSegments = (entries: FuelEntryLike[]): FuelSegment[] => {
   return segments;
 };
 
+export type PartialOdometerResolution =
+  | {
+      ok: true;
+      odometer: number;
+      distanceTraveled: number;
+      odometerSource: 'inferred';
+      distanceSource: 'manual' | 'inferred';
+    }
+  | { ok: false; error: 'PREVIOUS_ODOMETER_REQUIRED' };
+
+export const resolvePartialOdometer = ({
+  distanceTraveled,
+  distanceUnit,
+  previousOdometer,
+  previousDistanceUnit,
+}: {
+  distanceTraveled?: number | null;
+  distanceUnit: string;
+  previousOdometer?: number | null;
+  previousDistanceUnit?: string | null;
+}): PartialOdometerResolution => {
+  if (previousOdometer == null || previousOdometer <= 0) {
+    return { ok: false, error: 'PREVIOUS_ODOMETER_REQUIRED' };
+  }
+
+  const currentUnit = distanceUnitOf(distanceUnit);
+  const previousUnit = distanceUnitOf(previousDistanceUnit);
+  const previousInCurrentUnit = convertDistance(
+    previousOdometer,
+    previousUnit,
+    currentUnit
+  );
+  const hasDistance = distanceTraveled != null && distanceTraveled > 0;
+
+  if (hasDistance) {
+    return {
+      ok: true,
+      odometer: previousInCurrentUnit + (distanceTraveled ?? 0),
+      distanceTraveled: distanceTraveled ?? 0,
+      odometerSource: 'inferred',
+      distanceSource: 'manual',
+    };
+  }
+
+  return {
+    ok: true,
+    odometer: previousInCurrentUnit,
+    distanceTraveled: 0,
+    odometerSource: 'inferred',
+    distanceSource: 'inferred',
+  };
+};
+
 export const buildFuelStats = (
   entries: FuelEntryLike[],
   format: ConsumptionFormat
@@ -208,7 +279,10 @@ export const buildFuelStats = (
     0
   );
   const totalVolumeL = analyses.reduce((total, item) => total + item.volumeL, 0);
-  const totalSpentCents = entries.reduce((total, item) => total + item.total_cost, 0);
+  const totalSpentCents = entries.reduce(
+    (total, item) => total + (item.total_cost ?? 0),
+    0
+  );
   const completed = analyses.filter((item) => item.segmentMetrics != null);
   const completedDistanceKm = completed.reduce(
     (total, item) => total + (item.segmentMetrics?.distanceKm ?? 0),

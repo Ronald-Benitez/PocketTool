@@ -19,11 +19,12 @@ export type FuelEntryLike = {
   distance_unit: string;
   distance_traveled?: number | null;
   distance_source?: string | null;
-  volume: number;
+  volume?: number | null;
   volume_unit: string;
-  price_per_unit: number;
-  total_cost: number;
+  price_per_unit?: number | null;
+  total_cost?: number | null;
   is_full_tank?: boolean | number | null;
+  is_baseline?: boolean | number | null;
   station?: string | null;
   notes?: string | null;
 };

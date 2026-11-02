@@ -11,7 +11,7 @@ Registros.
 
 > Documento histórico. La implementación fue validada y la Fase 8 está cerrada.
 > El estado vigente vive en [`../phases.md`](../phases.md). La sección 19
-> conserva ajustes posteriores solicitados después del cierre.
+> conserva ajustes posteriores implementados después del cierre.
 
 ---
 
@@ -238,11 +238,12 @@ Nombre lógico `VehicleFuelEntries`, físico `vehicle_fuel_entries`, entidad
 | `distance_unit` | TEXT NOT NULL DEFAULT `'mi'` | unidad de `odometer`/`distance` |
 | `distance_traveled` | REAL | alternativa si no se ingresa odómetro |
 | `distance_source` | TEXT | `odometer` / `manual` / `inferred` |
-| `volume` | REAL NOT NULL | galones o litros |
+| `volume` | REAL | galones o litros; nulo solo en baseline |
 | `volume_unit` | TEXT NOT NULL DEFAULT `'gal'` | `gal` / `L` |
-| `price_per_unit` | INTEGER money NOT NULL | centavos por galón/litro |
-| `total_cost` | INTEGER money NOT NULL | centavos |
+| `price_per_unit` | INTEGER money | centavos por galón/litro; nulo solo en baseline |
+| `total_cost` | INTEGER money | centavos; nulo solo en baseline |
 | `is_full_tank` | INTEGER boolean NOT NULL DEFAULT 1 | tanque lleno |
+| `is_baseline` | INTEGER boolean NOT NULL DEFAULT 0 | registro inicial solo con odómetro |
 | `station` | TEXT | estación opcional |
 | `notes` | TEXT | notas |
 | `created_at`, `updated_at`, `deleted_at` | INTEGER timestamp | auditoría y soft delete |
@@ -254,8 +255,10 @@ Nombre lógico `VehicleFuelEntries`, físico `vehicle_fuel_entries`, entidad
 
 Reglas:
 
-- `volume > 0`, `price_per_unit > 0`, `total_cost > 0`.
-- Al menos uno de `odometer` o `distance_traveled` debe existir.
+- `volume > 0`, `price_per_unit > 0`, `total_cost > 0` para cargas normales.
+  Un baseline solo requiere `odometer`.
+- Al menos uno de `odometer` o `distance_traveled` debe existir para un tanque
+  lleno; una carga parcial puede omitir ambos o usar `0`.
 - Si existen ambos, se valida que la diferencia con la entrada anterior sea
   coherente; si no, se muestra una advertencia y se permite corregir.
 - `odometer_source = inferred` cuando se calcula desde el odómetro anterior +
@@ -266,11 +269,11 @@ Reglas:
 - La entrada no duplica el gasto: el vínculo financiero vive en
   `VehicleExpenseLinks`.
 
-Ajustes posteriores pendientes:
+Ajustes posteriores implementados:
 
-- **19.1:** agregar `is_baseline` y permitir un registro inicial solo con
-  odómetro, sin volumen, precio ni total.
-- **19.2:** permitir odómetro/distancia vacíos o en `0` en cargas parciales,
+- **19.1:** `is_baseline` permite un registro inicial solo con odómetro, sin
+  volumen, precio ni total.
+- **19.2:** las cargas parciales permiten odómetro/distancia vacíos o en `0`,
   usando el odómetro de la entrada anterior.
 
 ### 4.4 `VehicleMaintenance`
@@ -1295,10 +1298,10 @@ Pendiente al 2026-10-30 (cerrado en la validación del 2026-10-31):
 
 ---
 
-## 19. Ajustes posteriores pendientes (2026-11-01)
+## 19. Ajustes posteriores implementados (2026-11-01)
 
-**Estado:** pendiente de implementar. La Fase 8 está cerrada; estos son ajustes
-solicitados después de la validación y no forman parte de la entrega original.
+**Estado:** implementado. La Fase 8 está cerrada; estos ajustes se solicitaron
+después de la validación y se incorporaron en la migración `0008_fuel_baseline`.
 
 ### 19.1 Registro base solo con odómetro
 
@@ -1318,7 +1321,7 @@ Reglas:
 - El registro base sí participa en el odómetro actual y en los históricos como
   referencia, pero no en las sumas de dinero/combustible.
 
-UI propuesta:
+UI implementada:
 
 - Acción secundaria **Registrar odómetro base** cuando el vehículo no tiene
   entradas de combustible.
@@ -1328,7 +1331,7 @@ UI propuesta:
 - El registro aparece en la lista como **Base de cálculo**, no como carga parcial
   ni tanque lleno.
 
-Modelo/validación propuesto:
+Modelo/validación implementado:
 
 - Columna `is_baseline` en `VehicleFuelEntries` (INTEGER boolean, default 0), o
   un `entry_type` equivalente.
@@ -1390,13 +1393,18 @@ Criterios de aceptación:
   parciales y la distancia correcta desde el tanque lleno inicial.
 - Si no hay odómetro previo, se muestra un error claro y no se inventa un valor.
 
-### 19.3 Impacto de implementación
+### 19.3 Implementación
 
-- Migración nueva para `is_baseline` y columnas monetarias/volumen nullables
-  cuando corresponda.
-- Actualizar `src/db/schema/tables.ts`, artefactos generados y validaciones zod.
-- Ajustar repositorios de combustible, dominio de segmentos y `latestOdometerKm`.
-- Ajustar `FuelEntryForm`, lista de combustible, resumen e históricos.
-- Añadir traducciones y temas de ayuda para el registro base y la carga parcial
-  sin odómetro.
-- Añadir pruebas de dominio y de repositorio para ambos casos.
+- Migración `0008_fuel_baseline`: agrega `is_baseline` y hace nullables
+  `volume`, `price_per_unit` y `total_cost`.
+- `SCHEMA_VERSION = 8`; `src/db/schema/tables.ts` y artefactos regenerados.
+- Validación zod acepta baseline solo con odómetro y permite cargas parciales
+  sin odómetro/distancia.
+- El repositorio resuelve el odómetro anterior para cargas parciales y bloquea
+  baselines que no sean el primer registro.
+- `FuelEntryForm` incluye el modo “solo odómetro”, oculta volumen/gasto y muestra
+  la pista para cargas parciales.
+- Lista de combustible, resumen, históricos y gráficos excluyen el baseline de
+  las sumas de dinero/volumen y lo muestran como **Base**.
+- Ayuda y traducciones actualizadas.
+- Pruebas de dominio, validación, migración y base de datos añadidas.

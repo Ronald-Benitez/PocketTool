@@ -79,6 +79,21 @@ export const vehicleEn = {
     segmentAverage: 'Segment average',
     segmentNoBaselineHint: 'Consumption is measured between two full tanks.',
     fillUps: '{count} fill-ups',
+    baselineMode: 'Register odometer only (baseline)',
+    baselineHint:
+      'Use this only as the starting odometer. It does not count as a fill-up or expense.',
+    baselineTitle: 'Add odometer baseline',
+    editBaselineTitle: 'Edit odometer baseline',
+    baselineBadge: 'Baseline',
+    partialOdometerHint:
+      'Leave empty or 0 to use the previous entry odometer.',
+    previousOdometerRequired:
+      'There is no previous odometer. Add one or create a baseline entry first.',
+    baselineNotAllowed:
+      'A baseline can only be the first fuel record.',
+    baselineOdometerRequired: 'Enter the baseline odometer.',
+    fullTankOdometerRequired: 'A full tank requires an odometer.',
+    fullTankDistanceRequired: 'A full tank requires a distance.',
     addTitle: 'Add fuel entry',
     editTitle: 'Edit fuel entry',
     empty: 'No fuel entries yet.',
@@ -336,6 +351,21 @@ export const vehicleEs: MessageShape<typeof vehicleEn> = {
     segmentAverage: 'Media del segmento',
     segmentNoBaselineHint: 'El consumo se mide entre dos tanques llenos.',
     fillUps: '{count} cargas',
+    baselineMode: 'Registrar solo odómetro (base)',
+    baselineHint:
+      'Úsalo solo como odómetro inicial. No cuenta como carga ni como gasto.',
+    baselineTitle: 'Agregar odómetro base',
+    editBaselineTitle: 'Editar odómetro base',
+    baselineBadge: 'Base',
+    partialOdometerHint:
+      'Déjalo vacío o en 0 para usar el odómetro del registro anterior.',
+    previousOdometerRequired:
+      'No hay un odómetro anterior. Agrega uno o crea primero un registro base.',
+    baselineNotAllowed:
+      'El registro base solo puede ser el primero de combustible.',
+    baselineOdometerRequired: 'Ingresa el odómetro base.',
+    fullTankOdometerRequired: 'Un tanque lleno requiere un odómetro.',
+    fullTankDistanceRequired: 'Un tanque lleno requiere una distancia.',
     addTitle: 'Agregar carga',
     editTitle: 'Editar carga',
     empty: 'Todavía no hay cargas de combustible.',

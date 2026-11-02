@@ -29,6 +29,7 @@ type FuelEntryFormProps = {
   visible: boolean;
   vehicle: Vehicle;
   entry?: VehicleFuelEntryView | null;
+  isFirstEntry?: boolean;
   onClose: () => void;
   onSaved: () => void;
 };
@@ -53,6 +54,7 @@ export const FuelEntryForm = ({
   visible,
   vehicle,
   entry,
+  isFirstEntry = false,
   onClose,
   onSaved,
 }: FuelEntryFormProps) => {
@@ -76,6 +78,7 @@ export const FuelEntryForm = ({
     'volume' | 'price' | 'total' | null
   >(null);
   const [isFullTank, setIsFullTank] = useState(true);
+  const [isBaseline, setIsBaseline] = useState(false);
   const [station, setStation] = useState('');
   const [notes, setNotes] = useState('');
   const [categories, setCategories] = useState<{ id?: number; category_name: string }[]>([]);
@@ -93,8 +96,11 @@ export const FuelEntryForm = ({
 
   useEffect(() => {
     if (!visible) return;
+    const baseline = Boolean(entry?.is_baseline);
     setDate(entry?.date ?? Date.now());
-    setOdometerMode(entry?.odometer != null ? 'odometer' : 'distance');
+    setOdometerMode(
+      baseline || entry?.odometer != null ? 'odometer' : 'distance'
+    );
     setOdometer(entry?.odometer?.toString() ?? '');
     setDistance(entry?.distance_traveled?.toString() ?? '');
     setDistanceUnit(entry?.distance_unit === 'km' ? 'km' : (vehicle.distance_unit === 'km' ? 'km' : 'mi'));
@@ -103,12 +109,13 @@ export const FuelEntryForm = ({
     setPricePerUnit(entry?.price_per_unit ?? 0);
     setTotalCost(entry?.total_cost ?? 0);
     setInferredField(null);
+    setIsBaseline(baseline);
     setIsFullTank(entry ? Boolean(entry.is_full_tank) : true);
     setStation(entry?.station ?? '');
     setNotes(entry?.notes ?? '');
-    setLinkMode(entry?.record_id ? 'link' : 'create');
+    setLinkMode(baseline ? 'none' : entry?.record_id ? 'link' : 'create');
     setLinkedRecord(
-      entry?.record_id
+      entry?.record_id && !baseline
         ? {
             id: entry.record_id,
             name: entry.record_name ?? '',
@@ -150,7 +157,7 @@ export const FuelEntryForm = ({
   }, [visible, group?.id, date]);
 
   useEffect(() => {
-    if (!visible || entry) return;
+    if (!visible || entry || isBaseline) return;
     const fuelSetting = settings.find((item) => item.setting_key === 'fuel');
     const fallbackCategory =
       categories.find((category) =>
@@ -164,7 +171,7 @@ export const FuelEntryForm = ({
       (current) =>
         current ?? fuelSetting?.payment_method_id ?? paymentMethods[0]?.id ?? null
     );
-  }, [visible, settings, entry, categories, paymentMethods]);
+  }, [visible, settings, entry, isBaseline, categories, paymentMethods]);
 
   const volumeNumber = parseNumber(volume);
   const categoryOptions = useMemo(
@@ -253,12 +260,85 @@ export const FuelEntryForm = ({
   };
 
   const save = async () => {
-    if (!vehicle.id || volumeNumber <= 0 || totalCost <= 0 || pricePerUnit <= 0) {
+    if (!vehicle.id) {
       setError(t('vehicle.toast.empty'));
       return;
     }
-    if (odometerMode === 'odometer' && !odometer.trim()) {
+
+    if (isBaseline) {
+      if (!odometer.trim() || Number(odometer) <= 0) {
+        setError(t('vehicle.fuel.baselineOdometerRequired'));
+        return;
+      }
+      setSaving(true);
+      setError(null);
+      try {
+        await repository.saveFuelEntry({
+          id: entry?.id,
+          vehicle_id: vehicle.id,
+          date,
+          odometer: Number(odometer),
+          odometer_source: 'manual',
+          distance_unit: distanceUnit,
+          distance_traveled: null,
+          distance_source: null,
+          volume: null,
+          volume_unit: volumeUnit,
+          price_per_unit: null,
+          total_cost: null,
+          is_full_tank: 0,
+          is_baseline: 1,
+          station: null,
+          notes: notes.trim() || null,
+          finance: { linkMode: 'none' },
+        });
+        showToast({ message: t('vehicle.toast.saved'), type: 'success' });
+        onSaved();
+        onClose();
+      } catch (cause) {
+        if (__DEV__) console.warn('[vehicle] fuel baseline save failed', cause);
+        const message = cause instanceof Error ? cause.message : '';
+        setError(
+          message === 'BASELINE_NOT_ALLOWED'
+            ? t('vehicle.fuel.baselineNotAllowed')
+            : message === 'ODOMETER_REQUIRED'
+              ? t('vehicle.fuel.baselineOdometerRequired')
+              : t('vehicle.toast.error')
+        );
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
+
+    if (volumeNumber <= 0 || totalCost <= 0 || pricePerUnit <= 0) {
       setError(t('vehicle.toast.empty'));
+      return;
+    }
+
+    const odometerValue =
+      odometerMode === 'odometer' && odometer.trim()
+        ? Number(odometer)
+        : null;
+    const distanceValue =
+      odometerMode === 'distance' && distance.trim()
+        ? Number(distance)
+        : null;
+
+    if (
+      isFullTank &&
+      odometerMode === 'odometer' &&
+      !(odometerValue != null && odometerValue > 0)
+    ) {
+      setError(t('vehicle.fuel.fullTankOdometerRequired'));
+      return;
+    }
+    if (
+      isFullTank &&
+      odometerMode === 'distance' &&
+      !(distanceValue != null && distanceValue > 0)
+    ) {
+      setError(t('vehicle.fuel.fullTankDistanceRequired'));
       return;
     }
     if (linkMode === 'create' && !groupId) {
@@ -301,16 +381,18 @@ export const FuelEntryForm = ({
         id: entry?.id,
         vehicle_id: vehicle.id,
         date,
-        odometer: odometerMode === 'odometer' ? Number(odometer) : null,
-        odometer_source: odometerMode === 'odometer' ? 'manual' : null,
+        odometer: odometerValue,
+        odometer_source:
+          odometerValue != null && odometerValue > 0 ? 'manual' : null,
         distance_unit: distanceUnit,
-        distance_traveled: odometerMode === 'distance' ? Number(distance) : null,
-        distance_source: odometerMode === 'distance' ? 'manual' : 'inferred',
+        distance_traveled: distanceValue,
+        distance_source: distanceValue != null ? 'manual' : null,
         volume: volumeNumber,
         volume_unit: volumeUnit,
         price_per_unit: pricePerUnit,
         total_cost: totalCost,
         is_full_tank: isFullTank ? 1 : 0,
+        is_baseline: 0,
         station: station.trim() || null,
         notes: notes.trim() || null,
         finance: {
@@ -334,7 +416,11 @@ export const FuelEntryForm = ({
             ? t('vehicle.records.categoryRequired')
             : message === 'PAYMENT_METHOD_REQUIRED'
               ? t('vehicle.records.paymentRequired')
-              : t('vehicle.toast.error')
+              : message === 'PREVIOUS_ODOMETER_REQUIRED'
+                ? t('vehicle.fuel.previousOdometerRequired')
+                : message === 'BASELINE_NOT_ALLOWED'
+                  ? t('vehicle.fuel.baselineNotAllowed')
+                  : t('vehicle.toast.error')
       );
     } finally {
       setSaving(false);
@@ -362,7 +448,15 @@ export const FuelEntryForm = ({
       <Modal
         visible={visible}
         onClose={onClose}
-        title={entry ? t('vehicle.fuel.editTitle') : t('vehicle.fuel.addTitle')}
+        title={
+          entry?.is_baseline
+            ? t('vehicle.fuel.editBaselineTitle')
+            : isBaseline
+              ? t('vehicle.fuel.baselineTitle')
+              : entry
+                ? t('vehicle.fuel.editTitle')
+                : t('vehicle.fuel.addTitle')
+        }
         closeLabel={t('vehicle.actions.cancel')}
         scrollable
         footer={
@@ -391,31 +485,60 @@ export const FuelEntryForm = ({
         }
       >
         <View style={styles.form}>
-          <DateField label={t('vehicle.fuel.date')} value={date} onChange={setDate} />
-          <SelectField
-            label={t('vehicle.records.mode')}
-            value={linkMode}
-            options={[
-              { label: t('vehicle.records.create'), value: 'create' },
-              { label: t('vehicle.records.link'), value: 'link' },
-              { label: t('vehicle.records.none'), value: 'none' },
-            ]}
-            onChange={(value) => {
-              setLinkMode(value);
-              if (value === 'link') setPickerVisible(true);
-              if (value !== 'link') setLinkedRecord(null);
-            }}
-          />
-          {linkMode === 'link' ? (
-            <Button
-              label={
-                linkedRecord
-                  ? t('vehicle.records.linkedTo', { name: linkedRecord.name })
-                  : t('vehicle.actions.chooseRecord')
-              }
-              variant='outline'
-              onPress={() => setPickerVisible(true)}
+          {!entry && isFirstEntry ? (
+            <SwitchField
+              label={t('vehicle.fuel.baselineMode')}
+              description={t('vehicle.fuel.baselineHint')}
+              value={isBaseline}
+              onChange={(value) => {
+                setIsBaseline(value);
+                if (value) {
+                  setOdometerMode('odometer');
+                  setLinkMode('none');
+                  setLinkedRecord(null);
+                } else {
+                  setLinkMode('create');
+                }
+              }}
             />
+          ) : null}
+          {Boolean(entry?.is_baseline) ? (
+            <InlineMessage
+              variant='info'
+              message={t('vehicle.fuel.baselineHint')}
+            />
+          ) : null}
+          <DateField label={t('vehicle.fuel.date')} value={date} onChange={setDate} />
+          {!isBaseline ? (
+            <>
+              <SelectField
+                label={t('vehicle.records.mode')}
+                value={linkMode}
+                options={[
+                  { label: t('vehicle.records.create'), value: 'create' },
+                  { label: t('vehicle.records.link'), value: 'link' },
+                  { label: t('vehicle.records.none'), value: 'none' },
+                ]}
+                onChange={(value) => {
+                  setLinkMode(value);
+                  if (value === 'link') setPickerVisible(true);
+                  if (value !== 'link') setLinkedRecord(null);
+                }}
+              />
+              {linkMode === 'link' ? (
+                <Button
+                  label={
+                    linkedRecord
+                      ? t('vehicle.records.linkedTo', {
+                          name: linkedRecord.name,
+                        })
+                      : t('vehicle.actions.chooseRecord')
+                  }
+                  variant='outline'
+                  onPress={() => setPickerVisible(true)}
+                />
+              ) : null}
+            </>
           ) : null}
           <SelectField
             label={t('vehicle.vehicle.distanceUnit')}
@@ -426,16 +549,18 @@ export const FuelEntryForm = ({
             ]}
             onChange={setDistanceUnit}
           />
-          <SelectField
-            label={t('vehicle.fuel.useOdometer')}
-            value={odometerMode}
-            options={[
-              { label: t('vehicle.fuel.useOdometer'), value: 'odometer' },
-              { label: t('vehicle.fuel.useDistance'), value: 'distance' },
-            ]}
-            onChange={setOdometerMode}
-          />
-          {odometerMode === 'odometer' ? (
+          {!isBaseline ? (
+            <SelectField
+              label={t('vehicle.fuel.useOdometer')}
+              value={odometerMode}
+              options={[
+                { label: t('vehicle.fuel.useOdometer'), value: 'odometer' },
+                { label: t('vehicle.fuel.useDistance'), value: 'distance' },
+              ]}
+              onChange={setOdometerMode}
+            />
+          ) : null}
+          {isBaseline || odometerMode === 'odometer' ? (
             <TextField
               label={t('vehicle.fuel.odometer')}
               value={odometer}
@@ -450,63 +575,76 @@ export const FuelEntryForm = ({
               keyboardType='decimal-pad'
             />
           )}
-          <SelectField
-            label={t('vehicle.vehicle.volumeUnit')}
-            value={volumeUnit}
-            options={[
-              { label: t('vehicle.vehicle.gallons'), value: 'gal' },
-              { label: t('vehicle.vehicle.liters'), value: 'L' },
-            ]}
-            onChange={setVolumeUnit}
-          />
-          <TextField
-            label={t('vehicle.fuel.volume')}
-            value={volume}
-            onChangeText={setVolumeAndRecalculate}
-            keyboardType='decimal-pad'
-          />
-          <MoneyField
-            label={t('vehicle.fuel.pricePerUnit')}
-            value={pricePerUnit}
-            onChangeCents={setPriceAndRecalculate}
-          />
-          <MoneyField
-            label={t('vehicle.fuel.total')}
-            value={totalCost}
-            onChangeCents={setTotalAndRecalculate}
-          />
-          <SwitchField
-            label={t('vehicle.fuel.fullTank')}
-            value={isFullTank}
-            onChange={setIsFullTank}
-          />
-          <TextField
-            label={t('vehicle.fuel.station')}
-            value={station}
-            onChangeText={setStation}
-          />
-          {linkMode === 'create' ? (
+          {!isBaseline && !isFullTank ? (
+            <InlineMessage
+              variant='info'
+              message={t('vehicle.fuel.partialOdometerHint')}
+            />
+          ) : null}
+          {!isBaseline ? (
             <>
               <SelectField
-                label={t('vehicle.records.category')}
-                value={categoryId}
-                options={categoryOptions}
-                onChange={setCategoryId}
-                searchable
+                label={t('vehicle.vehicle.volumeUnit')}
+                value={volumeUnit}
+                options={[
+                  { label: t('vehicle.vehicle.gallons'), value: 'gal' },
+                  { label: t('vehicle.vehicle.liters'), value: 'L' },
+                ]}
+                onChange={setVolumeUnit}
               />
-              <SelectField
-                label={t('vehicle.records.paymentMethod')}
-                value={paymentMethodId}
-                options={paymentOptions}
-                onChange={setPaymentMethodId}
+              <TextField
+                label={t('vehicle.fuel.volume')}
+                value={volume}
+                onChangeText={setVolumeAndRecalculate}
+                keyboardType='decimal-pad'
               />
-              {group ? (
-                <AppText variant='caption' color='muted'>
-                  {t('vehicle.records.group')}: {group.group_name}
-                </AppText>
-              ) : (
-                <InlineMessage variant='warning' message={t('vehicle.records.groupRequired')} />
-              )}
+              <MoneyField
+                label={t('vehicle.fuel.pricePerUnit')}
+                value={pricePerUnit}
+                onChangeCents={setPriceAndRecalculate}
+              />
+              <MoneyField
+                label={t('vehicle.fuel.total')}
+                value={totalCost}
+                onChangeCents={setTotalAndRecalculate}
+              />
+              <SwitchField
+                label={t('vehicle.fuel.fullTank')}
+                value={isFullTank}
+                onChange={setIsFullTank}
+              />
+              <TextField
+                label={t('vehicle.fuel.station')}
+                value={station}
+                onChangeText={setStation}
+              />
+              {linkMode === 'create' ? (
+                <>
+                  <SelectField
+                    label={t('vehicle.records.category')}
+                    value={categoryId}
+                    options={categoryOptions}
+                    onChange={setCategoryId}
+                    searchable
+                  />
+                  <SelectField
+                    label={t('vehicle.records.paymentMethod')}
+                    value={paymentMethodId}
+                    options={paymentOptions}
+                    onChange={setPaymentMethodId}
+                  />
+                  {group ? (
+                    <AppText variant='caption' color='muted'>
+                      {t('vehicle.records.group')}: {group.group_name}
+                    </AppText>
+                  ) : (
+                    <InlineMessage
+                      variant='warning'
+                      message={t('vehicle.records.groupRequired')}
+                    />
+                  )}
+                </>
+              ) : null}
             </>
           ) : null}
           <TextField

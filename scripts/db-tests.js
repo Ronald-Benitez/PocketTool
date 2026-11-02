@@ -144,6 +144,18 @@ async function testLegacyMigration() {
       (column) => column.name === 'record_id'
     )
   );
+  const fuelColumns = q(raw, 'PRAGMA table_info(vehicle_fuel_entries)');
+  assert.ok(
+    fuelColumns.some((column) => column.name === 'is_baseline'),
+    'fuel entries should have is_baseline'
+  );
+  for (const name of ['volume', 'price_per_unit', 'total_cost']) {
+    assert.strictEqual(
+      fuelColumns.find((column) => column.name === name)?.notnull,
+      0,
+      `${name} should be nullable`
+    );
+  }
 
   const group = q(raw, 'SELECT * FROM groups')[0];
   assert.strictEqual(group.goal, 500050, 'goal should be cents');
@@ -397,7 +409,7 @@ async function testEmptyDatabase() {
   assert.strictEqual(q(raw, 'SELECT goal FROM groups')[0].goal, 500000);
   assert.strictEqual(q(raw, 'SELECT amount FROM records ORDER BY id')[0].amount, 100000);
   assert.strictEqual(q(raw, 'SELECT migration_name FROM migrations')[0].migration_name, '0001_baseline');
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 7);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 8);
   const recordColumns = q(raw, 'PRAGMA table_info(records)').map(c => c.name);
   assert.ok(recordColumns.includes('created_at'));
   assert.ok(recordColumns.includes('updated_at'));
@@ -434,7 +446,7 @@ async function testExportImport() {
   assert.ok(metadata);
   assert.strictEqual(metadata.formatVersion, BACKUP_FORMAT_VERSION);
   assert.strictEqual(metadata.appVersion, 'test-version');
-  assert.strictEqual(metadata.schemaVersion, 7);
+  assert.strictEqual(metadata.schemaVersion, 8);
   assert.ok(metadata.tables.includes('records'));
   assert.doesNotThrow(() => validateSqlDump(backupSql));
   assert.strictEqual(parseBackupMetadata(dump), null);
@@ -487,7 +499,7 @@ async function testAuditTimestampMigration() {
   const backfilled = q(raw, 'SELECT created_at, updated_at FROM records LIMIT 1')[0];
   assert.ok(backfilled.created_at > 0);
   assert.ok(backfilled.updated_at > 0);
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 7);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 8);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,
     1
@@ -759,6 +771,59 @@ async function testBudgetStatusRemoval() {
   console.log('budget plan status removal: OK');
 }
 
+async function testFuelBaselineMigration() {
+  const raw = new DatabaseSync(':memory:');
+  raw.exec(`
+    CREATE TABLE vehicles (id INTEGER PRIMARY KEY AUTOINCREMENT);
+    INSERT INTO vehicles (id) VALUES (1);
+    CREATE TABLE vehicle_fuel_entries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      vehicle_id INTEGER NOT NULL,
+      date INTEGER NOT NULL,
+      odometer REAL,
+      odometer_source TEXT,
+      distance_unit TEXT NOT NULL DEFAULT 'mi',
+      distance_traveled REAL,
+      distance_source TEXT,
+      volume REAL NOT NULL,
+      volume_unit TEXT NOT NULL DEFAULT 'gal',
+      price_per_unit INTEGER NOT NULL,
+      total_cost INTEGER NOT NULL,
+      is_full_tank INTEGER NOT NULL DEFAULT 1,
+      station TEXT,
+      notes TEXT,
+      created_at INTEGER,
+      updated_at INTEGER,
+      deleted_at INTEGER
+    );
+    INSERT INTO vehicle_fuel_entries
+      (vehicle_id, date, odometer, distance_unit, volume, volume_unit, price_per_unit, total_cost, is_full_tank)
+    VALUES (1, 1700000000000, 1000, 'mi', 10, 'gal', 350, 3500, 1);
+  `);
+
+  const migration = require(path.join(
+    ROOT,
+    'src/db/migrations/0008_fuel_baseline.ts'
+  )).default;
+  await migration.up(shim(raw));
+
+  const columns = q(raw, 'PRAGMA table_info(vehicle_fuel_entries)');
+  assert.ok(columns.some((column) => column.name === 'is_baseline'));
+  for (const name of ['volume', 'price_per_unit', 'total_cost']) {
+    assert.strictEqual(
+      columns.find((column) => column.name === name)?.notnull,
+      0,
+      `${name} should be nullable after migration`
+    );
+  }
+  const row = q(raw, 'SELECT * FROM vehicle_fuel_entries')[0];
+  assert.strictEqual(row.volume, 10);
+  assert.strictEqual(row.total_cost, 3500);
+  assert.strictEqual(row.is_baseline, 0);
+  raw.close();
+  console.log('fuel baseline migration: OK');
+}
+
 async function testInterruptedRebuild() {
   const raw = new DatabaseSync(':memory:');
   raw.exec(legacySchema);
@@ -790,6 +855,7 @@ async function testInterruptedRebuild() {
   await testQueryPlans();
   testNoLegacyHandlerImports();
   await testBudgetStatusRemoval();
+  await testFuelBaselineMigration();
   await testInterruptedRebuild();
   console.log('ALL TESTS PASSED');
 })().catch((e) => {

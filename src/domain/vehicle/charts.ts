@@ -105,7 +105,7 @@ export const buildFuelMaintenanceComparisonChart = (
 };
 
 export const buildMonthlySpendChart = (
-  entries: { date: number; total_cost: number }[],
+  entries: { date: number; total_cost: number | null }[],
   title: string
 ) => {
   const months = new Map<string, { label: string; total: number; sort: number }>();
@@ -117,7 +117,7 @@ export const buildMonthlySpendChart = (
       total: 0,
       sort: date.getFullYear() * 12 + date.getMonth(),
     };
-    current.total += entry.total_cost / 100;
+    current.total += (entry.total_cost ?? 0) / 100;
     months.set(key, current);
   }
   const rows = [...months.values()].sort((a, b) => a.sort - b.sort);

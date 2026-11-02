@@ -264,29 +264,29 @@ export const helpEn = {
             "summary": "Record fill-ups with real units and calculate consumption from distance and volume.",
             "what": {
                 "title": "What it is",
-                "body": "A fuel entry stores date, odometer or distance, volume, price per unit, total, station and whether the tank was full. Volume can be in gallons or liters and distance in miles or kilometers."
+                "body": "A fuel entry stores date, odometer or distance, volume, price per unit, total, station and whether the tank was full. Volume can be in gallons or liters and distance in miles or kilometers. The first record can be an odometer-only baseline."
             },
             "how": {
                 "title": "How it works",
-                "body": "Enter any two of volume, price per unit and total; the third is calculated. Consumption can be shown as mi/gal, km/gal, mi/L, km/L, L/100 km, gal/100 km, L/60 mi or gal/60 mi. Full-tank segments are the most accurate method; partial fills accumulate until the next full tank."
+                "body": "Enter any two of volume, price per unit and total; the third is calculated. Consumption can be shown as mi/gal, km/gal, mi/L, km/L, L/100 km, gal/100 km, L/60 mi or gal/60 mi. Full-tank segments are the most accurate method; partial fills accumulate until the next full tank. A partial fill can leave odometer/distance empty or at 0; the previous odometer is used."
             },
             "steps": {
                 "title": "Step by step",
-                "step1": "Choose the vehicle, date and units.",
-                "step2": "Enter odometer or distance and two of volume, price and total.",
+                "step1": "Choose the vehicle, date and units. If it is the first entry, you can record only the odometer as a baseline.",
+                "step2": "Enter odometer or distance and two of volume, price and total. A partial fill may leave odometer/distance empty or at 0.",
                 "step3": "Mark full tank, choose whether to create or link an expense, and save."
             },
             "example": {
                 "title": "Example",
-                "body": "8.5399 gallons and 300 miles give about 35.1 mi/gal. If the tank was partial, the entry is shown as accumulating until the next full fill."
+                "body": "8.5399 gallons and 300 miles give about 35.1 mi/gal. A baseline of 1,000 miles followed by a full tank at 1,300 miles starts the first segment. A partial fill with no odometer reuses the previous reading and adds only its volume."
             },
             "tips": {
                 "title": "Tips",
-                "body": "Changing the volume unit converts the displayed price so the total stays consistent."
+                "body": "Use the odometer baseline only once, when the vehicle has no fuel history. Changing the volume unit converts the displayed price so the total stays consistent."
             },
             "warning": {
                 "title": "Common mistake",
-                "body": "A partial fill is not an error, but its consumption is not final until the next full tank."
+                "body": "A partial fill is not an error, but its consumption is not final until the next full tank. A baseline is not an expense and does not add fuel volume."
             }
         },
         "vehicleMaintenance": {
@@ -736,29 +736,29 @@ export const helpEs: MessageShape<typeof helpEn> = {
             "summary": "Registra cargas con unidades reales y calcula el consumo desde distancia y volumen.",
             "what": {
                 "title": "Qué es",
-                "body": "Una carga guarda fecha, odómetro o distancia, volumen, precio por unidad, total, estación y si el tanque quedó lleno. El volumen puede ser galones o litros y la distancia millas o kilómetros."
+                "body": "Una carga guarda fecha, odómetro o distancia, volumen, precio por unidad, total, estación y si el tanque quedó lleno. El volumen puede ser galones o litros y la distancia millas o kilómetros. El primer registro puede ser solo el odómetro como base."
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "Ingresa dos de tres valores entre volumen, precio por unidad y total; el tercero se calcula. El consumo se puede mostrar como mi/gal, km/gal, mi/L, km/L, L/100 km, gal/100 km, L/60 mi o gal/60 mi. Los segmentos de tanque lleno son el método más preciso; las cargas parciales se acumulan hasta el siguiente tanque lleno."
+                "body": "Ingresa dos de tres valores entre volumen, precio por unidad y total; el tercero se calcula. El consumo se puede mostrar como mi/gal, km/gal, mi/L, km/L, L/100 km, gal/100 km, L/60 mi o gal/60 mi. Los segmentos de tanque lleno son el método más preciso; las cargas parciales se acumulan hasta el siguiente tanque lleno. Una carga parcial puede dejar el odómetro/distancia vacío o en 0; se usa el odómetro anterior."
             },
             "steps": {
                 "title": "Paso a paso",
-                "step1": "Elige el vehículo, la fecha y las unidades.",
-                "step2": "Ingresa odómetro o distancia y dos de volumen, precio y total.",
+                "step1": "Elige el vehículo, la fecha y las unidades. Si es el primer registro, puedes anotar solo el odómetro como base.",
+                "step2": "Ingresa odómetro o distancia y dos de volumen, precio y total. Una carga parcial puede dejar el odómetro/distancia vacío o en 0.",
                 "step3": "Marca tanque lleno, elige crear o vincular un gasto y guarda."
             },
             "example": {
                 "title": "Ejemplo",
-                "body": "8.5399 galones y 300 millas dan aproximadamente 35.1 mi/gal. Si el tanque fue parcial, la entrada se muestra acumulando hasta la siguiente carga completa."
+                "body": "8.5399 galones y 300 millas dan aproximadamente 35.1 mi/gal. Una base de 1,000 millas y un tanque lleno a 1,300 millas inician el primer segmento. Una carga parcial sin odómetro reutiliza la lectura anterior y solo suma su volumen."
             },
             "tips": {
                 "title": "Consejos",
-                "body": "Al cambiar la unidad de volumen se convierte el precio mostrado para que el total siga siendo coherente."
+                "body": "Usa el odómetro base solo una vez, cuando el vehículo no tenga historial de combustible. Al cambiar la unidad de volumen se convierte el precio mostrado para que el total siga siendo coherente."
             },
             "warning": {
                 "title": "Error común",
-                "body": "Una carga parcial no es un error, pero su consumo no es definitivo hasta el siguiente tanque lleno."
+                "body": "Una carga parcial no es un error, pero su consumo no es definitivo hasta el siguiente tanque lleno. La base no es un gasto ni suma volumen de combustible."
             }
         },
         "vehicleMaintenance": {

@@ -34,7 +34,7 @@ import {
   vehicleUpdateSchema,
 } from '@/src/validation/entities';
 import { computeNextDue } from '@/src/domain/vehicle/reminders';
-import { distanceUnitOf } from '@/src/domain/vehicle/units';
+import { resolvePartialOdometer } from '@/src/domain/vehicle/fuel';
 
 export type VehicleLinkMode = 'create' | 'link' | 'none';
 
@@ -228,6 +228,28 @@ const requireFinanceFields = async (
   };
 };
 
+const findPreviousFuelEntry = async (
+  db: Parameters<typeof withExclusiveTransaction>[0],
+  vehicleId: number,
+  date: number,
+  excludeId?: number
+) => {
+  const rows = (await new ORM(db, 'VehicleFuelEntries')
+    .where('vehicle_id', vehicleId)
+    .getAll()) as VehicleFuelEntry[];
+  return (
+    rows
+      .filter((row) => {
+        if (row.id === excludeId) return false;
+        if (row.odometer == null || row.odometer <= 0) return false;
+        if (row.date < date) return true;
+        if (row.date > date) return false;
+        return excludeId === undefined || (row.id ?? 0) < excludeId;
+      })
+      .sort((a, b) => b.date - a.date || (b.id ?? 0) - (a.id ?? 0))[0] ?? null
+  );
+};
+
 export const useVehiclesRepository = () => {
   const db = useSQLiteContext();
   const vehiclesOrm = useORM('Vehicles');
@@ -383,6 +405,84 @@ export const useVehicleFuelRepository = () => {
       const vehicle = await resolveVehicle(txn, entryValues.vehicle_id);
       if (!vehicle) throw new Error('VEHICLE_NOT_FOUND');
 
+      const isBaseline =
+        entryValues.is_baseline === true || entryValues.is_baseline === 1;
+
+      if (isBaseline) {
+        if (entryValues.odometer == null || entryValues.odometer <= 0) {
+          throw new Error('ODOMETER_REQUIRED');
+        }
+        if (id === undefined) {
+          const existing = (await fuel
+            .where('vehicle_id', entryValues.vehicle_id)
+            .getAll()) as VehicleFuelEntry[];
+          if (existing.length > 0) throw new Error('BASELINE_NOT_ALLOWED');
+        } else {
+          const current = (await fuel.getById(id)) as VehicleFuelEntry | null;
+          if (!current) throw new Error('FUEL_ENTRY_NOT_FOUND');
+          if (!current.is_baseline) throw new Error('BASELINE_NOT_ALLOWED');
+        }
+
+        entryValues.volume = null;
+        entryValues.price_per_unit = null;
+        entryValues.total_cost = null;
+        entryValues.is_full_tank = 0;
+        entryValues.distance_traveled = null;
+        entryValues.distance_source = null;
+        entryValues.odometer_source = 'manual';
+
+        const payload =
+          id !== undefined
+            ? vehicleFuelEntryUpdateSchema.parse(entryValues)
+            : vehicleFuelEntryInputSchema.parse(entryValues);
+        const entryId =
+          id !== undefined
+            ? (await fuel.update(id, payload), id)
+            : await fuel.insert(payload as Insertable<VehicleFuelEntry>);
+        await unlinkEntry(txn, 'fuel_entry_id', entryId);
+        return entryId;
+      }
+
+      const isFullTank =
+        entryValues.is_full_tank === undefined ||
+        entryValues.is_full_tank === true ||
+        entryValues.is_full_tank === 1;
+
+      if (!isFullTank) {
+        const hasOdometer =
+          entryValues.odometer != null && entryValues.odometer > 0;
+        const hasDistance =
+          entryValues.distance_traveled != null &&
+          entryValues.distance_traveled > 0;
+
+        if (!hasOdometer) {
+          const previous = await findPreviousFuelEntry(
+            txn,
+            entryValues.vehicle_id,
+            entryValues.date,
+            id
+          );
+          if (!previous?.odometer) {
+            throw new Error('PREVIOUS_ODOMETER_REQUIRED');
+          }
+
+          const resolution = resolvePartialOdometer({
+            distanceTraveled: entryValues.distance_traveled,
+            distanceUnit: entryValues.distance_unit ?? 'mi',
+            previousOdometer: previous.odometer,
+            previousDistanceUnit: previous.distance_unit,
+          });
+          if (!resolution.ok) {
+            throw new Error('PREVIOUS_ODOMETER_REQUIRED');
+          }
+
+          entryValues.odometer = resolution.odometer;
+          entryValues.odometer_source = resolution.odometerSource;
+          entryValues.distance_traveled = resolution.distanceTraveled;
+          entryValues.distance_source = resolution.distanceSource;
+        }
+      }
+
       const payload =
         id !== undefined
           ? vehicleFuelEntryUpdateSchema.parse(entryValues)
@@ -417,7 +517,7 @@ export const useVehicleFuelRepository = () => {
       const recordId = await createOrUpdateRecord({
         db: txn,
         recordId: existingLink?.record_id,
-        amount: saved.total_cost,
+        amount: saved.total_cost ?? 0,
         date: saved.date,
         groupId: fields.groupId,
         categoryId: fields.categoryId,

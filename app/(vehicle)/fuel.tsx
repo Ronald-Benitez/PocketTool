@@ -261,21 +261,36 @@ const FuelScreen = () => {
                     </View>
                     {[...segment.entries].reverse().map((analysis, index) => {
                       const entry = analysis.entry as VehicleFuelEntryView;
+                      const isBaseline = Boolean(entry.is_baseline);
                       const isFull = Boolean(entry.is_full_tank ?? 1);
+                      const distanceLabel =
+                        entry.distance_unit === 'km'
+                          ? t('vehicle.vehicle.kilometers')
+                          : t('vehicle.vehicle.miles');
                       return (
                         <ListItem
                           key={entry.id ?? `${segment.id}-${index}`}
                           title={new Date(entry.date).toLocaleDateString()}
-                          subtitle={`${entry.volume.toFixed(3)} ${
-                            entry.volume_unit === 'L'
-                              ? t('vehicle.vehicle.liters')
-                              : t('vehicle.vehicle.gallons')
-                          } · ${formatMoneyWithSymbol(entry.total_cost)}${
-                            entry.station ? ` · ${entry.station}` : ''
-                          }`}
+                          subtitle={
+                            isBaseline
+                              ? `${t('vehicle.fuel.baselineBadge')} · ${
+                                  entry.odometer ?? 0
+                                } ${distanceLabel}`
+                              : `${entry.volume?.toFixed(3) ?? '—'} ${
+                                  entry.volume_unit === 'L'
+                                    ? t('vehicle.vehicle.liters')
+                                    : t('vehicle.vehicle.gallons')
+                                } · ${formatMoneyWithSymbol(
+                                  entry.total_cost ?? 0
+                                )}${entry.station ? ` · ${entry.station}` : ''}`
+                          }
                           leading={
                             <MaterialIcons
-                              name='local-gas-station'
+                              name={
+                                isBaseline
+                                  ? 'speed'
+                                  : 'local-gas-station'
+                              }
                               size={20}
                               color={colors.chartPlanned}
                             />
@@ -283,7 +298,8 @@ const FuelScreen = () => {
                           trailing={
                             <Stack gap='xxs' align='flex-end'>
                               {segment.status === 'complete' &&
-                              entry.id === segment.endEntry.id ? (
+                              entry.id === segment.endEntry.id &&
+                              !isBaseline ? (
                                 <AppText variant='caption' color='muted'>
                                   {value != null
                                     ? `${value.toFixed(2)} ${consumptionUnits(format)}`
@@ -292,22 +308,32 @@ const FuelScreen = () => {
                               ) : null}
                               <Badge
                                 label={
-                                  isFull
-                                    ? t('vehicle.fuel.fullTank')
-                                    : t('vehicle.fuel.partialTank')
+                                  isBaseline
+                                    ? t('vehicle.fuel.baselineBadge')
+                                    : isFull
+                                      ? t('vehicle.fuel.fullTank')
+                                      : t('vehicle.fuel.partialTank')
                                 }
-                                tone={isFull ? 'success' : 'warning'}
+                                tone={
+                                  isBaseline
+                                    ? 'info'
+                                    : isFull
+                                      ? 'success'
+                                      : 'warning'
+                                }
                                 size='sm'
                               />
-                              <Badge
-                                label={
-                                  entry.record_id
-                                    ? t('vehicle.records.linked')
-                                    : t('vehicle.fuel.recordUnlinked')
-                                }
-                                tone={entry.record_id ? 'success' : 'neutral'}
-                                size='sm'
-                              />
+                              {!isBaseline ? (
+                                <Badge
+                                  label={
+                                    entry.record_id
+                                      ? t('vehicle.records.linked')
+                                      : t('vehicle.fuel.recordUnlinked')
+                                  }
+                                  tone={entry.record_id ? 'success' : 'neutral'}
+                                  size='sm'
+                                />
+                              ) : null}
                             </Stack>
                           }
                           onPress={() => {
@@ -329,6 +355,7 @@ const FuelScreen = () => {
         visible={formVisible}
         vehicle={vehicle}
         entry={selected}
+        isFirstEntry={entries.length === 0}
         onClose={() => setFormVisible(false)}
         onSaved={() => setRefreshKey((value) => value + 1)}
       />

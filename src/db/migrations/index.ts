@@ -7,6 +7,7 @@ import budgetPlans from './0004_budget_plans';
 import dropBudgetLegacy from './0005_drop_budget_legacy';
 import dropBudgetPlanStatus from './0006_drop_budget_plan_status';
 import vehicleModule from './0007_vehicle_module';
+import fuelBaseline from './0008_fuel_baseline';
 
 export interface Migration {
   version: number;
@@ -26,4 +27,5 @@ export const migrations: Migration[] = [
   dropBudgetLegacy,
   dropBudgetPlanStatus,
   vehicleModule,
+  fuelBaseline,
 ];

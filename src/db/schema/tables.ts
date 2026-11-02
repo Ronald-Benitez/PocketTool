@@ -1,6 +1,6 @@
 import type { TableDefinition, TableSchema } from '../types';
 
-export const SCHEMA_VERSION = 7;
+export const SCHEMA_VERSION = 8;
 
 export type TableName =
   | 'Groups'
@@ -468,11 +468,12 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
       { name: 'distance_unit', type: 'TEXT', notNull: true, defaultValue: 'mi' },
       { name: 'distance_traveled', type: 'REAL' },
       { name: 'distance_source', type: 'TEXT' },
-      { name: 'volume', type: 'REAL', notNull: true },
+      { name: 'volume', type: 'REAL' },
       { name: 'volume_unit', type: 'TEXT', notNull: true, defaultValue: 'gal' },
-      { name: 'price_per_unit', type: 'INTEGER', kind: 'money', notNull: true },
-      { name: 'total_cost', type: 'INTEGER', kind: 'money', notNull: true },
+      { name: 'price_per_unit', type: 'INTEGER', kind: 'money' },
+      { name: 'total_cost', type: 'INTEGER', kind: 'money' },
       { name: 'is_full_tank', type: 'INTEGER', kind: 'boolean', notNull: true, defaultValue: 1 },
+      { name: 'is_baseline', type: 'INTEGER', kind: 'boolean', notNull: true, defaultValue: 0 },
       { name: 'station', type: 'TEXT' },
       { name: 'notes', type: 'TEXT' },
       ...timestamps,

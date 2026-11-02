@@ -53,7 +53,7 @@ No editar esos archivos a mano.
 | `Savings` | `savings` | Cuentas/metas de ahorro. |
 | `SavingsHistory` | `savings_history` | Historial de ahorros. |
 | `Vehicles` | `vehicles` | Vehículos y unidades por defecto. |
-| `VehicleFuelEntries` | `vehicle_fuel_entries` | Cargas de combustible con odómetro y unidades. |
+| `VehicleFuelEntries` | `vehicle_fuel_entries` | Cargas de combustible con odómetro y unidades; `is_baseline` marca el registro inicial solo con odómetro. |
 | `VehicleMaintenance` | `vehicle_maintenance` | Servicios, reparaciones y costos. |
 | `VehicleMaintenanceItems` | `vehicle_maintenance_items` | Piezas y detalles flexibles. |
 | `VehicleReminders` | `vehicle_reminders` | Recordatorios e intervalos de servicio. |
@@ -93,6 +93,7 @@ Las rutas navegables se generan en `relations.json` a partir de las FKs.
 | 5 | `0005_drop_budget_legacy` | Elimina `budgets_legacy` después de validar la migración. |
 | 6 | `0006_drop_budget_plan_status` | Elimina la columna `status` de `budget_plans`. |
 | 7 | `0007_vehicle_module` | Reemplaza `fuel_refills`/`trip_logs` por el módulo de vehículo y crea sus tablas. |
+| 8 | `0008_fuel_baseline` | Agrega `is_baseline` y hace nullables volumen/precio/total para el registro base. |
 
 Reglas:
 

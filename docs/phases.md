@@ -35,7 +35,7 @@ están archivados en [`legacy/budget-plan.md`](legacy/budget-plan.md) y
 - **Migraciones:** `0001_baseline`, `0002_audit_timestamps`,
   `0003_timestamp_triggers`, `0004_budget_plans`,
   `0005_drop_budget_legacy`, `0006_drop_budget_plan_status`,
-  `0007_vehicle_module`; `SCHEMA_VERSION = 7`.
+  `0007_vehicle_module`, `0008_fuel_baseline`; `SCHEMA_VERSION = 8`.
 - **Presupuestos:** `BudgetPlans` (un plan por grupo), `BudgetLines` (categoría
   o fijo) y plantillas reutilizables. El real se deriva de `Records`; no se
   guarda. `budgets_legacy` se elimina en `0005`.
@@ -165,10 +165,10 @@ archivado como referencia histórica.
 
 Implementado:
 
-- **VEH-1:** migración `0007_vehicle_module`, `SCHEMA_VERSION = 7`, tablas de
-  vehículos, combustible, mantenimiento, piezas, recordatorios, settings y
-  vínculos de gastos. Eliminación de `fuel_refills`/`trip_logs` con conservación
-  legacy.
+- **VEH-1:** migración `0007_vehicle_module` y ajuste posterior
+  `0008_fuel_baseline`, `SCHEMA_VERSION = 8`, tablas de vehículos, combustible,
+  mantenimiento, piezas, recordatorios, settings y vínculos de gastos.
+  Eliminación de `fuel_refills`/`trip_logs` con conservación legacy.
 - **VEH-2:** dominio de unidades, consumo, promedios, segmentos de tanque lleno y
   recordatorios; repositorios y vínculos transaccionales con `Records`.
 - **VEH-3:** varios vehículos con predeterminado, odómetro/distancia manual,
@@ -210,16 +210,19 @@ Commits principales: `d1e7e13`, `1fbb2ec`, `8e51999`, `918bf45`, `e926413`,
 Verificaciones de cierre:
 
 - `npm run typecheck`
-- `npm test` (63 tests)
+- `npm test` (73 tests)
 - `npm run test:db`
 - `npm run lint` (0 errores)
 - `npx expo export --platform android`
 
-Mejoras posteriores solicitadas el 2026-11-01, **pendientes de implementar**:
+Ajustes posteriores implementados el 2026-11-01:
 
-- Registro inicial de combustible solo con odómetro como base de cálculo.
+- Registro inicial de combustible solo con odómetro como base de cálculo
+  (`is_baseline`, migración `0008_fuel_baseline`).
 - Cargas parciales con odómetro/distancia vacíos o en `0`, heredando el último
   odómetro conocido.
+- Categorías de gráficos con límite de primeros/últimos N datos y zoom; los
+  recordatorios próximos/vencidos aparecen en el inicio.
 
 Detalle en [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md), sección 19.
 

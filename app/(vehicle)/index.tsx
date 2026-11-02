@@ -240,7 +240,7 @@ const Index = () => {
   monthStart.setHours(0, 0, 0, 0);
   const monthSpend = fuelEntries
     .filter((entry) => entry.date >= monthStart.getTime())
-    .reduce((total, entry) => total + entry.total_cost, 0);
+    .reduce((total, entry) => total + (entry.total_cost ?? 0), 0);
 
   if (loading && vehicles.length === 0) {
     return (
@@ -658,20 +658,35 @@ const Index = () => {
                   analysis?.segmentMetrics ?? null,
                   format
                 );
+                const isBaseline = Boolean(entry.is_baseline);
                 return (
                   <ListItem
                     key={entry.id}
                     title={new Date(entry.date).toLocaleDateString()}
-                    subtitle={`${entry.volume.toFixed(3)} ${
-                      entry.volume_unit === 'L'
-                        ? t('vehicle.vehicle.liters')
-                        : t('vehicle.vehicle.gallons')
-                    } · ${formatMoneyWithSymbol(entry.total_cost)}`}
+                    subtitle={
+                      isBaseline
+                        ? `${t('vehicle.fuel.baselineBadge')} · ${
+                            entry.odometer ?? 0
+                          } ${
+                            entry.distance_unit === 'km'
+                              ? t('vehicle.vehicle.kilometers')
+                              : t('vehicle.vehicle.miles')
+                          }`
+                        : `${entry.volume?.toFixed(3) ?? '—'} ${
+                            entry.volume_unit === 'L'
+                              ? t('vehicle.vehicle.liters')
+                              : t('vehicle.vehicle.gallons')
+                          } · ${formatMoneyWithSymbol(
+                            entry.total_cost ?? 0
+                          )}`
+                    }
                     trailing={
                       <AppText variant='caption' color='muted'>
-                        {value != null
-                          ? `${value.toFixed(2)} ${consumptionUnits(format)}`
-                          : t('vehicle.fuel.accumulating')}
+                        {isBaseline
+                          ? t('vehicle.fuel.baselineBadge')
+                          : value != null
+                            ? `${value.toFixed(2)} ${consumptionUnits(format)}`
+                            : t('vehicle.fuel.accumulating')}
                       </AppText>
                     }
                     showDivider={index < Math.min(fuelEntries.length, 4) - 1}
