@@ -3,7 +3,6 @@ import {
   buildFuelStats,
   groupFuelSegments,
   resolvePartialOdometer,
-  selectPreviousFuelEntry,
 } from '../fuel';
 
 const base = {
@@ -234,103 +233,6 @@ describe('vehicle fuel analysis', () => {
         previousDistanceUnit: null,
       })
     ).toEqual({ ok: false, error: 'PREVIOUS_ODOMETER_REQUIRED' });
-  });
-
-  it('finds a same-day baseline when the partial date is at midnight', () => {
-    const baselineDate = new Date(2026, 10, 2, 14, 30).getTime();
-    const partialDate = new Date(2026, 10, 2).getTime();
-    const entries = [
-      { ...base, id: 1, date: baselineDate, odometer: 1000, is_baseline: 1 },
-    ];
-
-    expect(selectPreviousFuelEntry(entries, partialDate)).toBe(entries[0]);
-  });
-
-  it('uses an earlier reading before falling back to the baseline', () => {
-    const entries = [
-      {
-        ...base,
-        id: 1,
-        date: new Date(2026, 10, 1, 12).getTime(),
-        odometer: 1000,
-        is_baseline: 1,
-      },
-      {
-        ...base,
-        id: 2,
-        date: new Date(2026, 10, 2, 8).getTime(),
-        odometer: 1200,
-        is_baseline: 0,
-      },
-    ];
-
-    const previous = selectPreviousFuelEntry(
-      entries,
-      new Date(2026, 10, 2, 18).getTime()
-    );
-    expect(previous?.id).toBe(2);
-  });
-
-  it('falls back to the baseline when the partial predates it', () => {
-    const entries = [
-      {
-        ...base,
-        id: 1,
-        date: new Date(2026, 10, 2, 14).getTime(),
-        odometer: 1000,
-        is_baseline: 1,
-      },
-    ];
-
-    expect(
-      selectPreviousFuelEntry(entries, new Date(2026, 9, 30).getTime())?.id
-    ).toBe(1);
-  });
-
-  it('excludes the edited entry and later same-day records', () => {
-    const day = new Date(2026, 10, 2).getTime();
-    const entries = [
-      {
-        ...base,
-        id: 1,
-        date: new Date(2026, 10, 1, 12).getTime(),
-        odometer: 900,
-        is_baseline: 1,
-      },
-      {
-        ...base,
-        id: 2,
-        date: new Date(2026, 10, 2, 8).getTime(),
-        odometer: 1000,
-        is_baseline: 0,
-      },
-      {
-        ...base,
-        id: 3,
-        date: new Date(2026, 10, 2, 10).getTime(),
-        odometer: 1100,
-        is_baseline: 0,
-      },
-    ];
-
-    expect(selectPreviousFuelEntry(entries, day, 2)?.id).toBe(1);
-    expect(selectPreviousFuelEntry(entries, day, 3)?.id).toBe(2);
-  });
-
-  it('returns null when there is no reading nor baseline', () => {
-    const entries = [
-      {
-        ...base,
-        id: 1,
-        date: new Date(2026, 10, 2).getTime(),
-        odometer: null,
-        is_baseline: 0,
-      },
-    ];
-
-    expect(
-      selectPreviousFuelEntry(entries, new Date(2026, 10, 3).getTime())
-    ).toBeNull();
   });
 
   it('builds weighted stats', () => {

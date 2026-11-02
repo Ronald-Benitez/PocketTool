@@ -269,54 +269,6 @@ export const resolvePartialOdometer = ({
   };
 };
 
-const startOfLocalDay = (timestamp: number) => {
-  const date = new Date(timestamp);
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-};
-
-export type PreviousFuelCandidate = {
-  id?: number;
-  date: number;
-  odometer?: number | null;
-  is_baseline?: boolean | number | null;
-};
-
-/**
- * Picks the reading a partial fill should inherit. Entries are compared by
- * calendar day because the date picker stores midnight while new records use
- * the current time; both represent the same day. When nothing qualifies, the
- * baseline is used as the initial odometer even if its timestamp is later.
- */
-export const selectPreviousFuelEntry = <T extends PreviousFuelCandidate>(
-  entries: T[],
-  date: number,
-  excludeId?: number
-): T | null => {
-  const targetDay = startOfLocalDay(date);
-  const candidates = entries.filter(
-    (entry) =>
-      entry.id !== excludeId && entry.odometer != null && entry.odometer > 0
-  );
-
-  const previous = candidates
-    .filter((entry) => {
-      const entryDay = startOfLocalDay(entry.date);
-      if (entryDay < targetDay) return true;
-      if (entryDay > targetDay) return false;
-      if (excludeId === undefined) return true;
-      return (entry.id ?? 0) < excludeId;
-    })
-    .sort((a, b) => b.date - a.date || (b.id ?? 0) - (a.id ?? 0))[0];
-
-  if (previous) return previous;
-
-  return (
-    candidates
-      .filter((entry) => Boolean(entry.is_baseline))
-      .sort((a, b) => a.date - b.date || (a.id ?? 0) - (b.id ?? 0))[0] ?? null
-  );
-};
-
 export const buildFuelStats = (
   entries: FuelEntryLike[],
   format: ConsumptionFormat

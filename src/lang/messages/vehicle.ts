@@ -97,7 +97,7 @@ export const vehicleEn = {
     partialOdometerHint:
       'Leave empty or 0 to use the previous entry odometer.',
     previousOdometerRequired:
-      'There is no previous odometer. Add one or create a baseline entry first.',
+      'There is no previous odometer. Add a fuel entry or baseline with an earlier date first.',
     baselineNotAllowed:
       'A baseline can only be the first fuel record.',
     baselineOdometerRequired: 'Enter the baseline odometer.',
@@ -397,7 +397,7 @@ export const vehicleEs: MessageShape<typeof vehicleEn> = {
     partialOdometerHint:
       'Déjalo vacío o en 0 para usar el odómetro del registro anterior.',
     previousOdometerRequired:
-      'No hay un odómetro anterior. Agrega uno o crea primero un registro base.',
+      'No hay un odómetro anterior. Agrega primero una carga o un registro base con fecha anterior.',
     baselineNotAllowed:
       'El registro base solo puede ser el primero de combustible.',
     baselineOdometerRequired: 'Ingresa el odómetro base.',

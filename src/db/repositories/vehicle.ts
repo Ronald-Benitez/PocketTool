@@ -34,10 +34,7 @@ import {
   vehicleUpdateSchema,
 } from '@/src/validation/entities';
 import { computeNextDue } from '@/src/domain/vehicle/reminders';
-import {
-  resolvePartialOdometer,
-  selectPreviousFuelEntry,
-} from '@/src/domain/vehicle/fuel';
+import { resolvePartialOdometer } from '@/src/domain/vehicle/fuel';
 
 export type VehicleLinkMode = 'create' | 'link' | 'none';
 
@@ -240,7 +237,17 @@ const findPreviousFuelEntry = async (
   const rows = (await new ORM(db, 'VehicleFuelEntries')
     .where('vehicle_id', vehicleId)
     .getAll()) as VehicleFuelEntry[];
-  return selectPreviousFuelEntry(rows, date, excludeId);
+  return (
+    rows
+      .filter((row) => {
+        if (row.id === excludeId) return false;
+        if (row.odometer == null || row.odometer <= 0) return false;
+        if (row.date < date) return true;
+        if (row.date > date) return false;
+        return excludeId === undefined || (row.id ?? 0) < excludeId;
+      })
+      .sort((a, b) => b.date - a.date || (b.id ?? 0) - (a.id ?? 0))[0] ?? null
+  );
 };
 
 export const useVehiclesRepository = () => {
