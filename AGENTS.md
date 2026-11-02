@@ -296,6 +296,54 @@ de negocio o se agregue una pantalla.
 - `src/utils/index.ts`: helpers de dinero (`parseMoneyToCents`, `centsToInput`,
   `formatMoney`, `formatMoneyWithSymbol`).
 
+## Integración con Registros para operaciones con impacto en cuentas
+
+**Regla obligatoria:** toda operación que represente una entrada, una salida, un
+pago, una transferencia, un aporte, un retiro o cualquier movimiento que afecte
+las cuentas del mes debe integrarse con `Records`. No crear un sistema paralelo
+de gastos o ingresos.
+
+El flujo debe ofrecer siempre estas tres opciones:
+
+1. **Crear un registro nuevo** en `Records`.
+2. **Vincular un registro existente**.
+3. **No vincular**.
+
+Requisitos:
+
+- La UI no escribe `Records` directamente: el repositorio del agregado debe
+  crear, actualizar o vincular el registro dentro de la misma transacción que
+  guarda la operación.
+- Al crear, usar el grupo del mes, categoría, método de pago y tipo de registro
+  correctos (ingreso o gasto). Validar que no falten.
+- Al vincular, buscar solo registros compatibles y validar que el **monto** y la
+  **fecha** coincidan. Guardar la relación con `record_id` o una tabla de
+  vínculo.
+- Excluir de la búsqueda los registros ya vinculados a otra operación, incluidos
+  vehículo y financiamientos. Un registro no puede representar dos gastos.
+- Al elegir **no vincular**, guardar la operación con `record_id = null` y no
+  crear ni modificar `Records`.
+- Al editar, actualizar el registro vinculado solo si el flujo lo permite; al
+  eliminar, conservar el registro por defecto y quitar únicamente el vínculo,
+  salvo que el usuario confirme borrarlo.
+- El valor por defecto debe ser explícito y no duplicar registros. Mantener el
+  comportamiento histórico del flujo: Vehículo crea por defecto; Financiamientos
+  no vincula por defecto.
+- No duplicar la búsqueda de registros en la UI. Reutilizar el picker existente
+  y, al agregar un tercer flujo, extraer un `RecordPicker` común.
+- Agregar pruebas para validación de monto/fecha, exclusión de registros ya
+  vinculados y creación/vinculación transaccional.
+
+Referencias vigentes:
+
+- `src/components/vehicle/FuelEntryForm.tsx` y
+  `src/components/vehicle/MaintenanceForm.tsx` con
+  `VehicleExpensePicker`.
+- `src/components/credits/FinancingPaymentForm.tsx` con
+  `FinancingRecordPicker`.
+- `src/db/repositories/vehicle.ts` y `src/db/repositories/financings.ts` como
+  ejemplos de creación/vinculación transaccional.
+
 ## Convenciones obligatorias
 
 - Dinero: **integer cents** en SQLite. La UI convierte con los helpers; nunca

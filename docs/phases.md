@@ -322,6 +322,9 @@ Subfases: CRED-0 a CRED-6, detalladas en el plan.
 - Soft delete por defecto; el ORM filtra borrados.
 - Migraciones en transacción exclusiva y registro posterior al commit.
 - Repositorios como única puerta de acceso desde stores/pantallas.
+- Toda operación con impacto en cuentas (ingreso, gasto, pago, transferencia,
+  aporte o retiro) debe ofrecer crear, vincular u omitir un registro de
+  `Records`, validando monto/fecha y evitando vínculos duplicados.
 - Backups con metadatos versionados y compatibilidad con dumps SQL antiguos.
 - Lint bloqueante; CI ejecuta typecheck, artefactos, tests y lint.
 - La UI nueva usa `src/ui`; los estilos legacy se adaptan con
