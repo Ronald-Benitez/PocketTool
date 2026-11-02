@@ -175,11 +175,20 @@ const odometerSource = z.enum(['manual', 'inferred']);
 const distanceSource = z.enum(['odometer', 'manual', 'inferred']);
 const fuelType = z.enum(['gasoline']);
 const vehicleType = z.enum([
-  'car',
+  'sedan',
   'suv',
   'pickup',
-  'van',
+  'camioneta',
   'motorcycle',
+  'bus',
+  'microbus',
+  'camion',
+  'furgon',
+  'tractor',
+  'retroexcavadora',
+  'excavadora',
+  'cargador',
+  'grua',
   'other',
 ]);
 const vehicleServiceType = z.enum([

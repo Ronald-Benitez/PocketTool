@@ -5,6 +5,7 @@ import { resolveVehicleColor } from '@/src/domain/vehicle/colors';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Row } from '@/src/ui/primitives/Stack';
+import ColorPicker from '@/src/ui/forms/ColorPicker';
 import { TextField } from '@/src/ui/forms/TextField';
 import { useTheme } from '@/src/ui/theme/ThemeProvider';
 
@@ -68,12 +69,7 @@ export const VehicleColorField = ({
         })}
       </Row>
       <Row gap='sm' align='center'>
-        <View
-          style={[
-            styles.preview,
-            { backgroundColor: resolved, borderColor: colors.border },
-          ]}
-        />
+        <ColorPicker color={resolved} onChange={onChange} />
         <View style={styles.textBlock}>
           <AppText variant='body'>{resolved}</AppText>
           <AppText variant='caption' color='muted'>
@@ -91,12 +87,6 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-  },
-  preview: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    borderWidth: 1,
   },
   textBlock: { flex: 1, gap: 2 },
 });

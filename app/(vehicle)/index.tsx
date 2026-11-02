@@ -11,6 +11,7 @@ import {
 } from '@/src/db';
 import { VehicleForm } from '@/src/components/vehicle/VehicleForm';
 import { VehicleVisual } from '@/src/components/vehicle/VehicleVisual';
+import { normalizeVehicleType } from '@/src/domain/vehicle/models';
 import { buildFuelStats } from '@/src/domain/vehicle/fuel';
 import {
   buildConsumptionChart,
@@ -252,7 +253,11 @@ const Index = () => {
     .reduce((total, entry) => total + entry.cost, 0);
   const lastMaintenance = maintenance[0] ?? null;
   const vehicleTypeLabel = vehicle
-    ? t(`vehicle.vehicleTypes.${vehicle.vehicle_type ?? 'car'}` as never)
+    ? t(
+        `vehicle.vehicleTypes.${normalizeVehicleType(
+          vehicle.vehicle_type
+        )}` as never
+      )
     : '';
 
   if (loading && vehicles.length === 0) {

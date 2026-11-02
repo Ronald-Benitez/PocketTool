@@ -3,7 +3,7 @@
 > Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.
 > Fuente de verdad: `src/db/schema/tables.ts`.
 
-Versión de esquema: **9**
+Versión de esquema: **10**
 
 ## Convenciones
 
@@ -375,7 +375,7 @@ Entidad TypeScript: `Vehicle`
 | `year` | `INTEGER` | `number` |  |
 | `plate` | `TEXT` | `string` |  |
 | `color` | `TEXT` | `string` |  |
-| `vehicle_type` | `TEXT` | `string` | NOT NULL, default="car" |
+| `vehicle_type` | `TEXT` | `string` | NOT NULL, default="sedan" |
 | `fuel_type` | `TEXT` | `string` | NOT NULL, default="gasoline" |
 | `distance_unit` | `TEXT` | `string` | NOT NULL, default="mi" |
 | `volume_unit` | `TEXT` | `string` | NOT NULL, default="gal" |

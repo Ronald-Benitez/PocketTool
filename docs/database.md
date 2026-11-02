@@ -95,6 +95,7 @@ Las rutas navegables se generan en `relations.json` a partir de las FKs.
 | 7 | `0007_vehicle_module` | Reemplaza `fuel_refills`/`trip_logs` por el módulo de vehículo y crea sus tablas. |
 | 8 | `0008_fuel_baseline` | Agrega `is_baseline` y hace nullables volumen/precio/total para el registro base. |
 | 9 | `0009_vehicle_type` | Agrega `vehicle_type` a `vehicles` con valor inicial `car`. |
+| 10 | `0010_vehicle_type_models` | Normaliza `car`→`sedan` y `van`→`furgon` para los modelos nuevos. |
 
 Reglas:
 

@@ -410,7 +410,7 @@ async function testEmptyDatabase() {
   assert.strictEqual(q(raw, 'SELECT goal FROM groups')[0].goal, 500000);
   assert.strictEqual(q(raw, 'SELECT amount FROM records ORDER BY id')[0].amount, 100000);
   assert.strictEqual(q(raw, 'SELECT migration_name FROM migrations')[0].migration_name, '0001_baseline');
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 9);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 10);
   const recordColumns = q(raw, 'PRAGMA table_info(records)').map(c => c.name);
   assert.ok(recordColumns.includes('created_at'));
   assert.ok(recordColumns.includes('updated_at'));
@@ -447,7 +447,7 @@ async function testExportImport() {
   assert.ok(metadata);
   assert.strictEqual(metadata.formatVersion, BACKUP_FORMAT_VERSION);
   assert.strictEqual(metadata.appVersion, 'test-version');
-  assert.strictEqual(metadata.schemaVersion, 9);
+  assert.strictEqual(metadata.schemaVersion, 10);
   assert.ok(metadata.tables.includes('records'));
   assert.doesNotThrow(() => validateSqlDump(backupSql));
   assert.strictEqual(parseBackupMetadata(dump), null);
@@ -500,7 +500,7 @@ async function testAuditTimestampMigration() {
   const backfilled = q(raw, 'SELECT created_at, updated_at FROM records LIMIT 1')[0];
   assert.ok(backfilled.created_at > 0);
   assert.ok(backfilled.updated_at > 0);
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 9);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 10);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,
     1
@@ -835,6 +835,33 @@ async function testVehicleTypeMigration() {
   console.log('vehicle type migration: OK');
 }
 
+async function testVehicleTypeModelsMigration() {
+  const raw = new DatabaseSync(':memory:');
+  raw.exec(`
+    CREATE TABLE vehicles (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      vehicle_type TEXT NOT NULL DEFAULT 'car',
+      deleted_at INTEGER
+    );
+    INSERT INTO vehicles (name, vehicle_type) VALUES ('Sedan', 'car');
+    INSERT INTO vehicles (name, vehicle_type) VALUES ('Van', 'van');
+    INSERT INTO vehicles (name, vehicle_type) VALUES ('SUV', 'suv');
+  `);
+  const migration = require(path.join(
+    ROOT,
+    'src/db/migrations/0010_vehicle_type_models.ts'
+  )).default;
+  await migration.up(shim(raw));
+  const rows = q(raw, 'SELECT vehicle_type FROM vehicles ORDER BY id');
+  assert.deepStrictEqual(
+    rows.map((row) => row.vehicle_type),
+    ['sedan', 'furgon', 'suv']
+  );
+  raw.close();
+  console.log('vehicle type models migration: OK');
+}
+
 async function testFuelBaselineMigration() {
   const raw = new DatabaseSync(':memory:');
   raw.exec(`
@@ -921,6 +948,7 @@ async function testInterruptedRebuild() {
   await testBudgetStatusRemoval();
   await testVehicleInsert();
   await testVehicleTypeMigration();
+  await testVehicleTypeModelsMigration();
   await testFuelBaselineMigration();
   await testInterruptedRebuild();
   console.log('ALL TESTS PASSED');

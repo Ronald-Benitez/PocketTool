@@ -2,6 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { useVehiclesRepository } from '@/src/db';
+import {
+  VEHICLE_TYPES,
+  normalizeVehicleType,
+  vehicleReferenceModel,
+  type VehicleType,
+} from '@/src/domain/vehicle/models';
 import type { Vehicle } from '@/src/interfaces/schema';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { Button } from '@/src/ui/actions/Button';
@@ -12,10 +18,9 @@ import { SwitchField } from '@/src/ui/forms/SwitchField';
 import { TextField } from '@/src/ui/forms/TextField';
 import { ConfirmDialog } from '@/src/ui/overlays/Dialog';
 import { Modal } from '@/src/ui/overlays/Modal';
+import { AppText } from '@/src/ui/primitives/AppText';
 import { VehicleColorField } from './VehicleColorField';
 import { VehicleVisual } from './VehicleVisual';
-
-type VehicleType = 'car' | 'suv' | 'pickup' | 'van' | 'motorcycle' | 'other';
 
 type VehicleFormProps = {
   visible: boolean;
@@ -40,7 +45,7 @@ export const VehicleForm = ({ visible, vehicle, onClose, onSaved }: VehicleFormP
   const [year, setYear] = useState('');
   const [plate, setPlate] = useState('');
   const [color, setColor] = useState('');
-  const [vehicleType, setVehicleType] = useState<VehicleType>('car');
+  const [vehicleType, setVehicleType] = useState<VehicleType>('sedan');
   const [distanceUnit, setDistanceUnit] = useState<'mi' | 'km'>('mi');
   const [volumeUnit, setVolumeUnit] = useState<'gal' | 'L'>('gal');
   const [consumptionFormat, setConsumptionFormat] = useState<
@@ -69,7 +74,7 @@ export const VehicleForm = ({ visible, vehicle, onClose, onSaved }: VehicleFormP
     setYear(vehicle?.year?.toString() ?? '');
     setPlate(vehicle?.plate ?? '');
     setColor(vehicle?.color ?? '');
-    setVehicleType((vehicle?.vehicle_type as VehicleType) ?? 'car');
+    setVehicleType(normalizeVehicleType(vehicle?.vehicle_type));
     setDistanceUnit(vehicle?.distance_unit === 'km' ? 'km' : 'mi');
     setVolumeUnit(vehicle?.volume_unit === 'L' ? 'L' : 'gal');
     setConsumptionFormat(
@@ -148,6 +153,11 @@ export const VehicleForm = ({ visible, vehicle, onClose, onSaved }: VehicleFormP
     }
   };
 
+  const referenceModel = vehicleReferenceModel(
+    vehicleType,
+    t('vehicle.vehicle.genericModel')
+  );
+
   const remove = async () => {
     if (!vehicle?.id) return;
     setSaving(true);
@@ -214,21 +224,22 @@ export const VehicleForm = ({ visible, vehicle, onClose, onSaved }: VehicleFormP
           <SelectField
             label={t('vehicle.vehicle.type')}
             value={vehicleType}
-            options={[
-              { label: t('vehicle.vehicleTypes.car'), value: 'car' },
-              { label: t('vehicle.vehicleTypes.suv'), value: 'suv' },
-              { label: t('vehicle.vehicleTypes.pickup'), value: 'pickup' },
-              { label: t('vehicle.vehicleTypes.van'), value: 'van' },
-              {
-                label: t('vehicle.vehicleTypes.motorcycle'),
-                value: 'motorcycle',
-              },
-              { label: t('vehicle.vehicleTypes.other'), value: 'other' },
-            ]}
+            options={VEHICLE_TYPES.map((type) => ({
+              label: t(`vehicle.vehicleTypes.${type}` as never),
+              value: type,
+            }))}
             onChange={setVehicleType}
           />
+          <AppText variant='caption' color='muted'>
+            {t('vehicle.vehicle.referenceModel', { model: referenceModel })}
+          </AppText>
           <TextField label={t('vehicle.vehicle.make')} value={make} onChangeText={setMake} />
-          <TextField label={t('vehicle.vehicle.model')} value={model} onChangeText={setModel} />
+          <TextField
+            label={t('vehicle.vehicle.model')}
+            value={model}
+            onChangeText={setModel}
+            placeholder={referenceModel}
+          />
           <TextField
             label={t('vehicle.vehicle.year')}
             value={year}

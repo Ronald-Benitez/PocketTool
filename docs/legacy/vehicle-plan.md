@@ -204,7 +204,7 @@ Nombre lógico `Vehicles`, físico `vehicles`, entidad `Vehicle`.
 | `year` | INTEGER | año |
 | `plate` | TEXT | placa |
 | `color` | TEXT | nombre, texto o HEX; se resuelve a un color real |
-| `vehicle_type` | TEXT NOT NULL DEFAULT `'car'` | `car`, `suv`, `pickup`, `van`, `motorcycle`, `other` |
+| `vehicle_type` | TEXT NOT NULL DEFAULT `'sedan'` | `sedan`, `suv`, `pickup`, `camioneta`, `motorcycle`, `bus`, `microbus`, `camion`, `furgon`, `tractor`, `retroexcavadora`, `excavadora`, `cargador`, `grua`, `other` |
 | `fuel_type` | TEXT NOT NULL DEFAULT `'gasoline'` | v1: `gasoline`; futuro: `electric`, `plug_in_hybrid`, `propane`, `diesel` |
 | `distance_unit` | TEXT NOT NULL DEFAULT `'mi'` | `mi` / `km` |
 | `volume_unit` | TEXT NOT NULL DEFAULT `'gal'` | `gal` / `L` |
@@ -1412,10 +1412,15 @@ Criterios de aceptación:
 
 ### 19.4 Tipo de vehículo, color y visualización
 
-- Migración `0009_vehicle_type`: agrega `vehicle_type` con valores `car`, `suv`,
-  `pickup`, `van`, `motorcycle` y `other`.
-- El color acepta texto libre, un nombre de color, un HEX o una selección de la
-  paleta. `resolveVehicleColor` convierte nombres y texto a un color real.
+- Migraciones `0009_vehicle_type` y `0010_vehicle_type_models`.
+- Tipos: `sedan`, `suv`, `pickup`, `camioneta`, `motorcycle`, `bus`, `microbus`,
+  `camion`, `furgon`, `tractor`, `retroexcavadora`, `excavadora`, `cargador`,
+  `grua` y `other`.
+- Modelos de referencia: Mazda 3, Suzuki Jimny, Toyota Hilux, Nissan Rogue,
+  Honda Navi, Toyota Hiace y John Deere; el resto usa modelos genéricos.
+- El color acepta texto libre, un nombre de color, un HEX, una selección de la
+  paleta o el color picker. `resolveVehicleColor` convierte nombres y texto a un
+  color real.
 - `VehicleVisual` dibuja modelos SVG para cada tipo con el color del vehículo y
   una animación de entrada/flotación con Reanimated.
 - La visualización aparece en el formulario y en el inicio del vehículo.

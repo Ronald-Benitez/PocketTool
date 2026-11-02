@@ -64,8 +64,9 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 - `src/ui/charts/MermaidChart.tsx`: WebView offline con Mermaid vendorizado,
   tema y fallback accesible.
 - `src/hooks/useBudgetPlan.ts`: carga y refresco del plan mensual y plantillas.
-- `src/domain/vehicle/`: unidades, consumo, promedios, recordatorios y
-  resolución de colores (`colors.ts`).
+- `src/domain/vehicle/`: unidades, consumo, promedios, recordatorios,
+  resolución de colores (`colors.ts`) y tipos/referencias visuales
+  (`models.ts`).
 - `src/components/vehicle/VehicleVisual.tsx`: modelos SVG por tipo de vehículo
   con animación Reanimated; `VehicleColorField` resuelve texto/HEX/paleta.
 - `src/db/repositories/vehicle.ts`: vehículos, combustible, mantenimiento,
