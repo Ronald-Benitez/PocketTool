@@ -3,25 +3,84 @@ import { z } from 'zod';
 
 import { ORM, useORM } from '@/src/orm';
 import { withExclusiveTransaction } from '@/src/db/transaction';
+import { useConfigs } from '@/src/hooks/useConfigs';
 import type {
   Financing,
   FinancingAdjustment,
   FinancingPayment,
   FinancingWithRelations,
   Insertable,
+  RecordEntry,
+  RecordType,
+  VehicleExpenseLink,
 } from '@/src/interfaces/schema';
 import {
   financingAdjustmentInputSchema,
   financingInputSchema,
   financingPaymentInputSchema,
   financingUpdateSchema,
+  recordInputSchema,
 } from '@/src/validation/entities';
+
+export type FinancingLinkMode = 'create' | 'link' | 'none';
+
+export type FinancingRecordOption = {
+  id: number;
+  name: string;
+  date: number;
+  amount: number;
+  categoryId: number | null;
+  categoryName: string;
+  paymentMethodId: number | null;
+  paymentMethodName: string;
+  groupId: number | null;
+  groupName: string;
+};
+
+export type FinancingPaymentRecordInput = {
+  linkMode: FinancingLinkMode;
+  recordId?: number | null;
+  groupId?: number | null;
+  categoryId?: number | null;
+  paymentMethodId?: number | null;
+};
+
+const expenseTypeKey = (type: RecordType) =>
+  (type.type_name ?? '').toLowerCase() === 'payments';
+
+const resolveExpenseType = async (
+  db: Parameters<typeof withExclusiveTransaction>[0]
+) => {
+  const excluded = useConfigs.getState().configs.paymentCreditType;
+  const types = (await new ORM(db, 'RecordTypes').getAll()) as RecordType[];
+  return (
+    types.find(
+      (type) =>
+        type.id !== undefined &&
+        type.id !== excluded &&
+        type.effect === '-' &&
+        !expenseTypeKey(type)
+    ) ?? null
+  );
+};
+
+const isSameDay = (left: number, right: number) => {
+  const a = new Date(left);
+  const b = new Date(right);
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+};
 
 export const useFinancingsRepository = () => {
   const db = useSQLiteContext();
   const financingsOrm = useORM('Financings');
   const paymentsOrm = useORM('FinancingPayments');
   const adjustmentsOrm = useORM('FinancingAdjustments');
+  const recordsOrm = useORM('Records');
+  const vehicleLinksOrm = useORM('VehicleExpenseLinks');
 
   const fetchFinancings = async (): Promise<FinancingWithRelations[]> => {
     const [rows, payments, adjustments] = await Promise.all([
@@ -67,16 +126,178 @@ export const useFinancingsRepository = () => {
     });
   };
 
-  const savePayment = async (
-    input: z.infer<typeof financingPaymentInputSchema> & { id?: number }
-  ) => {
-    const { id, ...values } = input;
-    const payload = financingPaymentInputSchema.parse(values);
-    if (id !== undefined) {
-      await paymentsOrm.update(id, payload);
-      return id;
+  const searchRecords = async ({
+    from,
+    to,
+    amountMin,
+    amountMax,
+    categoryId,
+    paymentMethodId,
+    search,
+    paymentId,
+  }: {
+    from?: number;
+    to?: number;
+    amountMin?: number;
+    amountMax?: number;
+    categoryId?: number;
+    paymentMethodId?: number;
+    search?: string;
+    paymentId?: number;
+  }): Promise<FinancingRecordOption[]> => {
+    const [payments, vehicleLinks] = await Promise.all([
+      paymentsOrm.getAll() as Promise<FinancingPayment[]>,
+      vehicleLinksOrm.getAll() as Promise<VehicleExpenseLink[]>,
+    ]);
+
+    const linked = new Set<number>();
+    for (const payment of payments) {
+      if (payment.id === paymentId) continue;
+      if (payment.record_id != null) linked.add(payment.record_id);
     }
-    return paymentsOrm.insert(payload as Insertable<FinancingPayment>);
+    for (const link of vehicleLinks) {
+      if (link.record_id != null) linked.add(link.record_id);
+    }
+
+    let query = recordsOrm
+      .joinMany(['Categories', 'PaymentMethods', 'RecordTypes', 'Groups'])
+      .where('RecordTypes.effect', '-');
+    if (from != null) query = query.where('date', from, '>=');
+    if (to != null) query = query.where('date', to, '<=');
+    if (amountMin != null) query = query.where('amount', amountMin, '>=');
+    if (amountMax != null) query = query.where('amount', amountMax, '<=');
+    if (categoryId) query = query.where('category_id', categoryId);
+    if (paymentMethodId) {
+      query = query.where('payment_method_id', paymentMethodId);
+    }
+    if (search?.trim()) {
+      query = query.where('record_name', `%${search.trim()}%`, 'LIKE');
+    }
+    const rows = (await query.order('date', 'DESC').getAll()) as any[];
+
+    return rows
+      .filter((row) => !linked.has(row.id))
+      .map((row) => ({
+        id: row.id as number,
+        name: row.record_name as string,
+        date: row.date as number,
+        amount: row.amount as number,
+        categoryId: row.category_id ?? null,
+        categoryName: row.Categories?.category_name ?? '',
+        paymentMethodId: row.payment_method_id ?? null,
+        paymentMethodName: row.PaymentMethods?.method_name ?? '',
+        groupId: row.group_id ?? null,
+        groupName: row.Groups?.group_name ?? '',
+      }));
+  };
+
+  const savePayment = async (
+    input: z.infer<typeof financingPaymentInputSchema> & {
+      id?: number;
+      record?: FinancingPaymentRecordInput;
+    }
+  ) => {
+    const { id, record, ...values } = input;
+    return withExclusiveTransaction(db, async (txn) => {
+      const payments = new ORM(txn, 'FinancingPayments');
+      const records = new ORM(txn, 'Records');
+      const vehicleLinks = new ORM(txn, 'VehicleExpenseLinks');
+      const financings = new ORM(txn, 'Financings');
+
+      const existing =
+        id !== undefined
+          ? ((await payments.getById(id)) as FinancingPayment | null)
+          : null;
+      if (id !== undefined && !existing) throw new Error('PAYMENT_NOT_FOUND');
+      const financing = (await financings.getById(
+        values.financing_id
+      )) as Financing | null;
+      if (!financing) throw new Error('FINANCING_NOT_FOUND');
+
+      let recordId =
+        record?.linkMode === 'none'
+          ? null
+          : existing?.record_id ?? null;
+      let groupId = values.group_id ?? null;
+      let paymentMethodId = values.payment_method_id ?? null;
+
+      if (record?.linkMode === 'link') {
+        if (!record.recordId) throw new Error('RECORD_REQUIRED');
+        const linked = (await records.getById(
+          record.recordId
+        )) as RecordEntry | null;
+        if (!linked) throw new Error('RECORD_NOT_FOUND');
+        const otherPayments = (await payments
+          .where('record_id', record.recordId)
+          .getAll()) as FinancingPayment[];
+        if (otherPayments.some((payment) => payment.id !== id)) {
+          throw new Error('RECORD_ALREADY_LINKED');
+        }
+        const vehicleLink = (await vehicleLinks
+          .where('record_id', record.recordId)
+          .first()) as VehicleExpenseLink | null;
+        if (vehicleLink) throw new Error('RECORD_ALREADY_LINKED');
+        if (linked.amount !== values.amount_cents) {
+          throw new Error('RECORD_AMOUNT_MISMATCH');
+        }
+        if (!isSameDay(linked.date, values.date)) {
+          throw new Error('RECORD_DATE_MISMATCH');
+        }
+        recordId = record.recordId;
+        groupId = linked.group_id ?? groupId;
+        paymentMethodId = linked.payment_method_id ?? paymentMethodId;
+      } else if (record?.linkMode === 'create') {
+        const group = record.groupId ?? groupId;
+        const category = record.categoryId ?? financing.category_id ?? null;
+        const method =
+          record.paymentMethodId ?? financing.payment_method_id ?? null;
+        if (!group) throw new Error('GROUP_REQUIRED');
+        if (!category) throw new Error('CATEGORY_REQUIRED');
+        if (!method) throw new Error('PAYMENT_METHOD_REQUIRED');
+        const expenseType = await resolveExpenseType(txn);
+        if (!expenseType?.id) throw new Error('RECORD_TYPE_REQUIRED');
+
+        const recordPayload = recordInputSchema.parse({
+          amount: values.amount_cents,
+          record_name: `Payment · ${financing.name}`,
+          date: values.date,
+          record_type_id: expenseType.id,
+          group_id: group,
+          category_id: category,
+          payment_method_id: method,
+        });
+
+        if (recordId) {
+          await records.update(recordId, {
+            amount: recordPayload.amount,
+            record_name: recordPayload.record_name,
+            date: recordPayload.date,
+            record_type_id: recordPayload.record_type_id,
+            group_id: recordPayload.group_id,
+            category_id: recordPayload.category_id,
+            payment_method_id: recordPayload.payment_method_id,
+          });
+        } else {
+          recordId = await records.insert(
+            recordPayload as Insertable<RecordEntry>
+          );
+        }
+        groupId = group;
+        paymentMethodId = method;
+      }
+
+      const payload = financingPaymentInputSchema.parse({
+        ...values,
+        group_id: groupId,
+        payment_method_id: paymentMethodId,
+        record_id: recordId,
+      });
+      if (id !== undefined) {
+        await payments.update(id, payload);
+        return id;
+      }
+      return payments.insert(payload as Insertable<FinancingPayment>);
+    });
   };
 
   const saveAdjustment = async (
@@ -98,6 +319,7 @@ export const useFinancingsRepository = () => {
     saveFinancing,
     deleteFinancing,
     savePayment,
+    searchRecords,
     saveAdjustment,
   };
 };

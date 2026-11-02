@@ -47,7 +47,7 @@ No editar esos archivos a mano.
 | `Records` | `records` | Movimientos principales. |
 | `PaidCredits` | `paid_credits` | Pagos de créditos. |
 | `Financings` | `financings` | Compras a plazo y préstamos con tasa, plazo y estado inicial. |
-| `FinancingPayments` | `financing_payments` | Pagos, capital, interés, seguros, honorarios y abonos. |
+| `FinancingPayments` | `financing_payments` | Pagos, capital, interés, seguros, honorarios, abonos y vínculo opcional con `Records`. |
 | `FinancingAdjustments` | `financing_adjustments` | Refinanciamientos y cambios de tasa/plazo. |
 | `BudgetTemplates` | `budget_templates` | Plantillas de presupuesto reutilizables. |
 | `BudgetTemplateItems` | `budget_template_items` | Líneas de plantilla (categoría o fijo). |

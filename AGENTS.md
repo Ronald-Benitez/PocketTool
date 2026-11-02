@@ -171,7 +171,8 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 - `src/domain/credits/simulations.ts`: comparación de escenarios sin guardar.
 - `src/domain/credits/cards.ts`: agrupa compras a plazo al 0% activas por
   tarjeta; su saldo pendiente reduce el crédito disponible.
-- `src/db/repositories/financings.ts`: financiamientos, pagos y ajustes.
+- `src/db/repositories/financings.ts`: financiamientos, pagos, ajustes y
+  vínculos de pagos con `Records` (crear, vincular u omitir).
 - `src/stores/CreditsStore.ts`: totales por ciclo y uso de tarjeta con compras a
   plazo al 0%. No duplicar una compra como gasto de tarjeta y financiamiento.
 

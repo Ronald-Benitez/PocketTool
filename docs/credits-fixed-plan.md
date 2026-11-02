@@ -631,6 +631,8 @@ Implementado:
   pagos nuevos se autocompletan con la cuota pactada.
 - Si el pago supera la cuota programada, la diferencia se registra como seguro u
   otro cargo y se muestra separada del capital y los intereses.
+- Cada pago puede crear un `Records` nuevo, vincular uno existente o no
+  vincular, igual que en Vehículo; así el gasto queda centralizado.
 - Resumen de deuda total, cuota mensual, tasa media y meses restantes.
 - Refinanciamientos y cambios de tasa/plazo con historial de ajustes acumulados.
 - Simulaciones de abono único/recurrente, nueva tasa y nuevo plazo, con

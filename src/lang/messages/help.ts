@@ -393,7 +393,7 @@ export const helpEn = {
             "steps": {
                 "title": "Step by step",
                 "step1": "Create the financing with its amount, rate, term, first payment date and payment method.",
-                "step2": "Register each payment, including extra principal or an extra amount to reduce the payment.",
+                "step2": "Register each payment, including extra principal or an extra amount to reduce the payment. You can create, link or skip a Record for that payment.",
                 "step3": "Use Refinance to change rate or term, Simulate to compare an extra payment, and the schedule to review pending installments."
             },
             "example": {
@@ -895,7 +895,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             "steps": {
                 "title": "Paso a paso",
                 "step1": "Crea el financiamiento con monto, tasa, plazo, primera cuota y método de pago.",
-                "step2": "Registra cada pago, incluyendo abonos a capital o un extra para reducir la cuota.",
+                "step2": "Registra cada pago, incluyendo abonos a capital o un extra para reducir la cuota. Puedes crear, vincular u omitir un Registro para ese pago.",
                 "step3": "Usa Refinanciar para cambiar tasa o plazo, Simular para comparar un abono extra y el calendario para revisar las cuotas pendientes."
             },
             "example": {

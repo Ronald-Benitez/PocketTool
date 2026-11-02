@@ -278,6 +278,7 @@ Implementado hasta ahora:
 - Alta/edición de financiamientos y registro de pagos con abono a capital.
 - Cuota pactada o calculada, autocompletado de pagos y diferencia registrada
   como seguro u otros cargos.
+- Cada pago puede crear, vincular o no vincular un registro de `Records`.
 - Resumen de deuda total, cuota mensual, tasa media y meses restantes.
 - Refinanciamientos, cambios de tasa/plazo y ajustes acumulados.
 - Simulaciones de abono único/recurrente, tasa y plazo.
