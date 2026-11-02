@@ -10,6 +10,7 @@ import {
   useVehicleRemindersRepository,
 } from '@/src/db';
 import { VehicleForm } from '@/src/components/vehicle/VehicleForm';
+import { VehicleVisual } from '@/src/components/vehicle/VehicleVisual';
 import { buildFuelStats } from '@/src/domain/vehicle/fuel';
 import {
   buildConsumptionChart,
@@ -238,9 +239,21 @@ const Index = () => {
   const monthStart = new Date();
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
+  const monthStartMs = monthStart.getTime();
   const monthSpend = fuelEntries
-    .filter((entry) => entry.date >= monthStart.getTime())
+    .filter((entry) => entry.date >= monthStartMs)
     .reduce((total, entry) => total + (entry.total_cost ?? 0), 0);
+  const maintenanceTotalCents = maintenance.reduce(
+    (total, entry) => total + entry.cost,
+    0
+  );
+  const maintenanceMonthCents = maintenance
+    .filter((entry) => entry.date >= monthStartMs)
+    .reduce((total, entry) => total + entry.cost, 0);
+  const lastMaintenance = maintenance[0] ?? null;
+  const vehicleTypeLabel = vehicle
+    ? t(`vehicle.vehicleTypes.${vehicle.vehicle_type ?? 'car'}` as never)
+    : '';
 
   if (loading && vehicles.length === 0) {
     return (
@@ -316,6 +329,35 @@ const Index = () => {
             />
           ) : null}
         </Row>
+
+        {vehicle ? (
+          <Surface variant='muted' padding='md'>
+            <Row gap='md' align='center'>
+              <View style={{ width: 150 }}>
+                <VehicleVisual
+                  type={vehicle.vehicle_type ?? 'car'}
+                  color={vehicle.color}
+                  height={90}
+                  accessibilityLabel={vehicle.name}
+                />
+              </View>
+              <Stack gap='xxs' style={{ flex: 1 }}>
+                <AppText variant='subtitle'>{vehicle.name}</AppText>
+                <AppText color='muted'>
+                  {[vehicle.make, vehicle.model, vehicle.year]
+                    .filter(Boolean)
+                    .join(' ') || vehicleTypeLabel}
+                </AppText>
+                <Row gap='xs' wrap>
+                  <Badge label={vehicleTypeLabel} tone='info' size='sm' />
+                  {vehicle.plate ? (
+                    <Badge label={vehicle.plate} tone='neutral' size='sm' />
+                  ) : null}
+                </Row>
+              </Stack>
+            </Row>
+          </Surface>
+        ) : null}
 
         <Surface variant='raised' padding='lg'>
           <Stack gap='md'>
@@ -444,6 +486,58 @@ const Index = () => {
             </Surface>
           </Stack>
         ) : null}
+
+        <Surface variant='outlined' padding='lg'>
+          <Stack gap='md'>
+            <Row justify='space-between' align='center' gap='sm'>
+              <AppText variant='subtitle'>
+                {t('vehicle.maintenance.title')}
+              </AppText>
+              <Button
+                label={t('vehicle.actions.addMaintenance')}
+                size='sm'
+                variant='ghost'
+                onPress={() => router.push('/(vehicle)/maintenance' as never)}
+              />
+            </Row>
+            <Row gap='md'>
+              <SummaryBlock
+                label={t('vehicle.maintenance.totalSpent')}
+                cents={maintenanceTotalCents}
+                size='sm'
+                accentColor={colors.chartMaintenanceCost}
+                style={{ flex: 1 }}
+              />
+              <SummaryBlock
+                label={t('vehicle.maintenance.monthSpent')}
+                cents={maintenanceMonthCents}
+                size='sm'
+                accentColor={colors.expense}
+                style={{ flex: 1 }}
+              />
+            </Row>
+            {lastMaintenance ? (
+              <ListItem
+                title={lastMaintenance.title}
+                subtitle={`${new Date(
+                  lastMaintenance.date
+                ).toLocaleDateString()} · ${t(
+                  `vehicle.serviceTypes.${lastMaintenance.service_type}` as never
+                )} · ${formatMoneyWithSymbol(lastMaintenance.cost)}`}
+                leading={
+                  <MaterialIcons
+                    name='build'
+                    size={20}
+                    color={colors.chartMaintenanceCost}
+                  />
+                }
+                onPress={() => router.push('/(vehicle)/maintenance' as never)}
+              />
+            ) : (
+              <AppText color='muted'>{t('vehicle.maintenance.empty')}</AppText>
+            )}
+          </Stack>
+        </Surface>
 
         <Surface variant='outlined' padding='lg'>
           <Stack gap='md'>

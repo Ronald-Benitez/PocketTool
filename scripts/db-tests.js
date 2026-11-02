@@ -56,6 +56,7 @@ const {
   groupInputSchema,
   budgetLineInputSchema,
   budgetPlanInputSchema,
+  vehicleInputSchema,
 } = require(path.join(ROOT, 'src/validation/entities.ts'));
 const { getCreditPeriods } = require(path.join(ROOT, 'src/utils/creditPeriods.ts'));
 
@@ -409,7 +410,7 @@ async function testEmptyDatabase() {
   assert.strictEqual(q(raw, 'SELECT goal FROM groups')[0].goal, 500000);
   assert.strictEqual(q(raw, 'SELECT amount FROM records ORDER BY id')[0].amount, 100000);
   assert.strictEqual(q(raw, 'SELECT migration_name FROM migrations')[0].migration_name, '0001_baseline');
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 8);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 9);
   const recordColumns = q(raw, 'PRAGMA table_info(records)').map(c => c.name);
   assert.ok(recordColumns.includes('created_at'));
   assert.ok(recordColumns.includes('updated_at'));
@@ -446,7 +447,7 @@ async function testExportImport() {
   assert.ok(metadata);
   assert.strictEqual(metadata.formatVersion, BACKUP_FORMAT_VERSION);
   assert.strictEqual(metadata.appVersion, 'test-version');
-  assert.strictEqual(metadata.schemaVersion, 8);
+  assert.strictEqual(metadata.schemaVersion, 9);
   assert.ok(metadata.tables.includes('records'));
   assert.doesNotThrow(() => validateSqlDump(backupSql));
   assert.strictEqual(parseBackupMetadata(dump), null);
@@ -499,7 +500,7 @@ async function testAuditTimestampMigration() {
   const backfilled = q(raw, 'SELECT created_at, updated_at FROM records LIMIT 1')[0];
   assert.ok(backfilled.created_at > 0);
   assert.ok(backfilled.updated_at > 0);
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 8);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 9);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,
     1
@@ -771,6 +772,69 @@ async function testBudgetStatusRemoval() {
   console.log('budget plan status removal: OK');
 }
 
+async function testVehicleInsert() {
+  const raw = new DatabaseSync(':memory:');
+  const db = shim(raw);
+  await migrateDb(db);
+  const orm = new ORM(db, 'Vehicles');
+  const payload = vehicleInputSchema.parse({
+    name: 'Test car',
+    make: 'Test',
+    model: null,
+    year: null,
+    plate: null,
+    color: '#3366ff',
+    vehicle_type: 'suv',
+    fuel_type: 'gasoline',
+    distance_unit: 'mi',
+    volume_unit: 'gal',
+    consumption_format: 'mi_gal',
+    tank_capacity: null,
+    tank_capacity_unit: null,
+    is_default: true,
+    notes: null,
+  });
+  const shouldDefault =
+    payload.is_default === true || payload.is_default === 1;
+  const id = await orm.insert({
+    ...payload,
+    is_default: shouldDefault ? 1 : 0,
+  });
+  const row = q(raw, 'SELECT * FROM vehicles WHERE id = ?', [id])[0];
+  assert.strictEqual(row.name, 'Test car');
+  assert.strictEqual(row.color, '#3366ff');
+  assert.strictEqual(row.vehicle_type, 'suv');
+  raw.close();
+  console.log('vehicle insert: OK');
+}
+
+async function testVehicleTypeMigration() {
+  const raw = new DatabaseSync(':memory:');
+  raw.exec(`
+    CREATE TABLE vehicles (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      color TEXT,
+      is_default INTEGER NOT NULL DEFAULT 0,
+      deleted_at INTEGER
+    );
+    INSERT INTO vehicles (name, color) VALUES ('Test', 'Rojo');
+  `);
+  const migration = require(path.join(
+    ROOT,
+    'src/db/migrations/0009_vehicle_type.ts'
+  )).default;
+  await migration.up(shim(raw));
+  const columns = q(raw, 'PRAGMA table_info(vehicles)');
+  assert.ok(columns.some((column) => column.name === 'vehicle_type'));
+  assert.strictEqual(
+    q(raw, 'SELECT vehicle_type FROM vehicles')[0].vehicle_type,
+    'car'
+  );
+  raw.close();
+  console.log('vehicle type migration: OK');
+}
+
 async function testFuelBaselineMigration() {
   const raw = new DatabaseSync(':memory:');
   raw.exec(`
@@ -855,6 +919,8 @@ async function testInterruptedRebuild() {
   await testQueryPlans();
   testNoLegacyHandlerImports();
   await testBudgetStatusRemoval();
+  await testVehicleInsert();
+  await testVehicleTypeMigration();
   await testFuelBaselineMigration();
   await testInterruptedRebuild();
   console.log('ALL TESTS PASSED');

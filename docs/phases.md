@@ -35,7 +35,8 @@ están archivados en [`legacy/budget-plan.md`](legacy/budget-plan.md) y
 - **Migraciones:** `0001_baseline`, `0002_audit_timestamps`,
   `0003_timestamp_triggers`, `0004_budget_plans`,
   `0005_drop_budget_legacy`, `0006_drop_budget_plan_status`,
-  `0007_vehicle_module`, `0008_fuel_baseline`; `SCHEMA_VERSION = 8`.
+  `0007_vehicle_module`, `0008_fuel_baseline`, `0009_vehicle_type`;
+  `SCHEMA_VERSION = 9`.
 - **Presupuestos:** `BudgetPlans` (un plan por grupo), `BudgetLines` (categoría
   o fijo) y plantillas reutilizables. El real se deriva de `Records`; no se
   guarda. `budgets_legacy` se elimina en `0005`.
@@ -165,8 +166,8 @@ archivado como referencia histórica.
 
 Implementado:
 
-- **VEH-1:** migración `0007_vehicle_module` y ajuste posterior
-  `0008_fuel_baseline`, `SCHEMA_VERSION = 8`, tablas de vehículos, combustible,
+- **VEH-1:** migraciones `0007_vehicle_module`, `0008_fuel_baseline` y
+  `0009_vehicle_type`, `SCHEMA_VERSION = 9`, tablas de vehículos, combustible,
   mantenimiento, piezas, recordatorios, settings y vínculos de gastos.
   Eliminación de `fuel_refills`/`trip_logs` con conservación legacy.
 - **VEH-2:** dominio de unidades, consumo, promedios, segmentos de tanque lleno y
@@ -210,7 +211,7 @@ Commits principales: `d1e7e13`, `1fbb2ec`, `8e51999`, `918bf45`, `e926413`,
 Verificaciones de cierre:
 
 - `npm run typecheck`
-- `npm test` (73 tests)
+- `npm test` (76 tests)
 - `npm run test:db`
 - `npm run lint` (0 errores)
 - `npx expo export --platform android`
@@ -223,6 +224,8 @@ Ajustes posteriores implementados el 2026-11-01:
   odómetro conocido.
 - Categorías de gráficos con límite de primeros/últimos N datos y zoom; los
   recordatorios próximos/vencidos aparecen en el inicio.
+- Tipo de vehículo, color por nombre/hex/paleta y visualización SVG animada.
+- Resumen de mantenimientos en el inicio (total, mes y último servicio).
 
 Detalle en [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md), sección 19.
 

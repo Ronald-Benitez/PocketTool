@@ -174,6 +174,14 @@ const consumptionFormat = z.enum([
 const odometerSource = z.enum(['manual', 'inferred']);
 const distanceSource = z.enum(['odometer', 'manual', 'inferred']);
 const fuelType = z.enum(['gasoline']);
+const vehicleType = z.enum([
+  'car',
+  'suv',
+  'pickup',
+  'van',
+  'motorcycle',
+  'other',
+]);
 const vehicleServiceType = z.enum([
   'oil_change',
   'tires',
@@ -205,6 +213,7 @@ export const vehicleInputSchema = z
     year: z.number().int().min(1900).max(2200).nullable().optional(),
     plate: z.string().max(40).nullable().optional(),
     color: z.string().max(40).nullable().optional(),
+    vehicle_type: vehicleType.optional(),
     fuel_type: fuelType.optional(),
     distance_unit: distanceUnit.optional(),
     volume_unit: volumeUnit.optional(),

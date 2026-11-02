@@ -292,9 +292,18 @@ export const useVehiclesRepository = () => {
 
   const updateVehicle = async (id: number, input: Partial<z.infer<typeof vehicleInputSchema>>) => {
     const payload = vehicleUpdateSchema.parse(input);
+    const updatePayload = {
+      ...payload,
+      ...(payload.is_default === undefined
+        ? {}
+        : {
+            is_default:
+              payload.is_default === true || payload.is_default === 1 ? 1 : 0,
+          }),
+    };
     await withExclusiveTransaction(db, async (txn) => {
       const orm = new ORM(txn, 'Vehicles');
-      if (payload.is_default === true || payload.is_default === 1) {
+      if (updatePayload.is_default === 1) {
         const rows = (await orm.getAll()) as Vehicle[];
         for (const row of rows) {
           if (row.id !== undefined && row.id !== id) {
@@ -302,7 +311,7 @@ export const useVehiclesRepository = () => {
           }
         }
       }
-      await orm.update(id, payload);
+      await orm.update(id, updatePayload);
     });
   };
 

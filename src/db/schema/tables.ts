@@ -1,6 +1,6 @@
 import type { TableDefinition, TableSchema } from '../types';
 
-export const SCHEMA_VERSION = 8;
+export const SCHEMA_VERSION = 9;
 
 export type TableName =
   | 'Groups'
@@ -430,6 +430,7 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
       { name: 'year', type: 'INTEGER' },
       { name: 'plate', type: 'TEXT' },
       { name: 'color', type: 'TEXT' },
+      { name: 'vehicle_type', type: 'TEXT', notNull: true, defaultValue: 'car' },
       { name: 'fuel_type', type: 'TEXT', notNull: true, defaultValue: 'gasoline' },
       { name: 'distance_unit', type: 'TEXT', notNull: true, defaultValue: 'mi' },
       { name: 'volume_unit', type: 'TEXT', notNull: true, defaultValue: 'gal' },

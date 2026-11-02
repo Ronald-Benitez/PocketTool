@@ -203,7 +203,8 @@ Nombre lógico `Vehicles`, físico `vehicles`, entidad `Vehicle`.
 | `model` | TEXT | modelo |
 | `year` | INTEGER | año |
 | `plate` | TEXT | placa |
-| `color` | TEXT | color |
+| `color` | TEXT | nombre, texto o HEX; se resuelve a un color real |
+| `vehicle_type` | TEXT NOT NULL DEFAULT `'car'` | `car`, `suv`, `pickup`, `van`, `motorcycle`, `other` |
 | `fuel_type` | TEXT NOT NULL DEFAULT `'gasoline'` | v1: `gasoline`; futuro: `electric`, `plug_in_hybrid`, `propane`, `diesel` |
 | `distance_unit` | TEXT NOT NULL DEFAULT `'mi'` | `mi` / `km` |
 | `volume_unit` | TEXT NOT NULL DEFAULT `'gal'` | `gal` / `L` |
@@ -1397,7 +1398,7 @@ Criterios de aceptación:
 
 - Migración `0008_fuel_baseline`: agrega `is_baseline` y hace nullables
   `volume`, `price_per_unit` y `total_cost`.
-- `SCHEMA_VERSION = 8`; `src/db/schema/tables.ts` y artefactos regenerados.
+- `SCHEMA_VERSION = 9`; `src/db/schema/tables.ts` y artefactos regenerados.
 - Validación zod acepta baseline solo con odómetro y permite cargas parciales
   sin odómetro/distancia.
 - El repositorio resuelve el odómetro anterior para cargas parciales y bloquea
@@ -1408,3 +1409,20 @@ Criterios de aceptación:
   las sumas de dinero/volumen y lo muestran como **Base**.
 - Ayuda y traducciones actualizadas.
 - Pruebas de dominio, validación, migración y base de datos añadidas.
+
+### 19.4 Tipo de vehículo, color y visualización
+
+- Migración `0009_vehicle_type`: agrega `vehicle_type` con valores `car`, `suv`,
+  `pickup`, `van`, `motorcycle` y `other`.
+- El color acepta texto libre, un nombre de color, un HEX o una selección de la
+  paleta. `resolveVehicleColor` convierte nombres y texto a un color real.
+- `VehicleVisual` dibuja modelos SVG para cada tipo con el color del vehículo y
+  una animación de entrada/flotación con Reanimated.
+- La visualización aparece en el formulario y en el inicio del vehículo.
+
+### 19.5 Resumen de mantenimiento en el inicio
+
+- Total gastado en mantenimiento.
+- Gasto de mantenimiento del mes actual.
+- Último mantenimiento registrado con fecha, tipo y costo.
+- Acceso directo a la sección de Mantenimiento.

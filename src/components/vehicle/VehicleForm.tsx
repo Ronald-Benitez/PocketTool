@@ -12,12 +12,22 @@ import { SwitchField } from '@/src/ui/forms/SwitchField';
 import { TextField } from '@/src/ui/forms/TextField';
 import { ConfirmDialog } from '@/src/ui/overlays/Dialog';
 import { Modal } from '@/src/ui/overlays/Modal';
+import { VehicleColorField } from './VehicleColorField';
+import { VehicleVisual } from './VehicleVisual';
+
+type VehicleType = 'car' | 'suv' | 'pickup' | 'van' | 'motorcycle' | 'other';
 
 type VehicleFormProps = {
   visible: boolean;
   vehicle?: Vehicle | null;
   onClose: () => void;
   onSaved: () => void;
+};
+
+const parseNumber = (value: string) => {
+  const normalized = value.replace(',', '.').replace(/[^0-9.]/g, '');
+  const number = Number(normalized);
+  return Number.isFinite(number) ? number : 0;
 };
 
 export const VehicleForm = ({ visible, vehicle, onClose, onSaved }: VehicleFormProps) => {
@@ -30,6 +40,7 @@ export const VehicleForm = ({ visible, vehicle, onClose, onSaved }: VehicleFormP
   const [year, setYear] = useState('');
   const [plate, setPlate] = useState('');
   const [color, setColor] = useState('');
+  const [vehicleType, setVehicleType] = useState<VehicleType>('car');
   const [distanceUnit, setDistanceUnit] = useState<'mi' | 'km'>('mi');
   const [volumeUnit, setVolumeUnit] = useState<'gal' | 'L'>('gal');
   const [consumptionFormat, setConsumptionFormat] = useState<
@@ -58,6 +69,7 @@ export const VehicleForm = ({ visible, vehicle, onClose, onSaved }: VehicleFormP
     setYear(vehicle?.year?.toString() ?? '');
     setPlate(vehicle?.plate ?? '');
     setColor(vehicle?.color ?? '');
+    setVehicleType((vehicle?.vehicle_type as VehicleType) ?? 'car');
     setDistanceUnit(vehicle?.distance_unit === 'km' ? 'km' : 'mi');
     setVolumeUnit(vehicle?.volume_unit === 'L' ? 'L' : 'gal');
     setConsumptionFormat(
@@ -75,6 +87,22 @@ export const VehicleForm = ({ visible, vehicle, onClose, onSaved }: VehicleFormP
       setError(t('vehicle.toast.empty'));
       return;
     }
+
+    const yearValue = year.trim() ? parseNumber(year) : null;
+    if (
+      yearValue != null &&
+      (!Number.isInteger(yearValue) || yearValue < 1900 || yearValue > 2200)
+    ) {
+      setError(t('vehicle.vehicle.yearInvalid'));
+      return;
+    }
+
+    const tankValue = tankCapacity.trim() ? parseNumber(tankCapacity) : null;
+    if (tankValue != null && tankValue <= 0) {
+      setError(t('vehicle.vehicle.tankCapacityInvalid'));
+      return;
+    }
+
     setSaving(true);
     setError(null);
     try {
@@ -82,15 +110,16 @@ export const VehicleForm = ({ visible, vehicle, onClose, onSaved }: VehicleFormP
         name: name.trim(),
         make: make.trim() || null,
         model: model.trim() || null,
-        year: year.trim() ? Number(year) : null,
+        year: yearValue,
         plate: plate.trim() || null,
         color: color.trim() || null,
+        vehicle_type: vehicleType,
         fuel_type: 'gasoline' as const,
         distance_unit: distanceUnit,
         volume_unit: volumeUnit,
         consumption_format: consumptionFormat,
-        tank_capacity: tankCapacity.trim() ? Number(tankCapacity) : null,
-        tank_capacity_unit: tankCapacity.trim() ? tankCapacityUnit : null,
+        tank_capacity: tankValue,
+        tank_capacity_unit: tankValue != null ? tankCapacityUnit : null,
         is_default: isDefault,
         notes: notes.trim() || null,
       };
@@ -99,8 +128,21 @@ export const VehicleForm = ({ visible, vehicle, onClose, onSaved }: VehicleFormP
       showToast({ message: t('vehicle.toast.saved'), type: 'success' });
       onSaved();
       onClose();
-    } catch {
-      setError(t('vehicle.toast.error'));
+    } catch (cause) {
+      if (__DEV__) console.warn('[vehicle] vehicle save failed', cause);
+      const message = cause instanceof Error ? cause.message : '';
+      const isValidationError =
+        typeof cause === 'object' &&
+        cause !== null &&
+        'name' in cause &&
+        (cause as { name?: string }).name === 'ZodError';
+      setError(
+        message.includes('UNIQUE')
+          ? t('vehicle.vehicle.defaultConflict')
+          : isValidationError
+            ? t('vehicle.vehicle.invalidFields')
+            : t('vehicle.toast.error')
+      );
     } finally {
       setSaving(false);
     }
@@ -156,12 +198,34 @@ export const VehicleForm = ({ visible, vehicle, onClose, onSaved }: VehicleFormP
         }
       >
         <View style={styles.form}>
+          <VehicleVisual
+            type={vehicleType}
+            color={color}
+            height={120}
+            accessibilityLabel={name.trim() || t('vehicle.title')}
+          />
           <TextField
             label={t('vehicle.vehicle.name')}
             required
             value={name}
             onChangeText={setName}
             placeholder={t('vehicle.vehicle.namePlaceholder')}
+          />
+          <SelectField
+            label={t('vehicle.vehicle.type')}
+            value={vehicleType}
+            options={[
+              { label: t('vehicle.vehicleTypes.car'), value: 'car' },
+              { label: t('vehicle.vehicleTypes.suv'), value: 'suv' },
+              { label: t('vehicle.vehicleTypes.pickup'), value: 'pickup' },
+              { label: t('vehicle.vehicleTypes.van'), value: 'van' },
+              {
+                label: t('vehicle.vehicleTypes.motorcycle'),
+                value: 'motorcycle',
+              },
+              { label: t('vehicle.vehicleTypes.other'), value: 'other' },
+            ]}
+            onChange={setVehicleType}
           />
           <TextField label={t('vehicle.vehicle.make')} value={make} onChangeText={setMake} />
           <TextField label={t('vehicle.vehicle.model')} value={model} onChangeText={setModel} />
@@ -172,7 +236,7 @@ export const VehicleForm = ({ visible, vehicle, onClose, onSaved }: VehicleFormP
             keyboardType='number-pad'
           />
           <TextField label={t('vehicle.vehicle.plate')} value={plate} onChangeText={setPlate} />
-          <TextField label={t('vehicle.vehicle.color')} value={color} onChangeText={setColor} />
+          <VehicleColorField value={color} onChange={setColor} />
           <SelectField
             label={t('vehicle.vehicle.distanceUnit')}
             value={distanceUnit}

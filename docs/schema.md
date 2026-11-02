@@ -3,7 +3,7 @@
 > Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.
 > Fuente de verdad: `src/db/schema/tables.ts`.
 
-Versión de esquema: **8**
+Versión de esquema: **9**
 
 ## Convenciones
 
@@ -31,7 +31,7 @@ Versión de esquema: **8**
 | `Savings` | `savings` | `Saving` | 6 | 0 |
 | `SavingsHistory` | `savings_history` | `SavingsHistoryEntry` | 8 | 1 |
 | `Migrations` | `migrations` | `Migration` | 3 | 0 |
-| `Vehicles` | `vehicles` | `Vehicle` | 18 | 1 |
+| `Vehicles` | `vehicles` | `Vehicle` | 19 | 1 |
 | `VehicleFuelEntries` | `vehicle_fuel_entries` | `VehicleFuelEntry` | 19 | 2 |
 | `VehicleMaintenance` | `vehicle_maintenance` | `VehicleMaintenanceEntry` | 13 | 2 |
 | `VehicleMaintenanceItems` | `vehicle_maintenance_items` | `VehicleMaintenanceItem` | 10 | 1 |
@@ -375,6 +375,7 @@ Entidad TypeScript: `Vehicle`
 | `year` | `INTEGER` | `number` |  |
 | `plate` | `TEXT` | `string` |  |
 | `color` | `TEXT` | `string` |  |
+| `vehicle_type` | `TEXT` | `string` | NOT NULL, default="car" |
 | `fuel_type` | `TEXT` | `string` | NOT NULL, default="gasoline" |
 | `distance_unit` | `TEXT` | `string` | NOT NULL, default="mi" |
 | `volume_unit` | `TEXT` | `string` | NOT NULL, default="gal" |

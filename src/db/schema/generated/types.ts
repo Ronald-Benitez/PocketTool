@@ -166,6 +166,7 @@ export interface Vehicle extends Entity, SoftDeletable {
   year?: number | null;
   plate?: string | null;
   color?: string | null;
+  vehicle_type: string;
   fuel_type: string;
   distance_unit: string;
   volume_unit: string;
