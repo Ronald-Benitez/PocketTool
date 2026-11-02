@@ -4,7 +4,7 @@ import type {
   FinancingScheduleRow,
 } from './types';
 
-const addMonths = (date: number, months: number) => {
+export const addMonths = (date: number, months: number) => {
   const value = new Date(date);
   value.setMonth(value.getMonth() + months);
   return value.getTime();
@@ -38,6 +38,8 @@ export const buildSchedule = ({
   capitalPaidCents = 0,
   extraPrincipalCents = 0,
   extraRecurringCents = 0,
+  paymentOverrideCents,
+  startIndex,
 }: {
   principalCents: number;
   annualRateBps: number;
@@ -47,9 +49,12 @@ export const buildSchedule = ({
   capitalPaidCents?: number;
   extraPrincipalCents?: number;
   extraRecurringCents?: number;
+  paymentOverrideCents?: number | null;
+  startIndex?: number;
 }): FinancingSchedule => {
   const originalTerm = Math.max(1, Math.round(termMonths));
   const paid = Math.max(0, Math.min(originalTerm, Math.round(paidInstallments)));
+  const firstRowIndex = Math.max(0, Math.round(startIndex ?? paid));
   const rate = monthlyRateFromBps(annualRateBps);
   const originalPayment = calculatePaymentCents({
     principalCents,
@@ -77,11 +82,15 @@ export const buildSchedule = ({
     };
   }
 
-  const payment = calculatePaymentCents({
+  const calculatedPayment = calculatePaymentCents({
     principalCents: balance,
     annualRateBps,
     termMonths: remainingTerm,
   });
+  const payment =
+    paymentOverrideCents != null && paymentOverrideCents > 0
+      ? paymentOverrideCents
+      : calculatedPayment;
   const rows: FinancingScheduleRow[] = [];
   let currentBalance = balance;
   let totalInterest = 0;
@@ -98,14 +107,15 @@ export const buildSchedule = ({
     principal = Math.max(0, principal);
     const extra = firstExtra + recurringExtra;
     firstExtra = 0;
+    if (principal + extra <= 0) break;
     const appliedPrincipal = Math.min(currentBalance, principal + extra);
     const actualPayment = interest + appliedPrincipal;
     currentBalance = Math.max(0, currentBalance - appliedPrincipal);
     totalInterest += interest;
     totalPaid += actualPayment;
     rows.push({
-      number: paid + index + 1,
-      date: addMonths(firstPaymentDate ?? Date.now(), paid + index),
+      number: firstRowIndex + index + 1,
+      date: addMonths(firstPaymentDate ?? Date.now(), firstRowIndex + index),
       paymentCents: actualPayment,
       interestCents: interest,
       principalCents: appliedPrincipal,

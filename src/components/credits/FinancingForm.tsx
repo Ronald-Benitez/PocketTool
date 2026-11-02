@@ -20,7 +20,7 @@ import { SwitchField } from '@/src/ui/forms/SwitchField';
 import { TextField } from '@/src/ui/forms/TextField';
 import { Modal } from '@/src/ui/overlays/Modal';
 import { AppText } from '@/src/ui/primitives/AppText';
-import { Row, Stack } from '@/src/ui/primitives/Stack';
+
 
 type FinancingFormProps = {
   visible: boolean;
@@ -76,7 +76,7 @@ export const FinancingForm = ({
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [notes, setNotes] = useState('');
   const [paymentMethods, setPaymentMethods] = useState<
-    { id?: number; method_name: string }[]
+    { id?: number; method_name: string; is_credit_card?: boolean | number | null }[]
   >([]);
   const [categories, setCategories] = useState<
     { id?: number; category_name: string }[]
@@ -140,6 +140,13 @@ export const FinancingForm = ({
       }),
     [financed, rateBps, term]
   );
+  const selectedPaymentMethod = paymentMethods.find(
+    (method) => method.id === paymentMethodId
+  );
+  const affectsCard =
+    kind === 'installment_purchase' &&
+    rateBps === 0 &&
+    Boolean(selectedPaymentMethod?.is_credit_card);
 
   const save = async () => {
     if (
@@ -330,6 +337,9 @@ export const FinancingForm = ({
           )}
           onChange={setPaymentMethodId}
         />
+        {affectsCard ? (
+          <InlineMessage variant='info' message={t('financings.cardImpactHint')} />
+        ) : null}
         <SelectField
           label={t('financings.category')}
           value={categoryId}

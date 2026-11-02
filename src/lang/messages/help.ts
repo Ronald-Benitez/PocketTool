@@ -358,25 +358,55 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "Payment methods can have a closing date and a payment date. Credit movements are organized by month and method so you can review current and previous totals."
+                "body": "Payment methods can have a closing date, a payment date and a credit limit. Credit movements are organized by month and method, while active 0% installment purchases reduce available credit by their pending balance."
             },
             "steps": {
                 "title": "Step by step",
                 "step1": "Create a credit payment method with closing and payment dates.",
-                "step2": "Add expenses and credit payments using that method.",
-                "step3": "Open Credits to review current, previous, and pending amounts."
+                "step2": "Add expenses and credit payments using that method, or link a 0% installment purchase to the card.",
+                "step3": "Open Credits to review current, previous and pending amounts, used credit and available credit."
             },
             "example": {
                 "title": "Example",
-                "body": "A card closes on day 20 and pays on day 28. An 800 credit expense appears in the credit summary for that period."
+                "body": "A card with a 2,000 limit has 800 in card expenses and a 600 pending installment plan. Used credit is 1,400 and available credit is 600."
             },
             "tips": {
                 "title": "Tips",
-                "body": "Keep closing and payment dates accurate so the month grouping matches your bank statement."
+                "body": "Keep closing and payment dates accurate and link 0% installment purchases to the card that financed them."
             },
             "warning": {
                 "title": "Common mistake",
-                "body": "Credit expenses and credit payments are different movements. Review both before assuming a balance is settled."
+                "body": "Credit expenses and credit payments are different movements. Review both, plus pending installment plans, before assuming a balance is settled."
+            }
+        },
+        "financings": {
+            "title": "Financings",
+            "summary": "Track installment purchases, loans, payments, refinancing and simulations.",
+            "what": {
+                "title": "What it is",
+                "body": "A financing stores the original amount, financed amount, rate, term and payment schedule. It can represent a store installment purchase, a bank loan, a mortgage, an auto loan or a shared debt."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "The balance is derived from the financed amount, prior installments, prior capital payments, registered payments and extra principal. A 0% installment purchase linked to a credit card also reduces that card's available credit by its pending balance."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Create the financing with its amount, rate, term, first payment date and payment method.",
+                "step2": "Register each payment, including extra principal or an extra amount to reduce the payment.",
+                "step3": "Use Refinance to change rate or term, Simulate to compare an extra payment, and the schedule to review pending installments."
+            },
+            "example": {
+                "title": "Example",
+                "body": "A 1,200 purchase at 0% over 12 months starts with a 100 payment. After 4 payments the balance is 800 and, if the card financed it, that pending balance reduces the card's available credit."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Record payments close to their real date so the balance, interest and payoff date stay accurate."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "An extra payment can reduce the term or the payment. Choose the strategy before saving, and do not record the same purchase twice as a card expense and as a financing."
             }
         },
         "savings": {
@@ -830,25 +860,55 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "Los métodos de pago pueden tener fecha de corte y fecha de pago. Los movimientos de crédito se organizan por mes y método para revisar totales actuales y anteriores."
+                "body": "Los métodos de pago pueden tener fecha de corte, fecha de pago y límite de crédito. Los movimientos de crédito se organizan por mes y método, y las compras a plazo al 0% activas reducen el crédito disponible por su saldo pendiente."
             },
             "steps": {
                 "title": "Paso a paso",
                 "step1": "Crea un método de pago de crédito con fechas de corte y pago.",
-                "step2": "Agrega gastos y pagos de crédito con ese método.",
-                "step3": "Abre Créditos para revisar montos actuales, anteriores y pendientes."
+                "step2": "Agrega gastos y pagos de crédito con ese método, o vincula una compra a plazo al 0% con la tarjeta.",
+                "step3": "Abre Créditos para revisar montos actuales, anteriores, pendientes, crédito en uso y disponible."
             },
             "example": {
                 "title": "Ejemplo",
-                "body": "Una tarjeta corta el día 20 y paga el día 28. Un gasto a crédito de 800 aparece en el resumen de crédito de ese periodo."
+                "body": "Una tarjeta con límite de 2,000 tiene 800 en gastos y una compra a plazo pendiente de 600. El crédito en uso es 1,400 y el disponible es 600."
             },
             "tips": {
                 "title": "Consejos",
-                "body": "Mantén las fechas de corte y pago correctas para que el agrupamiento mensual coincida con tu estado de cuenta."
+                "body": "Mantén las fechas de corte y pago correctas y vincula las compras a plazo al 0% con la tarjeta que las financió."
             },
             "warning": {
                 "title": "Error común",
-                "body": "Los gastos a crédito y los pagos de crédito son movimientos distintos. Revisa ambos antes de asumir que un saldo está liquidado."
+                "body": "Los gastos a crédito y los pagos de crédito son movimientos distintos. Revisa ambos, y también las compras a plazo pendientes, antes de asumir que un saldo está liquidado."
+            }
+        },
+        "financings": {
+            "title": "Financiamientos",
+            "summary": "Controla compras a plazo, préstamos, pagos, refinanciamientos y simulaciones.",
+            "what": {
+                "title": "Qué es",
+                "body": "Un financiamiento guarda el monto original, el monto financiado, la tasa, el plazo y el calendario de cuotas. Puede representar una compra a plazo, un préstamo bancario, hipotecario, automotriz o una deuda compartida."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "El saldo se deriva del monto financiado, las cuotas ya pagadas, el capital abonado antes de usar la app, los pagos registrados y los abonos a capital. Una compra a plazo al 0% vinculada a una tarjeta también reduce el crédito disponible de esa tarjeta por su saldo pendiente."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Crea el financiamiento con monto, tasa, plazo, primera cuota y método de pago.",
+                "step2": "Registra cada pago, incluyendo abonos a capital o un extra para reducir la cuota.",
+                "step3": "Usa Refinanciar para cambiar tasa o plazo, Simular para comparar un abono extra y el calendario para revisar las cuotas pendientes."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "Una compra de 1,200 al 0% a 12 meses empieza con cuota de 100. Después de 4 pagos el saldo es 800 y, si la tarjeta la financió, ese saldo pendiente reduce el crédito disponible de la tarjeta."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Registra los pagos cerca de su fecha real para que el saldo, los intereses y la fecha de término se mantengan correctos."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "Un pago extra puede reducir el plazo o la cuota. Elige la estrategia antes de guardar y no registres la misma compra dos veces como gasto de tarjeta y como financiamiento."
             }
         },
         "savings": {

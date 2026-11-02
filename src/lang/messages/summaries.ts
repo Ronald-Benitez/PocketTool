@@ -33,7 +33,9 @@ export const summariesEn = {
         "nextPaymentDate": "Next payment date",
         "limit": "Credit limit",
         "available": "Available credit",
-        "utilization": "Utilization"
+        "utilization": "Utilization",
+        "installmentsPending": "0% installment plans",
+        "totalUsed": "Credit in use"
     },
     "savings": {
         "select": "Select a saving",
@@ -82,7 +84,9 @@ export const summariesEs: MessageShape<typeof summariesEn> = {
         "nextPaymentDate": "Fecha del próximo pago",
         "limit": "Límite de crédito",
         "available": "Crédito disponible",
-        "utilization": "Utilización"
+        "utilization": "Utilización",
+        "installmentsPending": "Compras a plazo 0%",
+        "totalUsed": "Crédito en uso"
     },
     "savings": {
         "select": "Selecciona un ahorro",

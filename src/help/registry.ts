@@ -116,7 +116,13 @@ const seeds: HelpTopicSeed[] = [
     id: 'credits',
     icon: 'credit-card',
     category: 'money',
-    related: ['records', 'summaries'],
+    related: ['financings', 'records', 'summaries'],
+  },
+  {
+    id: 'financings',
+    icon: 'account-balance',
+    category: 'money',
+    related: ['credits', 'records', 'fixeds'],
   },
   {
     id: 'savings',

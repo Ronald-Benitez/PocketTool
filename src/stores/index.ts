@@ -1,4 +1,4 @@
-import { Category, Group, Migration, PaymentType, Saving, SavingsHistoryWithRelations, FixedView, RecordType, PaymentMethodWithRelations } from "../interfaces/schema";
+import { Category, Group, Migration, PaymentType, Saving, SavingsHistoryWithRelations, FixedView, RecordType, PaymentMethodWithRelations, FinancingWithRelations } from "../interfaces/schema";
 import { create } from "zustand";
 
 interface TableState {
@@ -11,6 +11,7 @@ interface TableState {
     Savings: Saving[];
     SavingsHistory: SavingsHistoryWithRelations[];
     Fixeds: FixedView[],
+    Financings: FinancingWithRelations[],
     setCategories: (categories: Category[]) => void;
     setGroups: (groups: Group[]) => void;
     setMigrations: (migrations: Migration[]) => void;
@@ -20,6 +21,7 @@ interface TableState {
     setSavings: (savings: Saving[]) => void;
     setSavingsHistory: (savingsHistory: SavingsHistoryWithRelations[]) => void;
     setFixeds: (fixeds: FixedView[] | undefined) => void
+    setFinancings: (financings: FinancingWithRelations[]) => void
 }
 
 export const useDataStore = create<TableState>()((set) => ({
@@ -32,6 +34,7 @@ export const useDataStore = create<TableState>()((set) => ({
     Savings: [],
     SavingsHistory: [],
     Fixeds: [],
+    Financings: [],
 
     setCategories: (categories) => set({ Categories: categories }),
     setGroups: (groups) => set({ Groups: groups }),
@@ -41,7 +44,8 @@ export const useDataStore = create<TableState>()((set) => ({
     setRecordTypes: (recordTypes) => set({ RecordTypes: recordTypes }),
     setSavings: (savings) => set({ Savings: savings }),
     setSavingsHistory: (savingsHistory) => set({ SavingsHistory: savingsHistory }),
-    setFixeds: (fixeds) => set({ Fixeds: fixeds || [] })
+    setFixeds: (fixeds) => set({ Fixeds: fixeds || [] }),
+    setFinancings: (financings) => set({ Financings: financings })
 
 }));
 

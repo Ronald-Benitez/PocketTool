@@ -232,13 +232,8 @@ Ajustes posteriores implementados el 2026-11-01:
   Rogue, Hiace, John Deere y modelos genéricos), color por nombre/hex/paleta o
   color picker y visualización SVG animada.
 - Resumen de mantenimientos en el inicio (total, mes y último servicio).
-
-Corrección posterior (2026-11-02):
-
-- Una carga parcial sin odómetro reconoce el baseline aunque la fecha elegida
-  sea el mismo día a medianoche y el baseline se haya guardado con hora. Si no
-  hay lectura anterior, el baseline se usa como odómetro inicial en lugar de
-  mostrar `PREVIOUS_ODOMETER_REQUIRED`.
+- El error de una carga parcial sin odómetro ahora aclara que debe existir una
+  carga o baseline con fecha anterior.
 
 Detalle en [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md), sección 19.
 
@@ -281,13 +276,17 @@ Implementado hasta ahora:
 - Repositorio de financiamientos y pantalla de Préstamos/Compras a plazo.
 - Alta/edición de financiamientos y registro de pagos con abono a capital.
 - Resumen de deuda total, cuota mensual, tasa media y meses restantes.
+- Refinanciamientos, cambios de tasa/plazo y ajustes acumulados.
+- Simulaciones de abono único/recurrente, tasa y plazo.
+- Las compras a plazo al 0% vinculadas a una tarjeta reducen el crédito
+  disponible de la tarjeta por su saldo pendiente.
+- Calendario de cuotas pendientes con pago, interés, capital y saldo.
+- Ayuda bilingüe de financiamientos y actualización del tema de créditos.
 
 Pendiente:
 
-- Refinanciamientos y simulaciones.
-- Detalle de calendario de cuotas y edición avanzada de pagos.
-- Revisión de compras a plazo compartidas y flujos de seguros/honorarios.
-- Ayuda/i18n de todos los flujos y QA final.
+- Edición avanzada de pagos y conciliación de seguros/honorarios.
+- QA Android/iOS y checklist visual final.
 - `expo-doctor` y verificación completa de cierre.
 
 Subfases: CRED-0 a CRED-6, detalladas en el plan.

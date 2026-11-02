@@ -625,11 +625,16 @@ Implementado:
   compartida.
 - Registro de pagos con abono a capital y reducción de cuota.
 - Resumen de deuda total, cuota mensual, tasa media y meses restantes.
+- Refinanciamientos y cambios de tasa/plazo con historial de ajustes acumulados.
+- Simulaciones de abono único/recurrente, nueva tasa y nuevo plazo, con
+  comparación de cuota, meses e intereses.
+- Las compras a plazo al 0% vinculadas a una tarjeta reducen el crédito
+  disponible de esa tarjeta por su saldo pendiente.
+- Calendario de cuotas pendientes con pago, interés, capital y saldo.
+- Tema de ayuda bilingüe de financiamientos y actualización del tema de créditos.
 
 Pendiente:
 
-- Refinanciamientos y cambios de tasa/plazo.
-- Simulaciones de abono único/recurrente y comparación de escenarios.
-- Calendario detallado y edición avanzada de pagos.
-- Ayuda, i18n y QA de los flujos nuevos.
+- Edición avanzada de pagos y conciliación de seguros/honorarios.
+- QA Android/iOS y checklist visual final.
 - Verificación completa con `expo-doctor` y export Android antes del cierre.

@@ -153,6 +153,25 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 - Los colores personalizados viven por paleta (`bright`/`dark`) y se completan
   con la base al agregar tokens nuevos.
 
+### Créditos y financiamientos
+
+- `app/(credits)/index.tsx`: resumen de tarjetas, crédito en uso, disponible y
+  utilización. Incluye el saldo pendiente de compras a plazo al 0%.
+- `app/(fixeds)/FinancingsScreen.tsx`: deuda, cuota mensual, tasa media,
+  financiamientos, pagos, refinanciamientos y simulaciones.
+- `src/components/credits/`: alta/edición de financiamientos, pagos, ajustes y
+  simulador. Los formularios son cortos y específicos por caso.
+- `src/domain/credits/amortization.ts`: cuota francesa, tasa cero, calendario,
+  utilización de tarjeta y partes compartidas.
+- `src/domain/credits/summary.ts`: saldo y calendario vigente con ajustes
+  acumulados; la UI no calcula dinero.
+- `src/domain/credits/simulations.ts`: comparación de escenarios sin guardar.
+- `src/domain/credits/cards.ts`: agrupa compras a plazo al 0% activas por
+  tarjeta; su saldo pendiente reduce el crédito disponible.
+- `src/db/repositories/financings.ts`: financiamientos, pagos y ajustes.
+- `src/stores/CreditsStore.ts`: totales por ciclo y uso de tarjeta con compras a
+  plazo al 0%. No duplicar una compra como gasto de tarjeta y financiamiento.
+
 ### Colores nuevos y editables
 
 - Cualquier color semántico nuevo que no elija el usuario debe agregarse a:

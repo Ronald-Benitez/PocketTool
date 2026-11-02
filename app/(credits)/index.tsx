@@ -1,9 +1,12 @@
+import { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 
 import { useThemedStyles } from '@/src/styles/useThemedStyles';
 import useColorStore from '@/src/stores/ColorsStore';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { useCreditStore } from '@/src/stores/CreditsStore';
+import { useDataStore } from '@/src/stores';
+import { useFinancingsRepository, usePaymentMethods } from '@/src/db';
 import { PaymentMethodVisual } from '@/src/components/payments/PaymentMethodVisual';
 import { cardUtilization } from '@/src/domain/credits/amortization';
 import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock';
@@ -16,9 +19,27 @@ const Index = () => {
     const { colors } = useColorStore();
     const { t } = useLanguage();
     const { credits } = useCreditStore();
+    const { setFinancings, setPaymentMethods } = useDataStore();
+    const financingsRepository = useFinancingsRepository();
+    const paymentMethodsRepository = usePaymentMethods();
     const { getStringDate } = useDate();
     const totalCurrent = credits ? credits.reduce((total, credit) => total + (credit?.totalCurrent || 0), 0) : 0;
     const totalPrevious = credits ? credits.reduce((total, credit) => total + (credit?.totalPrevious || 0), 0): 0;
+
+    useEffect(() => {
+        let active = true;
+        Promise.all([
+            financingsRepository.fetchFinancings(),
+            paymentMethodsRepository.fetchPaymentMethods(),
+        ]).then(([rows, methods]) => {
+            if (!active) return;
+            setFinancings(rows);
+            setPaymentMethods(methods);
+        });
+        return () => {
+            active = false;
+        };
+    }, []);
 
     const dateForDay = (year: number, month: number, day: number) =>
         new Date(year, month, Math.min(day, new Date(year, month + 1, 0).getDate()));
@@ -70,10 +91,16 @@ const Index = () => {
                         const amountPaid = credit.totalCurrentPayments;
                         const previousBalance = credit.totalPrevious;
                         const pendingCents = (previousBalance || 0) - (amountPaid || 0);
-                        const pendingAmount = formatMoney(pendingCents);
+                        const cardPendingCents = Math.max(0, pendingCents);
+                        const installmentsPendingCents = Math.max(
+                            0,
+                            credit.installmentsPendingCents || 0
+                        );
+                        const usedCents = cardPendingCents + installmentsPendingCents;
+                        const pendingAmount = formatMoney(cardPendingCents);
                         const utilization = cardUtilization({
                             limitCents: credit.credit_limit ?? 0,
-                            usedCents: Math.max(0, pendingCents),
+                            usedCents,
                         });
                         return (
                             <View key={credit.id} style={[localStyles.creditBlock, { backgroundColor: colors?.surfaceMuted, shadowColor: colors?.shadow }]}>
@@ -88,7 +115,7 @@ const Index = () => {
                                         holder={credit.card_holder}
                                         issuer={credit.card_issuer}
                                         limitCents={credit.credit_limit}
-                                        usedCents={Math.max(0, pendingCents)}
+                                        usedCents={usedCents}
                                         closingDate={credit.closing_date}
                                         paymentDate={credit.payment_date}
                                         height={110}
@@ -117,6 +144,18 @@ const Index = () => {
                                             <Text style={[localStyles.detailLabel, { color: colors?.textMuted }]}>{t("credits.pending")}:</Text>
                                             <Text style={[localStyles.amountValue, { color: colors?.text }]}>
                                                 ${pendingAmount}
+                                            </Text>
+                                        </View>
+                                        <View style={localStyles.detailItem}>
+                                            <Text style={[localStyles.detailLabel, { color: colors?.textMuted }]}>{t("credits.installmentsPending")}:</Text>
+                                            <Text style={[localStyles.amountValue, { color: colors?.text }]}>
+                                                ${formatMoney(installmentsPendingCents)}
+                                            </Text>
+                                        </View>
+                                        <View style={localStyles.detailItem}>
+                                            <Text style={[localStyles.detailLabel, { color: colors?.textMuted }]}>{t("credits.totalUsed")}:</Text>
+                                            <Text style={[localStyles.amountValue, { color: colors?.text }]}>
+                                                ${formatMoney(usedCents)}
                                             </Text>
                                         </View>
                                         <View style={localStyles.detailItem}>
