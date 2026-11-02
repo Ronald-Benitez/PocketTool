@@ -1,5 +1,6 @@
 import type {
   ConsumptionFormat,
+  DistanceUnit,
   FuelEntryAnalysis,
   VolumeUnit,
 } from './types';
@@ -11,6 +12,7 @@ import {
   consumptionUnits,
   convertPricePerUnit,
   convertVolume,
+  fromKm,
   selectConsumption,
   volumeUnitOf,
 } from './units';
@@ -122,78 +124,82 @@ export const buildPriceChart = (
   ].join('\n');
 };
 
-export const buildFuelComparisonChart = (
+export const buildTotalSpendChart = (
   entries: FuelEntryAnalysis[],
-  format: ConsumptionFormat,
+  title: string
+) => {
+  const points = entries.flatMap((entry) => {
+    const total = entry.entry.total_cost;
+    if (total == null || total <= 0) return [];
+    return [{ date: entry.entry.date, value: total / 100 }];
+  });
+
+  if (points.length < 2) return null;
+  const values = points.map((point) => Number(point.value.toFixed(2)));
+  const max = Math.max(...values, 1);
+  const axisMax = Math.ceil(max * 1.15);
+
+  return [
+    'xychart-beta',
+    `  title "${clean(title, title)}"`,
+    `  x-axis [${points
+      .map((point) => `"${new Date(point.date).toLocaleDateString()}"`)
+      .join(', ')}]`,
+    `  y-axis "$" 0 --> ${axisMax}`,
+    `  bar [${values.join(', ')}]`,
+  ].join('\n');
+};
+
+export const buildMobilityComparisonChart = (
+  entries: FuelEntryAnalysis[],
   volumeUnit: VolumeUnit,
-  priceUnit: VolumeUnit,
-  labels: {
-    title: string;
-    performance: string;
-    volume: string;
-    price: string;
-  }
+  distanceUnit: DistanceUnit,
+  title: string
 ) => {
   const points = entries.flatMap((entry) => {
     const metrics = entry.segmentMetrics;
-    const performance = selectConsumption(metrics, format);
-    const volume = metrics
-      ? convertVolume(metrics.volumeL, 'L', volumeUnit)
-      : null;
-    const price = metrics
-      ? priceUnit === 'L'
-        ? metrics.pricePerL
-        : metrics.pricePerGal
-      : null;
-    if (
-      performance == null ||
-      performance <= 0 ||
-      volume == null ||
-      volume <= 0 ||
-      price == null ||
-      price <= 0
-    ) {
+    if (!metrics) return [];
+    const volume = convertVolume(metrics.volumeL, 'L', volumeUnit);
+    const distance = fromKm(metrics.distanceKm, distanceUnit);
+    const total =
+      metrics.pricePerL != null
+        ? metrics.pricePerL * metrics.volumeL
+        : null;
+    if (volume <= 0 || distance <= 0 || total == null || total <= 0) {
       return [];
     }
-    return [
-      {
-        date: entry.entry.date,
-        performance,
-        volume,
-        price,
-      },
-    ];
+    return [{ date: entry.entry.date, volume, distance, total }];
   });
 
   if (points.length < 2) return null;
   const first = points[0];
-  const performanceValues = points.map((point) =>
-    Number(((point.performance / first.performance) * 100).toFixed(2))
-  );
   const volumeValues = points.map((point) =>
     Number(((point.volume / first.volume) * 100).toFixed(2))
   );
-  const priceValues = points.map((point) =>
-    Number(((point.price / first.price) * 100).toFixed(2))
+  const distanceValues = points.map((point) =>
+    Number(((point.distance / first.distance) * 100).toFixed(2))
+  );
+  const totalValues = points.map((point) =>
+    Number(((point.total / first.total) * 100).toFixed(2))
   );
   const max = Math.max(
-    ...performanceValues,
     ...volumeValues,
-    ...priceValues,
+    ...distanceValues,
+    ...totalValues,
     100
   );
   const axisMax = Math.ceil(max * 1.15);
 
   return [
     'xychart-beta',
-    `  title "${clean(labels.title, labels.title)}"`,
+    `  title "${clean(title, title)}"`,
     `  x-axis [${points
       .map((point) => `"${new Date(point.date).toLocaleDateString()}"`)
       .join(', ')}]`,
     `  y-axis "Index (base 100)" 0 --> ${axisMax}`,
-    `  line [${performanceValues.join(', ')}]`,
     `  line [${volumeValues.join(', ')}]`,
-    `  line [${priceValues.join(', ')}]`,
+    `  line [${distanceValues.join(', ')}]`,
+    `  line [${totalValues.join(', ')}]`,
   ].join('\n');
 };
 

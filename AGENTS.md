@@ -71,8 +71,8 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 - `src/domain/vehicle/`: unidades, consumo, promedios, recordatorios,
   resolución de colores (`colors.ts`) y tipos/referencias visuales
   (`models.ts`).
-- `src/domain/vehicle/charts.ts`: builders de rendimiento, volumen, precio y
-  comparativa normalizada de los tres.
+- `src/domain/vehicle/charts.ts`: builders de rendimiento, volumen, precio,
+  total gastado y comparativa de movilidad (volumen, distancia y costo total).
 - `app/(vehicle)/fuel.tsx`: segmentos, selector de unidad de volumen/precio y
   gráficos.
 - `src/components/vehicle/FuelEntryForm.tsx`: alta/edición de combustible y

@@ -1,6 +1,7 @@
 import {
-  buildFuelComparisonChart,
+  buildMobilityComparisonChart,
   buildPriceChart,
+  buildTotalSpendChart,
   buildVolumeChart,
 } from '../charts';
 import { analyzeFuelEntries } from '../fuel';
@@ -34,13 +35,19 @@ describe('vehicle fuel charts', () => {
     expect(buildPriceChart(entries, 'L', 'Price')).toContain('line [0.925');
   });
 
-  it('builds a normalized comparison of performance, volume and price', () => {
-    const chart = buildFuelComparisonChart(entries, 'mi_gal', 'L', 'L', {
-      title: 'Comparison',
-      performance: 'Performance',
-      volume: 'Volume',
-      price: 'Price',
-    });
+  it('builds a total spend chart per entry', () => {
+    const chart = buildTotalSpendChart(entries, 'Total spent');
+    expect(chart).toContain('bar [35, 40, 45]');
+    expect(chart).toContain('y-axis "$"');
+  });
+
+  it('compares volume, distance and total cost per segment', () => {
+    const chart = buildMobilityComparisonChart(
+      entries,
+      'L',
+      'mi',
+      'Mobility'
+    );
     expect(chart).toContain('Index (base 100)');
     expect(chart?.match(/line \[/g)).toHaveLength(3);
   });
@@ -48,13 +55,9 @@ describe('vehicle fuel charts', () => {
   it('requires at least two points', () => {
     expect(buildVolumeChart(entries.slice(0, 1), 'L', 'Volume')).toBeNull();
     expect(buildPriceChart(entries.slice(0, 1), 'L', 'Price')).toBeNull();
+    expect(buildTotalSpendChart(entries.slice(0, 1), 'Total')).toBeNull();
     expect(
-      buildFuelComparisonChart(entries.slice(0, 2), 'mi_gal', 'L', 'L', {
-        title: 'Comparison',
-        performance: 'Performance',
-        volume: 'Volume',
-        price: 'Price',
-      })
+      buildMobilityComparisonChart(entries.slice(0, 2), 'L', 'mi', 'Mobility')
     ).toBeNull();
   });
 });

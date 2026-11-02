@@ -7,8 +7,9 @@ import { FuelEntryForm } from '@/src/components/vehicle/FuelEntryForm';
 import { buildFuelStats, groupFuelSegments } from '@/src/domain/vehicle/fuel';
 import {
   buildConsumptionChart,
-  buildFuelComparisonChart,
+  buildMobilityComparisonChart,
   buildPriceChart,
+  buildTotalSpendChart,
   buildVolumeChart,
 } from '@/src/domain/vehicle/charts';
 import {
@@ -102,26 +103,29 @@ const FuelScreen = () => {
     () => buildPriceChart(stats.entries, displayVolumeUnit, t('vehicle.chart.price')),
     [stats.entries, displayVolumeUnit, t]
   );
+  const totalSpendChart = useMemo(
+    () => buildTotalSpendChart(stats.entries, t('vehicle.chart.totalSpent')),
+    [stats.entries, t]
+  );
+  const displayDistanceUnit = vehicle?.distance_unit === 'km' ? 'km' : 'mi';
   const comparisonChart = useMemo(
     () =>
-      buildFuelComparisonChart(
+      buildMobilityComparisonChart(
         stats.entries,
-        format,
         displayVolumeUnit,
-        displayVolumeUnit,
-        {
-          title: t('vehicle.chart.comparison'),
-          performance: t('vehicle.chart.consumption'),
-          volume: t('vehicle.chart.volume'),
-          price: t('vehicle.chart.price'),
-        }
+        displayDistanceUnit,
+        t('vehicle.chart.comparison')
       ),
-    [stats.entries, format, displayVolumeUnit, t]
+    [stats.entries, displayVolumeUnit, displayDistanceUnit, t]
   );
   const displayVolumeLabel =
     displayVolumeUnit === 'L'
       ? t('vehicle.vehicle.liters')
       : t('vehicle.vehicle.gallons');
+  const displayDistanceLabel =
+    displayDistanceUnit === 'km'
+      ? t('vehicle.vehicle.kilometers')
+      : t('vehicle.vehicle.miles');
 
   if (!vehicle) {
     return (
@@ -233,6 +237,22 @@ const FuelScreen = () => {
           />
         ) : null}
 
+        {totalSpendChart ? (
+          <MermaidChart
+            definition={totalSpendChart}
+            height={240}
+            accessibilityLabel={t('vehicle.chart.totalSpent')}
+            palette={[colors.chartFuelCost]}
+            legend={[
+              {
+                label: t('vehicle.chart.totalSpent'),
+                color: colors.chartFuelCost,
+              },
+            ]}
+            fallback={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
+          />
+        ) : null}
+
         {comparisonChart ? (
           <MermaidChart
             definition={comparisonChart}
@@ -245,15 +265,15 @@ const FuelScreen = () => {
             ]}
             legend={[
               {
-                label: `${t('vehicle.chart.consumption')} (${consumptionUnits(format)})`,
+                label: `${t('vehicle.chart.volume')} (${displayVolumeLabel})`,
                 color: colors.chartConsumption,
               },
               {
-                label: `${t('vehicle.chart.volume')} (${displayVolumeLabel})`,
+                label: `${t('vehicle.chart.distance')} (${displayDistanceLabel})`,
                 color: colors.chartDistance,
               },
               {
-                label: `${t('vehicle.chart.price')} ($/${displayVolumeUnit})`,
+                label: t('vehicle.chart.totalSpent'),
                 color: colors.chartFuelCost,
               },
             ]}
