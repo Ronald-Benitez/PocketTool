@@ -245,7 +245,8 @@ capital, préstamos compartidos, refinanciamientos y simulaciones.
 Alcance principal:
 
 - `PaymentMethods`: selector explícito de tarjeta de crédito, límite, corte y
-  pago; inferencia legacy por `closing_date`.
+  pago; inferencia legacy por `closing_date`; constructor visual de tarjetas
+  (red, acabado, color, chip, contacto) y modelos para métodos no crediticios.
 - `Financings`, `FinancingPayments` y `FinancingAdjustments`.
 - Cuota cero/interés, cuotas ya pagadas, capital abonado antes de registrar.
 - Diferencia entre cuota calculada y pagada registrada como seguros/honorarios.

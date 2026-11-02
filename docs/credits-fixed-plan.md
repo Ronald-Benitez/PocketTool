@@ -220,6 +220,74 @@ La UI debe mostrar ambas.
 - Si en el futuro se necesita precisión por estado de cuenta, agregar
   `CreditCardStatements`; no es obligatorio para la primera versión.
 
+### 3.8 Visualización de métodos de pago
+
+Tomar como referencia la visualización animada de Vehículo, pero aplicada a
+métodos de pago. No debe ser una imagen plana: la tarjeta y los modelos no
+crediticios deben tener profundidad, sombras, brillo y una animación sutil.
+
+#### Tarjetas de crédito
+
+- Selector de piezas para armar la tarjeta:
+  - red/marca: Visa, Mastercard, American Express, Discover, Diners, JCB,
+    UnionPay u otra;
+  - acabado: mate, metálico, degradado o transparente;
+  - color principal;
+  - mostrar chip, contacto sin contacto, nombre del titular y últimos cuatro
+    dígitos;
+  - nombre visible de la tarjeta.
+- La tarjeta muestra en el reverso o en el detalle:
+  - límite de crédito;
+  - saldo utilizado y disponible;
+  - fecha de corte y fecha de pago;
+  - banco/emisor;
+  - utilización.
+- Animación: inclinación 3D suave, brillo que recorre la tarjeta y entrada con
+  escala/opacidad. En el detalle, un giro para ver el reverso con los datos.
+- Las marcas se representan con texto o símbolos estilizados; no usar logos
+  oficiales sin autorización.
+
+#### Métodos que no son tarjeta de crédito
+
+El usuario elige un modelo representativo:
+
+- tarjeta de débito;
+- efectivo/billetes;
+- cerdito de ahorros;
+- transferencia bancaria;
+- billetera;
+- tarjeta de regalo;
+- otro/genérico.
+
+Cada modelo tiene su propia silueta/animación y usa el color del método de pago.
+La tarjeta de débito puede reutilizar el visual de tarjeta pero sin límite ni
+fechas de corte.
+
+#### Persistencia
+
+Agregar a `PaymentMethods`:
+
+- `visual_kind`: `credit_card`, `debit_card`, `cash`, `piggy_bank`, `transfer`,
+  `wallet`, `gift_card`, `other`;
+- `card_brand`: `visa`, `mastercard`, `amex`, `discover`, `diners`, `jcb`,
+  `unionpay`, `other`;
+- `card_style`: `matte`, `metallic`, `gradient`, `transparent`;
+- `card_color`;
+- `card_last4`;
+- `card_holder`;
+- `card_issuer`.
+
+Los campos de tarjeta solo aplican cuando el visual es de tarjeta. Para métodos
+no crediticios se usan `visual_kind` y `card_color`, y los demás quedan nulos.
+
+#### Componentes
+
+- `PaymentMethodVisual`: tarjeta animada o modelo no crediticio.
+- `CardBuilder`: selector de piezas para tarjetas.
+- `PaymentMethodForm`: integra el builder y la vista previa.
+- `PaymentMethodsScreen`: muestra el visual en cada fila.
+- `CreditsScreen`: muestra tarjetas con límite, utilizado y disponible.
+
 ---
 
 ## 4. UI propuesta
@@ -231,14 +299,18 @@ Formulario corto:
 - nombre;
 - tipo de pago;
 - selector **¿Es tarjeta de crédito?**;
-- si sí: límite, día de corte, día de pago;
-- si no: sin esos campos.
+- si sí: límite, día de corte, día de pago, emisor y últimos cuatro dígitos;
+- si no: sin esos campos;
+- vista previa del visual;
+- piezas de tarjeta: red/marca, acabado, color, chip, contacto y titular;
+- para métodos no crediticios: selector de modelo representativo.
 
 La lista muestra:
 
-- tarjeta o método normal;
-- límite y disponible para tarjetas;
-- utilización con color semántico.
+- tarjeta o método normal con su visual animado;
+- límite, utilizado y disponible para tarjetas;
+- utilización con color semántico;
+- el visual de la tarjeta con el nombre y las fechas principales.
 
 ### 4.2 Gastos fijos
 
@@ -318,11 +390,23 @@ Agregar:
 
 - `is_credit_card` INTEGER boolean NOT NULL DEFAULT 0.
 - `credit_limit` INTEGER money NULL.
+- `visual_kind` TEXT NOT NULL DEFAULT `'other'`.
+- `card_brand` TEXT NULL.
+- `card_style` TEXT NULL.
+- `card_color` TEXT NULL.
+- `card_last4` TEXT NULL.
+- `card_holder` TEXT NULL.
+- `card_issuer` TEXT NULL.
 
 Backfill:
 
 - `is_credit_card = 1` donde `closing_date IS NOT NULL`.
+- `visual_kind = 'credit_card'` para tarjetas inferidas;
+  `visual_kind = 'debit_card'` para métodos con fecha de pago pero sin corte;
+  `visual_kind = 'other'` para el resto.
 - `credit_limit = NULL` hasta que el usuario lo configure.
+- `card_color` puede inicializarse desde `PaymentTypes.payment_color` cuando
+  exista.
 
 ### 5.2 Tablas nuevas
 
@@ -360,6 +444,7 @@ Crear `src/domain/credits/`:
 - `simulations.ts`: escenarios y comparaciones.
 - `summary.ts`: deuda total, tasa media, años, próximos pagos.
 - `cards.ts`: utilización, disponible y ciclo de tarjeta.
+- `paymentVisuals.ts`: marcas, estilos, modelos no crediticios y normalización.
 - `types.ts`: tipos puros.
 
 Reglas:
@@ -395,7 +480,12 @@ Reglas:
 
 - Selector de tarjeta de crédito.
 - Límite, corte y pago.
-- Migración de inferencia legacy.
+- Constructor visual de tarjeta: red, acabado, color, chip, contacto, titular,
+  últimos cuatro y emisor.
+- Selector de modelo no crediticio: débito, efectivo, cerdito, transferencia,
+  billetera, regalo u otro.
+- `PaymentMethodVisual` con profundidad, brillo y animación Reanimated.
+- Migración de inferencia legacy y backfill de `visual_kind`.
 - Resumen de utilización y disponible.
 - Tests de migración y dominio de tarjetas.
 
@@ -442,6 +532,11 @@ Reglas:
 - El método de pago permite indicar explícitamente si es tarjeta de crédito.
 - Las tarjetas existentes se infieren por fecha de corte y se pueden corregir.
 - Una tarjeta muestra límite, utilizado, disponible y utilización.
+- El usuario puede armar la tarjeta con red, acabado, color, chip, contacto,
+  titular, últimos cuatro y emisor.
+- La tarjeta tiene una visualización animada con profundidad, no una imagen
+  plana.
+- Los métodos no crediticios permiten elegir un modelo representativo.
 - Se puede registrar una compra a plazo a tasa cero.
 - Se puede registrar una compra a plazo o préstamo con interés.
 - El usuario puede indicar cuántas cuotas lleva pagadas y cuánto capital ha
@@ -471,6 +566,8 @@ Reglas:
 | Formularios demasiado largos | Medio | Un formulario por caso |
 | Cambios de esquema | Medio | Migración incremental, backups y tests de DB |
 | Tarjetas sin estado de cuenta | Medio | v1 derivar de `Records`; estados de cuenta después |
+| Uso de marcas/logos de tarjetas | Medio | Marcas estilizadas o texto; no usar logos oficiales sin permiso |
+| Visuales pesados en listas | Medio | SVG ligero + Reanimated; evitar animaciones continuas en listas largas |
 
 ---
 
@@ -484,6 +581,9 @@ Reglas:
 5. ¿Los préstamos compartidos se dividen por porcentaje o por monto fijo?
 6. ¿Las simulaciones deben guardarse o son efímeras?
 7. ¿Se permite modificar la cuota pactada sin refinanciar?
+8. ¿Qué marcas de tarjeta deben mostrarse con logo y cuáles solo con texto?
+9. ¿Los últimos cuatro dígitos y el titular son obligatorios o opcionales?
+10. ¿Las animaciones de tarjeta se muestran siempre o solo al abrir el detalle?
 
 ---
 
