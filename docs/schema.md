@@ -3,7 +3,7 @@
 > Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.
 > Fuente de verdad: `src/db/schema/tables.ts`.
 
-Versión de esquema: **11**
+Versión de esquema: **12**
 
 ## Convenciones
 
@@ -24,7 +24,7 @@ Versión de esquema: **11**
 | `Fixed` | `fixed_records` | `FixedRecord` | 10 | 4 |
 | `Records` | `records` | `RecordEntry` | 13 | 6 |
 | `PaidCredits` | `paid_credits` | `PaidCredit` | 8 | 3 |
-| `Financings` | `financings` | `Financing` | 26 | 2 |
+| `Financings` | `financings` | `Financing` | 27 | 2 |
 | `FinancingPayments` | `financing_payments` | `FinancingPayment` | 19 | 2 |
 | `FinancingAdjustments` | `financing_adjustments` | `FinancingAdjustment` | 13 | 1 |
 | `BudgetTemplates` | `budget_templates` | `BudgetTemplate` | 8 | 0 |
@@ -234,6 +234,7 @@ Entidad TypeScript: `Financing`
 | `principal_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
 | `down_payment_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
 | `financed_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
+| `payment_cents` | `INTEGER` | `Cents` | kind=money |
 | `annual_rate_bps` | `INTEGER` | `number` | NOT NULL, default=0 |
 | `rate_type` | `TEXT` | `string` | NOT NULL, default="fixed" |
 | `term_months` | `INTEGER` | `number` | NOT NULL, default=1 |

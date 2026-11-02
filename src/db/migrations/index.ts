@@ -11,6 +11,7 @@ import fuelBaseline from './0008_fuel_baseline';
 import vehicleType from './0009_vehicle_type';
 import vehicleTypeModels from './0010_vehicle_type_models';
 import creditCardsAndFinancings from './0011_credit_cards_and_financings';
+import financingPaymentCents from './0012_financing_payment_cents';
 
 export interface Migration {
   version: number;
@@ -34,4 +35,5 @@ export const migrations: Migration[] = [
   vehicleType,
   vehicleTypeModels,
   creditCardsAndFinancings,
+  financingPaymentCents,
 ];

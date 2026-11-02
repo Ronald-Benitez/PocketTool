@@ -1,6 +1,6 @@
 import type { TableDefinition, TableSchema } from '../types';
 
-export const SCHEMA_VERSION = 11;
+export const SCHEMA_VERSION = 12;
 
 export type TableName =
   | 'Groups'
@@ -242,6 +242,7 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
       { name: 'principal_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
       { name: 'down_payment_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
       { name: 'financed_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'payment_cents', type: 'INTEGER', kind: 'money' },
       { name: 'annual_rate_bps', type: 'INTEGER', notNull: true, defaultValue: 0 },
       { name: 'rate_type', type: 'TEXT', notNull: true, defaultValue: 'fixed' },
       { name: 'term_months', type: 'INTEGER', notNull: true, defaultValue: 1 },

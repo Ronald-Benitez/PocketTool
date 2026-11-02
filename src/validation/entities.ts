@@ -484,6 +484,7 @@ export const financingInputSchema = z
     principal_cents: cents.nonnegative(),
     down_payment_cents: cents.nonnegative().optional(),
     financed_cents: cents.nonnegative(),
+    payment_cents: cents.nonnegative().nullable().optional(),
     annual_rate_bps: z.number().int().min(0).max(100000),
     rate_type: financingRateType.optional(),
     term_months: z.number().int().positive(),

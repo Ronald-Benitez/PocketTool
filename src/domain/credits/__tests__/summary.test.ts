@@ -34,6 +34,48 @@ describe('financing summary', () => {
     expect(summary.paidInstallments).toBe(4);
   });
 
+  it('keeps the amortization payment when the agreed payment is higher', () => {
+    const summary = summarizeFinancing(
+      { ...base, payment_cents: 12000 },
+      []
+    );
+    expect(summary.monthlyPaymentCents).toBe(12000);
+    expect(summary.scheduledPaymentCents).toBe(10000);
+    expect(summary.monthsRemaining).toBe(12);
+  });
+
+  it('extends the term when the agreed payment is lower', () => {
+    const summary = summarizeFinancing(
+      { ...base, payment_cents: 8000 },
+      []
+    );
+    expect(summary.monthlyPaymentCents).toBe(8000);
+    expect(summary.scheduledPaymentCents).toBe(10000);
+    expect(summary.monthsRemaining).toBe(15);
+  });
+
+  it('totals principal, interest, insurance and fees paid', () => {
+    const summary = summarizeFinancing(base, [
+      {
+        principal_cents: 9000,
+        interest_cents: 1000,
+        insurance_cents: 500,
+        fees_cents: 0,
+      },
+      {
+        principal_cents: 9500,
+        interest_cents: 500,
+        insurance_cents: 0,
+        fees_cents: 200,
+      },
+    ]);
+
+    expect(summary.paidPrincipalCents).toBe(18500);
+    expect(summary.paidInterestCents).toBe(1500);
+    expect(summary.paidInsuranceCents).toBe(500);
+    expect(summary.paidFeesCents).toBe(200);
+  });
+
   it('applies a refinancing rate and remaining term', () => {
     const summary = summarizeFinancing(
       {
@@ -93,6 +135,7 @@ describe('financing summary', () => {
     ]);
 
     expect(summary.monthlyPaymentCents).toBe(20000);
-    expect(summary.monthsRemaining).toBe(6);
+    expect(summary.scheduledPaymentCents).toBe(10000);
+    expect(summary.monthsRemaining).toBe(12);
   });
 });

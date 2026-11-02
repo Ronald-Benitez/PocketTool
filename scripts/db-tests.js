@@ -410,7 +410,7 @@ async function testEmptyDatabase() {
   assert.strictEqual(q(raw, 'SELECT goal FROM groups')[0].goal, 500000);
   assert.strictEqual(q(raw, 'SELECT amount FROM records ORDER BY id')[0].amount, 100000);
   assert.strictEqual(q(raw, 'SELECT migration_name FROM migrations')[0].migration_name, '0001_baseline');
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 11);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 12);
   const recordColumns = q(raw, 'PRAGMA table_info(records)').map(c => c.name);
   assert.ok(recordColumns.includes('created_at'));
   assert.ok(recordColumns.includes('updated_at'));
@@ -447,7 +447,7 @@ async function testExportImport() {
   assert.ok(metadata);
   assert.strictEqual(metadata.formatVersion, BACKUP_FORMAT_VERSION);
   assert.strictEqual(metadata.appVersion, 'test-version');
-  assert.strictEqual(metadata.schemaVersion, 11);
+  assert.strictEqual(metadata.schemaVersion, 12);
   assert.ok(metadata.tables.includes('records'));
   assert.doesNotThrow(() => validateSqlDump(backupSql));
   assert.strictEqual(parseBackupMetadata(dump), null);
@@ -500,7 +500,7 @@ async function testAuditTimestampMigration() {
   const backfilled = q(raw, 'SELECT created_at, updated_at FROM records LIMIT 1')[0];
   assert.ok(backfilled.created_at > 0);
   assert.ok(backfilled.updated_at > 0);
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 11);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 12);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,
     1
@@ -841,6 +841,35 @@ async function testCreditCardsAndFinancingsMigration() {
   console.log('credit cards and financings migration: OK');
 }
 
+async function testFinancingPaymentCentsMigration() {
+  const raw = new DatabaseSync(':memory:');
+  raw.exec(`
+    CREATE TABLE financings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      financed_cents INTEGER NOT NULL DEFAULT 0,
+      annual_rate_bps INTEGER NOT NULL DEFAULT 0,
+      term_months INTEGER NOT NULL DEFAULT 1
+    );
+    INSERT INTO financings (name, financed_cents, annual_rate_bps, term_months)
+      VALUES ('Legacy', 100000, 0, 12);
+  `);
+  const migration = require(path.join(
+    ROOT,
+    'src/db/migrations/0012_financing_payment_cents.ts'
+  )).default;
+  await migration.up(shim(raw));
+
+  const columns = q(raw, 'PRAGMA table_info(financings)').map(
+    (column) => column.name
+  );
+  assert.ok(columns.includes('payment_cents'), 'missing payment_cents');
+  const row = q(raw, 'SELECT payment_cents FROM financings')[0];
+  assert.strictEqual(row.payment_cents, null);
+  raw.close();
+  console.log('financing payment cents migration: OK');
+}
+
 async function testVehicleInsert() {
   const raw = new DatabaseSync(':memory:');
   const db = shim(raw);
@@ -1016,6 +1045,7 @@ async function testInterruptedRebuild() {
   testNoLegacyHandlerImports();
   await testBudgetStatusRemoval();
   await testCreditCardsAndFinancingsMigration();
+  await testFinancingPaymentCentsMigration();
   await testVehicleInsert();
   await testVehicleTypeMigration();
   await testVehicleTypeModelsMigration();

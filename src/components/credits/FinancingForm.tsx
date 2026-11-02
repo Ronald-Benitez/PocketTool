@@ -65,6 +65,8 @@ export const FinancingForm = ({
   const [downPayment, setDownPayment] = useState(0);
   const [annualRate, setAnnualRate] = useState('0');
   const [termMonths, setTermMonths] = useState('12');
+  const [useCalculatedPayment, setUseCalculatedPayment] = useState(true);
+  const [payment, setPayment] = useState(0);
   const [startDate, setStartDate] = useState(() => Date.now());
   const [firstPaymentDate, setFirstPaymentDate] = useState(() => Date.now());
   const [paidInstallments, setPaidInstallments] = useState('0');
@@ -95,6 +97,10 @@ export const FinancingForm = ({
     setDownPayment(financing?.down_payment_cents ?? 0);
     setAnnualRate(((financing?.annual_rate_bps ?? 0) / 100).toString());
     setTermMonths(String(financing?.term_months ?? 12));
+    setUseCalculatedPayment(
+      financing?.payment_cents == null || financing.payment_cents <= 0
+    );
+    setPayment(financing?.payment_cents ?? 0);
     setStartDate(financing?.start_date ?? Date.now());
     setFirstPaymentDate(
       financing?.first_payment_date ?? financing?.start_date ?? Date.now()
@@ -147,6 +153,7 @@ export const FinancingForm = ({
     kind === 'installment_purchase' &&
     rateBps === 0 &&
     Boolean(selectedPaymentMethod?.is_credit_card);
+  const paymentDifference = payment - estimatedPayment;
 
   const save = async () => {
     if (
@@ -154,7 +161,8 @@ export const FinancingForm = ({
       principal <= 0 ||
       financed <= 0 ||
       term <= 0 ||
-      rateBps < 0
+      rateBps < 0 ||
+      (!useCalculatedPayment && payment <= 0)
     ) {
       setError(t('financings.invalidFields'));
       return;
@@ -171,6 +179,7 @@ export const FinancingForm = ({
         principal_cents: principal,
         down_payment_cents: downPayment,
         financed_cents: financed,
+        payment_cents: useCalculatedPayment ? null : payment,
         annual_rate_bps: rateBps,
         rate_type: 'fixed',
         term_months: term,
@@ -282,9 +291,38 @@ export const FinancingForm = ({
         />
         {estimatedPayment > 0 ? (
           <AppText variant='caption' color='muted'>
-            {t('financings.payment')}:{' '}
+            {t('financings.expectedPayment')}:{' '}
             {formatMoneyWithSymbol(estimatedPayment)}
           </AppText>
+        ) : null}
+        <SwitchField
+          label={t('financings.useCalculatedPayment')}
+          value={useCalculatedPayment}
+          onChange={setUseCalculatedPayment}
+        />
+        {!useCalculatedPayment ? (
+          <>
+            <MoneyField
+              label={t('financings.agreedPayment')}
+              value={payment}
+              onChangeCents={setPayment}
+              hint={t('financings.agreedPaymentHint')}
+            />
+            {payment > 0 && paymentDifference > 0 ? (
+              <InlineMessage
+                variant='info'
+                message={t('financings.paymentAboveCalculated', {
+                  amount: formatMoneyWithSymbol(paymentDifference),
+                })}
+              />
+            ) : null}
+            {payment > 0 && paymentDifference < 0 ? (
+              <InlineMessage
+                variant='info'
+                message={t('financings.paymentBelowCalculated')}
+              />
+            ) : null}
+          </>
         ) : null}
         <DateField
           label={t('financings.startDate')}

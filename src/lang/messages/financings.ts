@@ -28,6 +28,10 @@ export const financingsEn = {
     financed: 'Financed amount',
     annualRate: 'Annual rate (%)',
     termMonths: 'Term (months)',
+    useCalculatedPayment: 'Use calculated payment',
+    agreedPayment: 'Agreed payment',
+    agreedPaymentHint:
+      'Enter the fixed payment agreed with the bank or store. It will prefill new payments.',
     startDate: 'Start date',
     firstPaymentDate: 'First payment date',
     paidInstallments: 'Installments already paid',
@@ -98,6 +102,21 @@ export const financingsEn = {
     paymentDelta: 'Payment change',
     cardImpactHint:
       'This 0% installment purchase reduces the available credit of the selected card by its pending balance.',
+    paymentAboveCalculated:
+      'The agreed payment is higher than the calculated one. {amount} per payment will be recorded as insurance or other charges, not as principal or interest.',
+    paymentBelowCalculated:
+      'The agreed payment is lower than the calculated one. The remaining term will be extended.',
+    paymentExtraWarning:
+      'The amount exceeds the scheduled payment. {amount} will be recorded as insurance or other charges, not as principal or interest.',
+    extraChargeType: 'Charge type',
+    extraChargeKinds: {
+      insurance: 'Insurance',
+      fees: 'Other fees',
+    },
+    paymentBreakdown: 'Payment breakdown',
+    paidPrincipal: 'Principal paid',
+    paidInterest: 'Interest paid',
+    paidCharges: 'Insurance and other charges',
   },
 };
 
@@ -129,6 +148,10 @@ export const financingsEs: MessageShape<typeof financingsEn> = {
     financed: 'Monto financiado',
     annualRate: 'Tasa anual (%)',
     termMonths: 'Plazo (meses)',
+    useCalculatedPayment: 'Usar cuota calculada',
+    agreedPayment: 'Cuota pactada',
+    agreedPaymentHint:
+      'Ingresa la cuota fija acordada con el banco o la tienda. Se usará para autocompletar los pagos.',
     startDate: 'Fecha de inicio',
     firstPaymentDate: 'Primera cuota',
     paidInstallments: 'Cuotas ya pagadas',
@@ -199,5 +222,20 @@ export const financingsEs: MessageShape<typeof financingsEn> = {
     paymentDelta: 'Cambio de cuota',
     cardImpactHint:
       'Esta compra a plazo al 0% reduce el crédito disponible de la tarjeta seleccionada por su saldo pendiente.',
+    paymentAboveCalculated:
+      'La cuota pactada es mayor que la calculada. {amount} de cada pago se registrará como seguro u otros cargos, no como capital ni interés.',
+    paymentBelowCalculated:
+      'La cuota pactada es menor que la calculada. El plazo restante se extenderá.',
+    paymentExtraWarning:
+      'El monto supera la cuota programada. {amount} se registrará como seguro u otros cargos, no como capital ni interés.',
+    extraChargeType: 'Tipo de cargo',
+    extraChargeKinds: {
+      insurance: 'Seguro',
+      fees: 'Otros cargos',
+    },
+    paymentBreakdown: 'Desglose del pago',
+    paidPrincipal: 'Capital pagado',
+    paidInterest: 'Interés pagado',
+    paidCharges: 'Seguros y otros cargos',
   },
 };

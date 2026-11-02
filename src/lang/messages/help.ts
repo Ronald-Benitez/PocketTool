@@ -388,7 +388,7 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "The balance is derived from the financed amount, prior installments, prior capital payments, registered payments and extra principal. A 0% installment purchase linked to a credit card also reduces that card's available credit by its pending balance."
+                "body": "The balance is derived from the financed amount, prior installments, prior capital payments, registered payments and extra principal. You can use the calculated payment or enter the agreed one; if a payment is higher, the difference is recorded as insurance or other charges, not as principal or interest. A 0% installment purchase linked to a credit card also reduces that card's available credit by its pending balance."
             },
             "steps": {
                 "title": "Step by step",
@@ -890,7 +890,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "El saldo se deriva del monto financiado, las cuotas ya pagadas, el capital abonado antes de usar la app, los pagos registrados y los abonos a capital. Una compra a plazo al 0% vinculada a una tarjeta también reduce el crédito disponible de esa tarjeta por su saldo pendiente."
+                "body": "El saldo se deriva del monto financiado, las cuotas ya pagadas, el capital abonado antes de usar la app, los pagos registrados y los abonos a capital. Puedes usar la cuota calculada o ingresar la pactada; si un pago es mayor, la diferencia se registra como seguro u otros cargos, no como capital ni interés. Una compra a plazo al 0% vinculada a una tarjeta también reduce el crédito disponible de esa tarjeta por su saldo pendiente."
             },
             "steps": {
                 "title": "Paso a paso",

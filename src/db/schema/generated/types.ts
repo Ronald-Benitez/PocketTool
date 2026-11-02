@@ -104,6 +104,7 @@ export interface Financing extends Entity, SoftDeletable {
   principal_cents: Cents;
   down_payment_cents: Cents;
   financed_cents: Cents;
+  payment_cents?: Cents | null;
   annual_rate_bps: number;
   rate_type: string;
   term_months: number;

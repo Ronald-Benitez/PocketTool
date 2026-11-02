@@ -188,11 +188,29 @@ export const FinancingAdjustmentForm = ({
           />
         ) : null}
         {kind === 'refinance' || kind === 'payment_change' ? (
-          <MoneyField
-            label={t('financings.newPayment')}
-            value={payment}
-            onChangeCents={setPayment}
-          />
+          <>
+            <MoneyField
+              label={t('financings.newPayment')}
+              value={payment}
+              onChangeCents={setPayment}
+            />
+            {summary && payment > summary.scheduledPaymentCents ? (
+              <InlineMessage
+                variant='info'
+                message={t('financings.paymentAboveCalculated', {
+                  amount: formatMoneyWithSymbol(
+                    payment - summary.scheduledPaymentCents
+                  ),
+                })}
+              />
+            ) : null}
+            {summary && payment > 0 && payment < summary.scheduledPaymentCents ? (
+              <InlineMessage
+                variant='info'
+                message={t('financings.paymentBelowCalculated')}
+              />
+            ) : null}
+          </>
         ) : null}
         <MoneyField
           label={t('financings.capitalizedInterest')}

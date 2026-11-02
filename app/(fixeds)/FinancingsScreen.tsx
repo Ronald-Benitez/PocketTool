@@ -14,6 +14,7 @@ import {
 import type { FinancingWithRelations } from '@/src/interfaces/schema';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { useDataStore } from '@/src/stores';
+import { formatMoneyWithSymbol } from '@/src/utils';
 import { SwipeAction } from '@/src/ui/actions/SwipeAction';
 import { Button } from '@/src/ui/actions/Button';
 import { Badge } from '@/src/ui/data-display/Badge';
@@ -221,6 +222,20 @@ const FinancingsScreen = () => {
                           ).toLocaleDateString()}`
                         : ''}
                     </AppText>
+                    <AppText variant='caption' color='muted'>
+                      {t('financings.paidPrincipal')}:{' '}
+                      {formatMoneyWithSymbol(summary.paidPrincipalCents)} ·{' '}
+                      {t('financings.paidInterest')}:{' '}
+                      {formatMoneyWithSymbol(summary.paidInterestCents)}
+                    </AppText>
+                    {summary.paidInsuranceCents + summary.paidFeesCents > 0 ? (
+                      <AppText variant='caption' color='muted'>
+                        {t('financings.paidCharges')}:{' '}
+                        {formatMoneyWithSymbol(
+                          summary.paidInsuranceCents + summary.paidFeesCents
+                        )}
+                      </AppText>
+                    ) : null}
                     {summary.adjustment ? (
                       <AppText variant='caption' color='muted'>
                         {t('financings.lastAdjustment')}:{' '}

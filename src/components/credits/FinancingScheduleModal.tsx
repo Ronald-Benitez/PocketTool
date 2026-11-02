@@ -60,12 +60,37 @@ export const FinancingScheduleModal = ({
           <Surface variant='muted' padding='md'>
             <Stack gap='xxs'>
               <AppText>
+                {t('financings.agreedPayment')}:{' '}
+                {formatMoneyWithSymbol(summary.monthlyPaymentCents)}
+              </AppText>
+              {summary.scheduledPaymentCents !==
+              summary.monthlyPaymentCents ? (
+                <AppText>
+                  {t('financings.expectedPayment')}:{' '}
+                  {formatMoneyWithSymbol(summary.scheduledPaymentCents)}
+                </AppText>
+              ) : null}
+              <AppText>
                 {t('financings.balance')}:{' '}
                 {formatMoneyWithSymbol(summary.balanceCents)}
               </AppText>
               <AppText>
                 {t('financings.interest')}:{' '}
                 {formatMoneyWithSymbol(summary.totalInterestCents)}
+              </AppText>
+              <AppText>
+                {t('financings.paidPrincipal')}:{' '}
+                {formatMoneyWithSymbol(summary.paidPrincipalCents)}
+              </AppText>
+              <AppText>
+                {t('financings.paidInterest')}:{' '}
+                {formatMoneyWithSymbol(summary.paidInterestCents)}
+              </AppText>
+              <AppText>
+                {t('financings.paidCharges')}:{' '}
+                {formatMoneyWithSymbol(
+                  summary.paidInsuranceCents + summary.paidFeesCents
+                )}
               </AppText>
               {summary.payoffDate ? (
                 <AppText>

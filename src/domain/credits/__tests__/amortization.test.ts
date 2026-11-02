@@ -2,6 +2,7 @@ import {
   buildSchedule,
   calculatePaymentCents,
   cardUtilization,
+  monthsToAmortize,
   paymentDifferenceToFees,
   sharedAmount,
 } from '../amortization';
@@ -59,6 +60,23 @@ describe('credit amortization', () => {
     expect(schedule.rows).toHaveLength(8);
     expect(schedule.rows[0].balanceCents).toBe(60000 - schedule.rows[0].principalCents);
     expect(schedule.totalPaidCents).toBe(60000);
+  });
+
+  it('calculates how many months a fixed payment needs', () => {
+    expect(
+      monthsToAmortize({
+        balanceCents: 120000,
+        annualRateBps: 0,
+        paymentCents: 8000,
+      })
+    ).toBe(15);
+    expect(
+      monthsToAmortize({
+        balanceCents: 120000,
+        annualRateBps: 0,
+        paymentCents: 0,
+      })
+    ).toBe(0);
   });
 
   it('handles card utilization and shared payments', () => {

@@ -100,6 +100,7 @@ Las rutas navegables se generan en `relations.json` a partir de las FKs.
 | 9 | `0009_vehicle_type` | Agrega `vehicle_type` a `vehicles` con valor inicial `car`. |
 | 10 | `0010_vehicle_type_models` | Normaliza `car`→`sedan` y `van`→`furgon` para los modelos nuevos. |
 | 11 | `0011_credit_cards_and_financings` | Agrega campos visuales/tarjeta a `payment_methods` y crea `financings`, `financing_payments` y `financing_adjustments`. |
+| 12 | `0012_financing_payment_cents` | Agrega `payment_cents` a `financings` para la cuota pactada opcional. |
 
 Reglas:
 

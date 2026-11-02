@@ -37,8 +37,8 @@ están archivados en [`legacy/budget-plan.md`](legacy/budget-plan.md) y
   `0003_timestamp_triggers`, `0004_budget_plans`,
   `0005_drop_budget_legacy`, `0006_drop_budget_plan_status`,
   `0007_vehicle_module`, `0008_fuel_baseline`, `0009_vehicle_type`,
-  `0010_vehicle_type_models`, `0011_credit_cards_and_financings`;
-  `SCHEMA_VERSION = 11`.
+  `0010_vehicle_type_models`, `0011_credit_cards_and_financings`,
+  `0012_financing_payment_cents`; `SCHEMA_VERSION = 12`.
 - **Presupuestos:** `BudgetPlans` (un plan por grupo), `BudgetLines` (categoría
   o fijo) y plantillas reutilizables. El real se deriva de `Records`; no se
   guarda. `budgets_legacy` se elimina en `0005`.
@@ -262,7 +262,8 @@ Alcance principal:
 
 Implementado hasta ahora:
 
-- Migración `0011_credit_cards_and_financings` y `SCHEMA_VERSION = 11`.
+- Migraciones `0011_credit_cards_and_financings` y
+  `0012_financing_payment_cents`; `SCHEMA_VERSION = 12`.
 - Campos de tarjeta en `PaymentMethods`: tarjeta de crédito explícita, límite,
   visual, marca, acabado, color, últimos cuatro, titular y emisor.
 - Backfill legacy: tarjetas por `closing_date` y color desde el tipo de pago.
@@ -275,6 +276,8 @@ Implementado hasta ahora:
 - Pantalla de Créditos con visual, límite, disponible y utilización.
 - Repositorio de financiamientos y pantalla de Préstamos/Compras a plazo.
 - Alta/edición de financiamientos y registro de pagos con abono a capital.
+- Cuota pactada o calculada, autocompletado de pagos y diferencia registrada
+  como seguro u otros cargos.
 - Resumen de deuda total, cuota mensual, tasa media y meses restantes.
 - Refinanciamientos, cambios de tasa/plazo y ajustes acumulados.
 - Simulaciones de abono único/recurrente, tasa y plazo.
@@ -285,7 +288,7 @@ Implementado hasta ahora:
 
 Pendiente:
 
-- Edición avanzada de pagos y conciliación de seguros/honorarios.
+- Edición avanzada de pagos.
 - QA Android/iOS y checklist visual final.
 - `expo-doctor` y verificación completa de cierre.
 

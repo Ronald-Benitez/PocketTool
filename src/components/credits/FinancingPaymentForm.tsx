@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { useFinancingsRepository } from '@/src/db';
 import type { FinancingWithRelations } from '@/src/interfaces/schema';
 import type { FinancingSummary } from '@/src/domain/credits/summary';
+import {
+  buildPaymentBreakdown,
+  type ExtraChargeType,
+} from '@/src/domain/credits/payments';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import useRecordsStore from '@/src/stores/RecordsStore';
 import { formatMoneyWithSymbol } from '@/src/utils';
@@ -12,10 +16,12 @@ import { InlineMessage } from '@/src/ui/feedback/InlineMessage';
 import { useToast } from '@/src/ui/feedback/ToastProvider';
 import { DateField } from '@/src/ui/forms/DateField';
 import { MoneyField } from '@/src/ui/forms/MoneyField';
+import { SelectField } from '@/src/ui/forms/SelectField';
 import { TextField } from '@/src/ui/forms/TextField';
 import { Modal } from '@/src/ui/overlays/Modal';
 import { AppText } from '@/src/ui/primitives/AppText';
-import { Stack } from '@/src/ui/primitives/Stack';
+import { Row, Stack } from '@/src/ui/primitives/Stack';
+import { Surface } from '@/src/ui/primitives/Surface';
 
 type FinancingPaymentFormProps = {
   visible: boolean;
@@ -40,6 +46,8 @@ export const FinancingPaymentForm = ({
   const [amount, setAmount] = useState(0);
   const [extraPrincipal, setExtraPrincipal] = useState(0);
   const [extraReducePayment, setExtraReducePayment] = useState(0);
+  const [extraChargeType, setExtraChargeType] =
+    useState<ExtraChargeType>('insurance');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,14 +58,24 @@ export const FinancingPaymentForm = ({
     setAmount(summary?.monthlyPaymentCents ?? 0);
     setExtraPrincipal(0);
     setExtraReducePayment(0);
+    setExtraChargeType('insurance');
     setNotes('');
     setError(null);
   }, [visible, summary]);
 
   const expected = summary?.monthlyPaymentCents ?? 0;
-  const differenceToFees = Math.max(
-    0,
-    amount - expected - extraPrincipal - extraReducePayment
+  const scheduled = summary?.schedule.paymentCents ?? expected;
+  const breakdown = useMemo(
+    () =>
+      buildPaymentBreakdown({
+        amountCents: amount,
+        expectedCents: scheduled,
+        scheduledRow: summary?.schedule.rows[0] ?? null,
+        extraPrincipalCents: extraPrincipal,
+        extraReducePaymentCents: extraReducePayment,
+        extraChargeType,
+      }),
+    [amount, scheduled, summary, extraPrincipal, extraReducePayment, extraChargeType]
   );
 
   const save = async () => {
@@ -68,25 +86,16 @@ export const FinancingPaymentForm = ({
     setSaving(true);
     setError(null);
     try {
-      const interest = Math.max(
-        0,
-        Math.round(
-          summary?.balanceCents
-            ? (summary.balanceCents * financing.annual_rate_bps) / 10000 / 12
-            : 0
-        )
-      );
-      const principal = Math.max(0, expected - interest);
       await repository.savePayment({
         financing_id: financing.id,
         date,
-        amount_cents: amount,
-        principal_cents: principal,
-        interest_cents: interest,
-        insurance_cents: differenceToFees,
-        fees_cents: 0,
-        extra_principal_cents: extraPrincipal,
-        extra_reduce_payment_cents: extraReducePayment,
+        amount_cents: breakdown.amountCents,
+        principal_cents: breakdown.principalCents,
+        interest_cents: breakdown.interestCents,
+        insurance_cents: breakdown.insuranceCents,
+        fees_cents: breakdown.feesCents,
+        extra_principal_cents: breakdown.extraPrincipalCents,
+        extra_reduce_payment_cents: breakdown.extraReducePaymentCents,
         is_shared: financing.is_shared ? 1 : 0,
         shared_amount_cents: financing.is_shared
           ? summary?.sharedPaymentCents ?? null
@@ -133,8 +142,13 @@ export const FinancingPaymentForm = ({
     >
       <Stack gap='md'>
         <AppText variant='caption' color='muted'>
-          {t('financings.expectedPayment')}: {formatMoneyWithSymbol(expected)}
+          {t('financings.agreedPayment')}: {formatMoneyWithSymbol(expected)}
         </AppText>
+        {scheduled !== expected ? (
+          <AppText variant='caption' color='muted'>
+            {t('financings.expectedPayment')}: {formatMoneyWithSymbol(scheduled)}
+          </AppText>
+        ) : null}
         <DateField
           label={t('financings.paymentDate')}
           value={date}
@@ -155,12 +169,80 @@ export const FinancingPaymentForm = ({
           value={extraReducePayment}
           onChangeCents={setExtraReducePayment}
         />
-        {differenceToFees > 0 ? (
-          <AppText variant='caption' color='muted'>
-            {t('financings.insurance')}:{' '}
-            {formatMoneyWithSymbol(differenceToFees)}
-          </AppText>
+        {breakdown.extraChargeCents > 0 ? (
+          <>
+            <InlineMessage
+              variant='warning'
+              message={t('financings.paymentExtraWarning', {
+                amount: formatMoneyWithSymbol(breakdown.extraChargeCents),
+              })}
+            />
+            <SelectField
+              label={t('financings.extraChargeType')}
+              value={extraChargeType}
+              options={[
+                {
+                  label: t('financings.extraChargeKinds.insurance'),
+                  value: 'insurance',
+                },
+                {
+                  label: t('financings.extraChargeKinds.fees'),
+                  value: 'fees',
+                },
+              ]}
+              onChange={setExtraChargeType}
+            />
+          </>
         ) : null}
+        <Surface variant='muted' padding='md'>
+          <Stack gap='xs'>
+            <AppText weight='600'>{t('financings.paymentBreakdown')}</AppText>
+            <Row justify='space-between'>
+              <AppText color='muted'>{t('financings.interest')}</AppText>
+              <AppText>
+                {formatMoneyWithSymbol(breakdown.interestCents)}
+              </AppText>
+            </Row>
+            <Row justify='space-between'>
+              <AppText color='muted'>{t('financings.principalLabel')}</AppText>
+              <AppText>
+                {formatMoneyWithSymbol(breakdown.principalCents)}
+              </AppText>
+            </Row>
+            {breakdown.extraPrincipalCents > 0 ? (
+              <Row justify='space-between'>
+                <AppText color='muted'>{t('financings.extraPrincipal')}</AppText>
+                <AppText>
+                  {formatMoneyWithSymbol(breakdown.extraPrincipalCents)}
+                </AppText>
+              </Row>
+            ) : null}
+            {breakdown.extraReducePaymentCents > 0 ? (
+              <Row justify='space-between'>
+                <AppText color='muted'>
+                  {t('financings.extraReducePayment')}
+                </AppText>
+                <AppText>
+                  {formatMoneyWithSymbol(breakdown.extraReducePaymentCents)}
+                </AppText>
+              </Row>
+            ) : null}
+            {breakdown.insuranceCents > 0 ? (
+              <Row justify='space-between'>
+                <AppText color='muted'>{t('financings.insurance')}</AppText>
+                <AppText>
+                  {formatMoneyWithSymbol(breakdown.insuranceCents)}
+                </AppText>
+              </Row>
+            ) : null}
+            {breakdown.feesCents > 0 ? (
+              <Row justify='space-between'>
+                <AppText color='muted'>{t('financings.fees')}</AppText>
+                <AppText>{formatMoneyWithSymbol(breakdown.feesCents)}</AppText>
+              </Row>
+            ) : null}
+          </Stack>
+        </Surface>
         <TextField
           label={t('financings.notes')}
           value={notes}

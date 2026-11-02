@@ -29,6 +29,27 @@ export const calculatePaymentCents = ({
   return Math.round((principalCents * rate) / (1 - factor));
 };
 
+export const monthsToAmortize = ({
+  balanceCents,
+  annualRateBps,
+  paymentCents,
+}: {
+  balanceCents: number;
+  annualRateBps: number;
+  paymentCents: number;
+}) => {
+  if (balanceCents <= 0 || paymentCents <= 0) return 0;
+  const rate = monthlyRateFromBps(annualRateBps);
+  if (rate <= 0) return Math.ceil(balanceCents / paymentCents);
+  if (paymentCents <= balanceCents * rate) return 0;
+  return Math.max(
+    1,
+    Math.ceil(
+      -Math.log(1 - (balanceCents * rate) / paymentCents) / Math.log(1 + rate)
+    )
+  );
+};
+
 export const buildSchedule = ({
   principalCents,
   annualRateBps,

@@ -24,12 +24,14 @@ export const simulateFinancing = (
   scenario: FinancingSimulationScenario
 ): FinancingSimulationResult => {
   const baseline = summarizeFinancing(financing, payments, adjustments);
-  const simulated = summarizeFinancing(
-    financing,
-    payments,
-    adjustments,
-    scenario
-  );
+  const simulated = summarizeFinancing(financing, payments, adjustments, {
+    ...scenario,
+    ignoreAgreedPayment:
+      scenario.extraOnceMode === 'reduce_payment' ||
+      scenario.annualRateBps !== undefined ||
+      scenario.remainingTermMonths !== undefined ||
+      scenario.ignoreAgreedPayment,
+  });
 
   return {
     baseline,

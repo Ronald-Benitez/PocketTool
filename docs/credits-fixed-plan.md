@@ -382,7 +382,8 @@ simulación” después si el usuario lo necesita.
 
 ## 5. Esquema y migración
 
-Migración `0011_credit_cards_and_financings`; `SCHEMA_VERSION = 11`.
+Migraciones `0011_credit_cards_and_financings` y
+`0012_financing_payment_cents`; `SCHEMA_VERSION = 12`.
 
 ### 5.1 `PaymentMethods`
 
@@ -606,7 +607,9 @@ npx expo export --platform android
 
 Implementado:
 
-- Migración `0011_credit_cards_and_financings` y `SCHEMA_VERSION = 11`.
+- Migraciones `0011_credit_cards_and_financings` y
+  `0012_financing_payment_cents`; `SCHEMA_VERSION = 12`.
+- `Financings.payment_cents` para la cuota pactada opcional.
 - `PaymentMethods` con `is_credit_card`, `credit_limit`, `visual_kind`,
   `card_brand`, `card_style`, `card_color`, `card_last4`, `card_holder` y
   `card_issuer`.
@@ -624,6 +627,10 @@ Implementado:
 - Alta/edición de financiamientos con cuotas ya pagadas, capital abonado y parte
   compartida.
 - Registro de pagos con abono a capital y reducción de cuota.
+- Cuota pactada opcional (`Financings.payment_cents`) o cuota calculada; los
+  pagos nuevos se autocompletan con la cuota pactada.
+- Si el pago supera la cuota programada, la diferencia se registra como seguro u
+  otro cargo y se muestra separada del capital y los intereses.
 - Resumen de deuda total, cuota mensual, tasa media y meses restantes.
 - Refinanciamientos y cambios de tasa/plazo con historial de ajustes acumulados.
 - Simulaciones de abono único/recurrente, nueva tasa y nuevo plazo, con
@@ -635,6 +642,6 @@ Implementado:
 
 Pendiente:
 
-- Edición avanzada de pagos y conciliación de seguros/honorarios.
+- Edición avanzada de pagos.
 - QA Android/iOS y checklist visual final.
 - Verificación completa con `expo-doctor` y export Android antes del cierre.

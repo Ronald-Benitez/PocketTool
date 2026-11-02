@@ -164,7 +164,10 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 - `src/domain/credits/amortization.ts`: cuota francesa, tasa cero, calendario,
   utilización de tarjeta y partes compartidas.
 - `src/domain/credits/summary.ts`: saldo y calendario vigente con ajustes
-  acumulados; la UI no calcula dinero.
+  acumulados y `payment_cents` como cuota pactada opcional; la UI no calcula
+  dinero.
+- `src/domain/credits/payments.ts`: separa interés, capital y diferencia a
+  seguro/otros cargos. Esa diferencia nunca aumenta capital ni interés.
 - `src/domain/credits/simulations.ts`: comparación de escenarios sin guardar.
 - `src/domain/credits/cards.ts`: agrupa compras a plazo al 0% activas por
   tarjeta; su saldo pendiente reduce el crédito disponible.
