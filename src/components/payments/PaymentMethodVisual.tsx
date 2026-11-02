@@ -37,6 +37,21 @@ type PaymentMethodVisualProps = {
   compact?: boolean;
 };
 
+const withAlpha = (hex: string, alpha: number) => {
+  const value = hex.replace('#', '');
+  const normalized =
+    value.length === 3
+      ? value
+          .split('')
+          .map((char) => char + char)
+          .join('')
+      : value.slice(0, 6);
+  const r = parseInt(normalized.slice(0, 2), 16);
+  const g = parseInt(normalized.slice(2, 4), 16);
+  const b = parseInt(normalized.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 const isLight = (hex: string) => {
   const value = hex.replace('#', '');
   if (value.length < 6) return true;
@@ -236,10 +251,21 @@ export const PaymentMethodVisual = ({
   const cardStyle = style ?? 'matte';
   const gradient =
     cardStyle === 'metallic'
-      ? ([shadeVehicleColor(resolved, 0.22), resolved, shadeVehicleColor(resolved, -0.28)] as const)
+      ? ([
+          shadeVehicleColor(resolved, 0.5),
+          shadeVehicleColor(resolved, 0.18),
+          shadeVehicleColor(resolved, -0.28),
+          shadeVehicleColor(resolved, -0.55),
+        ] as const)
       : cardStyle === 'gradient'
-        ? ([shadeVehicleColor(resolved, 0.3), resolved, shadeVehicleColor(resolved, -0.2)] as const)
-        : ([resolved, resolved] as const);
+        ? ([
+            shadeVehicleColor(resolved, 0.45),
+            resolved,
+            shadeVehicleColor(resolved, -0.5),
+          ] as const)
+        : cardStyle === 'transparent'
+          ? ([withAlpha(resolved, 0.42), withAlpha(resolved, 0.12)] as const)
+          : ([resolved, resolved] as const);
   const available =
     limitCents != null && usedCents != null
       ? Math.max(0, limitCents - usedCents)
@@ -254,13 +280,22 @@ export const PaymentMethodVisual = ({
         style={[
           styles.card,
           {
-            borderColor: colors.border,
+            borderColor:
+              cardStyle === 'transparent' ? withAlpha(resolved, 0.8) : colors.border,
             shadowColor: colors.shadow,
-            opacity: cardStyle === 'transparent' ? 0.9 : 1,
           },
         ]}
       >
         <View style={[styles.cardGlow, { backgroundColor: textColor }]} />
+        {cardStyle === 'metallic' || cardStyle === 'gradient' ? (
+          <>
+            <View style={styles.glossBand} />
+            <View style={styles.glossBandSecondary} />
+          </>
+        ) : null}
+        {cardStyle === 'transparent' ? (
+          <View style={styles.frostedOverlay} />
+        ) : null}
         <View style={styles.cardTop}>
           <View style={styles.chip}>
             <View style={[styles.chipLine, { backgroundColor: '#B7791F' }]} />
@@ -362,6 +397,32 @@ const styles = StyleSheet.create({
     opacity: 0.08,
     top: -80,
     right: -70,
+  },
+  glossBand: {
+    position: 'absolute',
+    width: '42%',
+    height: '220%',
+    top: '-60%',
+    left: '18%',
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    transform: [{ rotate: '24deg' }],
+  },
+  glossBandSecondary: {
+    position: 'absolute',
+    width: '12%',
+    height: '220%',
+    top: '-60%',
+    left: '62%',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    transform: [{ rotate: '24deg' }],
+  },
+  frostedOverlay: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
   cardTop: {
     flexDirection: 'row',

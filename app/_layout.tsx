@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import * as SystemUI from 'expo-system-ui';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
+import { LogBox } from 'react-native';
 import 'react-native-reanimated';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -17,6 +18,13 @@ import { ThemeProvider, useTheme } from '@/src/ui/theme/ThemeProvider';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+
+// These warnings come from navigation/drawer dependencies using Reanimated's
+// web-only dependency argument internally; they do not affect native behavior.
+LogBox.ignoreLogs([
+  'Dependencies should only be used on the web',
+  'A navigation action carried state without the internal __internal__routerActionState marker',
+]);
 
 export default function RootLayout() {
   const [loaded] = useFonts({
