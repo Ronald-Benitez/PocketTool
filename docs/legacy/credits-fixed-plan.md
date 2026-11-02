@@ -1,7 +1,8 @@
 # Plan de Gastos fijos y Créditos — Fase 9 (CRED)
 
-**Estado:** 🚧 En implementación (CRED-1/2 parcial)
-**Fecha:** 2026-11-01
+**Estado:** ⏸ En pausa y archivado (2026-11-02). Se retomará después de los
+ajustes de Vehículo.
+**Fecha:** 2026-11-01 (inicio), 2026-11-02 (pausa)
 **Objetivo:** convertir Gastos fijos y Créditos en un módulo de obligaciones
 reales: tarjetas de crédito con límite, compras a plazo, préstamos, pagos,
 refinanciamientos y simulaciones, sin formularios gigantes ni cálculos
@@ -603,7 +604,10 @@ npx expo export --platform android
 
 ---
 
-## 12. Estado de implementación (2026-11-01)
+## 12. Estado de implementación (2026-11-01, pausado 2026-11-02)
+
+El plan queda archivado para retomarlo después de los ajustes de Vehículo. Lo
+siguiente refleja lo implementado antes de la pausa.
 
 Implementado:
 

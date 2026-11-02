@@ -5,10 +5,17 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useVehicleFuelRepository } from '@/src/db';
 import { FuelEntryForm } from '@/src/components/vehicle/FuelEntryForm';
 import { buildFuelStats, groupFuelSegments } from '@/src/domain/vehicle/fuel';
-import { buildConsumptionChart } from '@/src/domain/vehicle/charts';
+import {
+  buildConsumptionChart,
+  buildFuelComparisonChart,
+  buildPriceChart,
+  buildVolumeChart,
+} from '@/src/domain/vehicle/charts';
 import {
   consumptionUnits,
+  convertVolume,
   selectConsumption,
+  volumeUnitOf,
 } from '@/src/domain/vehicle/units';
 import { MermaidChart } from '@/src/ui/charts/MermaidChart';
 import type { VehicleFuelEntryView } from '@/src/db/repositories/vehicle';
@@ -48,11 +55,15 @@ const FuelScreen = () => {
   const [formVisible, setFormVisible] = useState(false);
   const [selected, setSelected] = useState<VehicleFuelEntryView | null>(null);
   const [format, setFormat] = useState<(typeof formats)[number]>('mi_gal');
+  const [displayVolumeUnit, setDisplayVolumeUnit] = useState<'L' | 'gal'>('L');
   useEffect(() => {
     if (vehicle?.consumption_format) {
       setFormat(vehicle.consumption_format as (typeof formats)[number]);
     }
   }, [vehicle?.consumption_format]);
+  useEffect(() => {
+    setDisplayVolumeUnit(vehicle?.volume_unit === 'gal' ? 'gal' : 'L');
+  }, [vehicle?.volume_unit]);
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -83,6 +94,34 @@ const FuelScreen = () => {
       ),
     [stats.entries, format, t]
   );
+  const volumeChart = useMemo(
+    () => buildVolumeChart(stats.entries, displayVolumeUnit, t('vehicle.chart.volume')),
+    [stats.entries, displayVolumeUnit, t]
+  );
+  const priceChart = useMemo(
+    () => buildPriceChart(stats.entries, displayVolumeUnit, t('vehicle.chart.price')),
+    [stats.entries, displayVolumeUnit, t]
+  );
+  const comparisonChart = useMemo(
+    () =>
+      buildFuelComparisonChart(
+        stats.entries,
+        format,
+        displayVolumeUnit,
+        displayVolumeUnit,
+        {
+          title: t('vehicle.chart.comparison'),
+          performance: t('vehicle.chart.consumption'),
+          volume: t('vehicle.chart.volume'),
+          price: t('vehicle.chart.price'),
+        }
+      ),
+    [stats.entries, format, displayVolumeUnit, t]
+  );
+  const displayVolumeLabel =
+    displayVolumeUnit === 'L'
+      ? t('vehicle.vehicle.liters')
+      : t('vehicle.vehicle.gallons');
 
   if (!vehicle) {
     return (
@@ -123,6 +162,15 @@ const FuelScreen = () => {
           }))}
           onChange={setFormat}
         />
+        <SelectField
+          label={t('vehicle.fuel.displayUnit')}
+          value={displayVolumeUnit}
+          options={[
+            { label: t('vehicle.vehicle.liters'), value: 'L' },
+            { label: t('vehicle.vehicle.gallons'), value: 'gal' },
+          ]}
+          onChange={setDisplayVolumeUnit}
+        />
 
         <Surface variant='muted' padding='md'>
           <Stack gap='xxs'>
@@ -147,6 +195,66 @@ const FuelScreen = () => {
               {
                 label: `${t('vehicle.chart.consumption')} (${consumptionUnits(format)})`,
                 color: colors.chartConsumption,
+              },
+            ]}
+            fallback={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
+          />
+        ) : null}
+
+        {volumeChart ? (
+          <MermaidChart
+            definition={volumeChart}
+            height={240}
+            accessibilityLabel={t('vehicle.chart.volume')}
+            palette={[colors.chartDistance]}
+            legend={[
+              {
+                label: `${t('vehicle.chart.volume')} (${displayVolumeLabel})`,
+                color: colors.chartDistance,
+              },
+            ]}
+            fallback={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
+          />
+        ) : null}
+
+        {priceChart ? (
+          <MermaidChart
+            definition={priceChart}
+            height={240}
+            accessibilityLabel={t('vehicle.chart.price')}
+            palette={[colors.chartFuelCost]}
+            legend={[
+              {
+                label: `${t('vehicle.chart.price')} ($/${displayVolumeUnit})`,
+                color: colors.chartFuelCost,
+              },
+            ]}
+            fallback={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
+          />
+        ) : null}
+
+        {comparisonChart ? (
+          <MermaidChart
+            definition={comparisonChart}
+            height={260}
+            accessibilityLabel={t('vehicle.chart.comparison')}
+            palette={[
+              colors.chartConsumption,
+              colors.chartDistance,
+              colors.chartFuelCost,
+            ]}
+            legend={[
+              {
+                label: `${t('vehicle.chart.consumption')} (${consumptionUnits(format)})`,
+                color: colors.chartConsumption,
+              },
+              {
+                label: `${t('vehicle.chart.volume')} (${displayVolumeLabel})`,
+                color: colors.chartDistance,
+              },
+              {
+                label: `${t('vehicle.chart.price')} ($/${displayVolumeUnit})`,
+                color: colors.chartFuelCost,
               },
             ]}
             fallback={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
@@ -207,10 +315,6 @@ const FuelScreen = () => {
                   vehicle.distance_unit === 'km'
                     ? t('vehicle.vehicle.kilometers')
                     : t('vehicle.vehicle.miles');
-                const volumeLabel =
-                  vehicle.volume_unit === 'L'
-                    ? t('vehicle.vehicle.liters')
-                    : t('vehicle.vehicle.gallons');
                 const costPerDistance =
                   segment.metrics != null
                     ? vehicle.distance_unit === 'km'
@@ -219,7 +323,7 @@ const FuelScreen = () => {
                     : null;
                 const averagePrice =
                   segment.metrics != null
-                    ? vehicle.volume_unit === 'L'
+                    ? displayVolumeUnit === 'L'
                       ? segment.metrics.pricePerL
                       : segment.metrics.pricePerGal
                     : null;
@@ -248,7 +352,7 @@ const FuelScreen = () => {
                               {formatMoneyWithSymbol(
                                 Math.round(averagePrice * 100)
                               )}{' '}
-                              / {volumeLabel}
+                              / {displayVolumeUnit}
                             </AppText>
                           ) : null}
                         </Stack>
@@ -267,6 +371,14 @@ const FuelScreen = () => {
                         entry.distance_unit === 'km'
                           ? t('vehicle.vehicle.kilometers')
                           : t('vehicle.vehicle.miles');
+                      const entryVolume =
+                        entry.volume != null
+                          ? convertVolume(
+                              entry.volume,
+                              volumeUnitOf(entry.volume_unit),
+                              displayVolumeUnit
+                            )
+                          : null;
                       return (
                         <ListItem
                           key={entry.id ?? `${segment.id}-${index}`}
@@ -276,11 +388,7 @@ const FuelScreen = () => {
                               ? `${t('vehicle.fuel.baselineBadge')} · ${
                                   entry.odometer ?? 0
                                 } ${distanceLabel}`
-                              : `${entry.volume?.toFixed(3) ?? '—'} ${
-                                  entry.volume_unit === 'L'
-                                    ? t('vehicle.vehicle.liters')
-                                    : t('vehicle.vehicle.gallons')
-                                } · ${formatMoneyWithSymbol(
+                              : `${entryVolume?.toFixed(3) ?? '—'} ${displayVolumeLabel} · ${formatMoneyWithSymbol(
                                   entry.total_cost ?? 0
                                 )}${entry.station ? ` · ${entry.station}` : ''}`
                           }

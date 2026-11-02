@@ -22,8 +22,10 @@ métodos de pago, créditos, ahorros y vehículo.
   [`docs/legacy/budget-plan.md`](docs/legacy/budget-plan.md).
 - **Fase 8 — Vehículo: FINALIZADA** (2026-10-31). El plan archivado vive en
   [`docs/legacy/vehicle-plan.md`](docs/legacy/vehicle-plan.md).
-- **Fase 9 — Gastos fijos y Créditos: EN IMPLEMENTACIÓN** (2026-11-01). El plan
-  vive en [`docs/credits-fixed-plan.md`](docs/credits-fixed-plan.md).
+- **Fase 9 — Gastos fijos y Créditos: EN PAUSA** (2026-11-02). El plan archivado
+  vive en
+  [`docs/legacy/credits-fixed-plan.md`](docs/legacy/credits-fixed-plan.md). Se
+  retomará después de los ajustes de Vehículo.
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -69,6 +71,12 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 - `src/domain/vehicle/`: unidades, consumo, promedios, recordatorios,
   resolución de colores (`colors.ts`) y tipos/referencias visuales
   (`models.ts`).
+- `src/domain/vehicle/charts.ts`: builders de rendimiento, volumen, precio y
+  comparativa normalizada de los tres.
+- `app/(vehicle)/fuel.tsx`: segmentos, selector de unidad de volumen/precio y
+  gráficos.
+- `src/components/vehicle/FuelEntryForm.tsx`: alta/edición de combustible y
+  preferencias de unidades por vehículo en AsyncStorage.
 - `src/components/vehicle/VehicleVisual.tsx`: modelos SVG por tipo de vehículo
   con animación Reanimated; `VehicleColorField` resuelve texto/HEX/paleta.
 - `src/db/repositories/vehicle.ts`: vehículos, combustible, mantenimiento,
@@ -403,8 +411,8 @@ npm run doctor
 
 - [`docs/README.md`](docs/README.md): índice de documentación.
 - [`docs/phases.md`](docs/phases.md): estado actual y fases activas.
-- [`docs/credits-fixed-plan.md`](docs/credits-fixed-plan.md): plan de Gastos
-  fijos y Créditos (Fase 9).
+- [`docs/legacy/credits-fixed-plan.md`](docs/legacy/credits-fixed-plan.md): plan
+  de Gastos fijos y Créditos (Fase 9) en pausa y archivado.
 - [`docs/legacy/budget-plan.md`](docs/legacy/budget-plan.md): plan archivado de
   Presupuestos (Fase 7).
 - [`docs/legacy/vehicle-plan.md`](docs/legacy/vehicle-plan.md): plan archivado de

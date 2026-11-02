@@ -1,9 +1,19 @@
-import type { ConsumptionFormat, FuelEntryAnalysis } from './types';
+import type {
+  ConsumptionFormat,
+  FuelEntryAnalysis,
+  VolumeUnit,
+} from './types';
 import type {
   FuelPeriodSummary,
   MaintenancePeriodSummary,
 } from './history';
-import { consumptionUnits, selectConsumption } from './units';
+import {
+  consumptionUnits,
+  convertPricePerUnit,
+  convertVolume,
+  selectConsumption,
+  volumeUnitOf,
+} from './units';
 
 const clean = (value: string, fallback: string) => {
   const normalized = value.replace(/["[\]{}();\r\n]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -35,6 +45,155 @@ export const buildConsumptionChart = (
       .join(', ')}]`,
     `  y-axis "${clean(consumptionUnits(format), consumptionUnits(format))}" 0 --> ${axisMax}`,
     `  line [${values.join(', ')}]`,
+  ].join('\n');
+};
+
+export const buildVolumeChart = (
+  entries: FuelEntryAnalysis[],
+  unit: VolumeUnit,
+  title: string
+) => {
+  const points = entries.flatMap((entry) => {
+    const volume = entry.entry.volume;
+    if (volume == null || volume <= 0) return [];
+    return [
+      {
+        date: entry.entry.date,
+        value: convertVolume(
+          volume,
+          volumeUnitOf(entry.entry.volume_unit),
+          unit
+        ),
+      },
+    ];
+  });
+
+  if (points.length < 2) return null;
+  const values = points.map((point) => Number(point.value.toFixed(3)));
+  const max = Math.max(...values, 1);
+  const axisMax = Math.ceil(max * 1.15);
+  const unitLabel = unit === 'L' ? 'L' : 'gal';
+
+  return [
+    'xychart-beta',
+    `  title "${clean(title, title)}"`,
+    `  x-axis [${points
+      .map((point) => `"${new Date(point.date).toLocaleDateString()}"`)
+      .join(', ')}]`,
+    `  y-axis "${clean(unitLabel, unitLabel)}" 0 --> ${axisMax}`,
+    `  bar [${values.join(', ')}]`,
+  ].join('\n');
+};
+
+export const buildPriceChart = (
+  entries: FuelEntryAnalysis[],
+  unit: VolumeUnit,
+  title: string
+) => {
+  const points = entries.flatMap((entry) => {
+    const price = entry.entry.price_per_unit;
+    if (price == null || price <= 0) return [];
+    return [
+      {
+        date: entry.entry.date,
+        value: convertPricePerUnit(
+          price / 100,
+          volumeUnitOf(entry.entry.volume_unit),
+          unit
+        ),
+      },
+    ];
+  });
+
+  if (points.length < 2) return null;
+  const values = points.map((point) => Number(point.value.toFixed(3)));
+  const max = Math.max(...values, 1);
+  const axisMax = Math.ceil(max * 1.15);
+  const unitLabel = unit === 'L' ? '$/L' : '$/gal';
+
+  return [
+    'xychart-beta',
+    `  title "${clean(title, title)}"`,
+    `  x-axis [${points
+      .map((point) => `"${new Date(point.date).toLocaleDateString()}"`)
+      .join(', ')}]`,
+    `  y-axis "${clean(unitLabel, unitLabel)}" 0 --> ${axisMax}`,
+    `  line [${values.join(', ')}]`,
+  ].join('\n');
+};
+
+export const buildFuelComparisonChart = (
+  entries: FuelEntryAnalysis[],
+  format: ConsumptionFormat,
+  volumeUnit: VolumeUnit,
+  priceUnit: VolumeUnit,
+  labels: {
+    title: string;
+    performance: string;
+    volume: string;
+    price: string;
+  }
+) => {
+  const points = entries.flatMap((entry) => {
+    const metrics = entry.segmentMetrics;
+    const performance = selectConsumption(metrics, format);
+    const volume = metrics
+      ? convertVolume(metrics.volumeL, 'L', volumeUnit)
+      : null;
+    const price = metrics
+      ? priceUnit === 'L'
+        ? metrics.pricePerL
+        : metrics.pricePerGal
+      : null;
+    if (
+      performance == null ||
+      performance <= 0 ||
+      volume == null ||
+      volume <= 0 ||
+      price == null ||
+      price <= 0
+    ) {
+      return [];
+    }
+    return [
+      {
+        date: entry.entry.date,
+        performance,
+        volume,
+        price,
+      },
+    ];
+  });
+
+  if (points.length < 2) return null;
+  const first = points[0];
+  const performanceValues = points.map((point) =>
+    Number(((point.performance / first.performance) * 100).toFixed(2))
+  );
+  const volumeValues = points.map((point) =>
+    Number(((point.volume / first.volume) * 100).toFixed(2))
+  );
+  const priceValues = points.map((point) =>
+    Number(((point.price / first.price) * 100).toFixed(2))
+  );
+  const max = Math.max(
+    ...performanceValues,
+    ...volumeValues,
+    ...priceValues,
+    100
+  );
+  const axisMax = Math.ceil(max * 1.15);
+
+  return [
+    'xychart-beta',
+    `  title "${clean(labels.title, labels.title)}"`,
+    `  x-axis [${points
+      .map((point) => `"${new Date(point.date).toLocaleDateString()}"`)
+      .join(', ')}]`,
+    `  y-axis "Index (base 100)" 0 --> ${axisMax}`,
+    `  line [${performanceValues.join(', ')}]`,
+    `  line [${volumeValues.join(', ')}]`,
+    `  line [${priceValues.join(', ')}]`,
   ].join('\n');
 };
 

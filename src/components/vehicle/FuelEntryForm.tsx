@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StyleSheet, View } from 'react-native';
 
 import {
@@ -50,6 +51,9 @@ const isSameDay = (left: number, right: number) => {
   );
 };
 
+const unitStorageKey = (vehicleId?: number) =>
+  vehicleId ? `vehicleFuelUnits:${vehicleId}` : null;
+
 export const FuelEntryForm = ({
   visible,
   vehicle,
@@ -96,6 +100,7 @@ export const FuelEntryForm = ({
 
   useEffect(() => {
     if (!visible) return;
+    let active = true;
     const baseline = Boolean(entry?.is_baseline);
     setDate(entry?.date ?? Date.now());
     setOdometerMode(
@@ -131,7 +136,38 @@ export const FuelEntryForm = ({
         : null
     );
     setError(null);
-  }, [visible, entry, vehicle.distance_unit, vehicle.volume_unit]);
+
+    if (!entry) {
+      const key = unitStorageKey(vehicle.id);
+      if (key) {
+        AsyncStorage.getItem(key)
+          .then((raw) => {
+            if (!active || !raw) return;
+            try {
+              const stored = JSON.parse(raw) as {
+                distanceUnit?: string;
+                volumeUnit?: string;
+              };
+              if (stored.distanceUnit === 'km' || stored.distanceUnit === 'mi') {
+                setDistanceUnit(stored.distanceUnit);
+              }
+              if (stored.volumeUnit === 'L' || stored.volumeUnit === 'gal') {
+                setVolumeUnit(stored.volumeUnit);
+              }
+            } catch {
+              // Ignore corrupted preferences and keep the vehicle defaults.
+            }
+          })
+          .catch(() => {
+            // Preferences are optional.
+          });
+      }
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [visible, entry, vehicle.distance_unit, vehicle.volume_unit, vehicle.id]);
 
   useEffect(() => {
     if (!visible) return;
@@ -259,6 +295,20 @@ export const FuelEntryForm = ({
     }
   };
 
+  const persistUnits = async () => {
+    if (entry) return;
+    const key = unitStorageKey(vehicle.id);
+    if (!key) return;
+    try {
+      await AsyncStorage.setItem(
+        key,
+        JSON.stringify({ distanceUnit, volumeUnit })
+      );
+    } catch {
+      // Preferences are optional.
+    }
+  };
+
   const save = async () => {
     if (!vehicle.id) {
       setError(t('vehicle.toast.empty'));
@@ -292,6 +342,7 @@ export const FuelEntryForm = ({
           notes: notes.trim() || null,
           finance: { linkMode: 'none' },
         });
+        await persistUnits();
         showToast({ message: t('vehicle.toast.saved'), type: 'success' });
         onSaved();
         onClose();
@@ -403,6 +454,7 @@ export const FuelEntryForm = ({
           paymentMethodId,
         },
       });
+      await persistUnits();
       showToast({ message: t('vehicle.toast.saved'), type: 'success' });
       onSaved();
       onClose();

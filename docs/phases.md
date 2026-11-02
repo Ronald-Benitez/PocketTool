@@ -15,7 +15,7 @@
 | Fase 6 — Centro de ayuda | ✅ Finalizada | 2026-10-29 |
 | Fase 7 — Presupuestos | ✅ Finalizada | 2026-10-29 |
 | Fase 8 — Vehículo | ✅ Finalizada | 2026-10-31 |
-| Fase 9 — Gastos fijos y Créditos | 🚧 En implementación | 2026-11-01 |
+| Fase 9 — Gastos fijos y Créditos | ⏸ En pausa | 2026-11-02 |
 
 El detalle histórico de las fases 0–3 vive en
 [`legacy/phase-history.md`](legacy/phase-history.md). El detalle de la Fase 4
@@ -220,7 +220,7 @@ Verificaciones de cierre:
 - `npm run doctor` (20/20 checks)
 - `npx expo export --platform android`
 
-Ajustes posteriores implementados el 2026-11-01:
+Ajustes posteriores implementados (2026-11-01 y 2026-11-02):
 
 - Registro inicial de combustible solo con odómetro como base de cálculo
   (`is_baseline`, migración `0008_fuel_baseline`).
@@ -232,14 +232,23 @@ Ajustes posteriores implementados el 2026-11-01:
   Rogue, Hiace, John Deere y modelos genéricos), color por nombre/hex/paleta o
   color picker y visualización SVG animada.
 - Resumen de mantenimientos en el inicio (total, mes y último servicio).
+- Selector de unidad de volumen/precio para ver el precio medio por litro o por
+  galón.
+- El formulario recuerda las últimas unidades de volumen y odómetro por
+  vehículo al agregar una carga nueva.
+- Gráficos de volumen consumido, precio por unidad y comparativa normalizada de
+  rendimiento, volumen y precio.
 - El error de una carga parcial sin odómetro ahora aclara que debe existir una
   carga o baseline con fecha anterior.
 
 Detalle en [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md), sección 19.
 
-## Fase 9 — Gastos fijos y Créditos (🚧 En implementación, 2026-11-01)
+## Fase 9 — Gastos fijos y Créditos (⏸ En pausa, 2026-11-02)
 
-**Plan completo:** [`credits-fixed-plan.md`](credits-fixed-plan.md)
+**Plan completo:** [`legacy/credits-fixed-plan.md`](legacy/credits-fixed-plan.md)
+
+Estado: **en pausa** para retomar los ajustes de Vehículo. El plan y el detalle
+de lo implementado quedan archivados; no se considera una fase cerrada.
 
 Objetivo: pasar de montos a pagar de tarjetas a un módulo real de obligaciones:
 límite y utilización de tarjetas, compras a plazo, préstamos, pagos, abonos a
@@ -298,8 +307,8 @@ Subfases: CRED-0 a CRED-6, detalladas en el plan.
 ## Documentación
 
 - [`README.md`](README.md): índice de documentación.
-- [`credits-fixed-plan.md`](credits-fixed-plan.md): plan de Gastos fijos y
-  Créditos (Fase 9).
+- [`legacy/credits-fixed-plan.md`](legacy/credits-fixed-plan.md): plan de Gastos
+  fijos y Créditos (Fase 9) en pausa y archivado.
 - [`legacy/budget-plan.md`](legacy/budget-plan.md): plan de Presupuestos
   archivado.
 - [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md): plan de Vehículo (Fase 8)

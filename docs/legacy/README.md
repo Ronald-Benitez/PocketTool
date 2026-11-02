@@ -13,6 +13,8 @@ diario de `docs/phases.md`.
   validado y archivado.
 - [`vehicle-plan.md`](vehicle-plan.md): plan de Vehículo (Fase 8), implementado,
   validado y archivado; incluye los ajustes posteriores de la sección 19.
+- [`credits-fixed-plan.md`](credits-fixed-plan.md): plan de Gastos fijos y
+  Créditos (Fase 9), en pausa y archivado para retomarlo después.
 - [`db-summary.md`](db-summary.md): resumen anterior de la base de datos,
   reemplazado por [`../database.md`](../database.md).
 
