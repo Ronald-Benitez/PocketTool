@@ -22,6 +22,8 @@ métodos de pago, créditos, ahorros y vehículo.
   [`docs/legacy/budget-plan.md`](docs/legacy/budget-plan.md).
 - **Fase 8 — Vehículo: FINALIZADA** (2026-10-31). El plan archivado vive en
   [`docs/legacy/vehicle-plan.md`](docs/legacy/vehicle-plan.md).
+- **Fase 9 — Gastos fijos y Créditos: PLANIFICADA** (2026-11-01). El plan vive
+  en [`docs/credits-fixed-plan.md`](docs/credits-fixed-plan.md).
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -311,6 +313,7 @@ npm test
 npm run db:generate
 npm run vendor:mermaid
 npm run ci
+npm run doctor
 ```
 
 `npm run db:generate` debe ejecutarse después de editar
@@ -321,11 +324,16 @@ npm run ci
 - `test`: Jest.
 - `ci`: typecheck + tests de base de datos + Jest.
 - `lint`: ESLint (`npm run lint`); forma parte de CI y debe pasar.
+- `doctor`: `npx expo-doctor`; debe ejecutarse además de los tests antes de
+  cerrar una fase o entregar cambios de Expo. No sustituye typecheck, Jest,
+  `test:db` ni lint.
 
 ## Documentación
 
 - [`docs/README.md`](docs/README.md): índice de documentación.
 - [`docs/phases.md`](docs/phases.md): estado actual y fases activas.
+- [`docs/credits-fixed-plan.md`](docs/credits-fixed-plan.md): plan de Gastos
+  fijos y Créditos (Fase 9).
 - [`docs/legacy/budget-plan.md`](docs/legacy/budget-plan.md): plan archivado de
   Presupuestos (Fase 7).
 - [`docs/legacy/vehicle-plan.md`](docs/legacy/vehicle-plan.md): plan archivado de

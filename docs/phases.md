@@ -15,6 +15,7 @@
 | Fase 6 — Centro de ayuda | ✅ Finalizada | 2026-10-29 |
 | Fase 7 — Presupuestos | ✅ Finalizada | 2026-10-29 |
 | Fase 8 — Vehículo | ✅ Finalizada | 2026-10-31 |
+| Fase 9 — Gastos fijos y Créditos | 📝 Planificada | 2026-11-01 |
 
 El detalle histórico de las fases 0–3 vive en
 [`legacy/phase-history.md`](legacy/phase-history.md). El detalle de la Fase 4
@@ -215,6 +216,7 @@ Verificaciones de cierre:
 - `npm test` (78 tests)
 - `npm run test:db`
 - `npm run lint` (0 errores)
+- `npm run doctor` (20/20 checks)
 - `npx expo export --platform android`
 
 Ajustes posteriores implementados el 2026-11-01:
@@ -232,9 +234,37 @@ Ajustes posteriores implementados el 2026-11-01:
 
 Detalle en [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md), sección 19.
 
+## Fase 9 — Gastos fijos y Créditos (📝 Planificada, 2026-11-01)
+
+**Plan completo:** [`credits-fixed-plan.md`](credits-fixed-plan.md)
+
+Objetivo: pasar de montos a pagar de tarjetas a un módulo real de obligaciones:
+límite y utilización de tarjetas, compras a plazo, préstamos, pagos, abonos a
+capital, préstamos compartidos, refinanciamientos y simulaciones.
+
+Alcance principal:
+
+- `PaymentMethods`: selector explícito de tarjeta de crédito, límite, corte y
+  pago; inferencia legacy por `closing_date`.
+- `Financings`, `FinancingPayments` y `FinancingAdjustments`.
+- Cuota cero/interés, cuotas ya pagadas, capital abonado antes de registrar.
+- Diferencia entre cuota calculada y pagada registrada como seguros/honorarios.
+- Abonos a capital o reducción de cuota.
+- Préstamos compartidos por porcentaje.
+- Refinanciamientos y cambios de tasa/plazo con historial.
+- Resumen: deuda total, cuota total, tasa media y años para terminar.
+- Simulaciones de abono único/recurrente y cambio de tasa/plazo.
+- Formularios separados por caso para evitar capturas largas.
+
+Subfases: CRED-0 a CRED-6, detalladas en el plan. La fase no está implementada;
+su cierre requiere typecheck, Jest, `test:db`, lint, `expo-doctor` y export
+Android.
+
 ## Documentación
 
 - [`README.md`](README.md): índice de documentación.
+- [`credits-fixed-plan.md`](credits-fixed-plan.md): plan de Gastos fijos y
+  Créditos (Fase 9).
 - [`legacy/budget-plan.md`](legacy/budget-plan.md): plan de Presupuestos
   archivado.
 - [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md): plan de Vehículo (Fase 8)

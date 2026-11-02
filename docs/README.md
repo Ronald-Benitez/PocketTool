@@ -7,6 +7,9 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 
 - [`phases.md`](phases.md): estado actual y fases activas. El detalle histórico
   de fases completadas vive en `legacy/`.
+- [`credits-fixed-plan.md`](credits-fixed-plan.md): plan de Gastos fijos y
+  Créditos (Fase 9): tarjetas, compras a plazo, préstamos, refinanciamientos y
+  simulaciones.
 - [`database.md`](database.md): documentación actual de la base de datos,
   migraciones, triggers y backups.
 - [`schema.md`](schema.md): esquema generado desde
@@ -40,6 +43,7 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 | Fase 6 — Centro de ayuda | ✅ Finalizada (2026-10-29) |
 | Fase 7 — Presupuestos | ✅ Finalizada (2026-10-29) |
 | Fase 8 — Vehículo | ✅ Finalizada (2026-10-31) |
+| Fase 9 — Gastos fijos y Créditos | 📝 Planificada (2026-11-01) |
 
 ## Regla de mantenimiento
 
