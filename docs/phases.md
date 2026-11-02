@@ -233,6 +233,13 @@ Ajustes posteriores implementados el 2026-11-01:
   color picker y visualización SVG animada.
 - Resumen de mantenimientos en el inicio (total, mes y último servicio).
 
+Corrección posterior (2026-11-02):
+
+- Una carga parcial sin odómetro reconoce el baseline aunque la fecha elegida
+  sea el mismo día a medianoche y el baseline se haya guardado con hora. Si no
+  hay lectura anterior, el baseline se usa como odómetro inicial en lugar de
+  mostrar `PREVIOUS_ODOMETER_REQUIRED`.
+
 Detalle en [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md), sección 19.
 
 ## Fase 9 — Gastos fijos y Créditos (🚧 En implementación, 2026-11-01)
