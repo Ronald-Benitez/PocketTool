@@ -37,7 +37,8 @@ están archivados en [`legacy/budget-plan.md`](legacy/budget-plan.md) y
   `0003_timestamp_triggers`, `0004_budget_plans`,
   `0005_drop_budget_legacy`, `0006_drop_budget_plan_status`,
   `0007_vehicle_module`, `0008_fuel_baseline`, `0009_vehicle_type`,
-  `0010_vehicle_type_models`; `SCHEMA_VERSION = 10`.
+  `0010_vehicle_type_models`, `0011_credit_cards_and_financings`;
+  `SCHEMA_VERSION = 11`.
 - **Presupuestos:** `BudgetPlans` (un plan por grupo), `BudgetLines` (categoría
   o fijo) y plantillas reutilizables. El real se deriva de `Records`; no se
   guarda. `budgets_legacy` se elimina en `0005`.
@@ -213,7 +214,7 @@ Commits principales: `d1e7e13`, `1fbb2ec`, `8e51999`, `918bf45`, `e926413`,
 Verificaciones de cierre:
 
 - `npm run typecheck`
-- `npm test` (82 tests)
+- `npm test` (84 tests)
 - `npm run test:db`
 - `npm run lint` (0 errores)
 - `npm run doctor` (20/20 checks)
@@ -270,12 +271,15 @@ Implementado hasta ahora:
   (`PaymentMethodVisual`), con color picker, paleta y animación Reanimated.
 - Pantalla de métodos de pago con vista previa y edición de piezas.
 - Pantalla de Créditos con visual, límite, disponible y utilización.
+- Repositorio de financiamientos y pantalla de Préstamos/Compras a plazo.
+- Alta/edición de financiamientos y registro de pagos con abono a capital.
+- Resumen de deuda total, cuota mensual, tasa media y meses restantes.
 
 Pendiente:
 
-- Formularios de compras a plazo y préstamos.
-- Registro de pagos, abonos a capital y reducción de cuota.
-- Refinanciamientos, resumen de deuda y simulaciones.
+- Refinanciamientos y simulaciones.
+- Detalle de calendario de cuotas y edición avanzada de pagos.
+- Revisión de compras a plazo compartidas y flujos de seguros/honorarios.
 - Ayuda/i18n de todos los flujos y QA final.
 - `expo-doctor` y verificación completa de cierre.
 

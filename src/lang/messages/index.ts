@@ -10,6 +10,7 @@ import { recordsEn, recordsEs } from './records';
 import { settingsEn, settingsEs } from './settings';
 import { summariesEn, summariesEs } from './summaries';
 import { filtersEn, filtersEs } from './filters';
+import { financingsEn, financingsEs } from './financings';
 import { vehicleEn, vehicleEs } from './vehicle';
 import type { Language, Leaves, MessageShape } from './types';
 
@@ -25,6 +26,7 @@ export const en = {
   ...settingsEn,
   ...summariesEn,
   budget: budgetEn,
+  ...financingsEn,
   vehicle: vehicleEn,
   help: helpEn,
 } as const;
@@ -41,6 +43,7 @@ export const es: MessageShape<typeof en> = {
   ...settingsEs,
   ...summariesEs,
   budget: budgetEs,
+  ...financingsEs,
   vehicle: vehicleEs,
   help: helpEs,
 };
@@ -74,5 +77,6 @@ export type TranslationKey =
   | Leaves<typeof settingsEn>
   | Leaves<typeof summariesEn>
   | Leaves<typeof budgetEn, 'budget.'>
+  | Leaves<typeof financingsEn>
   | Leaves<typeof vehicleEn, 'vehicle.'>
   | HelpTranslationKey;

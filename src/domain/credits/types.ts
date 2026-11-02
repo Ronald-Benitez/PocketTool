@@ -8,6 +8,7 @@ export type FinancingScheduleRow = {
 };
 
 export type FinancingSchedule = {
+  startingBalanceCents: number;
   paymentCents: number;
   rows: FinancingScheduleRow[];
   totalInterestCents: number;

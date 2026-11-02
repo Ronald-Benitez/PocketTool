@@ -18,6 +18,14 @@ export default function Layout() {
                     )
                 }} />
             <Tabs.Screen
+                name="FinancingsScreen"
+                options={{
+                    title: t("headers.financings"),
+                    tabBarIcon: ({ color, size }) => (
+                        <MaterialCommunityIcons name="bank-outline" size={size} color={color as string | undefined} />
+                    )
+                }} />
+            <Tabs.Screen
                 name="RecordTypeScreen"
                 options={{
                     title: t("headers.financialsIndex"),

@@ -609,4 +609,6 @@ export const usePaymentMethodsRepository = () => {
   };
 };
 
+export { useFinancingsRepository } from './financings';
+
 export type { SavingsHistoryEntry };

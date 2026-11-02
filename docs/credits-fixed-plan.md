@@ -620,12 +620,16 @@ Implementado:
 - Constructor visual en el formulario de métodos de pago.
 - Lista de métodos de pago con visual.
 - Pantalla de Créditos con visual, límite, disponible y utilización.
+- Repositorio de financiamientos y pantalla de Préstamos/Compras a plazo.
+- Alta/edición de financiamientos con cuotas ya pagadas, capital abonado y parte
+  compartida.
+- Registro de pagos con abono a capital y reducción de cuota.
+- Resumen de deuda total, cuota mensual, tasa media y meses restantes.
 
 Pendiente:
 
-- Formularios y pantallas de compras a plazo y préstamos.
-- Registro de pagos, abonos a capital, reducción de cuota y refinanciamientos.
-- Resumen general de deuda, tasa media y años restantes.
-- Simulaciones.
+- Refinanciamientos y cambios de tasa/plazo.
+- Simulaciones de abono único/recurrente y comparación de escenarios.
+- Calendario detallado y edición avanzada de pagos.
 - Ayuda, i18n y QA de los flujos nuevos.
 - Verificación completa con `expo-doctor` y export Android antes del cierre.

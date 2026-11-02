@@ -16,6 +16,7 @@ export {
   useVehicleRemindersRepository,
   useVehicleSettingsRepository,
   useVehicleExpenseLinksRepository,
+  useFinancingsRepository,
 } from './repositories';
 
 export { useRecordsRepository as useRecords } from './repositories';

@@ -68,6 +68,7 @@ export const buildSchedule = ({
   const remainingTerm = Math.max(0, originalTerm - paid);
   if (balance <= 0 || remainingTerm === 0) {
     return {
+      startingBalanceCents: 0,
       paymentCents: 0,
       rows: [],
       totalInterestCents: 0,
@@ -113,6 +114,7 @@ export const buildSchedule = ({
   }
 
   return {
+    startingBalanceCents: balance,
     paymentCents: payment,
     rows,
     totalInterestCents: totalInterest,
