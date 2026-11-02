@@ -1,6 +1,6 @@
 # Plan de fases
 
-**Última actualización:** 2026-10-31
+**Última actualización:** 2026-11-01
 
 ## Estado
 
@@ -214,6 +214,14 @@ Verificaciones de cierre:
 - `npm run test:db`
 - `npm run lint` (0 errores)
 - `npx expo export --platform android`
+
+Mejoras posteriores solicitadas el 2026-11-01, **pendientes de implementar**:
+
+- Registro inicial de combustible solo con odómetro como base de cálculo.
+- Cargas parciales con odómetro/distancia vacíos o en `0`, heredando el último
+  odómetro conocido.
+
+Detalle en [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md), sección 19.
 
 ## Documentación
 

@@ -10,7 +10,8 @@ gestionar recordatorios como el cambio de aceite e integrar los gastos con
 Registros.
 
 > Documento histórico. La implementación fue validada y la Fase 8 está cerrada.
-> El estado vigente vive en [`../phases.md`](../phases.md).
+> El estado vigente vive en [`../phases.md`](../phases.md). La sección 19
+> conserva ajustes posteriores solicitados después del cierre.
 
 ---
 
@@ -264,6 +265,13 @@ Reglas:
 - `price_per_unit` se guarda en centavos y en la unidad de `volume_unit`.
 - La entrada no duplica el gasto: el vínculo financiero vive en
   `VehicleExpenseLinks`.
+
+Ajustes posteriores pendientes:
+
+- **19.1:** agregar `is_baseline` y permitir un registro inicial solo con
+  odómetro, sin volumen, precio ni total.
+- **19.2:** permitir odómetro/distancia vacíos o en `0` en cargas parciales,
+  usando el odómetro de la entrada anterior.
 
 ### 4.4 `VehicleMaintenance`
 
@@ -526,6 +534,9 @@ Reglas:
   distancia desde la entrada anterior / volumen de la entrada actual, marcado
   como “estimado”.
 - La UI explica la diferencia entre segmento completo, acumulando y estimado.
+- **Ajuste posterior 19.2:** una carga parcial puede guardarse sin odómetro o
+  con odómetro `0`; en ese caso se usa el odómetro de la entrada anterior y su
+  distancia es `0`.
 
 ### 5.6 Odómetro y distancia
 
@@ -545,6 +556,10 @@ Reglas:
   deja elegir cuál usar.
 - La UI muestra una etiqueta “inferido” cuando corresponde.
 - Nunca se reinicia un contador de viaje para calcular millas.
+- **Ajuste posterior 19.1:** el primer registro de un vehículo puede ser solo
+  odómetro y servir como base de cálculo, sin volumen ni gasto.
+- **Ajuste posterior 19.2:** en cargas parciales, odómetro/distancia vacíos o en
+  `0` heredan el odómetro anterior y no aportan distancia.
 
 ### 5.7 Recordatorios y aceite
 
@@ -1270,10 +1285,118 @@ Implementado:
 - Ayuda bilingüe de vehículo, combustible, mantenimiento y recordatorios.
 - Tokens de tema para gráficos de vehículo.
 
-Pendiente:
+Pendiente al 2026-10-30 (cerrado en la validación del 2026-10-31):
 
 - QA visual Android/iOS y claro/oscuro.
 - Ajustes finos de textos largos y layouts.
 - Comparativas avanzadas entre periodos/vehículos.
 - Pruebas manuales de linking con datos reales.
 - Cierre de Fase 8 y actualización final de documentación.
+
+---
+
+## 19. Ajustes posteriores pendientes (2026-11-01)
+
+**Estado:** pendiente de implementar. La Fase 8 está cerrada; estos son ajustes
+solicitados después de la validación y no forman parte de la entrega original.
+
+### 19.1 Registro base solo con odómetro
+
+Al registrar combustible por primera vez en un vehículo, permitir crear un
+registro de **solo odómetro** que sirva como punto de partida para los cálculos
+siguientes.
+
+Reglas:
+
+- El registro base solo requiere `odometer` y la unidad de distancia.
+- No requiere volumen, precio por unidad ni total.
+- No cuenta como carga, gasto, volumen ni consumo.
+- No crea ni vincula un gasto en `Records`.
+- El siguiente tanque lleno usa ese odómetro como inicio del primer segmento.
+- Si ya existen entradas de combustible, el modo “solo odómetro” no debe
+  ofrecerse como registro nuevo; el odómetro base solo aplica al primero.
+- El registro base sí participa en el odómetro actual y en los históricos como
+  referencia, pero no en las sumas de dinero/combustible.
+
+UI propuesta:
+
+- Acción secundaria **Registrar odómetro base** cuando el vehículo no tiene
+  entradas de combustible.
+- Formulario reducido: fecha, odómetro y unidad.
+- Texto de ayuda: “Este registro no es una carga; solo marca el odómetro inicial
+  para calcular el primer consumo”.
+- El registro aparece en la lista como **Base de cálculo**, no como carga parcial
+  ni tanque lleno.
+
+Modelo/validación propuesto:
+
+- Columna `is_baseline` en `VehicleFuelEntries` (INTEGER boolean, default 0), o
+  un `entry_type` equivalente.
+- Permitir `volume`, `price_per_unit` y `total_cost` nulos solo cuando
+  `is_baseline = 1`.
+- Validar que un baseline tenga `odometer`; rechazar baseline sin odómetro.
+- Excluir baselines de:
+  - sumas de gasto y volumen;
+  - conteo de cargas;
+  - segmentos de consumo;
+  - creación de gastos.
+- Incluir baselines en:
+  - `latestOdometerKm` y odómetro actual;
+  - referencia para la primera distancia calculada.
+
+Criterios de aceptación:
+
+- Con un baseline y un primer tanque lleno, el primer segmento calcula distancia
+  y consumo usando el odómetro base.
+- El baseline no aumenta el gasto total ni el volumen total.
+- No se puede crear un baseline si ya hay cargas previas.
+- La UI y la ayuda explican que es solo una base de cálculo.
+
+### 19.2 Carga parcial sin odómetro o distancia
+
+Al registrar una carga parcial, permitir dejar el odómetro y/o la distancia
+vacíos o en `0`.
+
+Reglas:
+
+- Si `odometer` está vacío o es `0` en una carga parcial, se toma el odómetro de
+  la entrada anterior del mismo vehículo.
+- Si `distance_traveled` está vacío o es `0`, la distancia de esa carga parcial
+  es `0`.
+- La carga parcial sigue aportando su volumen y costo al segmento que cierra el
+  siguiente tanque lleno.
+- El llenado anterior puede ser otro parcial o un tanque lleno; se usa el último
+  odómetro conocido.
+- Si no existe un odómetro anterior, la UI debe pedir un odómetro o sugerir el
+  registro base de la sección 19.1.
+- La UI muestra una pista: “Se usará el odómetro del registro anterior”.
+- El registro se marca como `odometer_source = inferred` (o se amplía el enum con
+  un valor `previous`) para dejar claro que no fue una lectura nueva; la
+  distancia queda en `0`.
+
+Cálculo:
+
+- La distancia del segmento se sigue midiendo entre el tanque lleno inicial y el
+  tanque lleno que lo cierra.
+- Las cargas parciales sin odómetro aportan volumen, pero no distancia.
+- Varias cargas parciales consecutivas sin odómetro comparten el mismo odómetro
+  de referencia sin alterar la distancia total.
+
+Criterios de aceptación:
+
+- Guardar una carga parcial sin odómetro no bloquea el formulario.
+- Guardar una carga parcial con odómetro `0` usa el odómetro anterior.
+- El consumo del siguiente tanque lleno incluye el volumen de todas las cargas
+  parciales y la distancia correcta desde el tanque lleno inicial.
+- Si no hay odómetro previo, se muestra un error claro y no se inventa un valor.
+
+### 19.3 Impacto de implementación
+
+- Migración nueva para `is_baseline` y columnas monetarias/volumen nullables
+  cuando corresponda.
+- Actualizar `src/db/schema/tables.ts`, artefactos generados y validaciones zod.
+- Ajustar repositorios de combustible, dominio de segmentos y `latestOdometerKm`.
+- Ajustar `FuelEntryForm`, lista de combustible, resumen e históricos.
+- Añadir traducciones y temas de ayuda para el registro base y la carga parcial
+  sin odómetro.
+- Añadir pruebas de dominio y de repositorio para ambos casos.
