@@ -388,13 +388,13 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "The balance is derived from the financed amount, prior installments, prior capital payments, registered payments and extra principal. You can use the calculated payment or enter the agreed one; if a payment is higher, the difference is recorded as insurance or other charges, not as principal or interest. A 0% installment purchase linked to a credit card also reduces that card's available credit by its pending balance."
+                "body": "The balance is derived from the financed amount, prior installments, prior capital payments, registered payments and extra principal. You can enter the term in months or years. You can use the calculated payment or enter the agreed one; if a payment is higher, the difference is recorded as insurance or other charges, not as principal or interest. A 0% installment purchase linked to a credit card also reduces that card's available credit by its pending balance."
             },
             "steps": {
                 "title": "Step by step",
-                "step1": "Create the financing with its amount, rate, term, first payment date and payment method.",
+                "step1": "Create the financing with its amount, rate, term in months or years, first payment date and payment method.",
                 "step2": "Register each payment, including extra principal or an extra amount to reduce the payment. You can create, link or skip a Record for that payment.",
-                "step3": "Use Refinance to change rate or term, Simulate to compare an extra payment, and the schedule to review pending installments."
+                "step3": "Review the payment history, balance and payment-composition charts, then use Refinance or Simulate to compare changes."
             },
             "example": {
                 "title": "Example",
@@ -402,7 +402,7 @@ export const helpEn = {
             },
             "tips": {
                 "title": "Tips",
-                "body": "Record payments close to their real date so the balance, interest and payoff date stay accurate."
+                "body": "Record payments close to their real date so the balance, interest and payoff date stay accurate. Save important simulation scenarios to compare them later."
             },
             "warning": {
                 "title": "Common mistake",
@@ -890,13 +890,13 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "El saldo se deriva del monto financiado, las cuotas ya pagadas, el capital abonado antes de usar la app, los pagos registrados y los abonos a capital. Puedes usar la cuota calculada o ingresar la pactada; si un pago es mayor, la diferencia se registra como seguro u otros cargos, no como capital ni interés. Una compra a plazo al 0% vinculada a una tarjeta también reduce el crédito disponible de esa tarjeta por su saldo pendiente."
+                "body": "El saldo se deriva del monto financiado, las cuotas ya pagadas, el capital abonado antes de usar la app, los pagos registrados y los abonos a capital. Puedes ingresar el plazo en meses o años. Puedes usar la cuota calculada o ingresar la pactada; si un pago es mayor, la diferencia se registra como seguro u otros cargos, no como capital ni interés. Una compra a plazo al 0% vinculada a una tarjeta también reduce el crédito disponible de esa tarjeta por su saldo pendiente."
             },
             "steps": {
                 "title": "Paso a paso",
-                "step1": "Crea el financiamiento con monto, tasa, plazo, primera cuota y método de pago.",
+                "step1": "Crea el financiamiento con monto, tasa, plazo en meses o años, primera cuota y método de pago.",
                 "step2": "Registra cada pago, incluyendo abonos a capital o un extra para reducir la cuota. Puedes crear, vincular u omitir un Registro para ese pago.",
-                "step3": "Usa Refinanciar para cambiar tasa o plazo, Simular para comparar un abono extra y el calendario para revisar las cuotas pendientes."
+                "step3": "Revisa el historial de pagos y los gráficos de saldo y composición, y usa Refinanciar o Simular para comparar cambios."
             },
             "example": {
                 "title": "Ejemplo",
@@ -904,7 +904,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "tips": {
                 "title": "Consejos",
-                "body": "Registra los pagos cerca de su fecha real para que el saldo, los intereses y la fecha de término se mantengan correctos."
+                "body": "Registra los pagos cerca de su fecha real para que el saldo, los intereses y la fecha de término se mantengan correctos. Guarda los escenarios de simulación importantes para compararlos después."
             },
             "warning": {
                 "title": "Error común",

@@ -7,11 +7,15 @@ import { FinancingPaymentForm } from '@/src/components/credits/FinancingPaymentF
 import { FinancingAdjustmentForm } from '@/src/components/credits/FinancingAdjustmentForm';
 import { FinancingSimulationForm } from '@/src/components/credits/FinancingSimulationForm';
 import { FinancingScheduleModal } from '@/src/components/credits/FinancingScheduleModal';
+import { FinancingPaymentsModal } from '@/src/components/credits/FinancingPaymentsModal';
 import {
   summarizeFinancing,
   type FinancingSummary,
 } from '@/src/domain/credits/summary';
-import type { FinancingWithRelations } from '@/src/interfaces/schema';
+import type {
+  FinancingPayment,
+  FinancingWithRelations,
+} from '@/src/interfaces/schema';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { useDataStore } from '@/src/stores';
 import { formatMoneyWithSymbol } from '@/src/utils';
@@ -41,9 +45,12 @@ const FinancingsScreen = () => {
   const [financings, setFinancings] = useState<FinancingWithRelations[]>([]);
   const [formVisible, setFormVisible] = useState(false);
   const [paymentVisible, setPaymentVisible] = useState(false);
+  const [paymentsVisible, setPaymentsVisible] = useState(false);
   const [adjustmentVisible, setAdjustmentVisible] = useState(false);
   const [simulationVisible, setSimulationVisible] = useState(false);
   const [scheduleVisible, setScheduleVisible] = useState(false);
+  const [editingPayment, setEditingPayment] =
+    useState<FinancingPayment | null>(null);
   const [selected, setSelected] = useState<FinancingWithRelations | null>(null);
   const [selectedSummary, setSelectedSummary] =
     useState<FinancingSummary | null>(null);
@@ -55,6 +62,9 @@ const FinancingsScreen = () => {
       if (!active) return;
       setFinancings(rows);
       setStoredFinancings(rows);
+      setSelected((current) =>
+        current ? rows.find((row) => row.id === current.id) ?? current : current
+      );
     });
     return () => {
       active = false;
@@ -89,6 +99,44 @@ const FinancingsScreen = () => {
   const maxMonths = rows.reduce(
     (max, row) => Math.max(max, row.summary.monthsRemaining),
     0
+  );
+  const orderedRows = useMemo(
+    () =>
+      [...rows].sort((a, b) => {
+        const aNext = a.summary.schedule.rows[0]?.date ?? Number.MAX_SAFE_INTEGER;
+        const bNext = b.summary.schedule.rows[0]?.date ?? Number.MAX_SAFE_INTEGER;
+        return (
+          aNext - bNext || b.summary.balanceCents - a.summary.balanceCents
+        );
+      }),
+    [rows]
+  );
+  const upcoming = useMemo(
+    () =>
+      orderedRows
+        .flatMap((row) => {
+          const next = row.summary.schedule.rows[0];
+          return next ? [{ ...row, next }] : [];
+        })
+        .sort((a, b) => a.next.date - b.next.date)
+        .slice(0, 5),
+    [orderedRows]
+  );
+  const activeSummary =
+    rows.find((row) => row.financing.id === selected?.id)?.summary ??
+    selectedSummary;
+  const editingSummary = useMemo(
+    () =>
+      editingPayment && selected
+        ? summarizeFinancing(
+            selected,
+            (selected.FinancingPayments ?? []).filter(
+              (payment) => payment.id !== editingPayment.id
+            ),
+            selected.FinancingAdjustments ?? []
+          )
+        : activeSummary,
+    [editingPayment, selected, activeSummary]
   );
 
   const remove = async (id?: number) => {
@@ -135,13 +183,42 @@ const FinancingsScreen = () => {
             style={{ flex: 1 }}
           />
           <SummaryBlock
-            label={t('financings.monthsRemaining')}
-            value={String(maxMonths)}
+            label={t('financings.remainingTime')}
+            value={`${maxMonths} ${t('financings.months')} / ${(
+              maxMonths / 12
+            ).toFixed(1)} ${t('financings.years')}`}
             size='md'
             accentColor={colors.chartPlanned}
             style={{ flex: 1 }}
           />
         </Row>
+
+        {upcoming.length > 0 ? (
+          <Surface variant='muted' padding='md'>
+            <Stack gap='sm'>
+              <AppText weight='600'>{t('financings.upcomingPayments')}</AppText>
+              {upcoming.map((row) => (
+                <Row
+                  key={`${row.financing.id}-${row.next.number}`}
+                  justify='space-between'
+                  align='center'
+                  gap='sm'
+                >
+                  <Stack gap='xxs' style={{ flex: 1 }}>
+                    <AppText numberOfLines={1}>{row.financing.name}</AppText>
+                    <AppText variant='caption' color='muted'>
+                      {new Date(row.next.date).toLocaleDateString()} ·{' '}
+                      {t('financings.payment')} #{row.next.number}
+                    </AppText>
+                  </Stack>
+                  <AppText>
+                    {formatMoneyWithSymbol(row.summary.monthlyPaymentCents)}
+                  </AppText>
+                </Row>
+              ))}
+            </Stack>
+          </Surface>
+        ) : null}
 
         <Button
           label={t('financings.add')}
@@ -168,7 +245,7 @@ const FinancingsScreen = () => {
           />
         ) : (
           <Stack gap='md'>
-            {rows.map(({ financing, summary }) => (
+            {orderedRows.map(({ financing, summary }) => (
               <SwipeAction
                 key={financing.id}
                 handleDelete={() => remove(financing.id)}
@@ -222,6 +299,14 @@ const FinancingsScreen = () => {
                           ).toLocaleDateString()}`
                         : ''}
                     </AppText>
+                    {financing.is_shared ? (
+                      <AppText variant='caption' color='muted'>
+                        {t('financings.sharedTotal')}:{' '}
+                        {formatMoneyWithSymbol(summary.monthlyPaymentCents)} ·{' '}
+                        {t('financings.sharedOwn')}:{' '}
+                        {formatMoneyWithSymbol(summary.sharedPaymentCents)}
+                      </AppText>
+                    ) : null}
                     <AppText variant='caption' color='muted'>
                       {t('financings.paidPrincipal')}:{' '}
                       {formatMoneyWithSymbol(summary.paidPrincipalCents)} ·{' '}
@@ -253,7 +338,18 @@ const FinancingsScreen = () => {
                         onPress={() => {
                           setSelected(financing);
                           setSelectedSummary(summary);
+                          setEditingPayment(null);
                           setPaymentVisible(true);
+                        }}
+                      />
+                      <Button
+                        label={t('financings.paymentHistory')}
+                        size='sm'
+                        variant='outline'
+                        onPress={() => {
+                          setSelected(financing);
+                          setSelectedSummary(summary);
+                          setPaymentsVisible(true);
                         }}
                       />
                       <Button
@@ -313,27 +409,48 @@ const FinancingsScreen = () => {
       <FinancingPaymentForm
         visible={paymentVisible}
         financing={selected}
-        summary={selectedSummary}
-        onClose={() => setPaymentVisible(false)}
+        summary={editingSummary}
+        payment={editingPayment}
+        onClose={() => {
+          setPaymentVisible(false);
+          setEditingPayment(null);
+        }}
         onSaved={() => setRefreshKey((value) => value + 1)}
+      />
+      <FinancingPaymentsModal
+        visible={paymentsVisible}
+        financing={selected}
+        summary={activeSummary}
+        onClose={() => setPaymentsVisible(false)}
+        onAdd={() => {
+          setPaymentsVisible(false);
+          setEditingPayment(null);
+          setPaymentVisible(true);
+        }}
+        onEdit={(payment) => {
+          setPaymentsVisible(false);
+          setEditingPayment(payment);
+          setPaymentVisible(true);
+        }}
+        onChanged={() => setRefreshKey((value) => value + 1)}
       />
       <FinancingAdjustmentForm
         visible={adjustmentVisible}
         financing={selected}
-        summary={selectedSummary}
+        summary={activeSummary}
         onClose={() => setAdjustmentVisible(false)}
         onSaved={() => setRefreshKey((value) => value + 1)}
       />
       <FinancingSimulationForm
         visible={simulationVisible}
         financing={selected}
-        summary={selectedSummary}
+        summary={activeSummary}
         onClose={() => setSimulationVisible(false)}
       />
       <FinancingScheduleModal
         visible={scheduleVisible}
         financing={selected}
-        summary={selectedSummary}
+        summary={activeSummary}
         onClose={() => setScheduleVisible(false)}
       />
     </Screen>

@@ -1,8 +1,7 @@
 # Plan de Gastos fijos y Créditos — Fase 9 (CRED)
 
-**Estado:** ⏸ En pausa y archivado (2026-11-02). Se retomará después de los
-ajustes de Vehículo.
-**Fecha:** 2026-11-01 (inicio), 2026-11-02 (pausa)
+**Estado:** 🚧 En implementación (retomado 2026-11-02)
+**Fecha:** 2026-11-01 (inicio), 2026-11-02 (reanudación)
 **Objetivo:** convertir Gastos fijos y Créditos en un módulo de obligaciones
 reales: tarjetas de crédito con límite, compras a plazo, préstamos, pagos,
 refinanciamientos y simulaciones, sin formularios gigantes ni cálculos
@@ -604,10 +603,7 @@ npx expo export --platform android
 
 ---
 
-## 12. Estado de implementación (2026-11-01, pausado 2026-11-02)
-
-El plan queda archivado para retomarlo después de los ajustes de Vehículo. Lo
-siguiente refleja lo implementado antes de la pausa.
+## 12. Estado de implementación (2026-11-01, reanudado 2026-11-02)
 
 Implementado:
 
@@ -637,17 +633,33 @@ Implementado:
   otro cargo y se muestra separada del capital y los intereses.
 - Cada pago puede crear un `Records` nuevo, vincular uno existente o no
   vincular, igual que en Vehículo; así el gasto queda centralizado.
-- Resumen de deuda total, cuota mensual, tasa media y meses restantes.
+- Resumen de deuda total, cuota mensual, tasa media y tiempo restante en meses y
+  años.
+- Próximos pagos y financiamientos ordenados por urgencia/saldo.
 - Refinanciamientos y cambios de tasa/plazo con historial de ajustes acumulados.
 - Simulaciones de abono único/recurrente, nueva tasa y nuevo plazo, con
-  comparación de cuota, meses e intereses.
+  comparación de cuota, meses e intereses, y simulaciones guardadas.
 - Las compras a plazo al 0% vinculadas a una tarjeta reducen el crédito
   disponible de esa tarjeta por su saldo pendiente.
 - Calendario de cuotas pendientes con pago, interés, capital y saldo.
+- Gráficos de disminución del saldo y de composición de pagos (interés, capital
+  y seguros/otros).
+- Historial de pagos registrados con edición y eliminación.
+- Totales agregados de límite, utilizado, disponible y utilización de tarjetas.
+- Cuota total y parte propia visibles en préstamos compartidos.
+- Plazo ingresable en meses o años, guardado siempre en meses.
+- Tipo de tasa fija o variable.
 - Tema de ayuda bilingüe de financiamientos y actualización del tema de créditos.
 
 Pendiente:
 
-- Edición avanzada de pagos.
+- Formularios separados por caso, si se mantiene ese criterio de UX.
 - QA Android/iOS y checklist visual final.
 - Verificación completa con `expo-doctor` y export Android antes del cierre.
+
+Opcionales complejos para una siguiente iteración:
+
+- `CreditCardStatements` para estados de cuenta por ciclo.
+- `FinancingParticipants` para varios participantes por financiamiento.
+- Categoría propia en `Records` para seguros/honorarios.
+- Amortización alemana además de la francesa.

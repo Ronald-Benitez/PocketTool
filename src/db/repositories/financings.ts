@@ -300,6 +300,42 @@ export const useFinancingsRepository = () => {
     });
   };
 
+  const deletePayment = async (id: number, deleteRecord = false) => {
+    await withExclusiveTransaction(db, async (txn) => {
+      const payments = new ORM(txn, 'FinancingPayments');
+      const records = new ORM(txn, 'Records');
+      const payment = (await payments.getById(id)) as FinancingPayment | null;
+      if (!payment) return;
+      if (deleteRecord && payment.record_id != null) {
+        await records.delete(payment.record_id);
+      }
+      await payments.delete(id);
+    });
+  };
+
+  const fetchRecordOption = async (
+    recordId: number
+  ): Promise<FinancingRecordOption | null> => {
+    const rows = (await recordsOrm
+      .joinMany(['Categories', 'PaymentMethods', 'Groups'])
+      .where('id', recordId)
+      .getAll()) as any[];
+    const row = rows[0];
+    if (!row) return null;
+    return {
+      id: row.id as number,
+      name: row.record_name as string,
+      date: row.date as number,
+      amount: row.amount as number,
+      categoryId: row.category_id ?? null,
+      categoryName: row.Categories?.category_name ?? '',
+      paymentMethodId: row.payment_method_id ?? null,
+      paymentMethodName: row.PaymentMethods?.method_name ?? '',
+      groupId: row.group_id ?? null,
+      groupName: row.Groups?.group_name ?? '',
+    };
+  };
+
   const saveAdjustment = async (
     input: z.infer<typeof financingAdjustmentInputSchema> & { id?: number }
   ) => {
@@ -319,6 +355,8 @@ export const useFinancingsRepository = () => {
     saveFinancing,
     deleteFinancing,
     savePayment,
+    deletePayment,
+    fetchRecordOption,
     searchRecords,
     saveAdjustment,
   };

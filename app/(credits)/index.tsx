@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 
 import { useThemedStyles } from '@/src/styles/useThemedStyles';
@@ -25,6 +25,46 @@ const Index = () => {
     const { getStringDate } = useDate();
     const totalCurrent = credits ? credits.reduce((total, credit) => total + (credit?.totalCurrent || 0), 0) : 0;
     const totalPrevious = credits ? credits.reduce((total, credit) => total + (credit?.totalPrevious || 0), 0): 0;
+    const cardMetrics = useMemo(
+        () =>
+            (credits ?? []).map((credit) => {
+                const amountPaid = credit.totalCurrentPayments ?? 0;
+                const previousBalance = credit.totalPrevious ?? 0;
+                const pendingCents = previousBalance - amountPaid;
+                const cardPendingCents = Math.max(0, pendingCents);
+                const installmentsPendingCents = Math.max(
+                    0,
+                    credit.installmentsPendingCents || 0
+                );
+                const usedCents = cardPendingCents + installmentsPendingCents;
+                const utilization = cardUtilization({
+                    limitCents: credit.credit_limit ?? 0,
+                    usedCents,
+                });
+                return {
+                    credit,
+                    amountPaid,
+                    previousBalance,
+                    pendingCents,
+                    cardPendingCents,
+                    installmentsPendingCents,
+                    usedCents,
+                    utilization,
+                };
+            }),
+        [credits]
+    );
+    const totalLimit = cardMetrics.reduce(
+        (total, item) => total + (item.credit.credit_limit ?? 0),
+        0
+    );
+    const totalUsed = cardMetrics.reduce(
+        (total, item) => total + item.usedCents,
+        0
+    );
+    const totalAvailable = Math.max(0, totalLimit - totalUsed);
+    const totalUtilization =
+        totalLimit > 0 ? Math.min(100, (totalUsed / totalLimit) * 100) : 0;
 
     useEffect(() => {
         let active = true;
@@ -85,23 +125,51 @@ const Index = () => {
                 </View>
             </View>
 
+            <View style={[localStyles.summaryRow, { gap: 20 }]}>
+                <View style={{ flex: 1 }}>
+                    <SummaryBlock
+                        label={t("credits.totalLimit")}
+                        cents={totalLimit}
+                        valueColorOverride={colors?.text}
+                        accentColor={colors?.GoalColor}
+                        size='md'
+                    />
+                </View>
+                <View style={{ flex: 1 }}>
+                    <SummaryBlock
+                        label={t("credits.totalUsed")}
+                        cents={totalUsed}
+                        valueColorOverride={colors?.text}
+                        accentColor={colors?.GoalColor}
+                        size='md'
+                    />
+                </View>
+            </View>
+            <View style={[localStyles.summaryRow, { gap: 20 }]}>
+                <View style={{ flex: 1 }}>
+                    <SummaryBlock
+                        label={t("credits.totalAvailable")}
+                        cents={totalAvailable}
+                        valueColorOverride={colors?.text}
+                        accentColor={colors?.GoalColor}
+                        size='md'
+                    />
+                </View>
+                <View style={{ flex: 1 }}>
+                    <SummaryBlock
+                        label={t("credits.utilization")}
+                        value={`${totalUtilization.toFixed(0)}%`}
+                        valueColorOverride={colors?.text}
+                        accentColor={colors?.GoalColor}
+                        size='md'
+                    />
+                </View>
+            </View>
+
             <ScrollView style={{ flex: 1 }}>
                 <View style={localStyles.individualCreditsContainer}>
-                    {credits && credits.map(credit => {
-                        const amountPaid = credit.totalCurrentPayments;
-                        const previousBalance = credit.totalPrevious;
-                        const pendingCents = (previousBalance || 0) - (amountPaid || 0);
-                        const cardPendingCents = Math.max(0, pendingCents);
-                        const installmentsPendingCents = Math.max(
-                            0,
-                            credit.installmentsPendingCents || 0
-                        );
-                        const usedCents = cardPendingCents + installmentsPendingCents;
+                    {cardMetrics.map(({ credit, amountPaid, previousBalance, cardPendingCents, installmentsPendingCents, usedCents, utilization }) => {
                         const pendingAmount = formatMoney(cardPendingCents);
-                        const utilization = cardUtilization({
-                            limitCents: credit.credit_limit ?? 0,
-                            usedCents,
-                        });
                         return (
                             <View key={credit.id} style={[localStyles.creditBlock, { backgroundColor: colors?.surfaceMuted, shadowColor: colors?.shadow }]}>
                                 <View style={{ marginBottom: 12 }}>

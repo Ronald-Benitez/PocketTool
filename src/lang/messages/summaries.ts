@@ -35,7 +35,9 @@ export const summariesEn = {
         "available": "Available credit",
         "utilization": "Utilization",
         "installmentsPending": "0% installment plans",
-        "totalUsed": "Credit in use"
+        "totalUsed": "Credit in use",
+        "totalLimit": "Total credit limit",
+        "totalAvailable": "Total available credit"
     },
     "savings": {
         "select": "Select a saving",
@@ -86,7 +88,9 @@ export const summariesEs: MessageShape<typeof summariesEn> = {
         "available": "Crédito disponible",
         "utilization": "Utilización",
         "installmentsPending": "Compras a plazo 0%",
-        "totalUsed": "Crédito en uso"
+        "totalUsed": "Crédito en uso",
+        "totalLimit": "Límite total",
+        "totalAvailable": "Crédito disponible total"
     },
     "savings": {
         "select": "Selecciona un ahorro",

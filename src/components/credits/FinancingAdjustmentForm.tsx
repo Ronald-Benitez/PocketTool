@@ -16,6 +16,7 @@ import { TextField } from '@/src/ui/forms/TextField';
 import { Modal } from '@/src/ui/overlays/Modal';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Stack } from '@/src/ui/primitives/Stack';
+import { TermField } from './TermField';
 
 type AdjustmentKind =
   | 'refinance'
@@ -57,7 +58,7 @@ export const FinancingAdjustmentForm = ({
   const [kind, setKind] = useState<AdjustmentKind>('refinance');
   const [date, setDate] = useState(() => Date.now());
   const [annualRate, setAnnualRate] = useState('0');
-  const [remainingTerm, setRemainingTerm] = useState('0');
+  const [remainingTerm, setRemainingTerm] = useState(0);
   const [payment, setPayment] = useState(0);
   const [capitalizedInterest, setCapitalizedInterest] = useState(0);
   const [fees, setFees] = useState(0);
@@ -73,11 +74,7 @@ export const FinancingAdjustmentForm = ({
       ((summary?.effectiveRateBps ?? financing?.annual_rate_bps ?? 0) / 100).toString()
     );
     setRemainingTerm(
-      String(
-        summary?.remainingTermMonths ??
-          financing?.term_months ??
-          0
-      )
+      summary?.remainingTermMonths ?? financing?.term_months ?? 0
     );
     setPayment(0);
     setCapitalizedInterest(0);
@@ -91,7 +88,7 @@ export const FinancingAdjustmentForm = ({
       setError(t('financings.invalidFields'));
       return;
     }
-    const term = Math.max(0, Math.floor(parseNumber(remainingTerm)));
+    const term = Math.max(0, Math.floor(remainingTerm));
     const rateBps = Math.max(0, Math.round(parseNumber(annualRate) * 100));
     const changesRate = kind === 'refinance' || kind === 'rate_change';
     const changesTerm = kind === 'refinance' || kind === 'term_change';
@@ -180,11 +177,10 @@ export const FinancingAdjustmentForm = ({
           />
         ) : null}
         {kind === 'refinance' || kind === 'term_change' ? (
-          <TextField
+          <TermField
             label={t('financings.remainingTerm')}
-            value={remainingTerm}
-            onChangeText={setRemainingTerm}
-            keyboardType='number-pad'
+            valueMonths={remainingTerm}
+            onChangeMonths={setRemainingTerm}
           />
         ) : null}
         {kind === 'refinance' || kind === 'payment_change' ? (

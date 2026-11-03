@@ -15,7 +15,7 @@
 | Fase 6 — Centro de ayuda | ✅ Finalizada | 2026-10-29 |
 | Fase 7 — Presupuestos | ✅ Finalizada | 2026-10-29 |
 | Fase 8 — Vehículo | ✅ Finalizada | 2026-10-31 |
-| Fase 9 — Gastos fijos y Créditos | ⏸ En pausa | 2026-11-02 |
+| Fase 9 — Gastos fijos y Créditos | 🚧 En implementación | 2026-11-02 |
 
 El detalle histórico de las fases 0–3 vive en
 [`legacy/phase-history.md`](legacy/phase-history.md). El detalle de la Fase 4
@@ -244,12 +244,11 @@ Ajustes posteriores implementados (2026-11-01 y 2026-11-02):
 
 Detalle en [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md), sección 19.
 
-## Fase 9 — Gastos fijos y Créditos (⏸ En pausa, 2026-11-02)
+## Fase 9 — Gastos fijos y Créditos (🚧 En implementación, 2026-11-02)
 
-**Plan completo:** [`legacy/credits-fixed-plan.md`](legacy/credits-fixed-plan.md)
+**Plan completo:** [`credits-fixed-plan.md`](credits-fixed-plan.md)
 
-Estado: **en pausa** para retomar los ajustes de Vehículo. El plan y el detalle
-de lo implementado quedan archivados; no se considera una fase cerrada.
+Estado: **en implementación**. Se retomó después de los ajustes de Vehículo.
 
 Objetivo: pasar de montos a pagar de tarjetas a un módulo real de obligaciones:
 límite y utilización de tarjetas, compras a plazo, préstamos, pagos, abonos a
@@ -289,27 +288,36 @@ Implementado hasta ahora:
 - Cuota pactada o calculada, autocompletado de pagos y diferencia registrada
   como seguro u otros cargos.
 - Cada pago puede crear, vincular o no vincular un registro de `Records`.
-- Resumen de deuda total, cuota mensual, tasa media y meses restantes.
+- Resumen de deuda total, cuota mensual, tasa media y tiempo restante en meses y
+  años.
+- Próximos pagos y financiamientos ordenados por urgencia/saldo.
 - Refinanciamientos, cambios de tasa/plazo y ajustes acumulados.
-- Simulaciones de abono único/recurrente, tasa y plazo.
+- Simulaciones de abono único/recurrente, tasa y plazo, con simulaciones
+  guardadas.
 - Las compras a plazo al 0% vinculadas a una tarjeta reducen el crédito
   disponible de la tarjeta por su saldo pendiente.
 - Calendario de cuotas pendientes con pago, interés, capital y saldo.
+- Gráficos de disminución del saldo y composición de pagos.
+- Historial de pagos con edición y eliminación.
+- Totales agregados de tarjetas y visualización de cuota total/parte propia.
+- Plazo en meses o años y tipo de tasa fija/variable.
 - Ayuda bilingüe de financiamientos y actualización del tema de créditos.
 
 Pendiente:
 
-- Edición avanzada de pagos.
+- Formularios separados por caso, si se mantiene ese criterio de UX.
 - QA Android/iOS y checklist visual final.
 - `expo-doctor` y verificación completa de cierre.
+- Opcionales complejos: estados de cuenta, participantes múltiples, categoría
+  de seguros y amortización alemana.
 
 Subfases: CRED-0 a CRED-6, detalladas en el plan.
 
 ## Documentación
 
 - [`README.md`](README.md): índice de documentación.
-- [`legacy/credits-fixed-plan.md`](legacy/credits-fixed-plan.md): plan de Gastos
-  fijos y Créditos (Fase 9) en pausa y archivado.
+- [`credits-fixed-plan.md`](credits-fixed-plan.md): plan de Gastos fijos y
+  Créditos (Fase 9).
 - [`legacy/budget-plan.md`](legacy/budget-plan.md): plan de Presupuestos
   archivado.
 - [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md): plan de Vehículo (Fase 8)

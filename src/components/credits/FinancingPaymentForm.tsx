@@ -10,7 +10,10 @@ import type {
   FinancingLinkMode,
   FinancingRecordOption,
 } from '@/src/db/repositories/financings';
-import type { FinancingWithRelations } from '@/src/interfaces/schema';
+import type {
+  FinancingPayment,
+  FinancingWithRelations,
+} from '@/src/interfaces/schema';
 import type { FinancingSummary } from '@/src/domain/credits/summary';
 import {
   buildPaymentBreakdown,
@@ -36,6 +39,7 @@ type FinancingPaymentFormProps = {
   visible: boolean;
   financing: FinancingWithRelations | null;
   summary: FinancingSummary | null;
+  payment?: FinancingPayment | null;
   onClose: () => void;
   onSaved: () => void;
 };
@@ -54,6 +58,7 @@ export const FinancingPaymentForm = ({
   visible,
   financing,
   summary,
+  payment,
   onClose,
   onSaved,
 }: FinancingPaymentFormProps) => {
@@ -87,18 +92,33 @@ export const FinancingPaymentForm = ({
 
   useEffect(() => {
     if (!visible) return;
-    setDate(Date.now());
-    setAmount(summary?.monthlyPaymentCents ?? 0);
-    setExtraPrincipal(0);
-    setExtraReducePayment(0);
-    setExtraChargeType('insurance');
-    setLinkMode('none');
+    setDate(payment?.date ?? Date.now());
+    setAmount(payment?.amount_cents ?? summary?.monthlyPaymentCents ?? 0);
+    setExtraPrincipal(payment?.extra_principal_cents ?? 0);
+    setExtraReducePayment(payment?.extra_reduce_payment_cents ?? 0);
+    setExtraChargeType(
+      payment?.fees_cents != null && payment.fees_cents > 0
+        ? 'fees'
+        : 'insurance'
+    );
+    setLinkMode(payment?.record_id ? 'link' : 'none');
     setLinkedRecord(null);
     setCategoryId(financing?.category_id ?? null);
     setPaymentMethodId(financing?.payment_method_id ?? null);
-    setNotes('');
+    setNotes(payment?.notes ?? '');
     setError(null);
-  }, [visible, summary, financing]);
+  }, [visible, summary, financing, payment]);
+
+  useEffect(() => {
+    if (!visible || !payment?.record_id) return;
+    let active = true;
+    repository.fetchRecordOption(payment.record_id).then((option) => {
+      if (active && option) setLinkedRecord(option);
+    });
+    return () => {
+      active = false;
+    };
+  }, [visible, payment?.id, payment?.record_id]);
 
   useEffect(() => {
     if (!visible) return;
@@ -195,6 +215,7 @@ export const FinancingPaymentForm = ({
     setError(null);
     try {
       await repository.savePayment({
+        id: payment?.id,
         financing_id: financing.id,
         date,
         amount_cents: breakdown.amountCents,
@@ -265,7 +286,9 @@ export const FinancingPaymentForm = ({
       <Modal
         visible={visible}
         onClose={onClose}
-        title={t('financings.addPayment')}
+        title={
+          payment ? t('financings.editPayment') : t('financings.addPayment')
+        }
         closeLabel={t('cancel')}
         scrollable
         footer={

@@ -21,8 +21,8 @@ PocketTool es una aplicación móvil multiplataforma (desarrollada con Expo) par
 - Plan de fases y contexto: [`docs/phases.md`](docs/phases.md) y [`AGENTS.md`](AGENTS.md)
 - Documentación de UI archivada: [`docs/legacy/ui-plan.md`](docs/legacy/ui-plan.md)
 - Plan de vehículo: [`docs/legacy/vehicle-plan.md`](docs/legacy/vehicle-plan.md)
-- Plan de gastos fijos y créditos archivado:
-  [`docs/legacy/credits-fixed-plan.md`](docs/legacy/credits-fixed-plan.md)
+- Plan de gastos fijos y créditos:
+  [`docs/credits-fixed-plan.md`](docs/credits-fixed-plan.md)
 - Plan de presupuestos archivado:
   [`docs/legacy/budget-plan.md`](docs/legacy/budget-plan.md)
 - Plan de traducciones y ayuda archivado:

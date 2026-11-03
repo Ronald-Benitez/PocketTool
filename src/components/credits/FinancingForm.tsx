@@ -20,6 +20,7 @@ import { SwitchField } from '@/src/ui/forms/SwitchField';
 import { TextField } from '@/src/ui/forms/TextField';
 import { Modal } from '@/src/ui/overlays/Modal';
 import { AppText } from '@/src/ui/primitives/AppText';
+import { TermField } from './TermField';
 
 
 type FinancingFormProps = {
@@ -64,7 +65,8 @@ export const FinancingForm = ({
   const [principal, setPrincipal] = useState(0);
   const [downPayment, setDownPayment] = useState(0);
   const [annualRate, setAnnualRate] = useState('0');
-  const [termMonths, setTermMonths] = useState('12');
+  const [rateType, setRateType] = useState<'fixed' | 'variable'>('fixed');
+  const [term, setTerm] = useState(12);
   const [useCalculatedPayment, setUseCalculatedPayment] = useState(true);
   const [payment, setPayment] = useState(0);
   const [startDate, setStartDate] = useState(() => Date.now());
@@ -96,7 +98,10 @@ export const FinancingForm = ({
     setPrincipal(financing?.principal_cents ?? 0);
     setDownPayment(financing?.down_payment_cents ?? 0);
     setAnnualRate(((financing?.annual_rate_bps ?? 0) / 100).toString());
-    setTermMonths(String(financing?.term_months ?? 12));
+    setRateType(
+      (financing?.rate_type as 'fixed' | 'variable') ?? 'fixed'
+    );
+    setTerm(financing?.term_months ?? 12);
     setUseCalculatedPayment(
       financing?.payment_cents == null || financing.payment_cents <= 0
     );
@@ -136,7 +141,6 @@ export const FinancingForm = ({
 
   const financed = Math.max(0, principal - downPayment);
   const rateBps = Math.round(parseNumber(annualRate) * 100);
-  const term = Math.max(0, Math.floor(parseNumber(termMonths)));
   const estimatedPayment = useMemo(
     () =>
       calculatePaymentCents({
@@ -181,7 +185,7 @@ export const FinancingForm = ({
         financed_cents: financed,
         payment_cents: useCalculatedPayment ? null : payment,
         annual_rate_bps: rateBps,
-        rate_type: 'fixed',
+        rate_type: rateType,
         term_months: term,
         start_date: startDate,
         first_payment_date: firstPaymentDate,
@@ -283,11 +287,25 @@ export const FinancingForm = ({
           onChangeText={setAnnualRate}
           keyboardType='decimal-pad'
         />
-        <TextField
+        <SelectField
+          label={t('financings.rateType')}
+          value={rateType}
+          options={[
+            {
+              label: t('financings.rateTypes.fixed'),
+              value: 'fixed',
+            },
+            {
+              label: t('financings.rateTypes.variable'),
+              value: 'variable',
+            },
+          ]}
+          onChange={setRateType}
+        />
+        <TermField
           label={t('financings.termMonths')}
-          value={termMonths}
-          onChangeText={setTermMonths}
-          keyboardType='number-pad'
+          valueMonths={term}
+          onChangeMonths={setTerm}
         />
         {estimatedPayment > 0 ? (
           <AppText variant='caption' color='muted'>

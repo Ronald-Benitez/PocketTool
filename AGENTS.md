@@ -22,10 +22,8 @@ métodos de pago, créditos, ahorros y vehículo.
   [`docs/legacy/budget-plan.md`](docs/legacy/budget-plan.md).
 - **Fase 8 — Vehículo: FINALIZADA** (2026-10-31). El plan archivado vive en
   [`docs/legacy/vehicle-plan.md`](docs/legacy/vehicle-plan.md).
-- **Fase 9 — Gastos fijos y Créditos: EN PAUSA** (2026-11-02). El plan archivado
-  vive en
-  [`docs/legacy/credits-fixed-plan.md`](docs/legacy/credits-fixed-plan.md). Se
-  retomará después de los ajustes de Vehículo.
+- **Fase 9 — Gastos fijos y Créditos: EN IMPLEMENTACIÓN** (2026-11-02). El plan
+  vive en [`docs/credits-fixed-plan.md`](docs/credits-fixed-plan.md).
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -168,8 +166,8 @@ commits relevantes, archivos tocados y verificaciones realizadas.
   utilización. Incluye el saldo pendiente de compras a plazo al 0%.
 - `app/(fixeds)/FinancingsScreen.tsx`: deuda, cuota mensual, tasa media,
   financiamientos, pagos, refinanciamientos y simulaciones.
-- `src/components/credits/`: alta/edición de financiamientos, pagos, ajustes y
-  simulador. Los formularios son cortos y específicos por caso.
+- `src/components/credits/`: alta/edición de financiamientos, pagos, historial,
+  ajustes y simulador. `TermField` permite meses o años y guarda meses.
 - `src/domain/credits/amortization.ts`: cuota francesa, tasa cero, calendario,
   utilización de tarjeta y partes compartidas.
 - `src/domain/credits/summary.ts`: saldo y calendario vigente con ajustes
@@ -177,9 +175,14 @@ commits relevantes, archivos tocados y verificaciones realizadas.
   dinero.
 - `src/domain/credits/payments.ts`: separa interés, capital y diferencia a
   seguro/otros cargos. Esa diferencia nunca aumenta capital ni interés.
-- `src/domain/credits/simulations.ts`: comparación de escenarios sin guardar.
+- `src/domain/credits/charts.ts`: disminución del saldo y composición de pagos
+  (interés, capital y seguros).
+- `src/domain/credits/simulations.ts`: comparación de escenarios; el formulario
+  puede guardar simulaciones en AsyncStorage.
 - `src/domain/credits/cards.ts`: agrupa compras a plazo al 0% activas por
   tarjeta; su saldo pendiente reduce el crédito disponible.
+- `src/components/credits/FinancingPaymentsModal.tsx`: historial, edición y
+  eliminación de pagos; el registro vinculado se conserva por defecto.
 - `src/db/repositories/financings.ts`: financiamientos, pagos, ajustes y
   vínculos de pagos con `Records` (crear, vincular u omitir).
 - `src/stores/CreditsStore.ts`: totales por ciclo y uso de tarjeta con compras a
@@ -412,8 +415,8 @@ npm run doctor
 
 - [`docs/README.md`](docs/README.md): índice de documentación.
 - [`docs/phases.md`](docs/phases.md): estado actual y fases activas.
-- [`docs/legacy/credits-fixed-plan.md`](docs/legacy/credits-fixed-plan.md): plan
-  de Gastos fijos y Créditos (Fase 9) en pausa y archivado.
+- [`docs/credits-fixed-plan.md`](docs/credits-fixed-plan.md): plan de Gastos
+  fijos y Créditos (Fase 9).
 - [`docs/legacy/budget-plan.md`](docs/legacy/budget-plan.md): plan archivado de
   Presupuestos (Fase 7).
 - [`docs/legacy/vehicle-plan.md`](docs/legacy/vehicle-plan.md): plan archivado de

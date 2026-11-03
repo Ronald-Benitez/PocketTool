@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StyleSheet, View } from 'react-native';
 
 import type { FinancingWithRelations } from '@/src/interfaces/schema';
@@ -11,6 +12,7 @@ import { useLanguage } from '@/src/lang/LanguageContext';
 import { formatMoneyWithSymbol } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
 import { InlineMessage } from '@/src/ui/feedback/InlineMessage';
+import { useToast } from '@/src/ui/feedback/ToastProvider';
 import { MoneyField } from '@/src/ui/forms/MoneyField';
 import { SelectField } from '@/src/ui/forms/SelectField';
 import { TextField } from '@/src/ui/forms/TextField';
@@ -18,6 +20,7 @@ import { Modal } from '@/src/ui/overlays/Modal';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Row, Stack } from '@/src/ui/primitives/Stack';
 import { Surface } from '@/src/ui/primitives/Surface';
+import { TermField } from './TermField';
 
 type FinancingSimulationFormProps = {
   visible: boolean;
@@ -27,6 +30,16 @@ type FinancingSimulationFormProps = {
 };
 
 type ExtraMode = NonNullable<FinancingSimulationScenario['extraOnceMode']>;
+
+type SavedSimulation = {
+  id: string;
+  savedAt: number;
+  scenario: FinancingSimulationScenario;
+  baselinePaymentCents: number;
+  simulatedPaymentCents: number;
+  interestSavedCents: number;
+  monthsSaved: number;
+};
 
 const parseNumber = (value: string) => {
   const normalized = value.replace(',', '.').replace(/[^0-9.]/g, '');
@@ -46,11 +59,16 @@ export const FinancingSimulationForm = ({
   onClose,
 }: FinancingSimulationFormProps) => {
   const { t } = useLanguage();
+  const { showToast } = useToast();
+  const storageKey = financing?.id
+    ? `financingSimulations:${financing.id}`
+    : null;
+  const [saved, setSaved] = useState<SavedSimulation[]>([]);
   const [extraOnce, setExtraOnce] = useState(0);
   const [extraRecurring, setExtraRecurring] = useState(0);
   const [extraMode, setExtraMode] = useState<ExtraMode>('reduce_term');
   const [annualRate, setAnnualRate] = useState('0');
-  const [remainingTerm, setRemainingTerm] = useState('0');
+  const [remainingTerm, setRemainingTerm] = useState(0);
 
   useEffect(() => {
     if (!visible) return;
@@ -61,9 +79,30 @@ export const FinancingSimulationForm = ({
       ((summary?.effectiveRateBps ?? financing?.annual_rate_bps ?? 0) / 100).toString()
     );
     setRemainingTerm(
-      String(summary?.remainingTermMonths ?? financing?.term_months ?? 0)
+      summary?.remainingTermMonths ?? financing?.term_months ?? 0
     );
   }, [visible, financing, summary]);
+
+  useEffect(() => {
+    if (!visible || !storageKey) {
+      setSaved([]);
+      return;
+    }
+    let active = true;
+    AsyncStorage.getItem(storageKey)
+      .then((raw) => {
+        if (!active || !raw) return;
+        try {
+          setSaved(JSON.parse(raw) as SavedSimulation[]);
+        } catch {
+          setSaved([]);
+        }
+      })
+      .catch(() => setSaved([]));
+    return () => {
+      active = false;
+    };
+  }, [visible, storageKey]);
 
   const result = useMemo(() => {
     if (!financing) return null;
@@ -76,10 +115,7 @@ export const FinancingSimulationForm = ({
         extraOnceMode: extraMode,
         extraRecurringCents: extraRecurring,
         annualRateBps: Math.max(0, Math.round(parseNumber(annualRate) * 100)),
-        remainingTermMonths: Math.max(
-          0,
-          Math.floor(parseNumber(remainingTerm))
-        ),
+        remainingTermMonths: Math.max(0, Math.floor(remainingTerm)),
       }
     );
   }, [
@@ -91,6 +127,45 @@ export const FinancingSimulationForm = ({
     remainingTerm,
   ]);
 
+  const saveSimulation = async () => {
+    if (!result || !storageKey) return;
+    const item: SavedSimulation = {
+      id: `${Date.now()}`,
+      savedAt: Date.now(),
+      scenario: {
+        extraOnceCents: extraOnce,
+        extraOnceMode: extraMode,
+        extraRecurringCents: extraRecurring,
+        annualRateBps: Math.max(0, Math.round(parseNumber(annualRate) * 100)),
+        remainingTermMonths: Math.max(0, Math.floor(remainingTerm)),
+      },
+      baselinePaymentCents: result.baseline.monthlyPaymentCents,
+      simulatedPaymentCents: result.simulated.monthlyPaymentCents,
+      interestSavedCents: result.interestSavedCents,
+      monthsSaved: result.monthsSaved,
+    };
+    const next = [item, ...saved].slice(0, 20);
+    setSaved(next);
+    try {
+      await AsyncStorage.setItem(storageKey, JSON.stringify(next));
+      showToast({ message: t('financings.simulationSaved'), type: 'success' });
+    } catch {
+      showToast({ message: t('toast.error'), type: 'error' });
+    }
+  };
+
+  const deleteSimulation = async (id: string) => {
+    if (!storageKey) return;
+    const next = saved.filter((item) => item.id !== id);
+    setSaved(next);
+    try {
+      await AsyncStorage.setItem(storageKey, JSON.stringify(next));
+      showToast({ message: t('financings.simulationDeleted'), type: 'success' });
+    } catch {
+      showToast({ message: t('toast.error'), type: 'error' });
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -100,6 +175,13 @@ export const FinancingSimulationForm = ({
       scrollable
       footer={
         <View style={styles.footer}>
+          <Button
+            label={t('financings.saveSimulation')}
+            variant='outline'
+            onPress={saveSimulation}
+            disabled={!result}
+            style={styles.footerButton}
+          />
           <Button
             label={t('close')}
             onPress={onClose}
@@ -141,11 +223,10 @@ export const FinancingSimulationForm = ({
           onChangeText={setAnnualRate}
           keyboardType='decimal-pad'
         />
-        <TextField
+        <TermField
           label={t('financings.remainingTerm')}
-          value={remainingTerm}
-          onChangeText={setRemainingTerm}
-          keyboardType='number-pad'
+          valueMonths={remainingTerm}
+          onChangeMonths={setRemainingTerm}
         />
 
         {result ? (
@@ -195,6 +276,39 @@ export const FinancingSimulationForm = ({
               </Row>
             </Stack>
           </Surface>
+        ) : null}
+
+        {saved.length > 0 ? (
+          <Stack gap='sm'>
+            <AppText weight='600'>{t('financings.savedSimulations')}</AppText>
+            {saved.map((item) => (
+              <Surface key={item.id} variant='outlined' padding='md'>
+                <Stack gap='xs'>
+                  <Row justify='space-between' align='center' gap='sm'>
+                    <AppText variant='caption' color='muted'>
+                      {new Date(item.savedAt).toLocaleDateString()}
+                    </AppText>
+                    <Button
+                      label={t('delete')}
+                      size='sm'
+                      variant='danger'
+                      onPress={() => deleteSimulation(item.id)}
+                    />
+                  </Row>
+                  <AppText>
+                    {t('financings.payment')}:{' '}
+                    {formatMoneyWithSymbol(item.baselinePaymentCents)} →{' '}
+                    {formatMoneyWithSymbol(item.simulatedPaymentCents)}
+                  </AppText>
+                  <AppText variant='caption' color='muted'>
+                    {t('financings.interestSaved')}:{' '}
+                    {formatMoneyWithSymbol(item.interestSavedCents)} ·{' '}
+                    {t('financings.monthsSaved')}: {item.monthsSaved}
+                  </AppText>
+                </Stack>
+              </Surface>
+            ))}
+          </Stack>
         ) : null}
       </Stack>
     </Modal>
