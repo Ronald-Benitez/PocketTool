@@ -104,8 +104,13 @@ const FuelScreen = () => {
     [stats.entries, displayVolumeUnit, t]
   );
   const totalSpendChart = useMemo(
-    () => buildTotalSpendChart(stats.entries, t('vehicle.chart.totalSpent')),
-    [stats.entries, t]
+    () =>
+      buildTotalSpendChart(
+        stats.entries,
+        displayVolumeUnit,
+        t('vehicle.chart.totalSpent')
+      ),
+    [stats.entries, displayVolumeUnit, t]
   );
   const displayDistanceUnit = vehicle?.distance_unit === 'km' ? 'km' : 'mi';
   const comparisonChart = useMemo(

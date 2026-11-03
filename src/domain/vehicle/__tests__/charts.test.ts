@@ -20,24 +20,24 @@ const entries = analyzeFuelEntries([
 ]);
 
 describe('vehicle fuel charts', () => {
-  it('builds a volume chart in the selected unit', () => {
+  it('builds a volume chart by segment in the selected unit', () => {
     const chart = buildVolumeChart(entries, 'L', 'Volume');
     expect(chart).toContain('xychart-beta');
-    expect(chart).toContain('bar [37.854, 37.854, 37.854]');
+    expect(chart).toContain('bar [37.854, 37.854]');
     expect(buildVolumeChart(entries, 'gal', 'Volume')).toContain(
-      'bar [10, 10, 10]'
+      'bar [10, 10]'
     );
   });
 
-  it('builds a price chart in the selected unit', () => {
+  it('builds a price chart by segment in the selected unit', () => {
     const chart = buildPriceChart(entries, 'gal', 'Price');
-    expect(chart).toContain('line [3.5, 4, 4.5]');
-    expect(buildPriceChart(entries, 'L', 'Price')).toContain('line [0.925');
+    expect(chart).toContain('line [4, 4.5]');
+    expect(buildPriceChart(entries, 'L', 'Price')).toContain('line [1.057');
   });
 
-  it('builds a total spend chart per entry', () => {
-    const chart = buildTotalSpendChart(entries, 'Total spent');
-    expect(chart).toContain('bar [35, 40, 45]');
+  it('builds a total spend chart by segment', () => {
+    const chart = buildTotalSpendChart(entries, 'gal', 'Total spent');
+    expect(chart).toContain('bar [40, 45]');
     expect(chart).toContain('y-axis "$"');
   });
 
@@ -52,10 +52,12 @@ describe('vehicle fuel charts', () => {
     expect(chart?.match(/line \[/g)).toHaveLength(3);
   });
 
-  it('requires at least two points', () => {
-    expect(buildVolumeChart(entries.slice(0, 1), 'L', 'Volume')).toBeNull();
-    expect(buildPriceChart(entries.slice(0, 1), 'L', 'Price')).toBeNull();
-    expect(buildTotalSpendChart(entries.slice(0, 1), 'Total')).toBeNull();
+  it('requires at least two segments', () => {
+    expect(buildVolumeChart(entries.slice(0, 2), 'L', 'Volume')).toBeNull();
+    expect(buildPriceChart(entries.slice(0, 2), 'L', 'Price')).toBeNull();
+    expect(
+      buildTotalSpendChart(entries.slice(0, 2), 'L', 'Total')
+    ).toBeNull();
     expect(
       buildMobilityComparisonChart(entries.slice(0, 2), 'L', 'mi', 'Mobility')
     ).toBeNull();

@@ -236,8 +236,9 @@ Ajustes posteriores implementados (2026-11-01 y 2026-11-02):
   galón.
 - El formulario recuerda las últimas unidades de volumen y odómetro por
   vehículo al agregar una carga nueva.
-- Gráficos de volumen consumido, precio por unidad, total gastado y comparativa
-  normalizada de volumen, distancia y costo total.
+- Gráficos de volumen consumido, precio por unidad y total gastado agrupados
+  por segmento de tanque lleno, más una comparativa normalizada de volumen,
+  distancia y costo total.
 - El error de una carga parcial sin odómetro ahora aclara que debe existir una
   carga o baseline con fecha anterior.
 

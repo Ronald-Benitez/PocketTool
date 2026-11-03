@@ -10,11 +10,9 @@ import type {
 } from './history';
 import {
   consumptionUnits,
-  convertPricePerUnit,
   convertVolume,
   fromKm,
   selectConsumption,
-  volumeUnitOf,
 } from './units';
 
 const clean = (value: string, fallback: string) => {
@@ -50,31 +48,52 @@ export const buildConsumptionChart = (
   ].join('\n');
 };
 
-export const buildVolumeChart = (
+type SegmentChartPoint = {
+  date: number;
+  volume: number;
+  price: number | null;
+  total: number | null;
+  distanceKm: number;
+};
+
+const buildSegmentPoints = (
   entries: FuelEntryAnalysis[],
-  unit: VolumeUnit,
-  title: string
-) => {
-  const points = entries.flatMap((entry) => {
-    const volume = entry.entry.volume;
-    if (volume == null || volume <= 0) return [];
+  volumeUnit: VolumeUnit
+): SegmentChartPoint[] =>
+  entries.flatMap((entry) => {
+    const metrics = entry.segmentMetrics;
+    if (!metrics) return [];
     return [
       {
         date: entry.entry.date,
-        value: convertVolume(
-          volume,
-          volumeUnitOf(entry.entry.volume_unit),
-          unit
-        ),
+        volume: convertVolume(metrics.volumeL, 'L', volumeUnit),
+        price:
+          volumeUnit === 'L' ? metrics.pricePerL : metrics.pricePerGal,
+        total:
+          metrics.pricePerL != null
+            ? metrics.pricePerL * metrics.volumeL
+            : null,
+        distanceKm: metrics.distanceKm,
       },
     ];
   });
 
-  if (points.length < 2) return null;
-  const values = points.map((point) => Number(point.value.toFixed(3)));
+const buildXYChart = ({
+  title,
+  points,
+  values,
+  yAxis,
+  series,
+}: {
+  title: string;
+  points: SegmentChartPoint[];
+  values: number[];
+  yAxis: string;
+  series: 'bar' | 'line';
+}) => {
+  if (points.length < 2 || values.length !== points.length) return null;
   const max = Math.max(...values, 1);
   const axisMax = Math.ceil(max * 1.15);
-  const unitLabel = unit === 'L' ? 'L' : 'gal';
 
   return [
     'xychart-beta',
@@ -82,9 +101,26 @@ export const buildVolumeChart = (
     `  x-axis [${points
       .map((point) => `"${new Date(point.date).toLocaleDateString()}"`)
       .join(', ')}]`,
-    `  y-axis "${clean(unitLabel, unitLabel)}" 0 --> ${axisMax}`,
-    `  bar [${values.join(', ')}]`,
+    `  y-axis "${clean(yAxis, yAxis)}" 0 --> ${axisMax}`,
+    `  ${series} [${values.join(', ')}]`,
   ].join('\n');
+};
+
+export const buildVolumeChart = (
+  entries: FuelEntryAnalysis[],
+  unit: VolumeUnit,
+  title: string
+) => {
+  const points = buildSegmentPoints(entries, unit).filter(
+    (point) => point.volume > 0
+  );
+  return buildXYChart({
+    title,
+    points,
+    values: points.map((point) => Number(point.volume.toFixed(3))),
+    yAxis: unit === 'L' ? 'L' : 'gal',
+    series: 'bar',
+  });
 };
 
 export const buildPriceChart = (
@@ -92,62 +128,35 @@ export const buildPriceChart = (
   unit: VolumeUnit,
   title: string
 ) => {
-  const points = entries.flatMap((entry) => {
-    const price = entry.entry.price_per_unit;
-    if (price == null || price <= 0) return [];
-    return [
-      {
-        date: entry.entry.date,
-        value: convertPricePerUnit(
-          price / 100,
-          volumeUnitOf(entry.entry.volume_unit),
-          unit
-        ),
-      },
-    ];
+  const points = buildSegmentPoints(entries, unit).filter(
+    (point): point is SegmentChartPoint & { price: number } =>
+      point.price != null && point.price > 0
+  );
+  return buildXYChart({
+    title,
+    points,
+    values: points.map((point) => Number(point.price.toFixed(3))),
+    yAxis: unit === 'L' ? '$/L' : '$/gal',
+    series: 'line',
   });
-
-  if (points.length < 2) return null;
-  const values = points.map((point) => Number(point.value.toFixed(3)));
-  const max = Math.max(...values, 1);
-  const axisMax = Math.ceil(max * 1.15);
-  const unitLabel = unit === 'L' ? '$/L' : '$/gal';
-
-  return [
-    'xychart-beta',
-    `  title "${clean(title, title)}"`,
-    `  x-axis [${points
-      .map((point) => `"${new Date(point.date).toLocaleDateString()}"`)
-      .join(', ')}]`,
-    `  y-axis "${clean(unitLabel, unitLabel)}" 0 --> ${axisMax}`,
-    `  line [${values.join(', ')}]`,
-  ].join('\n');
 };
 
 export const buildTotalSpendChart = (
   entries: FuelEntryAnalysis[],
+  unit: VolumeUnit,
   title: string
 ) => {
-  const points = entries.flatMap((entry) => {
-    const total = entry.entry.total_cost;
-    if (total == null || total <= 0) return [];
-    return [{ date: entry.entry.date, value: total / 100 }];
+  const points = buildSegmentPoints(entries, unit).filter(
+    (point): point is SegmentChartPoint & { total: number } =>
+      point.total != null && point.total > 0
+  );
+  return buildXYChart({
+    title,
+    points,
+    values: points.map((point) => Number(point.total.toFixed(2))),
+    yAxis: '$',
+    series: 'bar',
   });
-
-  if (points.length < 2) return null;
-  const values = points.map((point) => Number(point.value.toFixed(2)));
-  const max = Math.max(...values, 1);
-  const axisMax = Math.ceil(max * 1.15);
-
-  return [
-    'xychart-beta',
-    `  title "${clean(title, title)}"`,
-    `  x-axis [${points
-      .map((point) => `"${new Date(point.date).toLocaleDateString()}"`)
-      .join(', ')}]`,
-    `  y-axis "$" 0 --> ${axisMax}`,
-    `  bar [${values.join(', ')}]`,
-  ].join('\n');
 };
 
 export const buildMobilityComparisonChart = (
@@ -156,20 +165,18 @@ export const buildMobilityComparisonChart = (
   distanceUnit: DistanceUnit,
   title: string
 ) => {
-  const points = entries.flatMap((entry) => {
-    const metrics = entry.segmentMetrics;
-    if (!metrics) return [];
-    const volume = convertVolume(metrics.volumeL, 'L', volumeUnit);
-    const distance = fromKm(metrics.distanceKm, distanceUnit);
-    const total =
-      metrics.pricePerL != null
-        ? metrics.pricePerL * metrics.volumeL
-        : null;
-    if (volume <= 0 || distance <= 0 || total == null || total <= 0) {
-      return [];
-    }
-    return [{ date: entry.entry.date, volume, distance, total }];
-  });
+  const points = buildSegmentPoints(entries, volumeUnit)
+    .filter(
+      (point): point is SegmentChartPoint & { total: number } =>
+        point.volume > 0 &&
+        point.distanceKm > 0 &&
+        point.total != null &&
+        point.total > 0
+    )
+    .map((point) => ({
+      ...point,
+      distance: fromKm(point.distanceKm, distanceUnit),
+    }));
 
   if (points.length < 2) return null;
   const first = points[0];

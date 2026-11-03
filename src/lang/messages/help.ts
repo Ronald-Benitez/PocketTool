@@ -268,7 +268,7 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "Enter any two of volume, price per unit and total; the third is calculated. Consumption can be shown as mi/gal, km/gal, mi/L, km/L, L/100 km, gal/100 km, L/60 mi or gal/60 mi. Full-tank segments are the most accurate method; partial fills accumulate until the next full tank. A partial fill can leave odometer/distance empty or at 0; the previous odometer is used. The fuel screen shows performance, volume, price and total spend charts, plus a normalized comparison of volume, distance and total cost."
+                "body": "Enter any two of volume, price per unit and total; the third is calculated. Consumption can be shown as mi/gal, km/gal, mi/L, km/L, L/100 km, gal/100 km, L/60 mi or gal/60 mi. Full-tank segments are the most accurate method; partial fills accumulate until the next full tank. A partial fill can leave odometer/distance empty or at 0; the previous odometer is used. The fuel screen shows performance, volume, price and total spend charts grouped by full-tank segment, plus a normalized comparison of volume, distance and total cost."
             },
             "steps": {
                 "title": "Step by step",
@@ -770,7 +770,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "Ingresa dos de tres valores entre volumen, precio por unidad y total; el tercero se calcula. El consumo se puede mostrar como mi/gal, km/gal, mi/L, km/L, L/100 km, gal/100 km, L/60 mi o gal/60 mi. Los segmentos de tanque lleno son el método más preciso; las cargas parciales se acumulan hasta el siguiente tanque lleno. Una carga parcial puede dejar el odómetro/distancia vacío o en 0; se usa el odómetro anterior. La pantalla de combustible muestra gráficos de rendimiento, volumen, precio y total gastado, además de una comparativa normalizada de volumen, distancia y costo total."
+                "body": "Ingresa dos de tres valores entre volumen, precio por unidad y total; el tercero se calcula. El consumo se puede mostrar como mi/gal, km/gal, mi/L, km/L, L/100 km, gal/100 km, L/60 mi o gal/60 mi. Los segmentos de tanque lleno son el método más preciso; las cargas parciales se acumulan hasta el siguiente tanque lleno. Una carga parcial puede dejar el odómetro/distancia vacío o en 0; se usa el odómetro anterior. La pantalla de combustible muestra gráficos de rendimiento, volumen, precio y total gastado agrupados por segmento de tanque lleno, además de una comparativa normalizada de volumen, distancia y costo total."
             },
             "steps": {
                 "title": "Paso a paso",

@@ -72,7 +72,8 @@ commits relevantes, archivos tocados y verificaciones realizadas.
   resolución de colores (`colors.ts`) y tipos/referencias visuales
   (`models.ts`).
 - `src/domain/vehicle/charts.ts`: builders de rendimiento, volumen, precio,
-  total gastado y comparativa de movilidad (volumen, distancia y costo total).
+  total gastado y comparativa de movilidad (volumen, distancia y costo total),
+  agrupados por segmento de tanque lleno.
 - `app/(vehicle)/fuel.tsx`: segmentos, selector de unidad de volumen/precio y
   gráficos.
 - `src/components/vehicle/FuelEntryForm.tsx`: alta/edición de combustible y
