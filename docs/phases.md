@@ -381,16 +381,19 @@ Alcance:
 - Participantes por ahorro reutilizando `People` y
   `SharedExpenseParticipants` (`owner_type = 'saving'`).
 - Movimientos tipados: inicial, aporte, retiro, interés y ajuste.
-- Meta global, progreso, restante y proyección.
-- Modo de `Records` por ahorro: separado, transferencias o gastos desde ahorro.
-- Archivo de ahorros cumplidos o inactivos.
+- Meta global opcional, progreso, restante y proyección.
+- Aporte mensual sugerido por porcentaje de ingresos o monto fijo, editable por
+  el usuario, con estado alcanzado/superado/no alcanzado.
+- Modo de `Records` por ahorro: separado o vinculado.
+- Tipo de registro, método de pago y categoría editables al confirmar, con
+  valores por defecto en Configuraciones y efectos `-`, `+` o `=`.
+- Alerta al alcanzar la meta y archivo manual.
 - Gráfico con series global, propia y de otras partes.
 
 Subfases: SAV-0 a SAV-5, detalladas en el plan.
 
-Decisiones pendientes: reparto de intereses, meta global o por persona,
-aportaciones libres o por porcentaje, y alcance de la integración con
-`Records`.
+Decisiones confirmadas: intereses por porcentaje, meta global opcional,
+aportaciones libres con regla sugerida, y archivo manual con alerta.
 
 ## Documentación
 
