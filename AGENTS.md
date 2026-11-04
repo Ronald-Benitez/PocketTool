@@ -196,6 +196,8 @@ commits relevantes, archivos tocados y verificaciones realizadas.
   eliminación de pagos; el registro vinculado se conserva por defecto.
 - `src/db/repositories/financings.ts`: financiamientos, pagos, ajustes y
   vínculos de pagos con `Records` (crear, vincular u omitir).
+- `src/db/errors.ts`: `mapDatabaseError` y códigos explícitos para errores de
+  SQLite.
 - `src/db/repositories/people.ts`: registro de personas y participantes de
   gastos compartidos (`fixed`/`financing`).
 - `app/(fixeds)/PeopleScreen.tsx`: alta, edición y archivo de personas.
@@ -375,6 +377,25 @@ Referencias vigentes:
   `FinancingRecordPicker`.
 - `src/db/repositories/vehicle.ts` y `src/db/repositories/financings.ts` como
   ejemplos de creación/vinculación transaccional.
+
+## Errores de base de datos
+
+- **Regla obligatoria:** ningún repositorio, store o pantalla debe tragarse un
+  error de SQLite ni mostrar un mensaje genérico como “la acción no se pudo
+  completar”.
+- Envolver las operaciones de base de datos con `mapDatabaseError` de
+  `src/db/errors.ts` y lanzar un `DatabaseMappedError` con un código explícito:
+  - `DB_MIGRATION_REQUIRED`
+  - `DB_DUPLICATE`
+  - `DB_REQUIRED`
+  - `DB_FOREIGN_KEY`
+  - `DB_UNKNOWN`
+- La UI debe traducir el código con las claves `dbErrors.<code>` y mostrar el
+  detalle real en `__DEV__`.
+- `migrateDb` ejecuta `ensureSchema` después de las migraciones para crear
+  tablas/columnas faltantes como red de seguridad.
+- Al agregar una migración, actualizar `SCHEMA_VERSION`, los artefactos y las
+  pruebas de base de datos.
 
 ## Convenciones obligatorias
 

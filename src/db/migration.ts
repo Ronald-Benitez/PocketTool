@@ -42,6 +42,11 @@ export const runMigrations = async (db: SQLiteDatabase) => {
 };
 
 async function migrateDb(db: SQLiteDatabase) {
+  const latestMigration = migrations[migrations.length - 1]?.version ?? 0;
+  if (latestMigration < SCHEMA_VERSION) {
+    throw new Error('SCHEMA_VERSION_WITHOUT_MIGRATION');
+  }
+
   try {
     await db.execAsync('PRAGMA journal_mode = WAL;');
   } catch (error) {
@@ -56,6 +61,7 @@ async function migrateDb(db: SQLiteDatabase) {
     await db.execAsync(createTableSql(APP_SCHEMA.Migrations));
 
     await runMigrations(db);
+    await ensureSchema(db);
     await ensureIndexes(db);
     await ensureTimestampTriggers(db);
     await seedDefaults(db);

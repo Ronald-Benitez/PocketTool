@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { usePeopleRepository } from '@/src/db';
+import { mapDatabaseError } from '@/src/db/errors';
 import type { Person } from '@/src/interfaces/schema';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { Button } from '@/src/ui/actions/Button';
@@ -37,9 +38,20 @@ const PeopleScreen = () => {
 
   useEffect(() => {
     let active = true;
-    repository.fetchPeople().then((rows) => {
-      if (active) setPeople(rows);
-    });
+    repository
+      .fetchPeople()
+      .then((rows) => {
+        if (active) setPeople(rows);
+      })
+      .catch((cause) => {
+        if (!active) return;
+        if (__DEV__) console.warn('[people] load failed', cause);
+        const mapped = mapDatabaseError(cause, t('toast.error'));
+        showToast({
+          message: t(`dbErrors.${mapped.code}` as never),
+          type: 'error',
+        });
+      });
     return () => {
       active = false;
     };
@@ -86,8 +98,10 @@ const PeopleScreen = () => {
       showToast({ message: t('shared.personSaved'), type: 'success' });
       setVisible(false);
       setRefreshKey((value) => value + 1);
-    } catch {
-      setError(t('toast.error'));
+    } catch (cause) {
+      if (__DEV__) console.warn('[people] save failed', cause);
+      const mapped = mapDatabaseError(cause, t('toast.error'));
+      setError(t(`dbErrors.${mapped.code}` as never));
     } finally {
       setSaving(false);
     }
@@ -101,8 +115,13 @@ const PeopleScreen = () => {
       showToast({ message: t('shared.personDeleted'), type: 'success' });
       setDeleting(null);
       setRefreshKey((value) => value + 1);
-    } catch {
-      showToast({ message: t('toast.error'), type: 'error' });
+    } catch (cause) {
+      if (__DEV__) console.warn('[people] delete failed', cause);
+      const mapped = mapDatabaseError(cause, t('toast.error'));
+      showToast({
+        message: t(`dbErrors.${mapped.code}` as never),
+        type: 'error',
+      });
     } finally {
       setSaving(false);
     }

@@ -6,6 +6,13 @@ export const commonEn = {
     "close": "Close",
     "confirmDelete": "Are you sure you want to delete this?",
     "delete": "Delete",
+    "dbErrors": {
+        "DB_MIGRATION_REQUIRED": "The database is not up to date. Restart the app and try again.",
+        "DB_DUPLICATE": "That value already exists.",
+        "DB_REQUIRED": "A required field is missing.",
+        "DB_FOREIGN_KEY": "A related record no longer exists.",
+        "DB_UNKNOWN": "The database could not complete the action."
+    },
     "edit": {
         "group": "Edit group",
         "paymentType": "Edit payment type",
@@ -44,6 +51,13 @@ export const commonEs: MessageShape<typeof commonEn> = {
     "close": "Cerrar",
     "confirmDelete": "¿Estás seguro de que quieres eliminar esto?",
     "delete": "Eliminar",
+    "dbErrors": {
+        "DB_MIGRATION_REQUIRED": "La base de datos no está actualizada. Reinicia la app e inténtalo de nuevo.",
+        "DB_DUPLICATE": "Ese valor ya existe.",
+        "DB_REQUIRED": "Falta un campo obligatorio.",
+        "DB_FOREIGN_KEY": "Un registro relacionado ya no existe.",
+        "DB_UNKNOWN": "La base de datos no pudo completar la acción."
+    },
     "edit": {
         "group": "Editar grupo",
         "paymentType": "Editar tipo de pago",

@@ -967,6 +967,20 @@ async function testVehicleSettingsRecordTypeMigration() {
   console.log('vehicle settings record type migration: OK');
 }
 
+async function testPeopleInsert() {
+  const raw = new DatabaseSync(':memory:');
+  const db = shim(raw);
+  await migrateDb(db);
+  const orm = new ORM(db, 'People');
+  const id = await orm.insert({ name: 'Ana' });
+  assert.ok(id > 0, 'person id should be positive');
+  const person = q(raw, 'SELECT name, is_active FROM people WHERE id = ?', [id])[0];
+  assert.strictEqual(person.name, 'Ana');
+  assert.strictEqual(person.is_active, 1);
+  raw.close();
+  console.log('people insert: OK');
+}
+
 async function testVehicleInsert() {
   const raw = new DatabaseSync(':memory:');
   const db = shim(raw);
@@ -1145,6 +1159,7 @@ async function testInterruptedRebuild() {
   await testFinancingPaymentCentsMigration();
   await testRecordsSharedAmountsMigration();
   await testPeopleAndSharedParticipantsMigration();
+  await testPeopleInsert();
   await testVehicleSettingsRecordTypeMigration();
   await testVehicleInsert();
   await testVehicleTypeMigration();
