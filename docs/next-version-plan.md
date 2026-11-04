@@ -563,8 +563,11 @@ Pendiente:
 
 - QA Android/iOS y checklist visual.
 - Verificación completa de cierre.
-- Desglose propio/compartido dentro de cada bucket de resumen, si se necesita
-  más detalle que el total general.
+- Temas del centro de ayuda para **Personas** y para el selector
+  **Tu parte / Total / Compartido** (NV-11).
+- Pruebas de reconciliación `total = own + shared` por bucket, de pendientes de
+  financiamiento sin duplicar `Records` y de selección de grupo repetida.
+- Fase 9: decidir si se mantienen formularios separados por caso y cerrar su QA.
 
 ## 8. Verificación
 
