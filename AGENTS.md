@@ -29,8 +29,8 @@ métodos de pago, créditos, ahorros y vehículo.
   [`docs/next-version-plan.md`](docs/next-version-plan.md). Incluye pendientes de
   créditos/préstamos en Registros, tipo de registro de Vehículo, odómetro
   efectivo, financiamientos en resúmenes de fijos, renombre a Compromisos,
-  cambio de grupo en Resumen, personas, compartidos ilimitados y snapshot
-  propio/compartido en `Records`.
+  cambio de grupo en Resumen, personas como sección propia con historial de
+  pagos, compartidos ilimitados y snapshot propio/compartido en `Records`.
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -204,7 +204,8 @@ commits relevantes, archivos tocados y verificaciones realizadas.
   garantiza que la suma reconcilie.
 - `src/db/shared-ledger.ts`: sincroniza `SharedPaymentAllocations` desde
   registros de fijos y pagos de financiamientos.
-- `app/(fixeds)/PeopleScreen.tsx`: alta, edición, archivo y ledger por persona.
+- `app/(people)/index.tsx`: sección Personas con alta, edición, archivo y
+  ledger por persona.
 - Regla de compartidos: `Records.amount` guarda el monto propio del usuario;
   `own_amount_cents` lo replica y `shared_amount_cents` es el snapshot de la
   parte compartida. El total es `own + shared`. Los resúmenes personales usan el

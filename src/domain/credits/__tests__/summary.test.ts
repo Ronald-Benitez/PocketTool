@@ -12,6 +12,7 @@ describe('financing summary', () => {
     const summary = summarizeFinancing(base, []);
     expect(summary.balanceCents).toBe(120000);
     expect(summary.monthlyPaymentCents).toBe(10000);
+    expect(summary.sharedPaymentCents).toBe(0);
     expect(summary.paidInstallments).toBe(0);
     expect(summary.monthsRemaining).toBe(12);
   });

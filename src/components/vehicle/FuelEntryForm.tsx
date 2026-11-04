@@ -18,6 +18,7 @@ import type {
 } from '@/src/interfaces/schema';
 import useRecordsStore from '@/src/stores/RecordsStore';
 import { useLanguage } from '@/src/lang/LanguageContext';
+import { formatMoneyWithSymbol } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
 import { InlineMessage } from '@/src/ui/feedback/InlineMessage';
 import { useToast } from '@/src/ui/feedback/ToastProvider';
@@ -29,6 +30,7 @@ import { TextField } from '@/src/ui/forms/TextField';
 import { ConfirmDialog } from '@/src/ui/overlays/Dialog';
 import { Modal } from '@/src/ui/overlays/Modal';
 import { AppText } from '@/src/ui/primitives/AppText';
+import { Surface } from '@/src/ui/primitives/Surface';
 import { VehicleExpensePicker } from './VehicleExpensePicker';
 
 type FuelEntryFormProps = {
@@ -112,7 +114,10 @@ export const FuelEntryForm = ({
     const baseline = Boolean(entry?.is_baseline);
     setDate(entry?.date ?? Date.now());
     setOdometerMode(
-      baseline || entry?.odometer != null ? 'odometer' : 'distance'
+      baseline ||
+        (entry?.odometer != null && entry.odometer_source !== 'inferred')
+        ? 'odometer'
+        : 'distance'
     );
     setOdometer(entry?.odometer?.toString() ?? '');
     setDistance(entry?.distance_traveled?.toString() ?? '');
@@ -134,7 +139,7 @@ export const FuelEntryForm = ({
             id: entry.record_id,
             name: entry.record_name ?? '',
             amount: entry.record_amount ?? 0,
-            date: entry.date,
+            date: entry.record_date ?? entry.date,
             categoryId: null,
             categoryName: '',
             paymentMethodId: null,
@@ -609,17 +614,60 @@ export const FuelEntryForm = ({
                 }}
               />
               {linkMode === 'link' ? (
-                <Button
-                  label={
-                    linkedRecord
-                      ? t('vehicle.records.linkedTo', {
-                          name: linkedRecord.name,
-                        })
-                      : t('vehicle.actions.chooseRecord')
-                  }
-                  variant='outline'
-                  onPress={() => setPickerVisible(true)}
-                />
+                <>
+                  <Button
+                    label={
+                      linkedRecord
+                        ? t('vehicle.records.linkedTo', {
+                            name: linkedRecord.name,
+                          })
+                        : t('vehicle.actions.chooseRecord')
+                    }
+                    variant='outline'
+                    onPress={() => setPickerVisible(true)}
+                  />
+                  {linkedRecord ? (
+                    <Surface variant='muted' padding='md'>
+                      <View style={styles.compareRow}>
+                        <AppText variant='caption' color='muted'>
+                          {t('vehicle.records.fuelAmount')}
+                        </AppText>
+                        <AppText>{formatMoneyWithSymbol(totalCost)}</AppText>
+                      </View>
+                      <View style={styles.compareRow}>
+                        <AppText variant='caption' color='muted'>
+                          {t('vehicle.records.linkedAmount')}
+                        </AppText>
+                        <AppText>
+                          {formatMoneyWithSymbol(linkedRecord.amount)}
+                        </AppText>
+                      </View>
+                      <View style={styles.compareRow}>
+                        <AppText variant='caption' color='muted'>
+                          {t('vehicle.records.fuelDate')}
+                        </AppText>
+                        <AppText>
+                          {new Date(date).toLocaleDateString()}
+                        </AppText>
+                      </View>
+                      <View style={styles.compareRow}>
+                        <AppText variant='caption' color='muted'>
+                          {t('vehicle.records.linkedDate')}
+                        </AppText>
+                        <AppText>
+                          {new Date(linkedRecord.date).toLocaleDateString()}
+                        </AppText>
+                      </View>
+                      {totalCost !== linkedRecord.amount ||
+                      !isSameDay(date, linkedRecord.date) ? (
+                        <InlineMessage
+                          variant='warning'
+                          message={t('vehicle.records.compareHint')}
+                        />
+                      ) : null}
+                    </Surface>
+                  ) : null}
+                </>
               ) : null}
             </>
           ) : null}
@@ -772,6 +820,13 @@ const styles = StyleSheet.create({
   form: { gap: 16 },
   footer: { flex: 1, flexDirection: 'row', gap: 8 },
   footerButton: { flex: 1 },
+  compareRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 2,
+  },
 });
 
 

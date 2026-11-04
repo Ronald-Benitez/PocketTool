@@ -43,6 +43,7 @@ export type VehicleFuelEntryView = VehicleFuelEntry & {
   record_id?: number | null;
   record_name?: string | null;
   record_amount?: number | null;
+  record_date?: number | null;
   record_group_id?: number | null;
 };
 
@@ -53,6 +54,7 @@ export type VehicleMaintenanceView = VehicleMaintenanceEntry & {
   record_id?: number | null;
   record_name?: string | null;
   record_amount?: number | null;
+  record_date?: number | null;
   record_group_id?: number | null;
 };
 
@@ -358,7 +360,7 @@ export const useVehicleFuelRepository = () => {
       .map((link) => link.record_id)
       .filter((id): id is number => typeof id === 'number');
     const records = recordIds.length
-      ? ((await recordsOrm.join('Categories').where('id', recordIds, 'IN').getAll()) as RecordEntry[])
+      ? ((await recordsOrm.where('id', recordIds, 'IN').getAll()) as RecordEntry[])
       : [];
     const linkByEntry = new Map(
       fuelLinks.flatMap((link) =>
@@ -380,6 +382,7 @@ export const useVehicleFuelRepository = () => {
           record_id: link?.record_id ?? null,
           record_name: record?.record_name ?? null,
           record_amount: record?.amount ?? null,
+          record_date: record?.date ?? null,
           record_group_id: record?.group_id ?? null,
         };
       })
@@ -437,44 +440,34 @@ export const useVehicleFuelRepository = () => {
         return entryId;
       }
 
-      const isFullTank =
-        entryValues.is_full_tank === undefined ||
-        entryValues.is_full_tank === true ||
-        entryValues.is_full_tank === 1;
+      const hasOdometer =
+        entryValues.odometer != null && entryValues.odometer > 0;
 
-      if (!isFullTank) {
-        const hasOdometer =
-          entryValues.odometer != null && entryValues.odometer > 0;
-        const hasDistance =
-          entryValues.distance_traveled != null &&
-          entryValues.distance_traveled > 0;
-
-        if (!hasOdometer) {
-          const previous = await findPreviousFuelEntry(
-            txn,
-            entryValues.vehicle_id,
-            entryValues.date,
-            id
-          );
-          if (!previous || previous.odometer <= 0) {
-            throw new Error('PREVIOUS_ODOMETER_REQUIRED');
-          }
-
-          const resolution = resolvePartialOdometer({
-            distanceTraveled: entryValues.distance_traveled,
-            distanceUnit: entryValues.distance_unit ?? 'mi',
-            previousOdometer: previous.odometer,
-            previousDistanceUnit: previous.distanceUnit,
-          });
-          if (!resolution.ok) {
-            throw new Error('PREVIOUS_ODOMETER_REQUIRED');
-          }
-
-          entryValues.odometer = resolution.odometer;
-          entryValues.odometer_source = resolution.odometerSource;
-          entryValues.distance_traveled = resolution.distanceTraveled;
-          entryValues.distance_source = resolution.distanceSource;
+      if (!hasOdometer) {
+        const previous = await findPreviousFuelEntry(
+          txn,
+          entryValues.vehicle_id,
+          entryValues.date,
+          id
+        );
+        if (!previous || previous.odometer <= 0) {
+          throw new Error('PREVIOUS_ODOMETER_REQUIRED');
         }
+
+        const resolution = resolvePartialOdometer({
+          distanceTraveled: entryValues.distance_traveled,
+          distanceUnit: entryValues.distance_unit ?? 'mi',
+          previousOdometer: previous.odometer,
+          previousDistanceUnit: previous.distanceUnit,
+        });
+        if (!resolution.ok) {
+          throw new Error('PREVIOUS_ODOMETER_REQUIRED');
+        }
+
+        entryValues.odometer = resolution.odometer;
+        entryValues.odometer_source = resolution.odometerSource;
+        entryValues.distance_traveled = resolution.distanceTraveled;
+        entryValues.distance_source = resolution.distanceSource;
       }
 
       const payload =
@@ -595,6 +588,7 @@ export const useVehicleMaintenanceRepository = () => {
           record_id: link?.record_id ?? null,
           record_name: record?.record_name ?? null,
           record_amount: record?.amount ?? null,
+          record_date: record?.date ?? null,
           record_group_id: record?.group_id ?? null,
         };
       })

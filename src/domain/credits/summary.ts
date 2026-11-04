@@ -258,9 +258,9 @@ export const summarizeFinancing = (
     sharedPaymentCents: financing.is_shared
       ? sharedAmount({
           amountCents: agreedPaymentCents,
-          sharedPercent: financing.shared_percent,
+          sharedPercent: financing.shared_percent ?? 0,
         })
-      : agreedPaymentCents,
+      : 0,
     totalInterestCents: schedule.totalInterestCents,
     monthsRemaining: schedule.rows.length,
     payoffDate: schedule.payoffDate,

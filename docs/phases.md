@@ -327,8 +327,10 @@ Estado: **implementación funcional completa; pendiente QA y cierre**. Se
 completaron créditos/préstamos pendientes en Registros, tipo de registro de
 Vehículo, odómetro efectivo, financiamientos en resúmenes de fijos, renombre de
 la sección a Compromisos, corrección del cambio de grupo en Resumen, personas y
-compartidos ilimitados, snapshot propio/compartido en `Records`, obligaciones
-del día en Home y ledger de pagos compartidos por persona.
+compartidos ilimitados, snapshot propio/compartido en `Records`, sección propia
+de Personas con ledger de pagos compartidos, compromisos pendientes listados en
+Home y Registros, y correcciones de vínculo e inferencia de odómetro en
+Vehículo.
 
 Objetivo: resolver la integración pendiente entre Registros, Gastos fijos,
 Créditos/Préstamos, Vehículo y Resúmenes, y añadir un modelo reutilizable de

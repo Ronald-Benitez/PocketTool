@@ -153,8 +153,8 @@ financiamientos no aparecen como obligaciones pendientes.
 - El modal abre con todos los datos completos.
 - Al guardar, el pendiente desaparece y no se duplica.
 - El pago queda vinculado al financiamiento.
-- Si el pago vence hoy, también aparece en Home y abre el formulario con la
-  fecha y el monto precargados.
+- Home lista los compromisos pendientes (incluidos los que vencen hoy) y abre
+  el formulario con la fecha y el monto precargados.
 - Los montos mostrados y registrados son los del usuario; la parte compartida
   se muestra aparte.
 
@@ -481,8 +481,8 @@ Implementado:
 
 - NV-1: créditos/préstamos pendientes en Registros, visibles durante todo el
   mes seleccionado (incluidos vencidos), con apertura del formulario de pago
-  precargado y creación/vínculo del `Record` sin duplicados. En Home también
-  aparecen las obligaciones que vencen hoy y abren el formulario.
+  precargado y creación/vínculo del `Record` sin duplicados. Home lista todos
+  los compromisos pendientes, incluidos los de hoy, y abre el formulario.
 - NV-6: odómetro efectivo en análisis de combustible, recordatorios y lectura
   previa para cargas parciales.
 - NV-7: `VehicleSettings.record_type_id` global de la sección Vehículo (no por
@@ -492,8 +492,17 @@ Implementado:
 - NV-8: los resúmenes de fijos incluyen la cuota mensual de financiamientos
   activos por tipo de registro, tipo de pago, método de pago y categoría.
 - NV-4/NV-5: registro de personas y participantes ilimitados con porcentajes;
-  aplicado a financiamientos y gastos fijos. Cada persona tiene un historial de
-  pagos compartidos con el monto de su parte.
+  aplicado a financiamientos y gastos fijos. Personas tiene su propia sección en
+  el drawer y cada persona muestra un historial de pagos compartidos con el
+  monto de su parte.
+- Compromisos: los fijos pendientes se listan con la fecha del grupo
+  seleccionado y los financiamientos muestran siempre su próximo pago, sin
+  depender del día exacto. El monto propio se muestra completo cuando el
+  compromiso no es compartido.
+- Vehículo: al vincular un gasto de combustible se muestran el monto y la fecha
+  de ambas partes para validar diferencias, y la inferencia de odómetro se
+  aplica también a tanques llenos registrados con distancia y conserva el orden
+  de creación en registros de la misma fecha.
 - NV-9: la sección se renombró a **Compromisos** en el drawer.
 - NV-10: se corrigió la carrera de selección de grupo en Resumen; una selección
   del usuario ya no es sobrescrita por la carga asíncrona del grupo fijado y las

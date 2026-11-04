@@ -27,6 +27,7 @@ import FinancingsGroup, { type PendingFinancingPayment } from "./FinancingsGroup
 import CreditsGroups from "./CreditsGroups";
 import {
   useFinancingsRepository,
+  useFixeds,
   useRecords,
   useSharedParticipantsRepository,
 } from "@/src/db";
@@ -64,7 +65,7 @@ const ItemsTable = () => {
   const { records, group, setRecords } = useRecordsStore();
   const { colors } = useColorStore();
   const { credits } = useCreditStore();
-  const { RecordTypes, Fixeds } = useDataStore();
+  const { RecordTypes, Fixeds, setFixeds } = useDataStore();
   const [creditRecords, setCreditRecords] = useState<RecordFormEntry[]>();
   const {
     configs: { paymentCreditType },
@@ -85,6 +86,7 @@ const ItemsTable = () => {
     { column: "date", direction: "ASC" }
   ]);
   const { fetchRecords, deleteRecordWithCredit, handler: recordsRepository } = useRecords();
+  const { fetchFixeds } = useFixeds();
   const financingsRepository = useFinancingsRepository();
   const participantsRepository = useSharedParticipantsRepository();
   const [fixedParticipants, setFixedParticipants] = useState<SharedExpenseParticipant[]>([]);
@@ -150,7 +152,6 @@ const ItemsTable = () => {
   }, [financingsRefreshKey, group?.id])
 
   const pendingFinancings = useMemo<PendingFinancingPayment[]>(() => {
-    if (!group) return []
     return financings
       .flatMap((financing) => {
         if (financing.status !== 'active') return []
@@ -161,23 +162,13 @@ const ItemsTable = () => {
         )
         const next = summary.schedule.rows[0]
         if (!next) return []
-        // Show any payment due inside the selected month, including overdue
-        // ones from previous months. The payment does not have to happen on
-        // the exact due day to appear as pending, just like fixed expenses.
-        const endOfGroupMonth = new Date(
-          group.year,
-          group.month,
-          0,
-          23,
-          59,
-          59,
-          999
-        ).getTime()
-        if (next.date > endOfGroupMonth) return []
+        // Show the next unpaid payment for every active financing, just like
+        // fixed expenses. It does not need to fall on the exact due day or on
+        // the selected month to be listed.
         return [{ financing, summary, next }]
       })
       .sort((a, b) => a.next.date - b.next.date)
-  }, [financings, group])
+  }, [financings])
 
   const openFinancingPayment = (payment: PendingFinancingPayment) => {
     setSelectedFinancing(payment.financing)
@@ -257,19 +248,17 @@ const ItemsTable = () => {
 
   const generateFixedsToShow = () => {
     const list: RecordFormEntry[] = [];
-    const today = new Date()
+    const now = new Date()
+    const baseYear = group?.year ?? now.getFullYear()
+    const baseMonth = group?.month ?? now.getMonth() + 1
     Fixeds.map((fixed) => {
       const alreadyAdded = records.find(
         (records) => records.fixed_id == fixed.id
       );
       if (!alreadyAdded) {
-        const date = new Date();
-        date.setDate(fixed.fixed_day);
-
-
-        if(date?.getTime() < today.getTime()){
-          date.setMonth(date?.getMonth() + 1)
-        }
+        // Use the selected group month so an unpaid fixed whose day already
+        // passed is still listed as pending instead of jumping to next month.
+        const date = new Date(baseYear, baseMonth - 1, fixed.fixed_day);
 
         const sharedPercent = Math.min(
           100,
@@ -303,6 +292,24 @@ const ItemsTable = () => {
 
   useEffect(() => {
     let active = true
+    fetchFixeds()
+      .then((rows) => {
+        if (active) setFixeds(rows)
+      })
+      .catch((cause) => {
+        if (!active) return
+        if (__DEV__) console.warn("[records] fixeds load failed", cause)
+        const mapped = mapDatabaseError(cause, t("toast.error"))
+        showToast({
+          message: t(`dbErrors.${mapped.code}` as never),
+          type: "error",
+        })
+      })
+    return () => { active = false }
+  }, [])
+
+  useEffect(() => {
+    let active = true
     participantsRepository
       .fetchAll('fixed')
       .then((rows) => {
@@ -320,7 +327,13 @@ const ItemsTable = () => {
     return () => { active = false }
   }, [Fixeds])
 
-  useEffect(generateFixedsToShow, [records, Fixeds, fixedParticipants]);
+  useEffect(generateFixedsToShow, [
+    records,
+    Fixeds,
+    fixedParticipants,
+    group?.year,
+    group?.month,
+  ]);
 
   const onCreditPayment = (item: RecordFormEntry) => {
     setSelected(item);

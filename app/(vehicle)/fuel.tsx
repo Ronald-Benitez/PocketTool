@@ -4,7 +4,11 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 import { useVehicleFuelRepository } from '@/src/db';
 import { FuelEntryForm } from '@/src/components/vehicle/FuelEntryForm';
-import { buildFuelStats, groupFuelSegments } from '@/src/domain/vehicle/fuel';
+import {
+  buildFuelStats,
+  fuelOdometerPoints,
+  groupFuelSegments,
+} from '@/src/domain/vehicle/fuel';
 import {
   buildConsumptionChart,
   buildMobilityComparisonChart,
@@ -86,6 +90,15 @@ const FuelScreen = () => {
     [entries, format]
   );
   const segments = useMemo(() => groupFuelSegments(entries), [entries]);
+  const inferredOdometers = useMemo(
+    () =>
+      new Map(
+        fuelOdometerPoints(entries).flatMap((point) =>
+          point.id == null ? [] : [[point.id, point.odometer] as const]
+        )
+      ),
+    [entries]
+  );
   const consumptionChart = useMemo(
     () =>
       buildConsumptionChart(
@@ -390,6 +403,10 @@ const FuelScreen = () => {
                     </View>
                     {[...segment.entries].reverse().map((analysis, index) => {
                       const entry = analysis.entry as VehicleFuelEntryView;
+                      const effectiveOdometer =
+                        entry.id != null
+                          ? inferredOdometers.get(entry.id)
+                          : undefined;
                       const isBaseline = Boolean(entry.is_baseline);
                       const isFull = Boolean(entry.is_full_tank ?? 1);
                       const distanceLabel =
@@ -415,7 +432,13 @@ const FuelScreen = () => {
                                 } ${distanceLabel}`
                               : `${entryVolume?.toFixed(3) ?? '—'} ${displayVolumeLabel} · ${formatMoneyWithSymbol(
                                   entry.total_cost ?? 0
-                                )}${entry.station ? ` · ${entry.station}` : ''}`
+                                )}${entry.station ? ` · ${entry.station}` : ''}${
+                                  effectiveOdometer != null &&
+                                  (entry.odometer_source === 'inferred' ||
+                                    entry.odometer == null)
+                                    ? ` · ≈ ${effectiveOdometer.toFixed(0)} ${distanceLabel}`
+                                    : ''
+                                }`
                           }
                           leading={
                             <MaterialIcons

@@ -12,6 +12,7 @@ import type { FixedRecord, FixedView } from '@/src/interfaces/schema'
 import { formatMoneyWithSymbol } from '@/src/utils'
 import { useDataStore } from '@/src/stores'
 import { useFixeds } from '@/src/db'
+import { mapDatabaseError } from '@/src/db/errors'
 import { useTheme } from '@/src/ui/theme/ThemeProvider'
 
 const FixedsTable = () => {
@@ -23,6 +24,23 @@ const FixedsTable = () => {
     const { Fixeds, setFixeds } = useDataStore()
     const { fetchFixeds, handler: fixedsHandler } = useFixeds()
 
+    useEffect(() => {
+        let active = true
+        fetchFixeds()
+            .then((data) => {
+                if (active) setFixeds(data)
+            })
+            .catch((cause) => {
+                if (!active) return
+                if (__DEV__) console.warn('[fixeds] load failed', cause)
+                const mapped = mapDatabaseError(cause, t('toast.error'))
+                showToast({
+                    message: t(`dbErrors.${mapped.code}` as never),
+                    type: 'error',
+                })
+            })
+        return () => { active = false }
+    }, [])
 
     const handleDelete = async (index: number) => {
         const toDelete = Fixeds[index]

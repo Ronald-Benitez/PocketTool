@@ -277,6 +277,164 @@ describe('vehicle fuel analysis', () => {
     );
   });
 
+  it('keeps creation order for mixed entries recorded on the same day', () => {
+    const date = 100;
+    const entries = [
+      { ...base, id: 1, date, odometer: 1000, volume: 10 },
+      {
+        ...base,
+        id: 2,
+        date,
+        distance_traveled: 100,
+        odometer: null,
+        volume: 5,
+        is_full_tank: 0,
+      },
+      {
+        ...base,
+        id: 3,
+        date,
+        distance_traveled: 50,
+        odometer: null,
+        volume: 5,
+        is_full_tank: 0,
+      },
+      { ...base, id: 4, date, odometer: 1200, volume: 10 },
+    ];
+
+    const odometers = fuelOdometerPoints(entries).map(
+      (point) => point.odometer
+    );
+    expect(odometers).toHaveLength(4);
+    expect(odometers[0]).toBeCloseTo(1000, 6);
+    expect(odometers[1]).toBeCloseTo(1100, 6);
+    expect(odometers[2]).toBeCloseTo(1150, 6);
+    expect(odometers[3]).toBeCloseTo(1200, 6);
+
+    const analysis = analyzeFuelEntries(entries);
+    expect(analysis[3].distanceKm).toBeCloseTo(50 * 1.609344, 6);
+  });
+
+  it('infers an 11-entry mixed odometer and distance history', () => {
+    const entries = [
+      { ...base, id: 1, date: 1, odometer: 10000, volume: 10 },
+      {
+        ...base,
+        id: 2,
+        date: 2,
+        distance_traveled: 250,
+        odometer: null,
+        volume: 8,
+      },
+      {
+        ...base,
+        id: 3,
+        date: 3,
+        distance_traveled: 150,
+        odometer: null,
+        volume: 6,
+        is_full_tank: 0,
+      },
+      { ...base, id: 4, date: 4, odometer: 10600, volume: 10 },
+      {
+        ...base,
+        id: 5,
+        date: 5,
+        distance_traveled: 200,
+        odometer: null,
+        volume: 9,
+      },
+      {
+        ...base,
+        id: 6,
+        date: 6,
+        distance_traveled: 300,
+        odometer: null,
+        volume: 10,
+      },
+      { ...base, id: 7, date: 7, odometer: 11300, volume: 10 },
+      {
+        ...base,
+        id: 8,
+        date: 8,
+        distance_traveled: 180,
+        odometer: null,
+        volume: 8,
+      },
+      {
+        ...base,
+        id: 9,
+        date: 9,
+        distance_traveled: 220,
+        odometer: null,
+        volume: 9,
+      },
+      { ...base, id: 10, date: 10, odometer: 12000, volume: 10 },
+      {
+        ...base,
+        id: 11,
+        date: 11,
+        distance_traveled: 100,
+        odometer: null,
+        volume: 7,
+      },
+    ];
+
+    const points = fuelOdometerPoints(entries);
+    expect(points.map((point) => Math.round(point.odometer))).toEqual([
+      10000, 10250, 10400, 10600, 10800, 11100, 11300, 11480, 11700, 12000,
+      12100,
+    ]);
+    expect(points[points.length - 1].odometer).toBeCloseTo(12100, 6);
+  });
+
+  it('uses manual distance for the first odometer reading', () => {
+    const entries = [
+      {
+        ...base,
+        id: 1,
+        date: 1,
+        odometer: 5000,
+        distance_traveled: 250,
+        volume: 10,
+      },
+    ];
+    const analysis = analyzeFuelEntries(entries);
+    expect(analysis[0].distanceKm).toBeCloseTo(250 * 1.609344, 6);
+  });
+
+  it('recalculates cached inferred odometers from the previous reading', () => {
+    const entries = [
+      { ...base, id: 1, date: 1, odometer: 1000, volume: 10 },
+      {
+        ...base,
+        id: 2,
+        date: 2,
+        odometer: 1300,
+        odometer_source: 'inferred',
+        distance_traveled: 200,
+        volume: 10,
+      },
+      {
+        ...base,
+        id: 3,
+        date: 3,
+        odometer: 1600,
+        odometer_source: 'inferred',
+        distance_traveled: 300,
+        volume: 10,
+      },
+    ];
+
+    const points = fuelOdometerPoints(entries);
+    expect(points.map((point) => Math.round(point.odometer))).toEqual([
+      1000, 1200, 1500,
+    ]);
+
+    const analysis = analyzeFuelEntries(entries);
+    expect(analysis[2].distanceKm).toBeCloseTo(300 * 1.609344, 6);
+  });
+
   it('selects the previous inferred reading for a new partial fill', () => {
     const entries = [
       { ...base, id: 1, date: 1, odometer: 1000, volume: 10 },

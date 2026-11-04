@@ -21,7 +21,10 @@ import {
 const sortEntries = (entries: FuelEntryLike[]) =>
   [...entries].sort((a, b) => {
     if (a.date !== b.date) return a.date - b.date;
-    return (a.odometer ?? 0) - (b.odometer ?? 0);
+    // Entries recorded on the same day must keep their creation order. Sorting
+    // by odometer placed distance-only entries (odometer null) before explicit
+    // readings and broke odometer inference for mixed entries.
+    return (a.id ?? 0) - (b.id ?? 0);
   });
 
 export type FuelOdometerPoint = {
@@ -40,18 +43,29 @@ export const fuelOdometerPoints = (
 
   return sorted.flatMap((entry) => {
     const distanceUnit = distanceUnitOf(entry.distance_unit);
-    const explicitKm =
+    const storedKm =
       entry.odometer != null ? toKm(entry.odometer, distanceUnit) : null;
+    // Inferred odometers are a cache. Recalculate them from the previous
+    // reading so editing an earlier entry updates every later inference.
+    const manualKm =
+      entry.odometer != null && entry.odometer_source !== 'inferred'
+        ? storedKm
+        : null;
     const traveledKm =
       entry.distance_traveled != null
         ? toKm(entry.distance_traveled, distanceUnit)
         : null;
 
     let effectiveKm: number | null = null;
-    if (explicitKm != null) {
-      effectiveKm = explicitKm;
+    if (manualKm != null) {
+      effectiveKm = manualKm;
     } else if (previousKm != null) {
-      effectiveKm = previousKm + Math.max(0, traveledKm ?? 0);
+      effectiveKm =
+        traveledKm != null
+          ? previousKm + Math.max(0, traveledKm)
+          : (storedKm ?? previousKm);
+    } else {
+      effectiveKm = storedKm;
     }
 
     if (effectiveKm == null) return [];
@@ -102,8 +116,12 @@ export const analyzeFuelEntries = (entries: FuelEntryLike[]): FuelEntryAnalysis[
     const volumeUnit = volumeUnitOf(entry.volume_unit);
     const volumeL = toLiters(entry.volume ?? 0, volumeUnit);
     const totalCostCents = entry.total_cost ?? 0;
-    const explicitOdometerKm =
+    const storedOdometerKm =
       entry.odometer != null ? toKm(entry.odometer, distanceUnit) : null;
+    const manualOdometerKm =
+      entry.odometer != null && entry.odometer_source !== 'inferred'
+        ? storedOdometerKm
+        : null;
     const traveledKm =
       entry.distance_traveled != null
         ? toKm(entry.distance_traveled, distanceUnit)
@@ -111,15 +129,30 @@ export const analyzeFuelEntries = (entries: FuelEntryLike[]): FuelEntryAnalysis[
 
     let odometerKm: number | null = null;
     let distanceKm: number | null = null;
-    if (explicitOdometerKm != null) {
-      odometerKm = explicitOdometerKm;
-      distanceKm =
+    if (manualOdometerKm != null) {
+      odometerKm = manualOdometerKm;
+      const delta =
         previousOdometerKm != null
-          ? Math.max(0, explicitOdometerKm - previousOdometerKm)
+          ? manualOdometerKm - previousOdometerKm
           : null;
+      // When there is no previous reading, use the manually entered distance
+      // of this fill instead of discarding it. A negative delta usually means
+      // the odometer was reset, so the manual distance is also a better source.
+      distanceKm =
+        delta != null && delta >= 0 ? delta : (traveledKm ?? null);
     } else if (previousOdometerKm != null) {
-      distanceKm = Math.max(0, traveledKm ?? 0);
-      odometerKm = previousOdometerKm + distanceKm;
+      if (traveledKm != null) {
+        distanceKm = Math.max(0, traveledKm);
+        odometerKm = previousOdometerKm + distanceKm;
+      } else if (storedOdometerKm != null) {
+        odometerKm = storedOdometerKm;
+        distanceKm = Math.max(0, storedOdometerKm - previousOdometerKm);
+      } else {
+        distanceKm = 0;
+        odometerKm = previousOdometerKm;
+      }
+    } else if (storedOdometerKm != null) {
+      odometerKm = storedOdometerKm;
     } else if (traveledKm != null) {
       distanceKm = traveledKm;
     }

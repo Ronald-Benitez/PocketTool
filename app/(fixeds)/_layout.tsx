@@ -18,14 +18,6 @@ export default function Layout() {
                     )
                 }} />
             <Tabs.Screen
-                name="PeopleScreen"
-                options={{
-                    title: t("shared.peopleTitle"),
-                    tabBarIcon: ({ color, size }) => (
-                        <MaterialCommunityIcons name="account-group-outline" size={size} color={color as string | undefined} />
-                    )
-                }} />
-            <Tabs.Screen
                 name="FinancingsScreen"
                 options={{
                     title: t("headers.financings"),

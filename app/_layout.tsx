@@ -120,6 +120,20 @@ const AppDrawer = () => {
         }}
       />
       <Drawer.Screen
+        name="(people)"
+        options={{
+          title: t('headers.people'),
+          headerShown: false,
+          drawerIcon: ({ color, size }) => (
+            <MaterialCommunityIcons
+              name="account-group-outline"
+              size={size}
+              color={color as string | undefined}
+            />
+          ),
+        }}
+      />
+      <Drawer.Screen
         name="(summaries)"
         options={{
           title: t('headers.financialsIndex'),

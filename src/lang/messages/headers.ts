@@ -18,6 +18,7 @@ export const headersEn = {
         "vehicle": "Vehicle",
         "fixeds": "Fixed transactions",
         "commitments": "Commitments",
+        "people": "People",
         "financings": "Financings"
     }
 } as const;
@@ -40,6 +41,7 @@ export const headersEs: MessageShape<typeof headersEn> = {
         "vehicle": "Vehículo",
         "fixeds": "Transacciones fijas",
         "commitments": "Compromisos",
+        "people": "Personas",
         "financings": "Financiamientos"
     }
 };
