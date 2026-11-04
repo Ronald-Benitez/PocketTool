@@ -11,8 +11,8 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
   migraciones, triggers y backups.
 - [`schema.md`](schema.md): esquema generado desde
   `src/db/schema/tables.ts` (tablas, columnas, tipos, índices y relaciones).
-- [`release-notes/4.0.0-google-play.md`](release-notes/4.0.0-google-play.md):
-  notas de Google Play 4.0.0 en inglés y español.
+- [`release-notes/4.0.3-google-play.md`](release-notes/4.0.3-google-play.md):
+  notas de Google Play 4.0.3 en inglés y español.
 - [`legacy/README.md`](legacy/README.md): índice del archivo histórico.
 - [`legacy/phase-history.md`](legacy/phase-history.md): historial detallado de
   fases 0–3.
