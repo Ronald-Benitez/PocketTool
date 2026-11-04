@@ -14,6 +14,7 @@ export const recordsEn = {
         "edit": "Edit",
         "creditPayments": "List of pending credit payments",
         "fixeds": "List of pending fixed transactions",
+        "financingPayments": "Pending credit and loan payments",
         "all": "All",
         "records": "Records",
         "error": {
@@ -75,6 +76,7 @@ export const recordsEs: MessageShape<typeof recordsEn> = {
         "edit": "Editar",
         "creditPayments": "Lista de pagos a crédito pendientes",
         "fixeds": "Lista de transacciones fijas pendientes",
+        "financingPayments": "Pagos de créditos y préstamos pendientes",
         "all": "Todos",
         "records": "Registros",
         "error": {

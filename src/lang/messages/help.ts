@@ -118,13 +118,13 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "On the configured day, PocketTool reminds you to confirm it. Confirming creates the corresponding record for the selected group."
+                "body": "On the configured day, PocketTool reminds you to confirm it. Confirming creates the corresponding record for the selected group. Pending credit and loan payments also appear in Records; opening one loads the payment form with its amount, date and expense data."
             },
             "steps": {
                 "title": "Step by step",
                 "step1": "Create a fixed transaction and choose its day.",
                 "step2": "Set type, category, payment method, and amount.",
-                "step3": "When it appears on Home, confirm it."
+                "step3": "When it appears in Records, confirm it or register a pending credit/loan payment."
             },
             "example": {
                 "title": "Example",
@@ -620,13 +620,13 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "En el día configurado, PocketTool te recuerda confirmarla. Al confirmar se crea el registro correspondiente en el grupo seleccionado."
+                "body": "En el día configurado, PocketTool te recuerda confirmarla. Al confirmar se crea el registro correspondiente en el grupo seleccionado. Los pagos pendientes de créditos y préstamos también aparecen en Registros; al abrirlos se carga el formulario de pago con su monto, fecha y datos del gasto."
             },
             "steps": {
                 "title": "Paso a paso",
                 "step1": "Crea una transacción fija y elige su día.",
                 "step2": "Define tipo, categoría, método de pago y monto.",
-                "step3": "Cuando aparezca en Inicio, confírmala."
+                "step3": "Cuando aparezca en Registros, confírmala o registra un pago pendiente de crédito/préstamo."
             },
             "example": {
                 "title": "Ejemplo",

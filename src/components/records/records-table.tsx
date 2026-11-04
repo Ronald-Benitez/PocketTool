@@ -23,8 +23,12 @@ import { useDataStore } from "@/src/stores";
 import { useThemedStyles } from "@/src/styles/useThemedStyles";
 import RecordsGroup from "./RecordsGroup";
 import FixedsGroup from "./FixedsGroup";
+import FinancingsGroup, { type PendingFinancingPayment } from "./FinancingsGroup";
 import CreditsGroups from "./CreditsGroups";
-import { useRecords } from "@/src/db";
+import { useFinancingsRepository, useRecords } from "@/src/db";
+import { summarizeFinancing, type FinancingSummary } from "@/src/domain/credits/summary";
+import type { FinancingWithRelations } from "@/src/interfaces/schema";
+import { FinancingPaymentForm } from "@/src/components/credits/FinancingPaymentForm";
 import type { OrderCondition } from "@/src/orm";
 import type { RecordFormEntry, RecordType, RecordWithRelations } from "@/src/interfaces/schema";
 import { formatMoney } from "@/src/utils";
@@ -43,6 +47,7 @@ enum SHOW_OPTIONS {
   RECORDS = 1,
   CREDITS = 2,
   FIXEDS = 3,
+  FINANCINGS = 4,
 }
 
 const ItemsTable = () => {
@@ -60,6 +65,14 @@ const ItemsTable = () => {
     configs: { paymentCreditType },
   } = useConfigs();
   const [fixedsToShow, setFixedsToShow] = useState<RecordFormEntry[]>([]);
+  const [financings, setFinancings] = useState<FinancingWithRelations[]>([]);
+  const [financingsRefreshKey, setFinancingsRefreshKey] = useState(0);
+  const [selectedFinancing, setSelectedFinancing] =
+    useState<FinancingWithRelations | null>(null);
+  const [selectedFinancingSummary, setSelectedFinancingSummary] =
+    useState<FinancingSummary | null>(null);
+  const [pendingFinancingDate, setPendingFinancingDate] = useState<number>();
+  const [financingPaymentVisible, setFinancingPaymentVisible] = useState(false);
   const [showActual, setShowActual] = useState<SHOW_OPTIONS>(SHOW_OPTIONS.ALL);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [filters, setFilters] = useState<RecordFilter[]>([]);
@@ -67,6 +80,7 @@ const ItemsTable = () => {
     { column: "date", direction: "ASC" }
   ]);
   const { fetchRecords, deleteRecordWithCredit, handler: recordsRepository } = useRecords();
+  const financingsRepository = useFinancingsRepository();
 
   useEffect(() => {
     let isMounted = true
@@ -108,6 +122,45 @@ const ItemsTable = () => {
         showToast({ message: t("toast.error"), type: "error" })
       })
   }, [group?.id])
+
+  useEffect(() => {
+    let active = true
+    financingsRepository.fetchFinancings().then((rows) => {
+      if (active) setFinancings(rows)
+    })
+    return () => { active = false }
+  }, [financingsRefreshKey, group?.id])
+
+  const pendingFinancings = useMemo<PendingFinancingPayment[]>(() => {
+    if (!group) return []
+    return financings
+      .flatMap((financing) => {
+        if (financing.status !== 'active') return []
+        const summary = summarizeFinancing(
+          financing,
+          financing.FinancingPayments ?? [],
+          financing.FinancingAdjustments ?? []
+        )
+        const next = summary.schedule.rows[0]
+        if (!next) return []
+        const date = new Date(next.date)
+        if (
+          date.getFullYear() !== group.year ||
+          date.getMonth() + 1 !== group.month
+        ) {
+          return []
+        }
+        return [{ financing, summary, next }]
+      })
+      .sort((a, b) => a.next.date - b.next.date)
+  }, [financings, group])
+
+  const openFinancingPayment = (payment: PendingFinancingPayment) => {
+    setSelectedFinancing(payment.financing)
+    setSelectedFinancingSummary(payment.summary)
+    setPendingFinancingDate(payment.next.date)
+    setFinancingPaymentVisible(true)
+  }
 
   const visibleRecords = useMemo(() => {
     const filtered = records.filter(record => matchesRecordFilters(record, filters))
@@ -275,6 +328,10 @@ const ItemsTable = () => {
               { value: SHOW_OPTIONS.RECORDS, label: t("records.records") },
               { value: SHOW_OPTIONS.CREDITS, label: t("records.creditPayments") },
               { value: SHOW_OPTIONS.FIXEDS, label: t("records.fixeds") },
+              {
+                value: SHOW_OPTIONS.FINANCINGS,
+                label: t("records.financingPayments"),
+              },
             ].map((option) => {
               const selected = showActual === option.value;
               return (
@@ -314,6 +371,10 @@ const ItemsTable = () => {
               fixeds={fixedsToShow}
               onCreditPayment={onCreditPayment}
             />
+            <FinancingsGroup
+              payments={pendingFinancings}
+              onPress={openFinancingPayment}
+            />
             <CreditsGroups
               credits={creditRecords || []}
               selectedPaymentCreditType={selectePaymentCreditType}
@@ -341,8 +402,29 @@ const ItemsTable = () => {
             onCreditPayment={onCreditPayment}
           />
         )}
+        {showActual === SHOW_OPTIONS.FINANCINGS && (
+          <FinancingsGroup
+            payments={pendingFinancings}
+            onPress={openFinancingPayment}
+          />
+        )}
         <AddItem openUpdate={openUpdate} open={openUpdate} item={selected} />
       </ScrollView>
+      <FinancingPaymentForm
+        visible={financingPaymentVisible}
+        financing={selectedFinancing}
+        summary={selectedFinancingSummary}
+        initialDate={pendingFinancingDate}
+        defaultLinkMode='create'
+        onClose={() => setFinancingPaymentVisible(false)}
+        onSaved={async () => {
+          setFinancingsRefreshKey((value) => value + 1)
+          if (group?.id) {
+            const rows = await fetchRecords(group.id)
+            setRecords(rows ?? [])
+          }
+        }}
+      />
       <RecordsFilterModal
         visible={filterModalVisible}
         filters={filters}

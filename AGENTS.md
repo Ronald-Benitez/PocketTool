@@ -27,7 +27,8 @@ métodos de pago, créditos, ahorros y vehículo.
 - **Fase 10 — Errores y ajustes de siguiente versión: EN IMPLEMENTACIÓN**
   (2026-11-03). El plan vive en
   [`docs/next-version-plan.md`](docs/next-version-plan.md). Ya están implementados
-  el tipo de registro de Vehículo y la inferencia de odómetro efectivo.
+  los pendientes de créditos/préstamos en Registros, el tipo de registro de
+  Vehículo y la inferencia de odómetro efectivo.
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay

@@ -321,9 +321,10 @@ Subfases: CRED-0 a CRED-6, detalladas en el plan.
 
 **Plan completo:** [`next-version-plan.md`](next-version-plan.md)
 
-Estado: **en implementación**. Ya se completaron el tipo de registro de Vehículo
-(global de la sección y también disponible en pagos de financiamientos) y la
-inferencia de odómetro efectivo. El resto de NV-1 a NV-6 sigue pendiente.
+Estado: **en implementación**. Ya se completaron los créditos/préstamos
+pendientes en Registros, el tipo de registro de Vehículo (global de la sección y
+también disponible en pagos de financiamientos) y la inferencia de odómetro
+efectivo. El resto de NV-2 a NV-10 sigue pendiente.
 
 Objetivo: resolver la integración pendiente entre Registros, Gastos fijos,
 Créditos/Préstamos, Vehículo y Resúmenes, y añadir un modelo reutilizable de

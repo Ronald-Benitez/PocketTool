@@ -42,6 +42,8 @@ type FinancingPaymentFormProps = {
   financing: FinancingWithRelations | null;
   summary: FinancingSummary | null;
   payment?: FinancingPayment | null;
+  initialDate?: number;
+  defaultLinkMode?: FinancingLinkMode;
   onClose: () => void;
   onSaved: () => void;
 };
@@ -61,6 +63,8 @@ export const FinancingPaymentForm = ({
   financing,
   summary,
   payment,
+  initialDate,
+  defaultLinkMode = 'none',
   onClose,
   onSaved,
 }: FinancingPaymentFormProps) => {
@@ -97,7 +101,7 @@ export const FinancingPaymentForm = ({
 
   useEffect(() => {
     if (!visible) return;
-    setDate(payment?.date ?? Date.now());
+    setDate(payment?.date ?? initialDate ?? Date.now());
     setAmount(payment?.amount_cents ?? summary?.monthlyPaymentCents ?? 0);
     setExtraPrincipal(payment?.extra_principal_cents ?? 0);
     setExtraReducePayment(payment?.extra_reduce_payment_cents ?? 0);
@@ -106,14 +110,14 @@ export const FinancingPaymentForm = ({
         ? 'fees'
         : 'insurance'
     );
-    setLinkMode(payment?.record_id ? 'link' : 'none');
+    setLinkMode(payment?.record_id ? 'link' : defaultLinkMode);
     setLinkedRecord(null);
     setCategoryId(financing?.category_id ?? null);
     setPaymentMethodId(financing?.payment_method_id ?? null);
     setRecordTypeId(financing?.record_type_id ?? null);
     setNotes(payment?.notes ?? '');
     setError(null);
-  }, [visible, summary, financing, payment]);
+  }, [visible, summary, financing, payment, initialDate, defaultLinkMode]);
 
   useEffect(() => {
     if (!visible || !payment?.record_id) return;

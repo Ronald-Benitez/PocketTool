@@ -1,6 +1,6 @@
 # Plan de la siguiente versión — Fase 10 (NV)
 
-**Estado:** 🚧 En implementación (NV-4/NV-7 parciales)
+**Estado:** 🚧 En implementación (NV-1, NV-6 y NV-7 completados)
 **Fecha:** 2026-11-03
 **Objetivo:** cerrar los errores de integración entre Registros, Gastos fijos,
 Créditos/Préstamos, Vehículo y Resúmenes, y añadir un modelo reutilizable de
@@ -58,16 +58,15 @@ La siguiente versión debe resolver diez frentes:
 
 ### 2.2 Obligaciones pendientes en Registros
 
-- Añadir una referencia explícita para que un `Record` sepa qué pago de
-  financiamiento está cubriendo. Opciones:
-  - `Records.financing_payment_id` nullable, o
-  - una tabla de vínculo `RecordObligationLinks`.
-- Recomendación: `financing_payment_id` por consistencia con `fixed_id` y
-  `paid_credit_id`.
+- El vínculo se resolvió con `FinancingPayments.record_id`, que ya existía. No
+  se añadió `Records.financing_payment_id`.
 - Un pago pendiente de financiamiento no debe aparecer si ya tiene un `Record`
   vinculado.
-- El modal de `AddRecord` debe recibir todos los datos: monto, fecha, grupo,
-  categoría, método de pago, tipo de registro, nombre y referencia al pago.
+- La obligación pendiente abre el formulario de pago de financiamiento con
+  monto, fecha, tipo de registro, categoría, método de pago y financiamiento
+  precargados. Al guardar, se crea el `Record` y se vincula al pago.
+- La lista se filtra por el grupo/mes seleccionado y usa el próximo pago del
+  calendario.
 
 ### 2.3 Tipo de registro en Vehículo
 
@@ -381,9 +380,9 @@ Migraciones pequeñas por dominio:
    - `Records.own_amount_cents`.
    - `Records.shared_amount_cents`.
    - Backfill: `own = amount`, `shared = 0`.
-4. `0016_records_financing_payment_link`
-   - `Records.financing_payment_id`.
-   - Índice por `financing_payment_id`.
+
+No se requiere una migración para el vínculo de pagos de financiamiento: se usa
+`FinancingPayments.record_id`.
 
 Reglas:
 
@@ -463,6 +462,9 @@ Reglas:
 
 Implementado:
 
+- NV-1: créditos/préstamos pendientes en Registros, con fecha y monto del
+  próximo pago, apertura del formulario de pago precargado y creación/vínculo
+  del `Record` sin duplicados.
 - NV-6: odómetro efectivo en análisis de combustible, recordatorios y lectura
   previa para cargas parciales.
 - NV-7: `VehicleSettings.record_type_id` global de la sección Vehículo (no por
@@ -473,7 +475,6 @@ Implementado:
 
 Pendiente:
 
-- NV-1: créditos/préstamos pendientes en Registros.
 - NV-2 a NV-5: personas, compartidos ilimitados y separación total/propio/
   compartido.
 - NV-8: financiamientos en resúmenes de fijos.
