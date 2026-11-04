@@ -121,9 +121,21 @@ export const FuelEntryForm = ({
     );
     setOdometer(entry?.odometer?.toString() ?? '');
     setDistance(entry?.distance_traveled?.toString() ?? '');
-    setDistanceUnit(entry?.distance_unit === 'km' ? 'km' : (vehicle.distance_unit === 'km' ? 'km' : 'mi'));
+    setDistanceUnit(
+      entry?.distance_unit === 'km' || entry?.distance_unit === 'mi'
+        ? entry.distance_unit
+        : vehicle.distance_unit === 'km'
+          ? 'km'
+          : 'mi'
+    );
     setVolume(entry?.volume?.toString() ?? '');
-    setVolumeUnit(entry?.volume_unit === 'L' ? 'L' : (vehicle.volume_unit === 'L' ? 'L' : 'gal'));
+    setVolumeUnit(
+      entry?.volume_unit === 'gal' || entry?.volume_unit === 'L'
+        ? entry.volume_unit
+        : vehicle.volume_unit === 'L'
+          ? 'L'
+          : 'gal'
+    );
     setPricePerUnit(entry?.price_per_unit ?? 0);
     setTotalCost(entry?.total_cost ?? 0);
     setInferredField(null);

@@ -481,8 +481,8 @@ Implementado:
 
 - NV-1: créditos/préstamos pendientes en Registros, visibles durante todo el
   mes seleccionado (incluidos vencidos), con apertura del formulario de pago
-  precargado y creación/vínculo del `Record` sin duplicados. Home lista todos
-  los compromisos pendientes, incluidos los de hoy, y abre el formulario.
+  precargado y creación/vínculo del `Record` sin duplicados. Home muestra solo
+  las obligaciones que vencen hoy y abre el formulario.
 - NV-6: odómetro efectivo en análisis de combustible, recordatorios y lectura
   previa para cargas parciales.
 - NV-7: `VehicleSettings.record_type_id` global de la sección Vehículo (no por
@@ -514,6 +514,14 @@ Implementado:
 - Migraciones `0013_vehicle_settings_record_type`,
   `0014_people_and_shared_participants`, `0015_records_shared_amounts` y
   `0016_shared_payment_allocations`; `SCHEMA_VERSION = 16`.
+- Corrección de integridad: `ensureSchema` ya no multiplica por 100 las columnas
+  monetarias enteras (centavos) al reconstruir una tabla; solo convierte a
+  centavos las columnas legacy REAL/TEXT. Evita que $25 pase a $2,500.
+- Combustible: al editar una carga se respeta la unidad de volumen guardada
+  (galones o litros) sin heredar la unidad por defecto del vehículo, y los
+  selectores de consumo y de volumen/precio recuerdan la selección del usuario.
+- UI: los modales ajustan el scroll vertical (`nestedScrollEnabled`,
+  `flexGrow`) para que no se queden trabados.
 
 Pendiente:
 

@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { useVehicleFuelRepository } from '@/src/db';
@@ -69,6 +70,51 @@ const FuelScreen = () => {
   useEffect(() => {
     setDisplayVolumeUnit(vehicle?.volume_unit === 'gal' ? 'gal' : 'L');
   }, [vehicle?.volume_unit]);
+  const selectorsKey = (id: number) => `vehicle_fuel_selectors_${id}`;
+  const restoredRef = useRef(false);
+  useEffect(() => {
+    if (!vehicle?.id) {
+      restoredRef.current = false;
+      return;
+    }
+    restoredRef.current = false;
+    let active = true;
+    AsyncStorage.getItem(selectorsKey(vehicle.id))
+      .then((raw) => {
+        if (!active) return;
+        restoredRef.current = true;
+        if (!raw) return;
+        try {
+          const parsed = JSON.parse(raw) as {
+            format?: string;
+            volumeUnit?: string;
+          };
+          if (formats.includes(parsed.format as (typeof formats)[number])) {
+            setFormat(parsed.format as (typeof formats)[number]);
+          }
+          if (parsed.volumeUnit === 'L' || parsed.volumeUnit === 'gal') {
+            setDisplayVolumeUnit(parsed.volumeUnit);
+          }
+        } catch {
+          // Ignore corrupted preferences and keep the vehicle defaults.
+        }
+      })
+      .catch(() => {
+        if (active) restoredRef.current = true;
+      });
+    return () => {
+      active = false;
+    };
+  }, [vehicle?.id]);
+  useEffect(() => {
+    if (!vehicle?.id || !restoredRef.current) return;
+    AsyncStorage.setItem(
+      selectorsKey(vehicle.id),
+      JSON.stringify({ format, volumeUnit: displayVolumeUnit })
+    ).catch(() => {
+      // Preferences are optional.
+    });
+  }, [vehicle?.id, format, displayVolumeUnit]);
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {

@@ -981,6 +981,38 @@ async function testPeopleInsert() {
   console.log('people insert: OK');
 }
 
+async function testMoneyRebuildKeepsCents() {
+  const raw = new DatabaseSync(':memory:');
+  raw.exec(`
+    CREATE TABLE paid_credits (id INTEGER PRIMARY KEY AUTOINCREMENT);
+    CREATE TABLE records (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      amount INTEGER NOT NULL,
+      record_name TEXT NOT NULL,
+      date INTEGER NOT NULL,
+      record_type_id INTEGER,
+      group_id INTEGER,
+      category_id INTEGER,
+      payment_method_id INTEGER,
+      fixed_id INTEGER,
+      paid_credit_id INTEGER,
+      created_at INTEGER,
+      updated_at INTEGER,
+      deleted_at INTEGER
+    );
+    INSERT INTO records (amount, record_name, date) VALUES (2500, 'Test', 1);
+  `);
+  const { ensureSchema } = require(path.join(ROOT, 'src/db/schema/apply.ts'));
+  await ensureSchema(shim(raw));
+  assert.strictEqual(
+    q(raw, 'SELECT amount FROM records')[0].amount,
+    2500,
+    'integer cents must not be multiplied again during a rebuild'
+  );
+  raw.close();
+  console.log('money rebuild idempotency: OK');
+}
+
 async function testSharedPaymentAllocations() {
   const raw = new DatabaseSync(':memory:');
   const db = shim(raw);
@@ -1205,6 +1237,7 @@ async function testInterruptedRebuild() {
   await testRecordsSharedAmountsMigration();
   await testPeopleAndSharedParticipantsMigration();
   await testPeopleInsert();
+  await testMoneyRebuildKeepsCents();
   await testSharedPaymentAllocations();
   await testVehicleSettingsRecordTypeMigration();
   await testVehicleInsert();

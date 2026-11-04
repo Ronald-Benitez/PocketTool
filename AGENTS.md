@@ -403,6 +403,10 @@ Referencias vigentes:
   detalle real en `__DEV__`.
 - `migrateDb` ejecuta `ensureSchema` después de las migraciones para crear
   tablas/columnas faltantes como red de seguridad.
+- `ensureSchema` nunca debe multiplicar por 100 una columna monetaria entera:
+  los centavos enteros ya están en centavos. Solo se convierten a centavos las
+  columnas legacy REAL/TEXT que guardaban dólares (`toCentsExpr` en
+  `src/db/schema/apply.ts`).
 - Al agregar una migración, actualizar `SCHEMA_VERSION`, los artefactos y las
   pruebas de base de datos.
 

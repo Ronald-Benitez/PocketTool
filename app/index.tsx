@@ -45,6 +45,16 @@ type Obligation = {
     next: FinancingScheduleRow;
 };
 
+const isSameDay = (left: number, right: number) => {
+    const a = new Date(left);
+    const b = new Date(right);
+    return (
+        a.getFullYear() === b.getFullYear() &&
+        a.getMonth() === b.getMonth() &&
+        a.getDate() === b.getDate()
+    );
+};
+
 const Index = () => {
     const { t } = useLanguage();
     const { showToast } = useToast();
@@ -136,27 +146,23 @@ const Index = () => {
     };
 
     const buildPendingFixeds = () => {
-        const now = new Date()
-        const year = group?.year ?? now.getFullYear()
-        const month = group?.month ?? now.getMonth() + 1
+        const today = new Date()
+        const day = today.getDate()
         const list = Fixeds.flatMap((fixed) => {
+            if (fixed.fixed_day !== day) return []
             const record = records.find(record => record.fixed_id === fixed.id)
             if (record) return []
-            const date = new Date(year, month - 1, fixed.fixed_day)
+            const date = new Date()
+            date.setHours(0, 0, 0, 0)
             return [{ fixed, date: date.getTime() }]
         })
         setPendingFixeds(list)
     }
 
-    useEffect(buildPendingFixeds, [
-        records,
-        Fixeds,
-        participants,
-        group?.year,
-        group?.month,
-    ])
+    useEffect(buildPendingFixeds, [records, Fixeds, participants])
 
     const pendingFinancings = useMemo<Obligation[]>(() => {
+        const today = new Date()
         return financings
             .filter((financing) => financing.status === 'active')
             .flatMap((financing) => {
@@ -166,10 +172,9 @@ const Index = () => {
                     financing.FinancingAdjustments ?? []
                 );
                 const next = summary.schedule.rows[0];
-                if (!next) return [];
+                if (!next || !isSameDay(next.date, today.getTime())) return [];
                 return [{ financing, summary, next }];
-            })
-            .sort((a, b) => a.next.date - b.next.date);
+            });
     }, [financings]);
 
     const openFinancingPayment = (obligation: Obligation) => {

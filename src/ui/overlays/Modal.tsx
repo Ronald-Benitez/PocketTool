@@ -64,6 +64,8 @@ export const Modal = ({
       ref={scrollRef}
       keyboardShouldPersistTaps='handled'
       keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+      nestedScrollEnabled
+      directionalLockEnabled
       style={styles.body}
       contentContainerStyle={[styles.bodyContent, styles.bodyContentGrow, contentStyle]}
     >
@@ -198,6 +200,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   body: {
+    flexGrow: 1,
     flexShrink: 1,
   },
   footer: {

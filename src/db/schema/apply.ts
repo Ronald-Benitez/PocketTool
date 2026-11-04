@@ -77,10 +77,14 @@ const toTimestampExpr = (column: string) => {
   END`;
 };
 
-const toCentsExpr = (column: string, oldType: string, legacyName: boolean) => {
+const toCentsExpr = (column: string, oldType: string) => {
   const q = quoteIdent(column);
+  // Money is stored as integer cents. An integer column is already cents, so
+  // keep it as-is; only legacy REAL/TEXT columns that stored dollars need to be
+  // multiplied by 100. Multiplying integer cents again corrupted amounts
+  // (e.g. $25 became $2,500) whenever `ensureSchema` rebuilt a table.
   const alreadyInteger = oldType.trim().toUpperCase() === 'INTEGER';
-  if (!legacyName && alreadyInteger) {
+  if (alreadyInteger) {
     return `CAST(${q} AS INTEGER)`;
   }
   return `CAST(ROUND(CAST(${q} AS REAL) * 100) AS INTEGER)`;
@@ -126,8 +130,7 @@ const paymentTypeLookupExpr = (oldPaymentType: string) => {
 const copyColumnExpr = (
   table: TableDefinition,
   column: ColumnDefinition,
-  oldColumns: Map<string, ColumnInfo>,
-  legacyName: boolean
+  oldColumns: Map<string, ColumnInfo>
 ) => {
   const tableName = table.name as TableName;
   const old = oldColumns.get(column.name.toLowerCase());
@@ -146,7 +149,7 @@ const copyColumnExpr = (
 
   if (old) {
     if (isMoneyColumn(tableName, column.name)) {
-      return toCentsExpr(old.name, old.type, legacyName);
+      return toCentsExpr(old.name, old.type);
     }
     if (isTimestampColumn(tableName, column.name)) return toTimestampExpr(old.name);
     return quoteIdent(old.name);
@@ -178,11 +181,10 @@ const rebuildTable = async (db: SQLiteDatabase, table: TableDefinition) => {
 
   const oldColumns = await getColumns(db, actual);
   const oldByName = new Map(oldColumns.map((column) => [column.name.toLowerCase(), column]));
-  const legacyName = actual !== table.sqlName;
 
   const newColumns = table.columns.map((column) => quoteIdent(column.name)).join(', ');
   const expressions = table.columns
-    .map((column) => copyColumnExpr(table, column, oldByName, legacyName))
+    .map((column) => copyColumnExpr(table, column, oldByName))
     .join(', ');
 
   await db.execAsync(
