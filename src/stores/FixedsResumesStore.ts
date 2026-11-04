@@ -2,11 +2,14 @@ import { useEffect, useState } from "react";
 import { create } from "zustand";
 
 import { useConfigs } from "../hooks/useConfigs";
+import { useFinancingsRepository } from "../db";
+import { summarizeFinancing } from "../domain/credits/summary";
 import type {
     RecordType as RecordTypes,
     PaymentType as PaymentTypes,
     PaymentMethod as PaymentMethods,
     Category as Categories,
+    FinancingWithRelations,
 } from "../interfaces/schema";
 import { useDataStore } from ".";
 interface totalPerRecordType extends RecordTypes {
@@ -35,9 +38,31 @@ export interface Resumes {
 export const useFixedsResumesStore = () => {
     const { configs: { recordTypes } } = useConfigs();
     const { PaymentMethods, Categories, RecordTypes, PaymentTypes, Fixeds } = useDataStore()
+    const financingsRepository = useFinancingsRepository()
+    const [financings, setFinancings] = useState<FinancingWithRelations[]>([])
+
+    useEffect(() => {
+        let active = true
+        financingsRepository.fetchFinancings().then((rows) => {
+            if (active) setFinancings(rows)
+        })
+        return () => { active = false }
+    }, [])
+
+    const financingObligations = financings
+        .filter((financing) => financing.status === 'active')
+        .map((financing) => ({
+            financing,
+            summary: summarizeFinancing(
+                financing,
+                financing.FinancingPayments ?? [],
+                financing.FinancingAdjustments ?? []
+            ),
+        }))
+        .filter(({ summary }) => summary.monthlyPaymentCents > 0)
 
     const calculateBalance = (): number => {
-        return Fixeds.reduce((acc, fixed) => {
+        const fixedsBalance = Fixeds.reduce((acc, fixed) => {
             if (fixed.record_type_id == null || !recordTypes.includes(fixed.record_type_id)) {
                 return acc;
             }
@@ -50,6 +75,24 @@ export const useFixedsResumesStore = () => {
             }
             return acc;
         }, 0);
+
+        const financingsBalance = financingObligations.reduce((acc, { financing, summary }) => {
+            if (
+                financing.record_type_id == null ||
+                !recordTypes.includes(financing.record_type_id)
+            ) {
+                return acc;
+            }
+            const effect = financing.RecordTypes?.effect;
+            if (effect === '+') {
+                acc += summary.monthlyPaymentCents;
+            } else if (effect === '-') {
+                acc -= summary.monthlyPaymentCents;
+            }
+            return acc;
+        }, 0);
+
+        return fixedsBalance + financingsBalance;
     }
 
     const calculeteResumes = (): Omit<Resumes, "balance"> => {
@@ -122,6 +165,58 @@ export const useFixedsResumesStore = () => {
                     }
                 });
                 category.balance = category?.totalPerRecordType?.reduce(typeReducer, 0) || 0;
+            }
+        })
+
+        financingObligations.forEach(({ financing, summary }) => {
+            const amount = summary.monthlyPaymentCents;
+            const recordType = recordTypeResume.find(
+                (rt) => rt.id === financing.record_type_id
+            );
+            if (recordType) {
+                recordType.total += amount;
+            }
+
+            const paymentTypeId =
+                financing.PaymentMethods?.payment_type_id ??
+                financing.PaymentMethods?.PaymentTypes?.id;
+            const paymentType = paymentTypeResume.find(
+                (pt) => pt.id === paymentTypeId
+            );
+            if (paymentType) {
+                paymentType.totalPerRecordType.forEach((r) => {
+                    if (r.id === financing.record_type_id) {
+                        r.total += amount;
+                    }
+                });
+                paymentType.balance =
+                    paymentType?.totalPerRecordType?.reduce(typeReducer, 0) || 0;
+            }
+
+            const paymentMethod = paymentMethodResume.find(
+                (pm) => pm.id === financing.payment_method_id
+            );
+            if (paymentMethod) {
+                paymentMethod.totalPerRecordType.forEach((r) => {
+                    if (r.id === financing.record_type_id) {
+                        r.total += amount;
+                    }
+                });
+                paymentMethod.balance =
+                    paymentMethod?.totalPerRecordType?.reduce(typeReducer, 0) || 0;
+            }
+
+            const category = categoryResume.find(
+                (cat) => cat.id === financing.category_id
+            );
+            if (category) {
+                category.totalPerRecordType.forEach((r) => {
+                    if (r.id === financing.record_type_id) {
+                        r.total += amount;
+                    }
+                });
+                category.balance =
+                    category?.totalPerRecordType?.reduce(typeReducer, 0) || 0;
             }
         })
 

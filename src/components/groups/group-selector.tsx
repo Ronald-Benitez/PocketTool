@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
 import { monthKey } from '@/src/lang/keys'
@@ -28,6 +28,8 @@ const GroupSelector = () => {
     const [year, setYear] = useState<string>(new Date().getFullYear().toString())
     const { group, setGroup, setRecords, groups, setGroups, setPaidCredits } = useRecordsStore()
     const [openUpdate, setOpenUpdate] = useState(false)
+    const userSelectedRef = useRef(false)
+    const selectionIdRef = useRef(0)
     const { setCategories, setPaymentMethods, setRecordTypes, setPaymentTypes, setFixeds } = useDataStore()
     
     const groupsOrm = useGroups()
@@ -73,15 +75,18 @@ const GroupSelector = () => {
         getGroups()
     }, [year])
 
-    const onSelect = async (group: Group) => {
+    const onSelect = async (group: Group, userInitiated = false) => {
         if (!group?.id) return
+        if (userInitiated) userSelectedRef.current = true
+        const selectionId = selectionIdRef.current + 1
+        selectionIdRef.current = selectionId
         setGroup(group)
-        await fetchRecords(group.id).then((res) => {
-            setRecords(res ?? [])
-        })
-        await fetchPaidCreditsByGroup(group.id).then((res) => {
-            setPaidCredits(res)
-        })
+        const records = await fetchRecords(group.id)
+        if (selectionIdRef.current !== selectionId) return
+        setRecords(records ?? [])
+        const paidCredits = await fetchPaidCreditsByGroup(group.id)
+        if (selectionIdRef.current !== selectionId) return
+        setPaidCredits(paidCredits)
     }
 
     const getPlaceHolder = (group: Group | null) => {
@@ -91,14 +96,15 @@ const GroupSelector = () => {
 
     const getPinned = async () => {
         const pinned = await AsyncStorage.getItem('group');
+        if (userSelectedRef.current) return
         if (pinned) {
             const p = Number(pinned)
             groupsOrm.fetchGroupsById(p).then((g) => {
-                if (g) onSelect(g)
+                if (g && !userSelectedRef.current) void onSelect(g)
             })
         } else {
             groupsOrm.fetchLastGroup().then((g) => {
-                if (g) onSelect(g)
+                if (g && !userSelectedRef.current) void onSelect(g)
             })
         }
     }
@@ -139,7 +145,7 @@ const GroupSelector = () => {
                     options={groupOptions}
                     onChange={(id) => {
                         const nextGroup = groups?.find(groupItem => groupItem.id === id)
-                        if (nextGroup) void onSelect(nextGroup)
+                        if (nextGroup) void onSelect(nextGroup, true)
                     }}
                     title={t("group.select-group")}
                     placeholder={t("group.select-group")}

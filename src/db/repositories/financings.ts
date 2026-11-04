@@ -64,7 +64,11 @@ export const useFinancingsRepository = () => {
 
   const fetchFinancings = async (): Promise<FinancingWithRelations[]> => {
     const [rows, payments, adjustments] = await Promise.all([
-      financingsOrm.getAll() as Promise<Financing[]>,
+      financingsOrm.joinMany([
+        'PaymentMethods',
+        'Categories',
+        'RecordTypes',
+      ]).getAll() as Promise<FinancingWithRelations[]>,
       paymentsOrm.getAll() as Promise<FinancingPayment[]>,
       adjustmentsOrm.getAll() as Promise<FinancingAdjustment[]>,
     ]);

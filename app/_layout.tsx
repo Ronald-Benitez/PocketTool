@@ -112,7 +112,7 @@ const AppDrawer = () => {
       <Drawer.Screen
         name="(fixeds)"
         options={{
-          title: t('headers.fixeds'),
+          title: t('headers.commitments'),
           headerShown: false,
           drawerIcon: ({ color, size }) => (
             <Ionicons name="repeat" size={size} color={color as string | undefined} />

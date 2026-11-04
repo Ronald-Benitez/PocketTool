@@ -28,7 +28,9 @@ métodos de pago, créditos, ahorros y vehículo.
   (2026-11-03). El plan vive en
   [`docs/next-version-plan.md`](docs/next-version-plan.md). Ya están implementados
   los pendientes de créditos/préstamos en Registros, el tipo de registro de
-  Vehículo y la inferencia de odómetro efectivo.
+  Vehículo, la inferencia de odómetro efectivo, los financiamientos en resúmenes
+  de fijos, el renombre de la sección a Compromisos y el cambio de grupo en
+  Resumen. Queda pendiente el modelo de personas y compartidos.
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -196,6 +198,10 @@ commits relevantes, archivos tocados y verificaciones realizadas.
   vínculos de pagos con `Records` (crear, vincular u omitir).
 - `src/stores/CreditsStore.ts`: totales por ciclo y uso de tarjeta con compras a
   plazo al 0%. No duplicar una compra como gasto de tarjeta y financiamiento.
+- `src/stores/FixedsResumesStore.ts`: resumen de compromisos; suma gastos fijos y
+  cuotas mensuales de financiamientos activos por tipo, pago, método y categoría.
+- `src/components/groups/group-selector.tsx`: una sola selección de grupo; las
+  cargas asíncronas no deben pisar una selección del usuario.
 
 ### Colores nuevos y editables
 

@@ -1,6 +1,6 @@
 # Plan de la siguiente versión — Fase 10 (NV)
 
-**Estado:** 🚧 En implementación (NV-1, NV-6 y NV-7 completados)
+**Estado:** 🚧 En implementación (NV-1 y NV-6 a NV-10 completados)
 **Fecha:** 2026-11-03
 **Objetivo:** cerrar los errores de integración entre Registros, Gastos fijos,
 Créditos/Préstamos, Vehículo y Resúmenes, y añadir un modelo reutilizable de
@@ -471,15 +471,18 @@ Implementado:
   vehículo), selector en ajustes, combustible y mantenimiento. Los pagos de
   financiamientos también permiten seleccionar el tipo de registro al crear el
   gasto, sin asignación automática.
+- NV-8: los resúmenes de fijos incluyen la cuota mensual de financiamientos
+  activos por tipo de registro, tipo de pago, método de pago y categoría.
+- NV-9: la sección se renombró a **Compromisos** en el drawer.
+- NV-10: se corrigió la carrera de selección de grupo en Resumen; una selección
+  del usuario ya no es sobrescrita por la carga asíncrona del grupo fijado y las
+  cargas antiguas de registros no pisan la selección nueva.
 - Migración `0013_vehicle_settings_record_type`.
 
 Pendiente:
 
 - NV-2 a NV-5: personas, compartidos ilimitados y separación total/propio/
   compartido.
-- NV-8: financiamientos en resúmenes de fijos.
-- NV-9: renombre de la sección.
-- NV-10: cambio de grupo en Resumen.
 
 ## 8. Verificación
 
