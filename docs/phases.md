@@ -1,6 +1,6 @@
 # Plan de fases
 
-**Última actualización:** 2026-11-01
+**Última actualización:** 2026-11-03
 
 ## Estado
 
@@ -16,6 +16,7 @@
 | Fase 7 — Presupuestos | ✅ Finalizada | 2026-10-29 |
 | Fase 8 — Vehículo | ✅ Finalizada | 2026-10-31 |
 | Fase 9 — Gastos fijos y Créditos | 🚧 En implementación | 2026-11-02 |
+| Fase 10 — Errores y ajustes de siguiente versión | 📋 Planificada | 2026-11-03 |
 
 El detalle histórico de las fases 0–3 vive en
 [`legacy/phase-history.md`](legacy/phase-history.md). El detalle de la Fase 4
@@ -313,11 +314,35 @@ Pendiente:
 
 Subfases: CRED-0 a CRED-6, detalladas en el plan.
 
+## Fase 10 — Errores y ajustes de siguiente versión (📋 Planificada, 2026-11-03)
+
+**Plan completo:** [`next-version-plan.md`](next-version-plan.md)
+
+Objetivo: resolver la integración pendiente entre Registros, Gastos fijos,
+Créditos/Préstamos, Vehículo y Resúmenes, y añadir un modelo reutilizable de
+personas y compartidos.
+
+Alcance:
+
+- Créditos/préstamos pendientes en Registros con modal autocontentado.
+- Compartidos ilimitados y registro de personas, aplicados a fijos y
+  financiamientos.
+- Separación explícita de total, propio y compartido.
+- Odómetro efectivo para consumo, recordatorios y dashboard.
+- Tipo de registro seleccionable y configurable en Vehículo.
+- Créditos/préstamos en los resúmenes de fijos.
+- Renombre de la sección de fijos.
+- Corrección del cambio de grupo en Resumen.
+
+Subfases: NV-0 a NV-6, detalladas en el plan.
+
 ## Documentación
 
 - [`README.md`](README.md): índice de documentación.
 - [`credits-fixed-plan.md`](credits-fixed-plan.md): plan de Gastos fijos y
   Créditos (Fase 9).
+- [`next-version-plan.md`](next-version-plan.md): plan de errores y ajustes de
+  la siguiente versión (Fase 10).
 - [`legacy/budget-plan.md`](legacy/budget-plan.md): plan de Presupuestos
   archivado.
 - [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md): plan de Vehículo (Fase 8)

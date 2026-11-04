@@ -24,6 +24,9 @@ métodos de pago, créditos, ahorros y vehículo.
   [`docs/legacy/vehicle-plan.md`](docs/legacy/vehicle-plan.md).
 - **Fase 9 — Gastos fijos y Créditos: EN IMPLEMENTACIÓN** (2026-11-02). El plan
   vive en [`docs/credits-fixed-plan.md`](docs/credits-fixed-plan.md).
+- **Fase 10 — Errores y ajustes de siguiente versión: PLANIFICADA**
+  (2026-11-03). El plan vive en
+  [`docs/next-version-plan.md`](docs/next-version-plan.md).
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -417,6 +420,8 @@ npm run doctor
 - [`docs/phases.md`](docs/phases.md): estado actual y fases activas.
 - [`docs/credits-fixed-plan.md`](docs/credits-fixed-plan.md): plan de Gastos
   fijos y Créditos (Fase 9).
+- [`docs/next-version-plan.md`](docs/next-version-plan.md): plan de errores y
+  ajustes de la siguiente versión (Fase 10).
 - [`docs/legacy/budget-plan.md`](docs/legacy/budget-plan.md): plan archivado de
   Presupuestos (Fase 7).
 - [`docs/legacy/vehicle-plan.md`](docs/legacy/vehicle-plan.md): plan archivado de

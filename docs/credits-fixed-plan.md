@@ -663,3 +663,6 @@ Opcionales complejos para una siguiente iteración:
 - `FinancingParticipants` para varios participantes por financiamiento.
 - Categoría propia en `Records` para seguros/honorarios.
 - Amortización alemana además de la francesa.
+
+Los errores y ajustes de integración de la siguiente versión se planifican en
+[`next-version-plan.md`](next-version-plan.md).

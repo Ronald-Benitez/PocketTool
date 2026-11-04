@@ -1,0 +1,479 @@
+# Plan de la siguiente versión — Fase 10 (NV)
+
+**Estado:** 📋 Planificada
+**Fecha:** 2026-11-03
+**Objetivo:** cerrar los errores de integración entre Registros, Gastos fijos,
+Créditos/Préstamos, Vehículo y Resúmenes, y añadir un modelo reutilizable de
+personas y gastos compartidos.
+
+---
+
+## 1. Alcance
+
+La siguiente versión debe resolver diez frentes:
+
+1. Mostrar créditos/préstamos pendientes en `Records`, con el modal de registro
+   autocontentado.
+2. Llevar los compartidos de Créditos/Préstamos también a Gastos fijos.
+3. Separar explícitamente total, monto propio y monto compartido.
+4. Permitir compartidos con un número ilimitado de personas.
+5. Crear un registro de personas reutilizable.
+6. Corregir la inferencia de odómetro cuando se alternan registros con odómetro
+   y registros con distancia.
+7. Permitir elegir el tipo de registro al crear un gasto desde Vehículo y
+   configurar un tipo por defecto.
+8. Reflejar Créditos/Préstamos en los resúmenes de la sección de fijos.
+9. Renombrar la sección de fijos para que represente todo su contenido.
+10. Corregir el cambio de grupo en Resumen, que la primera selección se revierte.
+
+---
+
+## 2. Decisiones de diseño que deben cerrarse antes de implementar
+
+### 2.1 Personas y compartidos
+
+- Crear una tabla `People` como registro único de personas:
+  - `id`
+  - `name`
+  - `notes`
+  - `is_active`
+  - `created_at`, `updated_at`, `deleted_at`
+- Crear una tabla `SharedExpenseParticipants`:
+  - `id`
+  - `owner_type`: `fixed` | `financing` | `record`
+  - `owner_id`
+  - `person_id`
+  - `share_percent`
+  - `notes`
+  - `created_at`, `updated_at`, `deleted_at`
+- Regla:
+  - `total = fixed_amount` o `payment_cents` del financiamiento.
+  - `shared = total * sum(participant.share_percent) / 100`.
+  - `own = total - shared`.
+  - Validar que la suma de porcentajes no supere 100%.
+- Migrar los campos actuales `Financings.is_shared`,
+  `shared_percent` y `shared_counterparty` a una persona + participante. Mantener
+  los campos legacy durante una versión para no romper datos existentes.
+- Los registros creados desde una operación compartida deben guardar el
+  snapshot de `own_amount_cents` y `shared_amount_cents`, además del total.
+
+### 2.2 Obligaciones pendientes en Registros
+
+- Añadir una referencia explícita para que un `Record` sepa qué pago de
+  financiamiento está cubriendo. Opciones:
+  - `Records.financing_payment_id` nullable, o
+  - una tabla de vínculo `RecordObligationLinks`.
+- Recomendación: `financing_payment_id` por consistencia con `fixed_id` y
+  `paid_credit_id`.
+- Un pago pendiente de financiamiento no debe aparecer si ya tiene un `Record`
+  vinculado.
+- El modal de `AddRecord` debe recibir todos los datos: monto, fecha, grupo,
+  categoría, método de pago, tipo de registro, nombre y referencia al pago.
+
+### 2.3 Tipo de registro en Vehículo
+
+- Añadir `record_type_id` a `VehicleSettings`.
+- El formulario de combustible y mantenimiento debe mostrar un selector de tipo
+  de registro cuando el usuario elija crear un gasto.
+- El valor inicial debe venir de la configuración del vehículo para esa clave
+  (`fuel`, `maintenance`, etc.).
+- El tipo seleccionado debe guardarse en el `Record`; no debe inferirse
+  automáticamente.
+
+### 2.4 Odómetro efectivo
+
+- Introducir el concepto de **odómetro efectivo** por entrada:
+  - Si hay odómetro explícito, usarlo.
+  - Si no hay odómetro pero hay distancia, inferirlo desde el odómetro efectivo
+    anterior.
+  - Si no hay odómetro ni distancia, usar el odómetro efectivo anterior.
+- El cálculo de consumo, los segmentos, los recordatorios y el odómetro actual
+  del dashboard deben usar el odómetro efectivo, no solo el último odómetro
+  explícito.
+
+### 2.5 Nombre de la sección de fijos
+
+- La sección contiene gastos fijos, financiamientos, categorías, tipos de pago
+  y métodos de pago.
+- Opciones:
+  - **Compromisos** (recomendado).
+  - **Obligaciones**.
+  - **Gestión de pagos**.
+- Si se elige “Compromisos”, los catálogos de categorías/métodos pueden quedar
+  como subsección o moverse a Configuración.
+- Actualizar drawer, tabs, ayuda, traducciones y documentación.
+
+### 2.6 Resúmenes de fijos y créditos
+
+- El resumen de fijos debe incluir:
+  - gastos fijos recurrentes;
+  - cuota mensual/próximo pago de financiamientos activos.
+- Evitar doble conteo cuando un pago de financiamiento ya está reflejado como
+  `Record`.
+- Mostrar tres vistas: **total**, **propio** y **compartido**.
+- Presupuestos y resúmenes personales deben usar el monto propio por defecto,
+  con opción de ver el total.
+
+---
+
+## 3. Ítems detallados
+
+### NV-1. Créditos/préstamos pendientes en Registros
+
+**Problema:** `Records` solo lista gastos fijos pendientes. Los pagos de
+financiamientos no aparecen como obligaciones pendientes.
+
+**Solución propuesta:**
+
+- Extender `records-table.tsx` para generar una lista de pagos de
+  financiamientos pendientes del grupo/mes actual.
+- Excluir pagos que ya tienen `record_id`.
+- Añadir una sección “Créditos y préstamos” con el mismo patrón visual de
+  `FixedsGroup`.
+- Al pulsar, abrir `AddRecord` con:
+  - monto de la cuota;
+  - fecha del próximo pago;
+  - grupo actual;
+  - categoría y método de pago del financiamiento;
+  - tipo de registro;
+  - nombre `Pago · <financiamiento>`;
+  - `financing_payment_id`.
+- Al guardar, vincular el `Record` con el pago y refrescar la lista.
+
+**Archivos:** `src/components/records/records-table.tsx`,
+`src/components/records/FixedsGroup.tsx`, `src/components/records/add-record.tsx`,
+`src/db/repositories/financings.ts`, `src/db/schema/tables.ts`,
+`src/validation/entities.ts`.
+
+**Aceptación:**
+
+- El pago pendiente aparece en Registros.
+- El modal abre con todos los datos completos.
+- Al guardar, el pendiente desaparece y no se duplica.
+- El pago queda vinculado al financiamiento.
+
+### NV-2. Compartidos en Gastos fijos
+
+**Problema:** Los compartidos solo existen en financiamientos.
+
+**Solución propuesta:**
+
+- Usar `SharedExpenseParticipants` también para `Fixed`.
+- Añadir en `AddFixed` la gestión de participantes.
+- Calcular `total`, `own`, `shared`.
+- Al crear el `Record` de un fijo compartido, guardar los montos propios y
+  compartidos.
+
+**Aceptación:**
+
+- Un gasto fijo puede tener varias personas.
+- El registro y los resúmenes muestran total/propio/compartido.
+
+### NV-3. Separar montos propios y compartidos
+
+**Problema:** Los montos compartidos se mezclan con los reales del usuario.
+
+**Solución propuesta:**
+
+- Añadir a `Records`:
+  - `own_amount_cents`
+  - `shared_amount_cents`
+- Mantener `amount` como total.
+- Regla `own + shared = amount`.
+- Mostrar selectores/toggles de total/propio/compartido en:
+  - Registros;
+  - Resúmenes;
+  - Presupuestos;
+  - Gastos fijos;
+  - Créditos/Préstamos.
+- Los cálculos de balance personal usan `own_amount_cents` por defecto.
+- Mantener una vista de total para análisis.
+
+**Aceptación:**
+
+- No hay ambigüedad entre lo que paga el usuario y lo que comparte.
+- Los totales reconcilian.
+- Los resúmenes permiten alternar entre las tres vistas.
+
+### NV-4. Compartidos con personas ilimitadas
+
+**Problema:** El modelo actual solo contempla un porcentaje compartido y una
+contraparte.
+
+**Solución propuesta:**
+
+- Sustituir el modelo de un solo porcentaje por `SharedExpenseParticipants`.
+- Permitir agregar, editar y quitar personas sin límite.
+- Validar suma de porcentajes.
+- Mostrar el desglose por persona.
+
+**Aceptación:**
+
+- Se pueden agregar tres o más personas.
+- El total compartido se calcula por suma de participantes.
+- La UI no limita a dos personas.
+
+### NV-5. Registro de personas
+
+**Problema:** No hay una entidad reutilizable para personas.
+
+**Solución propuesta:**
+
+- Crear `People`.
+- Añadir una pantalla o sección “Personas” para:
+  - crear;
+  - editar;
+  - archivar;
+  - consultar totales compartidos.
+- Reutilizar el selector de personas en fijos, financiamientos y registros.
+- Evitar duplicados por nombre normalizado y permitir alias/notas.
+
+**Aceptación:**
+
+- Una persona se crea una vez y se reutiliza.
+- Se puede ver cuánto se comparte con cada persona.
+- No se duplican personas por errores de escritura.
+
+### NV-6. Inferencia correcta de odómetro
+
+**Problema:** Al alternar registros con odómetro y registros con distancia, el
+siguiente registro con odómetro calcula la distancia desde el último odómetro
+explícito, ignorando los registros con distancia intermedios.
+
+**Solución propuesta:**
+
+- Crear un helper de dominio `resolveEffectiveOdometer` que recorra las entradas
+  en orden y calcule el odómetro efectivo.
+- Usar ese odómetro en:
+  - `analyzeFuelEntries`;
+  - segmentos de consumo;
+  - `resolvePartialOdometer` al guardar;
+  - recordatorios (`latestOdometerKm`);
+  - odómetro actual del dashboard.
+- Añadir pruebas de regresión con la secuencia:
+  - odómetro 1000;
+  - distancia 300;
+  - distancia 200;
+  - odómetro 1600.
+- Resultado esperado: distancias 300, 200 y 100; alertas y dashboard en 1600.
+
+**Archivos:** `src/domain/vehicle/fuel.ts`,
+`src/domain/vehicle/reminders.ts`,
+`src/db/repositories/vehicle.ts`,
+`app/(vehicle)/index.tsx`,
+`src/domain/vehicle/__tests__/fuel.test.ts`,
+`src/domain/vehicle/__tests__/reminders.test.ts`.
+
+### NV-7. Tipo de registro en gastos de Vehículo
+
+**Problema:** Al crear un `Record` desde combustible, el tipo se asigna
+automáticamente y el usuario no puede elegirlo ni definir un valor por defecto.
+
+**Solución propuesta:**
+
+- Añadir `record_type_id` a `VehicleSettings`.
+- Añadir selector de tipo de registro en:
+  - `FuelEntryForm`;
+  - `MaintenanceForm`;
+  - `VehicleSettingsPanel`.
+- Precargar el tipo desde la configuración del vehículo.
+- Guardar el tipo elegido en el `Record`.
+- Validar que exista un tipo seleccionado al crear el gasto.
+- Migrar configuraciones existentes con el tipo de gasto por defecto.
+
+**Aceptación:**
+
+- El usuario elige el tipo al crear el gasto.
+- El tipo por defecto se configura por vehículo y por flujo.
+- No se autoasigna un tipo distinto al elegido.
+
+### NV-8. Créditos/Préstamos en resúmenes de fijos
+
+**Problema:** `useFixedsResumesStore` solo suma gastos fijos y no incluye
+financiamientos.
+
+**Solución propuesta:**
+
+- Extender el store/resumen para incluir financiamientos activos.
+- Calcular la obligación mensual del financiamiento desde la cuota pactada o el
+  próximo pago del calendario.
+- Agregar por tipo de registro, categoría y método de pago.
+- Evitar doble conteo con `Records` ya vinculados.
+- Mostrar desglose:
+  - fijos;
+  - créditos/préstamos;
+  - total.
+- Aplicar la separación total/propio/compartido.
+
+**Aceptación:**
+
+- El resumen refleja fijos + financiamientos.
+- No se duplica un pago ya registrado.
+- Se puede ver el desglose por sección.
+
+### NV-9. Renombrar la sección de fijos
+
+**Problema:** “Gastos fijos” ya no describe todo el contenido de la sección.
+
+**Solución propuesta:**
+
+- Elegir un nombre que englobe gastos fijos, financiamientos y catálogos.
+- Recomendación: **Compromisos**.
+- Actualizar:
+  - drawer;
+  - títulos de tabs;
+  - textos de ayuda;
+  - traducciones;
+  - documentación;
+  - rutas o etiquetas visibles si aplica.
+- Si se mantiene la sección de catálogos, considerar “Compromisos y catálogos”
+  o mover catálogos a Configuración.
+
+**Aceptación:**
+
+- El nombre describe la sección completa.
+- No quedan referencias visibles a “Gastos fijos” como nombre principal.
+
+### NV-10. Cambio de grupo en Resumen
+
+**Problema:** Al seleccionar un grupo distinto del actual, la primera vez
+cambia un momento y luego vuelve al último grupo. La segunda vez mantiene la
+selección; al elegir otro grupo se repite el patrón.
+
+**Hipótesis:** Existen dos fuentes de verdad para el grupo seleccionado
+(estado local/global y AsyncStorage) y un efecto asíncrono sobrescribe la
+selección con el valor persistido anterior.
+
+**Solución propuesta:**
+
+- Unificar el grupo seleccionado en un único store/estado.
+- Cargar el grupo persistido una sola vez al iniciar.
+- Al seleccionar, actualizar el estado de forma síncrona y persistir después.
+- Cancelar lecturas asíncronas obsoletas.
+- Evitar efectos que dependan de `group` y vuelvan a escribir el grupo.
+- Añadir una prueba con almacenamiento simulado y selección repetida.
+
+**Archivos:** `src/components/groups/group-selector.tsx`,
+`src/stores/RecordsStore.ts`, `app/(summaries)/index.tsx`,
+`src/hooks/useGroups` o repositorio correspondiente.
+
+**Aceptación:**
+
+- La primera selección de un grupo se mantiene.
+- No hay parpadeo ni reversión al grupo anterior.
+- Cambios sucesivos funcionan siempre.
+
+---
+
+## 4. Modelo de datos y migraciones propuestas
+
+Migraciones pequeñas por dominio:
+
+1. `0013_people_and_shared_participants`
+   - `People`.
+   - `SharedExpenseParticipants`.
+   - Backfill de `Financings.is_shared`/`shared_percent`/
+     `shared_counterparty`.
+2. `0014_records_shared_amounts`
+   - `Records.own_amount_cents`.
+   - `Records.shared_amount_cents`.
+   - Backfill: `own = amount`, `shared = 0`.
+3. `0015_records_financing_payment_link`
+   - `Records.financing_payment_id`.
+   - Índice por `financing_payment_id`.
+4. `0016_vehicle_settings_record_type`
+   - `VehicleSettings.record_type_id`.
+   - Backfill con el tipo de gasto por defecto.
+
+Reglas:
+
+- No guardar montos compartidos como columnas duplicadas sin snapshot cuando el
+  registro histórico lo requiera.
+- Los campos legacy de `Financings` se conservan durante una versión.
+- Actualizar `src/db/schema/generated/` con `npm run db:generate`.
+- Añadir pruebas en `scripts/db-tests.js` para cada migración y backfill.
+
+---
+
+## 5. Subfases de ejecución
+
+### NV-0 — Decisiones y contratos
+
+- Nombre de la sección.
+- Regla de total/propio/compartido.
+- Definición de “pendiente” para financiamientos.
+- Alcance de personas y participantes.
+- Criterio de resúmenes con doble conteo.
+
+### NV-1 — Esquema y migraciones
+
+- Personas, participantes, montos propios/compartidos, vínculo de pagos y tipo de
+  registro en vehículo.
+- Artefactos generados y tests de DB.
+
+### NV-2 — Personas y compartidos
+
+- Pantalla de personas.
+- Selector de personas.
+- Compartidos en fijos y financiamientos.
+- Totales y desglose.
+
+### NV-3 — Registros y obligaciones pendientes
+
+- Créditos/préstamos pendientes en Registros.
+- Precarga del modal.
+- Vínculo con pagos de financiamiento.
+- Evitar duplicados.
+
+### NV-4 — Vehículo
+
+- Odómetro efectivo en consumo, segmentos, recordatorios y dashboard.
+- Selector de tipo de registro y configuración por defecto.
+
+### NV-5 — Resúmenes y renombre
+
+- Incluir financiamientos en resúmenes de fijos.
+- Totales total/propio/compartido.
+- Renombrar la sección.
+- Corregir el cambio de grupo en Resumen.
+
+### NV-6 — QA y cierre
+
+- Typecheck, Jest, `test:db`, lint, doctor y export Android.
+- QA Android/iOS.
+- Notas de versión y actualización de documentación/ayuda.
+
+---
+
+## 6. Riesgos
+
+| Riesgo | Impacto | Mitigación |
+| --- | --- | --- |
+| Cambios de compartidos afectan todos los resúmenes | Alto | Definir contrato total/propio/compartido y tests de reconciliación |
+| Doble conteo entre fijos, financiamientos y registros | Alto | Reglas explícitas de vínculo y pruebas de integración |
+| Migración de compartidos existentes | Medio | Backfill con una persona por contraparte y tests |
+| Cambio de inferencia de odómetro altera historiales | Medio | Tests de regresión y validación de datos existentes |
+| Tipo de registro por defecto mal configurado | Medio | Backfill y validación de tipo al crear |
+| Renombre de sección rompe rutas o ayuda | Medio | Cambiar solo etiquetas visibles y actualizar i18n/ayuda |
+| Carrera de grupo en Resumen | Medio | Una sola fuente de verdad y pruebas con AsyncStorage |
+
+---
+
+## 7. Verificación
+
+```bash
+npm run typecheck
+npm test
+npm run test:db
+npm run lint
+npm run doctor
+npx expo export --platform android
+```
+
+Además:
+
+- Pruebas de reconciliación `total = own + shared`.
+- Pruebas de secuencia de odómetro con odómetro/distancia alternados.
+- Pruebas de pendientes de financiamiento sin duplicar `Records`.
+- Pruebas de selección de grupo repetida.
+- QA visual Android/iOS.
