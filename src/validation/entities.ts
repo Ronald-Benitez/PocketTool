@@ -27,6 +27,8 @@ export const groupUpdateSchema = groupInputSchema.partial().extend(updateMeta);
 export const recordInputSchema = z
   .object({
     amount: cents,
+    own_amount_cents: cents.nonnegative().nullable().optional(),
+    shared_amount_cents: cents.nonnegative().nullable().optional(),
     record_name: z.string().min(1),
     date: timestamp,
     record_type_id: id,

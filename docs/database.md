@@ -44,7 +44,7 @@ No editar esos archivos a mano.
 | `Categories` | `categories` | Categorías de movimientos. |
 | `RecordTypes` | `record_types` | Tipos de movimiento y efecto. |
 | `Fixed` | `fixed_records` | Movimientos recurrentes. |
-| `Records` | `records` | Movimientos principales. |
+| `Records` | `records` | Movimientos principales con monto total, monto propio y monto compartido. |
 | `PaidCredits` | `paid_credits` | Pagos de créditos. |
 | `Financings` | `financings` | Compras a plazo y préstamos con tasa, plazo y estado inicial. |
 | `FinancingPayments` | `financing_payments` | Pagos, capital, interés, seguros, honorarios, abonos y vínculo opcional con `Records`. |
@@ -105,6 +105,7 @@ Las rutas navegables se generan en `relations.json` a partir de las FKs.
 | 12 | `0012_financing_payment_cents` | Agrega `payment_cents` a `financings` para la cuota pactada opcional. |
 | 13 | `0013_vehicle_settings_record_type` | Agrega `record_type_id` a `vehicle_settings` para el tipo de registro por defecto de la sección Vehículo. |
 | 14 | `0014_people_and_shared_participants` | Crea `people` y `shared_expense_participants`, y migra los compartidos existentes de financiamientos. |
+| 15 | `0015_records_shared_amounts` | Agrega `own_amount_cents` y `shared_amount_cents` a `records`; backfill propio = monto y compartido = 0. |
 
 Reglas:
 

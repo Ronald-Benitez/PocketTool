@@ -132,6 +132,8 @@ const createOrUpdateRecord = async ({
 
   const payload = recordInputSchema.parse({
     amount,
+    own_amount_cents: amount,
+    shared_amount_cents: 0,
     record_name: name,
     date,
     record_type_id: recordTypeId,

@@ -24,15 +24,13 @@ métodos de pago, créditos, ahorros y vehículo.
   [`docs/legacy/vehicle-plan.md`](docs/legacy/vehicle-plan.md).
 - **Fase 9 — Gastos fijos y Créditos: EN IMPLEMENTACIÓN** (2026-11-02). El plan
   vive en [`docs/credits-fixed-plan.md`](docs/credits-fixed-plan.md).
-- **Fase 10 — Errores y ajustes de siguiente versión: EN IMPLEMENTACIÓN**
-  (2026-11-03). El plan vive en
-  [`docs/next-version-plan.md`](docs/next-version-plan.md). Ya están implementados
-  los pendientes de créditos/préstamos en Registros, el tipo de registro de
-  Vehículo, la inferencia de odómetro efectivo, los financiamientos en resúmenes
-  de fijos, el renombre de la sección a Compromisos, el cambio de grupo en
-  Resumen y el registro de personas con compartidos en fijos y financiamientos.
-  Queda pendiente cerrar la separación total/propio/compartido en todos los
-  resúmenes y `Records`.
+- **Fase 10 — Errores y ajustes de siguiente versión: IMPLEMENTACIÓN FUNCIONAL
+  COMPLETA; PENDIENTE QA** (2026-11-03). El plan vive en
+  [`docs/next-version-plan.md`](docs/next-version-plan.md). Incluye pendientes de
+  créditos/préstamos en Registros, tipo de registro de Vehículo, odómetro
+  efectivo, financiamientos en resúmenes de fijos, renombre a Compromisos,
+  cambio de grupo en Resumen, personas, compartidos ilimitados y snapshot
+  propio/compartido en `Records`.
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay

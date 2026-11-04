@@ -17,7 +17,7 @@ import { useTheme } from '@/src/ui/theme/ThemeProvider';
 const Index = () => {
     const { t } = useLanguage();
     const { colors } = useTheme();
-    const { balance, balanceByRecordType } = useResumesStore()
+    const { balance, ownBalance, sharedBalance, balanceByRecordType } = useResumesStore()
 
     return (
         <Screen scroll edges={['left', 'right']}>
@@ -36,6 +36,25 @@ const Index = () => {
                         accentColor={colors.primary}
                     />
                 </Surface>
+
+                <Row gap='md'>
+                    <SummaryBlock
+                        label={t('resume.own')}
+                        cents={ownBalance}
+                        size='md'
+                        valueColorOverride={colors.text}
+                        accentColor={colors.primary}
+                        style={{ flex: 1 }}
+                    />
+                    <SummaryBlock
+                        label={t('resume.shared')}
+                        cents={sharedBalance}
+                        size='md'
+                        valueColorOverride={colors.textMuted}
+                        accentColor={colors.textMuted}
+                        style={{ flex: 1 }}
+                    />
+                </Row>
 
                 <BudgetSummaryBlock />
 

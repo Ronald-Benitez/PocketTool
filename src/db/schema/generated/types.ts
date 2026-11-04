@@ -76,6 +76,8 @@ export interface FixedRecord extends Entity, SoftDeletable {
 
 export interface RecordEntry extends Entity, SoftDeletable {
   amount: Cents;
+  own_amount_cents?: Cents | null;
+  shared_amount_cents?: Cents | null;
   record_name: string;
   date: TimestampMs;
   record_type_id?: number | null;

@@ -14,6 +14,7 @@ import creditCardsAndFinancings from './0011_credit_cards_and_financings';
 import financingPaymentCents from './0012_financing_payment_cents';
 import vehicleSettingsRecordType from './0013_vehicle_settings_record_type';
 import peopleAndSharedParticipants from './0014_people_and_shared_participants';
+import recordsSharedAmounts from './0015_records_shared_amounts';
 
 export interface Migration {
   version: number;
@@ -40,4 +41,5 @@ export const migrations: Migration[] = [
   financingPaymentCents,
   vehicleSettingsRecordType,
   peopleAndSharedParticipants,
+  recordsSharedAmounts,
 ];

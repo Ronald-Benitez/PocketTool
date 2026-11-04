@@ -1,6 +1,6 @@
 import type { TableDefinition, TableSchema } from '../types';
 
-export const SCHEMA_VERSION = 14;
+export const SCHEMA_VERSION = 15;
 
 export type TableName =
   | 'Groups'
@@ -161,6 +161,8 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
       { name: 'amount', type: 'INTEGER', kind: 'money', notNull: true },
+      { name: 'own_amount_cents', type: 'INTEGER', kind: 'money' },
+      { name: 'shared_amount_cents', type: 'INTEGER', kind: 'money' },
       { name: 'record_name', type: 'TEXT', notNull: true },
       { name: 'date', type: 'INTEGER', kind: 'timestamp', notNull: true },
       {

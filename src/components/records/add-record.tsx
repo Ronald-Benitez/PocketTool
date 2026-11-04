@@ -155,6 +155,10 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                 record_name: name.length < 1 ? category.category_name : name,
                 record_type_id: type.id,
                 amount: amountCents,
+                own_amount_cents:
+                    item?.own_amount_cents ?? amountCents,
+                shared_amount_cents:
+                    item?.shared_amount_cents ?? 0,
                 category_id: category.id,
                 payment_method_id: payment_method.id,
                 fixed_id,

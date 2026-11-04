@@ -3,7 +3,7 @@
 > Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.
 > Fuente de verdad: `src/db/schema/tables.ts`.
 
-Versión de esquema: **14**
+Versión de esquema: **15**
 
 ## Convenciones
 
@@ -22,7 +22,7 @@ Versión de esquema: **14**
 | `Categories` | `categories` | `Category` | 5 | 0 |
 | `RecordTypes` | `record_types` | `RecordType` | 7 | 0 |
 | `Fixed` | `fixed_records` | `FixedRecord` | 10 | 4 |
-| `Records` | `records` | `RecordEntry` | 13 | 6 |
+| `Records` | `records` | `RecordEntry` | 15 | 6 |
 | `PaidCredits` | `paid_credits` | `PaidCredit` | 8 | 3 |
 | `Financings` | `financings` | `Financing` | 27 | 2 |
 | `FinancingPayments` | `financing_payments` | `FinancingPayment` | 19 | 2 |
@@ -175,6 +175,8 @@ Entidad TypeScript: `RecordEntry`
 | --- | --- | --- | --- |
 | `id` | `INTEGER` | `number` | PK, autoincrement |
 | `amount` | `INTEGER` | `Cents` | NOT NULL, kind=money |
+| `own_amount_cents` | `INTEGER` | `Cents` | kind=money |
+| `shared_amount_cents` | `INTEGER` | `Cents` | kind=money |
 | `record_name` | `TEXT` | `string` | NOT NULL |
 | `date` | `INTEGER` | `TimestampMs` | NOT NULL, kind=timestamp |
 | `record_type_id` | `INTEGER` | `number` | FK → RecordTypes.id ON DELETE SET NULL |

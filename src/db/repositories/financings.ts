@@ -241,9 +241,25 @@ export const useFinancingsRepository = () => {
         if (!category) throw new Error('CATEGORY_REQUIRED');
         if (!method) throw new Error('PAYMENT_METHOD_REQUIRED');
         if (!recordType) throw new Error('RECORD_TYPE_REQUIRED');
+        const participantRows = (await new ORM(txn, 'SharedExpenseParticipants')
+          .where('owner_type', 'financing')
+          .where('owner_id', values.financing_id)
+          .getAll()) as { share_percent: number }[];
+        const sharedPercent = Math.min(
+          100,
+          participantRows.reduce(
+            (sum, participant) => sum + participant.share_percent,
+            0
+          )
+        );
+        const sharedAmount = Math.round(
+          (values.amount_cents * sharedPercent) / 100
+        );
 
         const recordPayload = recordInputSchema.parse({
           amount: values.amount_cents,
+          own_amount_cents: values.amount_cents - sharedAmount,
+          shared_amount_cents: sharedAmount,
           record_name: `Payment · ${financing.name}`,
           date: values.date,
           record_type_id: recordType,

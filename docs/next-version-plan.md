@@ -1,6 +1,6 @@
 # Plan de la siguiente versión — Fase 10 (NV)
 
-**Estado:** 🚧 En implementación (NV-1, NV-4, NV-5, NV-6 a NV-10 parciales)
+**Estado:** 🚧 Implementación funcional completa; pendiente QA y cierre
 **Fecha:** 2026-11-03
 **Objetivo:** cerrar los errores de integración entre Registros, Gastos fijos,
 Créditos/Préstamos, Vehículo y Resúmenes, y añadir un modelo reutilizable de
@@ -481,13 +481,18 @@ Implementado:
 - NV-10: se corrigió la carrera de selección de grupo en Resumen; una selección
   del usuario ya no es sobrescrita por la carga asíncrona del grupo fijado y las
   cargas antiguas de registros no pisan la selección nueva.
-- Migraciones `0013_vehicle_settings_record_type` y
-  `0014_people_and_shared_participants`.
+- NV-2/NV-3: compartidos en fijos y financiamientos, con total/propio/compartido
+  en formularios y resúmenes; `Records` guarda `own_amount_cents` y
+  `shared_amount_cents` como snapshot.
+- Migraciones `0013_vehicle_settings_record_type`,
+  `0014_people_and_shared_participants` y `0015_records_shared_amounts`.
 
 Pendiente:
 
-- NV-2/NV-3: terminar la integración de compartidos en todos los resúmenes y
-  guardar `own_amount_cents`/`shared_amount_cents` en `Records`.
+- QA Android/iOS y checklist visual.
+- Verificación completa de cierre.
+- Desglose propio/compartido dentro de cada bucket de resumen, si se necesita
+  más detalle que el total general.
 
 ## 8. Verificación
 

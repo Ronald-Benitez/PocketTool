@@ -1,9 +1,6 @@
 import { create } from "zustand";
 
-import {
-    calculateRecordBalance,
-    getEffectMap,
-} from "@/src/domain/summaries/aggregate";
+import { getEffectMap } from "@/src/domain/summaries/aggregate";
 import { useConfigs } from "../hooks/useConfigs";
 import useRecordsStore from "./RecordsStore";
 import type {
@@ -30,6 +27,8 @@ type PaymentResume<T> = T & {
 
 export interface Resumes {
     balance: number;
+    ownBalance: number;
+    sharedBalance: number;
     todayBalanceByRecordType: RecordTypeResume[];
     balanceByRecordType: RecordTypeResume[];
     balanceByPaymentType: PaymentResume<PaymentType>[];
@@ -43,17 +42,36 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
     const { PaymentMethods, Categories, RecordTypes, PaymentTypes } = useDataStore();
     const records = recordsToSummarize ?? allRecords;
 
-    const calculateBalance = (): number =>
-        calculateRecordBalance(
-            records,
-            getEffectMap(RecordTypes),
-            new Set(configuredRecordTypes)
-        );
+    const calculateBalances = () => {
+        const effectMap = getEffectMap(RecordTypes);
+        const allowed = new Set(configuredRecordTypes);
+        const balances = { total: 0, own: 0, shared: 0 };
+        records.forEach((record) => {
+            if (
+                record.record_type_id == null ||
+                !allowed.has(record.record_type_id)
+            ) {
+                return;
+            }
+            const effect = effectMap.get(record.record_type_id);
+            const sign = effect === '+' ? 1 : effect === '-' ? -1 : 0;
+            if (sign === 0) return;
+            const own = record.own_amount_cents ?? record.amount;
+            const shared = record.shared_amount_cents ?? 0;
+            balances.total += sign * record.amount;
+            balances.own += sign * own;
+            balances.shared += sign * shared;
+        });
+        return balances;
+    };
 
     const createRecordTypeTotals = (): TotalPerRecordType[] =>
         RecordTypes.map(recordType => ({ ...recordType, total: 0 }));
 
-    const calculateResumes = (): Omit<Resumes, "balance"> => {
+    const calculateResumes = (): Omit<
+        Resumes,
+        "balance" | "ownBalance" | "sharedBalance"
+    > => {
         const todayBalanceByRecordType = createRecordTypeTotals();
         const balanceByRecordType = createRecordTypeTotals();
         const balanceByPaymentType: PaymentResume<PaymentType>[] = PaymentTypes.map(paymentType => ({
@@ -112,8 +130,12 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
         };
     };
 
+    const balances = calculateBalances();
+
     return create<Resumes>(() => ({
-        balance: calculateBalance(),
+        balance: balances.total,
+        ownBalance: balances.own,
+        sharedBalance: balances.shared,
         ...calculateResumes()
     }))();
 };

@@ -108,6 +108,8 @@
   "Records": {
     "id": "id",
     "amount": "amount",
+    "own_amount_cents": "own_amount_cents",
+    "shared_amount_cents": "shared_amount_cents",
     "record_name": "record_name",
     "date": "date",
     "record_type_id": "record_type_id",
@@ -1125,6 +1127,8 @@
     "updated_at": "updated_at",
     "Records.id": "Records.id",
     "Records.amount": "Records.amount",
+    "Records.own_amount_cents": "Records.own_amount_cents",
+    "Records.shared_amount_cents": "Records.shared_amount_cents",
     "Records.record_name": "Records.record_name",
     "Records.date": "Records.date",
     "Records.record_type_id": "Records.record_type_id",

@@ -25,12 +25,16 @@ import RecordsGroup from "./RecordsGroup";
 import FixedsGroup from "./FixedsGroup";
 import FinancingsGroup, { type PendingFinancingPayment } from "./FinancingsGroup";
 import CreditsGroups from "./CreditsGroups";
-import { useFinancingsRepository, useRecords } from "@/src/db";
+import {
+  useFinancingsRepository,
+  useRecords,
+  useSharedParticipantsRepository,
+} from "@/src/db";
 import { summarizeFinancing, type FinancingSummary } from "@/src/domain/credits/summary";
 import type { FinancingWithRelations } from "@/src/interfaces/schema";
 import { FinancingPaymentForm } from "@/src/components/credits/FinancingPaymentForm";
 import type { OrderCondition } from "@/src/orm";
-import type { RecordFormEntry, RecordType, RecordWithRelations } from "@/src/interfaces/schema";
+import type { RecordFormEntry, RecordType, RecordWithRelations, SharedExpenseParticipant } from "@/src/interfaces/schema";
 import { formatMoney } from "@/src/utils";
 import RecordsFilterModal, { RECORDS_ORDER_STORAGE_KEY } from "./RecordsFilterModal";
 import type { RecordFilter } from "./RecordsFilterModal";
@@ -81,6 +85,8 @@ const ItemsTable = () => {
   ]);
   const { fetchRecords, deleteRecordWithCredit, handler: recordsRepository } = useRecords();
   const financingsRepository = useFinancingsRepository();
+  const participantsRepository = useSharedParticipantsRepository();
+  const [fixedParticipants, setFixedParticipants] = useState<SharedExpenseParticipant[]>([]);
 
   useEffect(() => {
     let isMounted = true
@@ -247,10 +253,21 @@ const ItemsTable = () => {
           date.setMonth(date?.getMonth() + 1)
         }
 
+        const sharedPercent = Math.min(
+          100,
+          fixedParticipants
+            .filter((participant) => participant.owner_id === fixed.id)
+            .reduce((sum, participant) => sum + participant.share_percent, 0)
+        );
+        const sharedAmount = Math.round(
+          (fixed.fixed_amount * sharedPercent) / 100
+        );
         list.push({
           id: undefined,
           fixed_id: fixed.id,
           amount: fixed.fixed_amount,
+          own_amount_cents: fixed.fixed_amount - sharedAmount,
+          shared_amount_cents: sharedAmount,
           date: date.getTime(),
           group_id: group?.id || 0,
           record_name: fixed.fixed_name,
@@ -265,7 +282,15 @@ const ItemsTable = () => {
     setFixedsToShow(list);
   };
 
-  useEffect(generateFixedsToShow, [records, Fixeds]);
+  useEffect(() => {
+    let active = true
+    participantsRepository.fetchAll('fixed').then((rows) => {
+      if (active) setFixedParticipants(rows)
+    })
+    return () => { active = false }
+  }, [Fixeds])
+
+  useEffect(generateFixedsToShow, [records, Fixeds, fixedParticipants]);
 
   const onCreditPayment = (item: RecordFormEntry) => {
     setSelected(item);

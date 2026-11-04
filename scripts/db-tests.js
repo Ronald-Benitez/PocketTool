@@ -410,7 +410,7 @@ async function testEmptyDatabase() {
   assert.strictEqual(q(raw, 'SELECT goal FROM groups')[0].goal, 500000);
   assert.strictEqual(q(raw, 'SELECT amount FROM records ORDER BY id')[0].amount, 100000);
   assert.strictEqual(q(raw, 'SELECT migration_name FROM migrations')[0].migration_name, '0001_baseline');
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 14);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 15);
   const recordColumns = q(raw, 'PRAGMA table_info(records)').map(c => c.name);
   assert.ok(recordColumns.includes('created_at'));
   assert.ok(recordColumns.includes('updated_at'));
@@ -447,7 +447,7 @@ async function testExportImport() {
   assert.ok(metadata);
   assert.strictEqual(metadata.formatVersion, BACKUP_FORMAT_VERSION);
   assert.strictEqual(metadata.appVersion, 'test-version');
-  assert.strictEqual(metadata.schemaVersion, 14);
+  assert.strictEqual(metadata.schemaVersion, 15);
   assert.ok(metadata.tables.includes('records'));
   assert.doesNotThrow(() => validateSqlDump(backupSql));
   assert.strictEqual(parseBackupMetadata(dump), null);
@@ -500,7 +500,7 @@ async function testAuditTimestampMigration() {
   const backfilled = q(raw, 'SELECT created_at, updated_at FROM records LIMIT 1')[0];
   assert.ok(backfilled.created_at > 0);
   assert.ok(backfilled.updated_at > 0);
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 14);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 15);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,
     1
@@ -870,6 +870,33 @@ async function testFinancingPaymentCentsMigration() {
   console.log('financing payment cents migration: OK');
 }
 
+async function testRecordsSharedAmountsMigration() {
+  const raw = new DatabaseSync(':memory:');
+  raw.exec(`
+    CREATE TABLE records (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      amount INTEGER NOT NULL,
+      record_name TEXT NOT NULL,
+      date INTEGER NOT NULL
+    );
+    INSERT INTO records (amount, record_name, date) VALUES (1000, 'Test', 1);
+  `);
+  const migration = require(path.join(
+    ROOT,
+    'src/db/migrations/0015_records_shared_amounts.ts'
+  )).default;
+  await migration.up(shim(raw));
+
+  const row = q(
+    raw,
+    'SELECT own_amount_cents, shared_amount_cents FROM records'
+  )[0];
+  assert.strictEqual(row.own_amount_cents, 1000);
+  assert.strictEqual(row.shared_amount_cents, 0);
+  raw.close();
+  console.log('records shared amounts migration: OK');
+}
+
 async function testPeopleAndSharedParticipantsMigration() {
   const raw = new DatabaseSync(':memory:');
   raw.exec(`
@@ -1116,6 +1143,7 @@ async function testInterruptedRebuild() {
   await testBudgetStatusRemoval();
   await testCreditCardsAndFinancingsMigration();
   await testFinancingPaymentCentsMigration();
+  await testRecordsSharedAmountsMigration();
   await testPeopleAndSharedParticipantsMigration();
   await testVehicleSettingsRecordTypeMigration();
   await testVehicleInsert();
