@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Pressable } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { useFinancingsRepository } from '@/src/db';
@@ -51,6 +52,7 @@ const FinancingsScreen = () => {
   const [scheduleVisible, setScheduleVisible] = useState(false);
   const [editingPayment, setEditingPayment] =
     useState<FinancingPayment | null>(null);
+  const [paymentInitialDate, setPaymentInitialDate] = useState<number>();
   const [selected, setSelected] = useState<FinancingWithRelations | null>(null);
   const [selectedSummary, setSelectedSummary] =
     useState<FinancingSummary | null>(null);
@@ -118,8 +120,7 @@ const FinancingsScreen = () => {
           const next = row.summary.schedule.rows[0];
           return next ? [{ ...row, next }] : [];
         })
-        .sort((a, b) => a.next.date - b.next.date)
-        .slice(0, 5),
+        .sort((a, b) => a.next.date - b.next.date),
     [orderedRows]
   );
   const activeSummary =
@@ -138,6 +139,14 @@ const FinancingsScreen = () => {
         : activeSummary,
     [editingPayment, selected, activeSummary]
   );
+
+  const openUpcomingPayment = (row: (typeof upcoming)[number]) => {
+    setSelected(row.financing);
+    setSelectedSummary(row.summary);
+    setEditingPayment(null);
+    setPaymentInitialDate(row.next.date);
+    setPaymentVisible(true);
+  };
 
   const remove = async (id?: number) => {
     if (!id) return;
@@ -198,23 +207,41 @@ const FinancingsScreen = () => {
             <Stack gap='sm'>
               <AppText weight='600'>{t('financings.upcomingPayments')}</AppText>
               {upcoming.map((row) => (
-                <Row
+                <Pressable
                   key={`${row.financing.id}-${row.next.number}`}
-                  justify='space-between'
-                  align='center'
-                  gap='sm'
+                  onPress={() => openUpcomingPayment(row)}
+                  accessibilityRole='button'
+                  accessibilityLabel={row.financing.name}
                 >
-                  <Stack gap='xxs' style={{ flex: 1 }}>
-                    <AppText numberOfLines={1}>{row.financing.name}</AppText>
-                    <AppText variant='caption' color='muted'>
-                      {new Date(row.next.date).toLocaleDateString()} ·{' '}
-                      {t('financings.payment')} #{row.next.number}
-                    </AppText>
-                  </Stack>
-                  <AppText>
-                    {formatMoneyWithSymbol(row.summary.monthlyPaymentCents)}
-                  </AppText>
-                </Row>
+                  <Row
+                    justify='space-between'
+                    align='center'
+                    gap='sm'
+                    style={{ minHeight: 44 }}
+                  >
+                    <Stack gap='xxs' style={{ flex: 1 }}>
+                      <AppText numberOfLines={1}>{row.financing.name}</AppText>
+                      <AppText variant='caption' color='muted'>
+                        {new Date(row.next.date).toLocaleDateString()} ·{' '}
+                        {t('financings.payment')} #{row.next.number}
+                      </AppText>
+                    </Stack>
+                    <Stack gap='xxs' style={{ alignItems: 'flex-end' }}>
+                      <AppText>
+                        {formatMoneyWithSymbol(row.summary.monthlyPaymentCents)}
+                      </AppText>
+                      {row.financing.is_shared ? (
+                        <AppText variant='caption' color='muted'>
+                          {t('shared.own')}:{' '}
+                          {formatMoneyWithSymbol(
+                            row.summary.monthlyPaymentCents -
+                              row.summary.sharedPaymentCents
+                          )}
+                        </AppText>
+                      ) : null}
+                    </Stack>
+                  </Row>
+                </Pressable>
               ))}
             </Stack>
           </Surface>
@@ -301,9 +328,14 @@ const FinancingsScreen = () => {
                     </AppText>
                     {financing.is_shared ? (
                       <AppText variant='caption' color='muted'>
-                        {t('financings.sharedTotal')}:{' '}
+                        {t('shared.total')}:{' '}
                         {formatMoneyWithSymbol(summary.monthlyPaymentCents)} ·{' '}
-                        {t('financings.sharedOwn')}:{' '}
+                        {t('shared.own')}:{' '}
+                        {formatMoneyWithSymbol(
+                          summary.monthlyPaymentCents -
+                            summary.sharedPaymentCents
+                        )}{' '}
+                        · {t('shared.totalShared')}:{' '}
                         {formatMoneyWithSymbol(summary.sharedPaymentCents)}
                       </AppText>
                     ) : null}
@@ -339,6 +371,7 @@ const FinancingsScreen = () => {
                           setSelected(financing);
                           setSelectedSummary(summary);
                           setEditingPayment(null);
+                          setPaymentInitialDate(undefined);
                           setPaymentVisible(true);
                         }}
                       />
@@ -411,11 +444,16 @@ const FinancingsScreen = () => {
         financing={selected}
         summary={editingSummary}
         payment={editingPayment}
+        initialDate={paymentInitialDate}
         onClose={() => {
           setPaymentVisible(false);
           setEditingPayment(null);
+          setPaymentInitialDate(undefined);
         }}
-        onSaved={() => setRefreshKey((value) => value + 1)}
+        onSaved={() => {
+          setPaymentInitialDate(undefined);
+          setRefreshKey((value) => value + 1);
+        }}
       />
       <FinancingPaymentsModal
         visible={paymentsVisible}
@@ -425,11 +463,13 @@ const FinancingsScreen = () => {
         onAdd={() => {
           setPaymentsVisible(false);
           setEditingPayment(null);
+          setPaymentInitialDate(undefined);
           setPaymentVisible(true);
         }}
         onEdit={(payment) => {
           setPaymentsVisible(false);
           setEditingPayment(payment);
+          setPaymentInitialDate(undefined);
           setPaymentVisible(true);
         }}
         onChanged={() => setRefreshKey((value) => value + 1)}

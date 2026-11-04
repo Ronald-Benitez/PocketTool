@@ -16,7 +16,7 @@
 | Fase 7 — Presupuestos | ✅ Finalizada | 2026-10-29 |
 | Fase 8 — Vehículo | ✅ Finalizada | 2026-10-31 |
 | Fase 9 — Gastos fijos y Créditos | 🚧 En implementación | 2026-11-02 |
-| Fase 10 — Errores y ajustes de siguiente versión | 🚧 En implementación | 2026-11-03 |
+| Fase 10 - Errores y ajustes de siguiente versión | ✅ Funcional; pendiente QA | 2026-11-03 |
 
 El detalle histórico de las fases 0–3 vive en
 [`legacy/phase-history.md`](legacy/phase-history.md). El detalle de la Fase 4
@@ -40,8 +40,8 @@ están archivados en [`legacy/budget-plan.md`](legacy/budget-plan.md) y
   `0007_vehicle_module`, `0008_fuel_baseline`, `0009_vehicle_type`,
   `0010_vehicle_type_models`, `0011_credit_cards_and_financings`,
   `0012_financing_payment_cents`, `0013_vehicle_settings_record_type`,
-  `0014_people_and_shared_participants`, `0015_records_shared_amounts`;
-  `SCHEMA_VERSION = 15`.
+  `0014_people_and_shared_participants`, `0015_records_shared_amounts`,
+  `0016_shared_payment_allocations`; `SCHEMA_VERSION = 16`.
 - **Presupuestos:** `BudgetPlans` (un plan por grupo), `BudgetLines` (categoría
   o fijo) y plantillas reutilizables. El real se deriva de `Records`; no se
   guarda. `budgets_legacy` se elimina en `0005`.
@@ -277,8 +277,8 @@ Implementado hasta ahora:
 - Migraciones `0011_credit_cards_and_financings` y
   `0012_financing_payment_cents`; `SCHEMA_VERSION = 12` al cerrar la parte de
   créditos. La Fase 10 añade `0013_vehicle_settings_record_type` y
-  `0014_people_and_shared_participants` y `0015_records_shared_amounts`, y
-  lleva el esquema a 15.
+  `0014_people_and_shared_participants`, `0015_records_shared_amounts` y
+  `0016_shared_payment_allocations`, y lleva el esquema a 16.
 - Campos de tarjeta en `PaymentMethods`: tarjeta de crédito explícita, límite,
   visual, marca, acabado, color, últimos cuatro, titular y emisor.
 - Backfill legacy: tarjetas por `closing_date` y color desde el tipo de pago.
@@ -327,7 +327,8 @@ Estado: **implementación funcional completa; pendiente QA y cierre**. Se
 completaron créditos/préstamos pendientes en Registros, tipo de registro de
 Vehículo, odómetro efectivo, financiamientos en resúmenes de fijos, renombre de
 la sección a Compromisos, corrección del cambio de grupo en Resumen, personas y
-compartidos ilimitados, y snapshot propio/compartido en `Records`.
+compartidos ilimitados, snapshot propio/compartido en `Records`, obligaciones
+del día en Home y ledger de pagos compartidos por persona.
 
 Objetivo: resolver la integración pendiente entre Registros, Gastos fijos,
 Créditos/Préstamos, Vehículo y Resúmenes, y añadir un modelo reutilizable de

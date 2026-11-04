@@ -580,3 +580,18 @@ export const sharedParticipantInputSchema = z
 
 export const sharedParticipantUpdateSchema =
   sharedParticipantInputSchema.partial().extend(updateMeta);
+
+export const sharedAllocationInputSchema = z
+  .object({
+    person_id: z.number().int().positive(),
+    owner_type: sharedOwnerType,
+    owner_id: z.number().int().positive(),
+    record_id: z.number().int().positive(),
+    financing_payment_id: z.number().int().positive().nullable().optional(),
+    label: z.string().min(1).max(160),
+    date: z.number().int().nonnegative(),
+    amount_cents: z.number().int().nonnegative(),
+    share_percent: z.number().finite().min(0).max(100),
+    ...auditTimestamps,
+  })
+  .strict();

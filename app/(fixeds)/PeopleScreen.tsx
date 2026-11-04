@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
-import { usePeopleRepository } from '@/src/db';
+import { usePeopleRepository, useSharedLedgerRepository } from '@/src/db';
 import { mapDatabaseError } from '@/src/db/errors';
-import type { Person } from '@/src/interfaces/schema';
+import type { Person, SharedPaymentAllocation } from '@/src/interfaces/schema';
 import { useLanguage } from '@/src/lang/LanguageContext';
+import { formatMoneyWithSymbol } from '@/src/utils';
+import { FinanceValue } from '@/src/ui/data-display/FinanceValue';
 import { Button } from '@/src/ui/actions/Button';
 import { Badge } from '@/src/ui/data-display/Badge';
 import { EmptyState } from '@/src/ui/feedback/EmptyState';
@@ -25,7 +27,10 @@ const PeopleScreen = () => {
   const { colors } = useTheme();
   const { showToast } = useToast();
   const repository = usePeopleRepository();
+  const ledgerRepository = useSharedLedgerRepository();
   const [people, setPeople] = useState<Person[]>([]);
+  const [allocations, setAllocations] = useState<SharedPaymentAllocation[]>([]);
+  const [ledgerPerson, setLedgerPerson] = useState<Person | null>(null);
   const [visible, setVisible] = useState(false);
   const [editing, setEditing] = useState<Person | null>(null);
   const [name, setName] = useState('');
@@ -38,10 +43,11 @@ const PeopleScreen = () => {
 
   useEffect(() => {
     let active = true;
-    repository
-      .fetchPeople()
-      .then((rows) => {
-        if (active) setPeople(rows);
+    Promise.all([repository.fetchPeople(), ledgerRepository.fetchAllocations()])
+      .then(([rows, ledger]) => {
+        if (!active) return;
+        setPeople(rows);
+        setAllocations(ledger);
       })
       .catch((cause) => {
         if (!active) return;
@@ -127,6 +133,21 @@ const PeopleScreen = () => {
     }
   };
 
+  const ledgerTotals = new Map<number, { total: number; count: number }>();
+  allocations.forEach((allocation) => {
+    const current = ledgerTotals.get(allocation.person_id) ?? {
+      total: 0,
+      count: 0,
+    };
+    ledgerTotals.set(allocation.person_id, {
+      total: current.total + allocation.amount_cents,
+      count: current.count + 1,
+    });
+  });
+  const ledgerEntries = ledgerPerson?.id
+    ? allocations.filter((allocation) => allocation.person_id === ledgerPerson.id)
+    : [];
+
   return (
     <Screen scroll edges={['left', 'right']}>
       <Stack gap='lg'>
@@ -173,6 +194,26 @@ const PeopleScreen = () => {
                       size='sm'
                     />
                   </Row>
+                  {person.id != null && (ledgerTotals.get(person.id)?.count ?? 0) > 0 ? (
+                    <Row justify='space-between' align='center' gap='sm'>
+                      <Stack gap='xxs' style={{ flex: 1 }}>
+                        <AppText variant='caption' color='muted'>
+                          {t('shared.ledgerTotal')}
+                        </AppText>
+                        <AppText weight='600'>
+                          {formatMoneyWithSymbol(
+                            ledgerTotals.get(person.id)?.total ?? 0
+                          )}
+                        </AppText>
+                      </Stack>
+                      <Button
+                        label={t('shared.ledger')}
+                        size='sm'
+                        variant='ghost'
+                        onPress={() => setLedgerPerson(person)}
+                      />
+                    </Row>
+                  ) : null}
                   <Row gap='sm' wrap>
                     <Button
                       label={t('shared.edit')}
@@ -240,6 +281,37 @@ const PeopleScreen = () => {
           />
           {error ? <AppText color='danger'>{error}</AppText> : null}
         </Stack>
+      </Modal>
+      <Modal
+        visible={Boolean(ledgerPerson)}
+        onClose={() => setLedgerPerson(null)}
+        title={`${t('shared.ledger')}${ledgerPerson ? ` · ${ledgerPerson.name}` : ''}`}
+        closeLabel={t('close')}
+        scrollable
+      >
+        {ledgerEntries.length === 0 ? (
+          <EmptyState title={t('shared.ledgerEmpty')} />
+        ) : (
+          <Stack gap='sm'>
+            {ledgerEntries.map((entry) => (
+              <Surface key={entry.id} variant='muted' padding='md'>
+                <Row justify='space-between' align='center' gap='sm'>
+                  <Stack gap='xxs' style={{ flex: 1 }}>
+                    <AppText numberOfLines={1}>{entry.label}</AppText>
+                    <AppText variant='caption' color='muted'>
+                      {new Date(entry.date).toLocaleDateString()} ·{' '}
+                      {entry.owner_type === 'fixed'
+                        ? t('records.fixeds')
+                        : t('records.financingPayments')}{' '}
+                      · {entry.share_percent.toFixed(0)}%
+                    </AppText>
+                  </Stack>
+                  <FinanceValue cents={entry.amount_cents} size='md' />
+                </Row>
+              </Surface>
+            ))}
+          </Stack>
+        )}
       </Modal>
       <ConfirmDialog
         visible={Boolean(deleting)}

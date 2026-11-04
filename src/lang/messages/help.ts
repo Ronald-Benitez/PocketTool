@@ -88,7 +88,7 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "Income adds to the balance, expense subtracts, and transfer moves money between payment methods. Amounts are stored as integer cents."
+                "body": "Income adds to the balance, expense subtracts, and transfer moves money between payment methods. Amounts are stored as integer cents. A shared record keeps your own amount in the record and the shared portion separately, so personal balances only use what you really pay."
             },
             "steps": {
                 "title": "Step by step",
@@ -118,7 +118,7 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "On the configured day, PocketTool reminds you to confirm it. Confirming creates the corresponding record for the selected group. Pending credit and loan payments also appear in Records; opening one loads the payment form with its amount, date and expense data. A fixed expense can be split among several people registered in the People section."
+                "body": "On the configured day, PocketTool reminds you to confirm it. Confirming creates the corresponding record for the selected group. Pending credit and loan payments also appear in Records; opening one loads the payment form with its amount, date and expense data. A fixed expense can be split among several people registered in the People section. When it is shared, the record stores your own amount and the shared portion separately, and each person's share appears in their payment history."
             },
             "steps": {
                 "title": "Step by step",
@@ -148,7 +148,7 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "The app groups records and calculates totals. Credit and debit movements are separated so you can see the difference between actual balance and credit usage."
+                "body": "The app groups records and calculates totals. Credit and debit movements are separated so you can see the difference between actual balance and credit usage. The main balance uses your own amount by default; the total and shared amounts are shown separately so shared expenses do not inflate your personal balance."
             },
             "steps": {
                 "title": "Step by step",
@@ -388,7 +388,7 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "The balance is derived from the financed amount, prior installments, prior capital payments, registered payments and extra principal. You can enter the term in months or years. You can use the calculated payment or enter the agreed one; if a payment is higher, the difference is recorded as insurance or other charges, not as principal or interest. A 0% installment purchase linked to a credit card also reduces that card's available credit by its pending balance. Shared loans can be split among several people registered in the People section."
+                "body": "The balance is derived from the financed amount, prior installments, prior capital payments, registered payments and extra principal. You can enter the term in months or years. You can use the calculated payment or enter the agreed one; if a payment is higher, the difference is recorded as insurance or other charges, not as principal or interest. A 0% installment purchase linked to a credit card also reduces that card's available credit by its pending balance. Shared loans can be split among several people registered in the People section. Payments and extra capital reductions keep the full debt movement for the financing but record only your own part in Records, with the shared portion tracked per person."
             },
             "steps": {
                 "title": "Step by step",
@@ -590,7 +590,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "El ingreso suma al balance, el gasto resta y la transferencia mueve dinero entre métodos de pago. Los montos se guardan en centavos enteros."
+                "body": "El ingreso suma al balance, el gasto resta y la transferencia mueve dinero entre métodos de pago. Los montos se guardan en centavos enteros. Un registro compartido guarda tu monto propio y separa la parte compartida, para que los balances personales solo usen lo que realmente pagas."
             },
             "steps": {
                 "title": "Paso a paso",
@@ -620,7 +620,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "En el día configurado, PocketTool te recuerda confirmarla. Al confirmar se crea el registro correspondiente en el grupo seleccionado. Los pagos pendientes de créditos y préstamos también aparecen en Registros; al abrirlos se carga el formulario de pago con su monto, fecha y datos del gasto. Un gasto fijo puede dividirse entre varias personas registradas en la sección Personas."
+                "body": "En el día configurado, PocketTool te recuerda confirmarla. Al confirmar se crea el registro correspondiente en el grupo seleccionado. Los pagos pendientes de créditos y préstamos también aparecen en Registros; al abrirlos se carga el formulario de pago con su monto, fecha y datos del gasto. Un gasto fijo puede dividirse entre varias personas registradas en la sección Personas. Cuando es compartido, el registro guarda tu monto propio y la parte compartida por separado, y la parte de cada persona aparece en su historial de pagos."
             },
             "steps": {
                 "title": "Paso a paso",
@@ -650,7 +650,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "La app agrupa los registros y calcula totales. Los movimientos de crédito y débito se separan para ver la diferencia entre balance real y uso de crédito."
+                "body": "La app agrupa los registros y calcula totales. Los movimientos de crédito y débito se separan para ver la diferencia entre balance real y uso de crédito. El balance principal usa tu monto propio por defecto; el total y lo compartido se muestran por separado para que los gastos compartidos no inflen tu balance personal."
             },
             "steps": {
                 "title": "Paso a paso",
@@ -890,7 +890,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "El saldo se deriva del monto financiado, las cuotas ya pagadas, el capital abonado antes de usar la app, los pagos registrados y los abonos a capital. Puedes ingresar el plazo en meses o años. Puedes usar la cuota calculada o ingresar la pactada; si un pago es mayor, la diferencia se registra como seguro u otros cargos, no como capital ni interés. Una compra a plazo al 0% vinculada a una tarjeta también reduce el crédito disponible de esa tarjeta por su saldo pendiente. Los préstamos compartidos pueden dividirse entre varias personas registradas en la sección Personas."
+                "body": "El saldo se deriva del monto financiado, las cuotas ya pagadas, el capital abonado antes de usar la app, los pagos registrados y los abonos a capital. Puedes ingresar el plazo en meses o años. Puedes usar la cuota calculada o ingresar la pactada; si un pago es mayor, la diferencia se registra como seguro u otros cargos, no como capital ni interés. Una compra a plazo al 0% vinculada a una tarjeta también reduce el crédito disponible de esa tarjeta por su saldo pendiente. Los préstamos compartidos pueden dividirse entre varias personas registradas en la sección Personas. Los pagos y abonos a capital mantienen el movimiento completo de la deuda en el financiamiento, pero en Registros guardan solo tu parte propia y rastrean la parte compartida por persona."
             },
             "steps": {
                 "title": "Paso a paso",

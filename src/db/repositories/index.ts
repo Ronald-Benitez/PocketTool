@@ -4,6 +4,10 @@ import { z } from 'zod';
 import { ORM, useORM } from '@/src/orm';
 import { withExclusiveTransaction } from '@/src/db/transaction';
 import {
+  clearRecordAllocations,
+  syncRecordAllocations,
+} from '@/src/db/shared-ledger';
+import {
   groupInputSchema,
   groupUpdateSchema,
   paidCreditInputSchema,
@@ -225,13 +229,35 @@ export const useRecordsRepository = () => {
       }
 
       const payload = { ...creditRecord, paid_credit_id: currentPaidCreditId };
+      let savedId: number;
 
       if (recordId !== undefined) {
         await records.update(recordId, payload);
-        return recordId;
+        savedId = recordId;
+      } else {
+        savedId = await records.insert(payload);
       }
 
-      return records.insert(payload);
+      if (payload.fixed_id) {
+        const participants = (await new ORM(txn, 'SharedExpenseParticipants')
+          .where('owner_type', 'fixed')
+          .where('owner_id', payload.fixed_id)
+          .getAll()) as { person_id: number; share_percent: number }[];
+        await syncRecordAllocations({
+          txn,
+          recordId: savedId,
+          ownerType: 'fixed',
+          ownerId: payload.fixed_id,
+          label: payload.record_name,
+          date: payload.date,
+          sharedCents: payload.shared_amount_cents ?? 0,
+          participants,
+        });
+      } else {
+        await clearRecordAllocations(txn, savedId, 'fixed');
+      }
+
+      return savedId;
     });
   };
 
@@ -242,6 +268,7 @@ export const useRecordsRepository = () => {
     await withExclusiveTransaction(db, async (txn) => {
       const records = new ORM<'Records'>(txn, 'Records');
       const credits = new ORM<'PaidCredits'>(txn, 'PaidCredits');
+      await clearRecordAllocations(txn, recordId);
       await records.delete(recordId);
       if (paidCreditId) {
         await credits.delete(paidCreditId);
@@ -613,5 +640,9 @@ export { useFinancingsRepository } from './financings';
 
 export type { SavingsHistoryEntry };
 
-export { usePeopleRepository, useSharedParticipantsRepository } from './people';
+export {
+  usePeopleRepository,
+  useSharedLedgerRepository,
+  useSharedParticipantsRepository,
+} from './people';
 

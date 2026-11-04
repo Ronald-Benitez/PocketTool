@@ -18,7 +18,10 @@ interface totalPerRecordType extends RecordTypes {
 }
 
 export interface Resumes {
+    /** Personal balance: only the user's own share. */
     balance: number;
+    /** Total balance including the shared share. */
+    totalBalance: number;
     ownBalance: number;
     sharedBalance: number;
     balanceByRecordType: (RecordTypes & {
@@ -129,7 +132,7 @@ export const useFixedsResumesStore = () => {
 
     const calculeteResumes = (): Omit<
         Resumes,
-        "balance" | "ownBalance" | "sharedBalance"
+        "balance" | "totalBalance" | "ownBalance" | "sharedBalance"
     > => {
 
         const recordTypeResume = RecordTypes.map(rt => ({
@@ -162,9 +165,10 @@ export const useFixedsResumesStore = () => {
         }));
 
         Fixeds.map(fixed => {
+            const ownAmount = splitAmount('fixed', fixed.id, fixed.fixed_amount).own;
             const recordType = recordTypeResume.find(rt => rt.id === fixed.record_type_id);
             if (recordType) {
-                recordType.total += fixed.fixed_amount;
+                recordType.total += ownAmount;
             }
 
             const paymentTypeId =
@@ -173,7 +177,7 @@ export const useFixedsResumesStore = () => {
             if (paymentType) {
                 paymentType.totalPerRecordType.forEach(r => {
                     if (r.id === fixed.record_type_id) {
-                        r.total += fixed.fixed_amount;
+                        r.total += ownAmount;
                     }
                 });
                 paymentType.balance = paymentType?.totalPerRecordType?.reduce(typeReducer, 0) || 0
@@ -184,7 +188,7 @@ export const useFixedsResumesStore = () => {
             if (paymentMethod) {
                 paymentMethod.totalPerRecordType.forEach(r => {
                     if (r.id === fixed.record_type_id) {
-                        r.total += fixed.fixed_amount;
+                        r.total += ownAmount;
                     }
                 });
                 paymentMethod.balance = paymentMethod?.totalPerRecordType?.reduce(typeReducer, 0) || 0;
@@ -196,7 +200,7 @@ export const useFixedsResumesStore = () => {
             if (category) {
                 category.totalPerRecordType.forEach(r => {
                     if (r.id === fixed.record_type_id) {
-                        r.total += fixed.fixed_amount;
+                        r.total += ownAmount;
                     }
                 });
                 category.balance = category?.totalPerRecordType?.reduce(typeReducer, 0) || 0;
@@ -204,7 +208,11 @@ export const useFixedsResumesStore = () => {
         })
 
         financingObligations.forEach(({ financing, summary }) => {
-            const amount = summary.monthlyPaymentCents;
+            const amount = splitAmount(
+                'financing',
+                financing.id,
+                summary.monthlyPaymentCents
+            ).own;
             const recordType = recordTypeResume.find(
                 (rt) => rt.id === financing.record_type_id
             );
@@ -266,7 +274,8 @@ export const useFixedsResumesStore = () => {
     const balances = calculateBalances()
 
     return create<Resumes>((set, get) => ({
-        balance: balances.total,
+        balance: balances.own,
+        totalBalance: balances.total,
         ownBalance: balances.own,
         sharedBalance: balances.shared,
         ...calculeteResumes(),

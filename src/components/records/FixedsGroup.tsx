@@ -48,8 +48,20 @@ const FixedsGroup = ({ fixeds, onCreditPayment }: FixedsGroupProps) => {
                                             {dateh.getStringMonth(String(item.date))}
                                         </Text>
                                     </View>
-                                    <Text style={[localStyles.nameText, styles.textPrimary]}>{item.record_name}</Text>
-                                    <Text style={[localStyles.valueText, styles.textPrimary]}>{formatMoneyWithSymbol(item.amount)}</Text>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={[localStyles.nameText, styles.textPrimary]}>{item.record_name}</Text>
+                                        {(item.shared_amount_cents ?? 0) > 0 ? (
+                                            <Text style={[localStyles.captionText, styles.textMuted]}>
+                                                {t('shared.total')}: {formatMoneyWithSymbol((item.own_amount_cents ?? item.amount ?? 0) + (item.shared_amount_cents ?? 0))} · {t('shared.totalShared')}: {formatMoneyWithSymbol(item.shared_amount_cents ?? 0)}
+                                            </Text>
+                                        ) : null}
+                                    </View>
+                                    <View style={{ alignItems: 'flex-end' }}>
+                                        <Text style={[localStyles.valueText, styles.textPrimary]}>{formatMoneyWithSymbol(item.own_amount_cents ?? item.amount ?? 0)}</Text>
+                                        {(item.shared_amount_cents ?? 0) > 0 ? (
+                                            <Text style={[localStyles.captionText, styles.textMuted]}>{t('shared.own')}</Text>
+                                        ) : null}
+                                    </View>
                                 </View>
                             </AccentRow>
                         </Pressable>
@@ -79,6 +91,10 @@ const localStyles = StyleSheet.create({
         fontSize: 12,
         textAlign: "left",
         maxWidth: 200
+    },
+    captionText: {
+        fontSize: 9,
+        textAlign: 'left',
     },
     valueText: {
         fontSize: 12,

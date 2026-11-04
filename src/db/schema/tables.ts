@@ -1,6 +1,6 @@
 import type { TableDefinition, TableSchema } from '../types';
 
-export const SCHEMA_VERSION = 15;
+export const SCHEMA_VERSION = 16;
 
 export type TableName =
   | 'Groups'
@@ -16,6 +16,7 @@ export type TableName =
   | 'FinancingAdjustments'
   | 'People'
   | 'SharedExpenseParticipants'
+  | 'SharedPaymentAllocations'
   | 'BudgetTemplates'
   | 'BudgetTemplateItems'
   | 'BudgetPlans'
@@ -406,6 +407,60 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
       {
         name: 'idx_shared_person',
         columns: ['person_id'],
+        where: 'deleted_at IS NULL',
+      },
+    ],
+  },
+  SharedPaymentAllocations: {
+    name: 'SharedPaymentAllocations',
+    sqlName: 'shared_payment_allocations',
+    entity: 'SharedPaymentAllocation',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      {
+        name: 'person_id',
+        type: 'INTEGER',
+        references: { table: 'People', column: 'id', onDelete: 'CASCADE' },
+        notNull: true,
+      },
+      { name: 'owner_type', type: 'TEXT', notNull: true },
+      { name: 'owner_id', type: 'INTEGER', notNull: true },
+      {
+        name: 'record_id',
+        type: 'INTEGER',
+        references: { table: 'Records', column: 'id', onDelete: 'CASCADE' },
+        notNull: true,
+      },
+      {
+        name: 'financing_payment_id',
+        type: 'INTEGER',
+        references: {
+          table: 'FinancingPayments',
+          column: 'id',
+          onDelete: 'SET NULL',
+        },
+      },
+      { name: 'label', type: 'TEXT', notNull: true },
+      { name: 'date', type: 'INTEGER', kind: 'timestamp', notNull: true },
+      { name: 'amount_cents', type: 'INTEGER', kind: 'money', notNull: true },
+      { name: 'share_percent', type: 'REAL', notNull: true },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      {
+        name: 'idx_shared_allocations_person_date',
+        columns: ['person_id', 'date'],
+        where: 'deleted_at IS NULL',
+      },
+      {
+        name: 'idx_shared_allocations_record',
+        columns: ['record_id'],
+        where: 'deleted_at IS NULL',
+      },
+      {
+        name: 'idx_shared_allocations_owner',
+        columns: ['owner_type', 'owner_id'],
         where: 'deleted_at IS NULL',
       },
     ],

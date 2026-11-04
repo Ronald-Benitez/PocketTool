@@ -3,6 +3,12 @@ import { z } from 'zod';
 
 import { ORM, useORM } from '@/src/orm';
 import { withExclusiveTransaction } from '@/src/db/transaction';
+import {
+  clearFinancingAllocations,
+  clearFinancingPaymentAllocations,
+  clearRecordAllocations,
+  syncRecordAllocations,
+} from '@/src/db/shared-ledger';
 import type {
   Financing,
   FinancingAdjustment,
@@ -104,6 +110,7 @@ export const useFinancingsRepository = () => {
       const payments = new ORM(txn, 'FinancingPayments');
       const adjustments = new ORM(txn, 'FinancingAdjustments');
       const financings = new ORM(txn, 'Financings');
+      await clearFinancingAllocations(txn, id);
       await payments.deleteWhere('financing_id', id);
       await adjustments.deleteWhere('financing_id', id);
       await financings.delete(id);
@@ -204,6 +211,26 @@ export const useFinancingsRepository = () => {
           : existing?.record_id ?? null;
       let groupId = values.group_id ?? null;
       let paymentMethodId = values.payment_method_id ?? null;
+      let recordLabel: string | null = null;
+
+      const participantRows = (await new ORM(
+        txn,
+        'SharedExpenseParticipants'
+      )
+        .where('owner_type', 'financing')
+        .where('owner_id', values.financing_id)
+        .getAll()) as { person_id: number; share_percent: number }[];
+      const sharedPercent = Math.min(
+        100,
+        participantRows.reduce(
+          (sum, participant) => sum + participant.share_percent,
+          0
+        )
+      );
+      const sharedAmount = Math.round(
+        (values.amount_cents * sharedPercent) / 100
+      );
+      const ownAmount = values.amount_cents - sharedAmount;
 
       if (record?.linkMode === 'link') {
         if (!record.recordId) throw new Error('RECORD_REQUIRED');
@@ -221,13 +248,20 @@ export const useFinancingsRepository = () => {
           .where('record_id', record.recordId)
           .first()) as VehicleExpenseLink | null;
         if (vehicleLink) throw new Error('RECORD_ALREADY_LINKED');
-        if (linked.amount !== values.amount_cents) {
+        if (linked.amount !== ownAmount) {
           throw new Error('RECORD_AMOUNT_MISMATCH');
         }
         if (!isSameDay(linked.date, values.date)) {
           throw new Error('RECORD_DATE_MISMATCH');
         }
+        if (sharedAmount > 0) {
+          await records.update(record.recordId, {
+            own_amount_cents: ownAmount,
+            shared_amount_cents: sharedAmount,
+          });
+        }
         recordId = record.recordId;
+        recordLabel = linked.record_name;
         groupId = linked.group_id ?? groupId;
         paymentMethodId = linked.payment_method_id ?? paymentMethodId;
       } else if (record?.linkMode === 'create') {
@@ -241,24 +275,10 @@ export const useFinancingsRepository = () => {
         if (!category) throw new Error('CATEGORY_REQUIRED');
         if (!method) throw new Error('PAYMENT_METHOD_REQUIRED');
         if (!recordType) throw new Error('RECORD_TYPE_REQUIRED');
-        const participantRows = (await new ORM(txn, 'SharedExpenseParticipants')
-          .where('owner_type', 'financing')
-          .where('owner_id', values.financing_id)
-          .getAll()) as { share_percent: number }[];
-        const sharedPercent = Math.min(
-          100,
-          participantRows.reduce(
-            (sum, participant) => sum + participant.share_percent,
-            0
-          )
-        );
-        const sharedAmount = Math.round(
-          (values.amount_cents * sharedPercent) / 100
-        );
 
         const recordPayload = recordInputSchema.parse({
-          amount: values.amount_cents,
-          own_amount_cents: values.amount_cents - sharedAmount,
+          amount: ownAmount,
+          own_amount_cents: ownAmount,
           shared_amount_cents: sharedAmount,
           record_name: `Payment · ${financing.name}`,
           date: values.date,
@@ -268,9 +288,12 @@ export const useFinancingsRepository = () => {
           payment_method_id: method,
         });
 
+        recordLabel = recordPayload.record_name;
         if (recordId) {
           await records.update(recordId, {
             amount: recordPayload.amount,
+            own_amount_cents: recordPayload.own_amount_cents,
+            shared_amount_cents: recordPayload.shared_amount_cents,
             record_name: recordPayload.record_name,
             date: recordPayload.date,
             record_type_id: recordPayload.record_type_id,
@@ -289,15 +312,40 @@ export const useFinancingsRepository = () => {
 
       const payload = financingPaymentInputSchema.parse({
         ...values,
+        is_shared: financing.is_shared ? 1 : 0,
+        shared_amount_cents: financing.is_shared ? sharedAmount : null,
         group_id: groupId,
         payment_method_id: paymentMethodId,
         record_id: recordId,
       });
+      let paymentId: number;
       if (id !== undefined) {
         await payments.update(id, payload);
-        return id;
+        paymentId = id;
+        if (record?.linkMode === 'none') {
+          await clearFinancingPaymentAllocations(txn, paymentId);
+        }
+      } else {
+        paymentId = await payments.insert(
+          payload as Insertable<FinancingPayment>
+        );
       }
-      return payments.insert(payload as Insertable<FinancingPayment>);
+
+      if (recordId != null && recordLabel) {
+        await syncRecordAllocations({
+          txn,
+          recordId,
+          ownerType: 'financing',
+          ownerId: values.financing_id,
+          label: recordLabel,
+          date: values.date,
+          sharedCents: sharedAmount,
+          participants: participantRows,
+          financingPaymentId: paymentId,
+        });
+      }
+
+      return paymentId;
     });
   };
 
@@ -307,6 +355,10 @@ export const useFinancingsRepository = () => {
       const records = new ORM(txn, 'Records');
       const payment = (await payments.getById(id)) as FinancingPayment | null;
       if (!payment) return;
+      await clearFinancingPaymentAllocations(txn, id);
+      if (payment.record_id != null) {
+        await clearRecordAllocations(txn, payment.record_id, 'financing');
+      }
       if (deleteRecord && payment.record_id != null) {
         await records.delete(payment.record_id);
       }

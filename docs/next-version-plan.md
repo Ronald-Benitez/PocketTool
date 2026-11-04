@@ -127,6 +127,8 @@ financiamientos no aparecen como obligaciones pendientes.
 
 - Extender `records-table.tsx` para generar una lista de pagos de
   financiamientos pendientes del grupo/mes actual.
+- Mostrar el pago desde el inicio del mes seleccionado, sin esperar el día
+  exacto, e incluir los vencidos.
 - Excluir pagos que ya tienen `record_id`.
 - Añadir una sección “Créditos y préstamos” con el mismo patrón visual de
   `FixedsGroup`.
@@ -151,6 +153,10 @@ financiamientos no aparecen como obligaciones pendientes.
 - El modal abre con todos los datos completos.
 - Al guardar, el pendiente desaparece y no se duplica.
 - El pago queda vinculado al financiamiento.
+- Si el pago vence hoy, también aparece en Home y abre el formulario con la
+  fecha y el monto precargados.
+- Los montos mostrados y registrados son los del usuario; la parte compartida
+  se muestra aparte.
 
 ### NV-2. Compartidos en Gastos fijos
 
@@ -178,8 +184,10 @@ financiamientos no aparecen como obligaciones pendientes.
 - Añadir a `Records`:
   - `own_amount_cents`
   - `shared_amount_cents`
-- Mantener `amount` como total.
-- Regla `own + shared = amount`.
+- `amount` guarda el monto propio del usuario; el total se obtiene como
+  `own_amount_cents + shared_amount_cents`.
+- Regla `own + shared = total` en la UI. Los registros históricos conservan su
+  snapshot y se normalizan al editarlos.
 - Mostrar selectores/toggles de total/propio/compartido en:
   - Registros;
   - Resúmenes;
@@ -233,6 +241,10 @@ contraparte.
 - Una persona se crea una vez y se reutiliza.
 - Se puede ver cuánto se comparte con cada persona.
 - No se duplican personas por errores de escritura.
+- Cada persona tiene un historial de pagos compartidos
+  (`SharedPaymentAllocations`) con fecha, concepto, porcentaje y monto. El
+  historial registra también la parte compartida de abonos a capital y de
+  pagos que reducen la cuota.
 
 ### NV-6. Inferencia correcta de odómetro
 
@@ -376,13 +388,18 @@ Migraciones pequeñas por dominio:
    - `SharedExpenseParticipants`.
    - Backfill de `Financings.is_shared`/`shared_percent`/
      `shared_counterparty`.
-3. `0015_records_shared_amounts`
+3. `0015_records_shared_amounts` — **implementada**.
    - `Records.own_amount_cents`.
    - `Records.shared_amount_cents`.
    - Backfill: `own = amount`, `shared = 0`.
+4. `0016_shared_payment_allocations` — **implementada**.
+   - `SharedPaymentAllocations` con persona, dueño, registro, fecha, etiqueta,
+     porcentaje y monto.
+   - Registra el historial por persona de fijos y financiamientos, incluidos
+     abonos a capital.
 
-No se requiere una migración para el vínculo de pagos de financiamiento: se usa
-`FinancingPayments.record_id`.
+No se requiere una migración adicional para el vínculo de pagos de
+financiamiento: se usa `FinancingPayments.record_id`.
 
 Reglas:
 
@@ -462,9 +479,10 @@ Reglas:
 
 Implementado:
 
-- NV-1: créditos/préstamos pendientes en Registros, con fecha y monto del
-  próximo pago, apertura del formulario de pago precargado y creación/vínculo
-  del `Record` sin duplicados.
+- NV-1: créditos/préstamos pendientes en Registros, visibles durante todo el
+  mes seleccionado (incluidos vencidos), con apertura del formulario de pago
+  precargado y creación/vínculo del `Record` sin duplicados. En Home también
+  aparecen las obligaciones que vencen hoy y abren el formulario.
 - NV-6: odómetro efectivo en análisis de combustible, recordatorios y lectura
   previa para cargas parciales.
 - NV-7: `VehicleSettings.record_type_id` global de la sección Vehículo (no por
@@ -474,18 +492,19 @@ Implementado:
 - NV-8: los resúmenes de fijos incluyen la cuota mensual de financiamientos
   activos por tipo de registro, tipo de pago, método de pago y categoría.
 - NV-4/NV-5: registro de personas y participantes ilimitados con porcentajes;
-  aplicado a financiamientos y gastos fijos.
-- NV-8: los resúmenes de fijos incluyen la cuota mensual de financiamientos
-  activos por tipo de registro, tipo de pago, método de pago y categoría.
+  aplicado a financiamientos y gastos fijos. Cada persona tiene un historial de
+  pagos compartidos con el monto de su parte.
 - NV-9: la sección se renombró a **Compromisos** en el drawer.
 - NV-10: se corrigió la carrera de selección de grupo en Resumen; una selección
   del usuario ya no es sobrescrita por la carga asíncrona del grupo fijado y las
   cargas antiguas de registros no pisan la selección nueva.
 - NV-2/NV-3: compartidos en fijos y financiamientos, con total/propio/compartido
-  en formularios y resúmenes; `Records` guarda `own_amount_cents` y
-  `shared_amount_cents` como snapshot.
+  en formularios y resúmenes. `Records.amount` guarda el monto propio;
+  `shared_amount_cents` guarda la parte compartida como snapshot. Los resúmenes
+  personales usan el monto propio y muestran el total/compartido aparte.
 - Migraciones `0013_vehicle_settings_record_type`,
-  `0014_people_and_shared_participants` y `0015_records_shared_amounts`.
+  `0014_people_and_shared_participants`, `0015_records_shared_amounts` y
+  `0016_shared_payment_allocations`; `SCHEMA_VERSION = 16`.
 
 Pendiente:
 

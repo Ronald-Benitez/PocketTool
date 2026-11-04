@@ -62,12 +62,32 @@ const FinancingsGroup = ({ payments, onPress }: FinancingsGroupProps) => {
                     {dateh.getStringMonth(String(item.next.date))}
                   </Text>
                 </View>
-                <Text style={[localStyles.nameText, styles.textPrimary]}>
-                  {item.financing.name}
-                </Text>
-                <Text style={[localStyles.valueText, styles.textPrimary]}>
-                  {formatMoneyWithSymbol(item.summary.monthlyPaymentCents)}
-                </Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={[localStyles.nameText, styles.textPrimary]}>
+                    {item.financing.name}
+                  </Text>
+                  {item.financing.is_shared ? (
+                    <Text style={[localStyles.captionText, styles.textMuted]}>
+                      {t('shared.total')}:{' '}
+                      {formatMoneyWithSymbol(item.summary.monthlyPaymentCents)} ·{' '}
+                      {t('shared.totalShared')}:{' '}
+                      {formatMoneyWithSymbol(item.summary.sharedPaymentCents)}
+                    </Text>
+                  ) : null}
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={[localStyles.valueText, styles.textPrimary]}>
+                    {formatMoneyWithSymbol(
+                      item.summary.monthlyPaymentCents -
+                        item.summary.sharedPaymentCents
+                    )}
+                  </Text>
+                  {item.financing.is_shared ? (
+                    <Text style={[localStyles.captionText, styles.textMuted]}>
+                      {t('shared.own')}
+                    </Text>
+                  ) : null}
+                </View>
               </View>
             </AccentRow>
           </Pressable>
@@ -96,6 +116,10 @@ const localStyles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'left',
     maxWidth: 200,
+  },
+  captionText: {
+    fontSize: 9,
+    textAlign: 'left',
   },
   valueText: {
     fontSize: 12,

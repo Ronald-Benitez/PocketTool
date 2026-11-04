@@ -3,7 +3,7 @@
 > Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.
 > Fuente de verdad: `src/db/schema/tables.ts`.
 
-Versión de esquema: **15**
+Versión de esquema: **16**
 
 ## Convenciones
 
@@ -29,6 +29,7 @@ Versión de esquema: **15**
 | `FinancingAdjustments` | `financing_adjustments` | `FinancingAdjustment` | 13 | 1 |
 | `People` | `people` | `Person` | 7 | 1 |
 | `SharedExpenseParticipants` | `shared_expense_participants` | `SharedExpenseParticipant` | 9 | 2 |
+| `SharedPaymentAllocations` | `shared_payment_allocations` | `SharedPaymentAllocation` | 13 | 3 |
 | `BudgetTemplates` | `budget_templates` | `BudgetTemplate` | 8 | 0 |
 | `BudgetTemplateItems` | `budget_template_items` | `BudgetTemplateItem` | 13 | 4 |
 | `BudgetPlans` | `budget_plans` | `BudgetPlan` | 10 | 2 |
@@ -368,6 +369,35 @@ Relaciones navegables: `People`
 Índices:
 - `idx_shared_owner` (owner_type, owner_id) WHERE deleted_at IS NULL
 - `idx_shared_person` (person_id) WHERE deleted_at IS NULL
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
+## SharedPaymentAllocations (`shared_payment_allocations`)
+
+Entidad TypeScript: `SharedPaymentAllocation`
+
+| Columna | SQL | TS | Notas |
+| --- | --- | --- | --- |
+| `id` | `INTEGER` | `number` | PK, autoincrement |
+| `person_id` | `INTEGER` | `number` | NOT NULL, FK → People.id ON DELETE CASCADE |
+| `owner_type` | `TEXT` | `string` | NOT NULL |
+| `owner_id` | `INTEGER` | `number` | NOT NULL |
+| `record_id` | `INTEGER` | `number` | NOT NULL, FK → Records.id ON DELETE CASCADE |
+| `financing_payment_id` | `INTEGER` | `number` | FK → FinancingPayments.id ON DELETE SET NULL |
+| `label` | `TEXT` | `string` | NOT NULL |
+| `date` | `INTEGER` | `TimestampMs` | NOT NULL, kind=timestamp |
+| `amount_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money |
+| `share_percent` | `REAL` | `number` | NOT NULL |
+| `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Relaciones navegables: `People`, `Records`, `Records.RecordTypes`, `Records.Groups`, `Records.Categories`, `Records.PaymentMethods`, `Records.PaymentMethods.PaymentTypes`, `Records.Fixed`, `Records.Fixed.RecordTypes`, `Records.Fixed.Categories`, `Records.Fixed.PaymentMethods`, `Records.Fixed.PaymentMethods.PaymentTypes`, `Records.PaidCredits`, `Records.PaidCredits.Groups`, `Records.PaidCredits.PaymentMethods`, `Records.PaidCredits.PaymentMethods.PaymentTypes`, `FinancingPayments`, `FinancingPayments.Financings`, `FinancingPayments.Financings.PaymentMethods`, `FinancingPayments.Financings.PaymentMethods.PaymentTypes`, `FinancingPayments.Financings.Categories`, `FinancingPayments.Financings.RecordTypes`, `FinancingPayments.Groups`, `FinancingPayments.PaymentMethods`, `FinancingPayments.PaymentMethods.PaymentTypes`
+
+Índices:
+- `idx_shared_allocations_person_date` (person_id, date) WHERE deleted_at IS NULL
+- `idx_shared_allocations_record` (record_id) WHERE deleted_at IS NULL
+- `idx_shared_allocations_owner` (owner_type, owner_id) WHERE deleted_at IS NULL
 
 Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
 

@@ -30,6 +30,9 @@ export const sharedEn = {
     personSaved: 'Person saved',
     personDeleted: 'Person deleted',
     personRequired: 'Enter a name.',
+    ledger: 'Payment history',
+    ledgerTotal: 'Shared payments',
+    ledgerEmpty: 'No shared payments yet.',
   },
 };
 
@@ -63,5 +66,8 @@ export const sharedEs: MessageShape<typeof sharedEn> = {
     personSaved: 'Persona guardada',
     personDeleted: 'Persona eliminada',
     personRequired: 'Ingresa un nombre.',
+    ledger: 'Historial de pagos',
+    ledgerTotal: 'Pagos compartidos',
+    ledgerEmpty: 'Todavía no hay pagos compartidos.',
   },
 };

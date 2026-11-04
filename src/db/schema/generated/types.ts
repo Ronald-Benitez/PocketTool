@@ -179,6 +179,20 @@ export interface SharedExpenseParticipant extends Entity, SoftDeletable {
   updated_at?: TimestampMs | null;
 }
 
+export interface SharedPaymentAllocation extends Entity, SoftDeletable {
+  person_id: number;
+  owner_type: string;
+  owner_id: number;
+  record_id: number;
+  financing_payment_id?: number | null;
+  label: string;
+  date: TimestampMs;
+  amount_cents: Cents;
+  share_percent: number;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
 export interface BudgetTemplate extends Entity, SoftDeletable {
   template_name: string;
   description?: string | null;

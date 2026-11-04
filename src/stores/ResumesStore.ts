@@ -26,7 +26,10 @@ type PaymentResume<T> = T & {
 };
 
 export interface Resumes {
+    /** Personal balance: only the user's own share of every record. */
     balance: number;
+    /** Total balance including the shared share. */
+    totalBalance: number;
     ownBalance: number;
     sharedBalance: number;
     todayBalanceByRecordType: RecordTypeResume[];
@@ -58,7 +61,7 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
             if (sign === 0) return;
             const own = record.own_amount_cents ?? record.amount;
             const shared = record.shared_amount_cents ?? 0;
-            balances.total += sign * record.amount;
+            balances.total += sign * (own + shared);
             balances.own += sign * own;
             balances.shared += sign * shared;
         });
@@ -70,7 +73,7 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
 
     const calculateResumes = (): Omit<
         Resumes,
-        "balance" | "ownBalance" | "sharedBalance"
+        "balance" | "totalBalance" | "ownBalance" | "sharedBalance"
     > => {
         const todayBalanceByRecordType = createRecordTypeTotals();
         const balanceByRecordType = createRecordTypeTotals();
@@ -96,12 +99,13 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
         const startOfToday = now.getTime();
 
         records.forEach(record => {
+            const ownAmount = record.own_amount_cents ?? record.amount;
             const recordType = balanceByRecordType.find(item => item.id === record.record_type_id);
-            if (recordType) recordType.total += record.amount;
+            if (recordType) recordType.total += ownAmount;
 
             const todayRecordType = todayBalanceByRecordType.find(item => item.id === record.record_type_id);
             if (todayRecordType && record.date >= startOfToday && record.date <= endOfToday) {
-                todayRecordType.total += record.amount;
+                todayRecordType.total += ownAmount;
             }
 
             const paymentMethodId = record.payment_method_id;
@@ -116,7 +120,7 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
                 const typeTotal = resume.totalPerRecordType.find(
                     item => item.id === record.record_type_id
                 );
-                if (typeTotal) typeTotal.total += record.amount;
+                if (typeTotal) typeTotal.total += ownAmount;
                 resume.balance = resume.totalPerRecordType.reduce(typeReducer, 0);
             }
         });
@@ -133,7 +137,8 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
     const balances = calculateBalances();
 
     return create<Resumes>(() => ({
-        balance: balances.total,
+        balance: balances.own,
+        totalBalance: balances.total,
         ownBalance: balances.own,
         sharedBalance: balances.shared,
         ...calculateResumes()

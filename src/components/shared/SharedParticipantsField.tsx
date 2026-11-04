@@ -1,16 +1,19 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 
 import type { Person } from '@/src/interfaces/schema';
 import type { ParticipantDraft } from '@/src/db/repositories/people';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { formatMoneyWithSymbol } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
+import { IconButton } from '@/src/ui/actions/IconButton';
 import { InlineMessage } from '@/src/ui/feedback/InlineMessage';
 import { SelectField } from '@/src/ui/forms/SelectField';
 import { TextField } from '@/src/ui/forms/TextField';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Stack } from '@/src/ui/primitives/Stack';
+import { useTheme } from '@/src/ui/theme/ThemeProvider';
 
 type SharedParticipantsFieldProps = {
   people: Person[];
@@ -32,6 +35,7 @@ export const SharedParticipantsField = ({
   totalCents,
 }: SharedParticipantsFieldProps) => {
   const { t } = useLanguage();
+  const { colors } = useTheme();
   const activePeople = people.filter((person) => person.is_active !== 0);
   const totalPercent = value.reduce(
     (sum, participant) => sum + participant.sharePercent,
@@ -92,13 +96,21 @@ export const SharedParticipantsField = ({
               keyboardType='decimal-pad'
             />
           </View>
-          <Button
+          <IconButton
             label={t('shared.remove')}
-            size='sm'
-            variant='danger'
+            size='md'
+            variant='ghost'
+            icon={
+              <MaterialIcons
+                name='delete-outline'
+                size={22}
+                color={colors.danger}
+              />
+            }
             onPress={() =>
               onChange(value.filter((_, current) => current !== index))
             }
+            style={styles.removeButton}
           />
         </View>
         );
@@ -123,17 +135,26 @@ export const SharedParticipantsField = ({
           ]);
         }}
       />
-      <AppText variant='caption' color='muted'>
-        {t('shared.totalShared')}: {totalPercent.toFixed(0)}% ·{' '}
-        {t('shared.own')}: {ownPercent.toFixed(0)}%
-      </AppText>
       {totalCents != null && sharedCents != null && ownCents != null ? (
+        <Stack gap='xxs'>
+          <AppText variant='caption' color='muted'>
+            {t('shared.total')}: {formatMoneyWithSymbol(totalCents)}
+          </AppText>
+          <AppText variant='caption' color='muted'>
+            {t('shared.own')}: {ownPercent.toFixed(0)}% ·{' '}
+            {formatMoneyWithSymbol(ownCents)}
+          </AppText>
+          <AppText variant='caption' color='muted'>
+            {t('shared.totalShared')}: {totalPercent.toFixed(0)}% ·{' '}
+            {formatMoneyWithSymbol(sharedCents)}
+          </AppText>
+        </Stack>
+      ) : (
         <AppText variant='caption' color='muted'>
-          {t('shared.total')}: {formatMoneyWithSymbol(totalCents)} ·{' '}
-          {t('shared.ownAmount')}: {formatMoneyWithSymbol(ownCents)} ·{' '}
-          {t('shared.sharedAmount')}: {formatMoneyWithSymbol(sharedCents)}
+          {t('shared.own')}: {ownPercent.toFixed(0)}% ·{' '}
+          {t('shared.totalShared')}: {totalPercent.toFixed(0)}%
         </AppText>
-      ) : null}
+      )}
       {totalPercent > 100 ? (
         <InlineMessage variant='error' message={t('shared.invalidTotal')} />
       ) : null}
@@ -146,5 +167,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     alignItems: 'flex-end',
+  },
+  removeButton: {
+    alignSelf: 'flex-end',
   },
 });

@@ -15,7 +15,7 @@ import { useTheme } from '@/src/ui/theme/ThemeProvider';
 const RecordTypeScreen = () => {
     const { t } = useLanguage();
     const { colors } = useTheme();
-    const { balance, ownBalance, sharedBalance, balanceByRecordType } = useFixedsResumesStore()
+    const { balance, totalBalance, sharedBalance, balanceByRecordType } = useFixedsResumesStore()
 
     return (
         <Screen scroll edges={['left', 'right']}>
@@ -33,8 +33,8 @@ const RecordTypeScreen = () => {
 
                 <Row gap='md'>
                     <SummaryBlock
-                        label={t('resume.own')}
-                        cents={ownBalance}
+                        label={t('resume.total')}
+                        cents={totalBalance}
                         size='md'
                         valueColorOverride={colors.text}
                         accentColor={colors.primary}

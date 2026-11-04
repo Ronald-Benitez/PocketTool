@@ -198,9 +198,17 @@ commits relevantes, archivos tocados y verificaciones realizadas.
   vínculos de pagos con `Records` (crear, vincular u omitir).
 - `src/db/errors.ts`: `mapDatabaseError` y códigos explícitos para errores de
   SQLite.
-- `src/db/repositories/people.ts`: registro de personas y participantes de
-  gastos compartidos (`fixed`/`financing`).
-- `app/(fixeds)/PeopleScreen.tsx`: alta, edición y archivo de personas.
+- `src/db/repositories/people.ts`: registro de personas, participantes de
+  gastos compartidos (`fixed`/`financing`) e historial de pagos compartidos.
+- `src/domain/shared/split.ts`: reparte un monto compartido entre personas y
+  garantiza que la suma reconcilie.
+- `src/db/shared-ledger.ts`: sincroniza `SharedPaymentAllocations` desde
+  registros de fijos y pagos de financiamientos.
+- `app/(fixeds)/PeopleScreen.tsx`: alta, edición, archivo y ledger por persona.
+- Regla de compartidos: `Records.amount` guarda el monto propio del usuario;
+  `own_amount_cents` lo replica y `shared_amount_cents` es el snapshot de la
+  parte compartida. El total es `own + shared`. Los resúmenes personales usan el
+  monto propio.
 - `src/components/shared/SharedParticipantsField.tsx`: selector reutilizable de
   personas y porcentajes con total/propio/compartido.
 - `src/stores/CreditsStore.ts`: totales por ciclo y uso de tarjeta con compras a

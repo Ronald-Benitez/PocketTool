@@ -410,7 +410,7 @@ async function testEmptyDatabase() {
   assert.strictEqual(q(raw, 'SELECT goal FROM groups')[0].goal, 500000);
   assert.strictEqual(q(raw, 'SELECT amount FROM records ORDER BY id')[0].amount, 100000);
   assert.strictEqual(q(raw, 'SELECT migration_name FROM migrations')[0].migration_name, '0001_baseline');
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 15);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 16);
   const recordColumns = q(raw, 'PRAGMA table_info(records)').map(c => c.name);
   assert.ok(recordColumns.includes('created_at'));
   assert.ok(recordColumns.includes('updated_at'));
@@ -447,7 +447,7 @@ async function testExportImport() {
   assert.ok(metadata);
   assert.strictEqual(metadata.formatVersion, BACKUP_FORMAT_VERSION);
   assert.strictEqual(metadata.appVersion, 'test-version');
-  assert.strictEqual(metadata.schemaVersion, 15);
+  assert.strictEqual(metadata.schemaVersion, 16);
   assert.ok(metadata.tables.includes('records'));
   assert.doesNotThrow(() => validateSqlDump(backupSql));
   assert.strictEqual(parseBackupMetadata(dump), null);
@@ -500,7 +500,7 @@ async function testAuditTimestampMigration() {
   const backfilled = q(raw, 'SELECT created_at, updated_at FROM records LIMIT 1')[0];
   assert.ok(backfilled.created_at > 0);
   assert.ok(backfilled.updated_at > 0);
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 15);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 16);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,
     1
@@ -981,6 +981,51 @@ async function testPeopleInsert() {
   console.log('people insert: OK');
 }
 
+async function testSharedPaymentAllocations() {
+  const raw = new DatabaseSync(':memory:');
+  const db = shim(raw);
+  await migrateDb(db);
+  const tables = q(
+    raw,
+    "SELECT name FROM sqlite_master WHERE type='table'"
+  ).map((row) => row.name);
+  assert.ok(
+    tables.includes('shared_payment_allocations'),
+    'missing shared_payment_allocations table'
+  );
+
+  const people = new ORM(db, 'People');
+  const personId = await people.insert({ name: 'Ana' });
+  const records = new ORM(db, 'Records');
+  const recordId = await records.insert({
+    amount: 5000,
+    own_amount_cents: 5000,
+    shared_amount_cents: 5000,
+    record_name: 'Shared rent',
+    date: 1,
+  });
+  const allocations = new ORM(db, 'SharedPaymentAllocations');
+  await allocations.insert({
+    person_id: personId,
+    owner_type: 'fixed',
+    owner_id: 1,
+    record_id: recordId,
+    label: 'Shared rent',
+    date: 1,
+    amount_cents: 5000,
+    share_percent: 50,
+  });
+
+  const total = q(
+    raw,
+    'SELECT SUM(amount_cents) AS total FROM shared_payment_allocations WHERE person_id = ?',
+    [personId]
+  )[0].total;
+  assert.strictEqual(total, 5000);
+  raw.close();
+  console.log('shared payment allocations: OK');
+}
+
 async function testVehicleInsert() {
   const raw = new DatabaseSync(':memory:');
   const db = shim(raw);
@@ -1160,6 +1205,7 @@ async function testInterruptedRebuild() {
   await testRecordsSharedAmountsMigration();
   await testPeopleAndSharedParticipantsMigration();
   await testPeopleInsert();
+  await testSharedPaymentAllocations();
   await testVehicleSettingsRecordTypeMigration();
   await testVehicleInsert();
   await testVehicleTypeMigration();

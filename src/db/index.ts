@@ -38,5 +38,9 @@ export interface ResumeByCreditCards {
   previous: number;
 }
 
-export { usePeopleRepository, useSharedParticipantsRepository } from './repositories';
+export {
+  usePeopleRepository,
+  useSharedLedgerRepository,
+  useSharedParticipantsRepository,
+} from './repositories';
 

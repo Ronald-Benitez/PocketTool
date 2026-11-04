@@ -60,6 +60,33 @@
   "SharedExpenseParticipants": {
     "People": "People"
   },
+  "SharedPaymentAllocations": {
+    "People": "People",
+    "Records": "Records",
+    "Records.RecordTypes": "Records.RecordTypes",
+    "Records.Groups": "Records.Groups",
+    "Records.Categories": "Records.Categories",
+    "Records.PaymentMethods": "Records.PaymentMethods",
+    "Records.PaymentMethods.PaymentTypes": "Records.PaymentMethods.PaymentTypes",
+    "Records.Fixed": "Records.Fixed",
+    "Records.Fixed.RecordTypes": "Records.Fixed.RecordTypes",
+    "Records.Fixed.Categories": "Records.Fixed.Categories",
+    "Records.Fixed.PaymentMethods": "Records.Fixed.PaymentMethods",
+    "Records.Fixed.PaymentMethods.PaymentTypes": "Records.Fixed.PaymentMethods.PaymentTypes",
+    "Records.PaidCredits": "Records.PaidCredits",
+    "Records.PaidCredits.Groups": "Records.PaidCredits.Groups",
+    "Records.PaidCredits.PaymentMethods": "Records.PaidCredits.PaymentMethods",
+    "Records.PaidCredits.PaymentMethods.PaymentTypes": "Records.PaidCredits.PaymentMethods.PaymentTypes",
+    "FinancingPayments": "FinancingPayments",
+    "FinancingPayments.Financings": "FinancingPayments.Financings",
+    "FinancingPayments.Financings.PaymentMethods": "FinancingPayments.Financings.PaymentMethods",
+    "FinancingPayments.Financings.PaymentMethods.PaymentTypes": "FinancingPayments.Financings.PaymentMethods.PaymentTypes",
+    "FinancingPayments.Financings.Categories": "FinancingPayments.Financings.Categories",
+    "FinancingPayments.Financings.RecordTypes": "FinancingPayments.Financings.RecordTypes",
+    "FinancingPayments.Groups": "FinancingPayments.Groups",
+    "FinancingPayments.PaymentMethods": "FinancingPayments.PaymentMethods",
+    "FinancingPayments.PaymentMethods.PaymentTypes": "FinancingPayments.PaymentMethods.PaymentTypes"
+  },
   "BudgetTemplates": {},
   "BudgetTemplateItems": {
     "BudgetTemplates": "BudgetTemplates",

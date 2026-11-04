@@ -16,6 +16,7 @@ import type {
     RecordType
 } from "@/src/interfaces/schema";
 import { useConfigs } from "@/src/hooks/useConfigs";
+import { formatMoneyWithSymbol } from "@/src/utils";
 import { Button } from "@/src/ui/actions/Button";
 import { ColoredSelectOption } from "@/src/ui/forms/ColoredSelectOption";
 import { DateField } from "@/src/ui/forms/DateField";
@@ -23,6 +24,8 @@ import { MoneyField } from "@/src/ui/forms/MoneyField";
 import { SelectField } from "@/src/ui/forms/SelectField";
 import { TextField } from "@/src/ui/forms/TextField";
 import { Modal } from "@/src/ui/overlays/Modal";
+import { AppText } from "@/src/ui/primitives/AppText";
+import { Surface } from "@/src/ui/primitives/Surface";
 
 interface AddItemProps {
     item?: RecordFormEntry
@@ -44,6 +47,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     const [category, setCategory] = useState<Category>()
     const [fixed_id, setFixedId] = useState<number | undefined>(undefined)
     const [amountCents, setAmountCents] = useState<number>(0)
+    const [sharedCents, setSharedCents] = useState<number>(0)
     const [group_id, setGroupId] = useState<number>(group?.id || 0)
     const { showToast } = useToast()
     const [recordTypes, setRecordTypes] = useState<RecordType[]>([])
@@ -91,7 +95,8 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     useEffect(() => {
         if (!item) return
         setName(item.record_name ?? "")
-        setAmountCents(item.amount ?? 0)
+        setAmountCents(item.own_amount_cents ?? item.amount ?? 0)
+        setSharedCents(item.shared_amount_cents ?? 0)
         if (item.date !== undefined) setDate(dateH.verify(item.date).getTime())
         setType(recordTypes.find(val => val.id === item.record_type_id))
         if (item.group_id !== undefined && item.group_id !== null) setGroupId(item.group_id)
@@ -155,10 +160,8 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                 record_name: name.length < 1 ? category.category_name : name,
                 record_type_id: type.id,
                 amount: amountCents,
-                own_amount_cents:
-                    item?.own_amount_cents ?? amountCents,
-                shared_amount_cents:
-                    item?.shared_amount_cents ?? 0,
+                own_amount_cents: amountCents,
+                shared_amount_cents: sharedCents,
                 category_id: category.id,
                 payment_method_id: payment_method.id,
                 fixed_id,
@@ -177,6 +180,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                 showToast({ message: t('toast.added'), type: 'success' })
                 setName("")
                 setAmountCents(0)
+                setSharedCents(0)
             }
 
             const records = await fetchRecords(group_id)
@@ -295,11 +299,27 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                         />
                     ) : null}
                     <MoneyField
-                        label={t('item.value')}
+                        label={sharedCents > 0 ? t('shared.ownAmount') : t('item.value')}
                         required
                         value={amountCents}
                         onChangeCents={setAmountCents}
                     />
+                    {sharedCents > 0 ? (
+                        <Surface variant='muted' padding='md'>
+                            <AppText variant='caption' color='muted'>
+                                {t('shared.total')}:{' '}
+                                {formatMoneyWithSymbol(amountCents + sharedCents)}
+                            </AppText>
+                            <AppText variant='caption' color='muted'>
+                                {t('shared.own')}:{' '}
+                                {formatMoneyWithSymbol(amountCents)}
+                            </AppText>
+                            <AppText variant='caption' color='muted'>
+                                {t('shared.totalShared')}:{' '}
+                                {formatMoneyWithSymbol(sharedCents)}
+                            </AppText>
+                        </Surface>
+                    ) : null}
                     <DateField
                         label={t('item.date')}
                         value={date}

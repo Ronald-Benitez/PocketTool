@@ -30,6 +30,7 @@ import {
   useRecords,
   useSharedParticipantsRepository,
 } from "@/src/db";
+import { mapDatabaseError } from "@/src/db/errors";
 import { summarizeFinancing, type FinancingSummary } from "@/src/domain/credits/summary";
 import type { FinancingWithRelations } from "@/src/interfaces/schema";
 import { FinancingPaymentForm } from "@/src/components/credits/FinancingPaymentForm";
@@ -131,9 +132,20 @@ const ItemsTable = () => {
 
   useEffect(() => {
     let active = true
-    financingsRepository.fetchFinancings().then((rows) => {
-      if (active) setFinancings(rows)
-    })
+    financingsRepository
+      .fetchFinancings()
+      .then((rows) => {
+        if (active) setFinancings(rows)
+      })
+      .catch((cause) => {
+        if (!active) return
+        if (__DEV__) console.warn("[records] financing load failed", cause)
+        const mapped = mapDatabaseError(cause, t("toast.error"))
+        showToast({
+          message: t(`dbErrors.${mapped.code}` as never),
+          type: "error",
+        })
+      })
     return () => { active = false }
   }, [financingsRefreshKey, group?.id])
 
@@ -149,13 +161,19 @@ const ItemsTable = () => {
         )
         const next = summary.schedule.rows[0]
         if (!next) return []
-        const date = new Date(next.date)
-        if (
-          date.getFullYear() !== group.year ||
-          date.getMonth() + 1 !== group.month
-        ) {
-          return []
-        }
+        // Show any payment due inside the selected month, including overdue
+        // ones from previous months. The payment does not have to happen on
+        // the exact due day to appear as pending, just like fixed expenses.
+        const endOfGroupMonth = new Date(
+          group.year,
+          group.month,
+          0,
+          23,
+          59,
+          59,
+          999
+        ).getTime()
+        if (next.date > endOfGroupMonth) return []
         return [{ financing, summary, next }]
       })
       .sort((a, b) => a.next.date - b.next.date)
@@ -262,11 +280,12 @@ const ItemsTable = () => {
         const sharedAmount = Math.round(
           (fixed.fixed_amount * sharedPercent) / 100
         );
+        const ownAmount = fixed.fixed_amount - sharedAmount
         list.push({
           id: undefined,
           fixed_id: fixed.id,
-          amount: fixed.fixed_amount,
-          own_amount_cents: fixed.fixed_amount - sharedAmount,
+          amount: ownAmount,
+          own_amount_cents: ownAmount,
           shared_amount_cents: sharedAmount,
           date: date.getTime(),
           group_id: group?.id || 0,
@@ -284,9 +303,20 @@ const ItemsTable = () => {
 
   useEffect(() => {
     let active = true
-    participantsRepository.fetchAll('fixed').then((rows) => {
-      if (active) setFixedParticipants(rows)
-    })
+    participantsRepository
+      .fetchAll('fixed')
+      .then((rows) => {
+        if (active) setFixedParticipants(rows)
+      })
+      .catch((cause) => {
+        if (!active) return
+        if (__DEV__) console.warn("[records] participants load failed", cause)
+        const mapped = mapDatabaseError(cause, t("toast.error"))
+        showToast({
+          message: t(`dbErrors.${mapped.code}` as never),
+          type: "error",
+        })
+      })
     return () => { active = false }
   }, [Fixeds])
 

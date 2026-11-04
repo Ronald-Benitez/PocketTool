@@ -7,6 +7,7 @@ import type {
   Insertable,
   Person,
   SharedExpenseParticipant,
+  SharedPaymentAllocation,
   UpdateEntity,
 } from '@/src/interfaces/schema';
 import {
@@ -26,7 +27,6 @@ export type ParticipantDraft = {
 export const usePeopleRepository = () => {
   const db = useSQLiteContext();
   const peopleOrm = useORM('People');
-  const participantsOrm = useORM('SharedExpenseParticipants');
 
   const fetchPeople = async (): Promise<Person[]> => {
     try {
@@ -61,7 +61,9 @@ export const usePeopleRepository = () => {
       await withExclusiveTransaction(db, async (txn) => {
         const people = new ORM(txn, 'People');
         const participants = new ORM(txn, 'SharedExpenseParticipants');
+        const allocations = new ORM(txn, 'SharedPaymentAllocations');
         await participants.deleteWhere('person_id', id);
+        await allocations.deleteWhere('person_id', id);
         await people.delete(id);
       });
     } catch (error) {
@@ -146,4 +148,32 @@ export const useSharedParticipantsRepository = () => {
   };
 
   return { fetchFor, fetchAll, replaceFor };
+};
+
+export const useSharedLedgerRepository = () => {
+  const allocationsOrm = useORM('SharedPaymentAllocations');
+  const recordsOrm = useORM('Records');
+
+  const fetchAllocations = async (
+    personId?: number
+  ): Promise<SharedPaymentAllocation[]> => {
+    try {
+      const [allocations, records] = await Promise.all([
+        personId != null
+          ? allocationsOrm.where('person_id', personId).getAll()
+          : allocationsOrm.getAll(),
+        recordsOrm.getAll(),
+      ]);
+      const activeRecordIds = new Set(
+        records.flatMap((record) => (record.id == null ? [] : [record.id]))
+      );
+      return (allocations as SharedPaymentAllocation[])
+        .filter((allocation) => activeRecordIds.has(allocation.record_id))
+        .sort((left, right) => right.date - left.date);
+    } catch (error) {
+      throw mapDatabaseError(error, 'Could not load shared ledger');
+    }
+  };
+
+  return { fetchAllocations };
 };

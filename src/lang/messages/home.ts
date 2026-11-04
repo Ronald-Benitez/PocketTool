@@ -2,7 +2,8 @@ import type { MessageShape } from './types';
 
 export const homeEn = {
     "index": {
-        "fixedsMessage": "Remember to confirm your fixed transactions"
+        "fixedsMessage": "Remember to confirm your fixed transactions",
+        "obligations": "Due today"
     },
     "greeting": {
         "morning": "Good morning!",
@@ -13,7 +14,8 @@ export const homeEn = {
 
 export const homeEs: MessageShape<typeof homeEn> = {
     "index": {
-        "fixedsMessage": "Recuerda confirmar tus transacciones fijas"
+        "fixedsMessage": "Recuerda confirmar tus transacciones fijas",
+        "obligations": "Pendientes de hoy"
     },
     "greeting": {
         "morning": "¡Buenos días!",

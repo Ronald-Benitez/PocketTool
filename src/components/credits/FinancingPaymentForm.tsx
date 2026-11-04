@@ -5,6 +5,7 @@ import {
   useCategories,
   useFinancingsRepository,
   usePaymentMethods,
+  useSharedParticipantsRepository,
   useTableRepository,
 } from '@/src/db';
 import type {
@@ -16,6 +17,7 @@ import type {
   FinancingWithRelations,
   RecordType,
 } from '@/src/interfaces/schema';
+import { mapDatabaseError } from '@/src/db/errors';
 import type { FinancingSummary } from '@/src/domain/credits/summary';
 import {
   buildPaymentBreakdown,
@@ -72,6 +74,7 @@ export const FinancingPaymentForm = ({
   const { showToast } = useToast();
   const { group } = useRecordsStore();
   const repository = useFinancingsRepository();
+  const participantsRepository = useSharedParticipantsRepository();
   const categoriesRepository = useCategories();
   const paymentMethodsRepository = usePaymentMethods();
   const recordTypesRepository = useTableRepository('RecordTypes');
@@ -98,6 +101,7 @@ export const FinancingPaymentForm = ({
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sharedPercent, setSharedPercent] = useState(0);
 
   useEffect(() => {
     if (!visible) return;
@@ -166,6 +170,38 @@ export const FinancingPaymentForm = ({
     };
   }, [visible, financing?.category_id, financing?.payment_method_id]);
 
+  useEffect(() => {
+    if (!visible || !financing?.id) {
+      setSharedPercent(0);
+      return;
+    }
+    let active = true;
+    participantsRepository
+      .fetchFor('financing', financing.id)
+      .then((rows) => {
+        if (!active) return;
+        setSharedPercent(
+          Math.min(
+            100,
+            rows.reduce((total, row) => total + row.share_percent, 0)
+          )
+        );
+      })
+      .catch((cause) => {
+        if (!active) return;
+        if (__DEV__) console.warn('[financings] participants load failed', cause);
+        setSharedPercent(0);
+        const mapped = mapDatabaseError(cause, t('toast.error'));
+        showToast({
+          message: t(`dbErrors.${mapped.code}` as never),
+          type: 'error',
+        });
+      });
+    return () => {
+      active = false;
+    };
+  }, [visible, financing?.id]);
+
   const expected = summary?.monthlyPaymentCents ?? 0;
   const scheduled = summary?.schedule.paymentCents ?? expected;
   const breakdown = useMemo(
@@ -188,10 +224,19 @@ export const FinancingPaymentForm = ({
     ]
   );
 
+  const sharedAmount = Math.round(
+    (breakdown.amountCents * sharedPercent) / 100
+  );
+  const ownAmount = breakdown.amountCents - sharedAmount;
+  const grossUp = (ownCents: number) =>
+    sharedPercent >= 100
+      ? ownCents
+      : Math.round(ownCents / (1 - sharedPercent / 100));
+
   const selectLinkedRecord = (option: FinancingRecordOption) => {
     setLinkedRecord(option);
     setDate(option.date);
-    setAmount(option.amount);
+    setAmount(grossUp(option.amount));
     setCategoryId(option.categoryId);
     setPaymentMethodId(option.paymentMethodId);
   };
@@ -224,7 +269,7 @@ export const FinancingPaymentForm = ({
         setError(t('financings.records.recordRequired'));
         return;
       }
-      if (breakdown.amountCents !== linkedRecord.amount) {
+      if (Math.abs(ownAmount - linkedRecord.amount) > 1) {
         setError(t('financings.records.amountMismatch'));
         return;
       }
@@ -249,9 +294,7 @@ export const FinancingPaymentForm = ({
         extra_principal_cents: breakdown.extraPrincipalCents,
         extra_reduce_payment_cents: breakdown.extraReducePaymentCents,
         is_shared: financing.is_shared ? 1 : 0,
-        shared_amount_cents: financing.is_shared
-          ? summary?.sharedPaymentCents ?? null
-          : null,
+        shared_amount_cents: financing.is_shared ? sharedAmount : null,
         group_id: group?.id ?? null,
         payment_method_id: paymentMethodId,
         notes: notes.trim() || null,
@@ -440,6 +483,24 @@ export const FinancingPaymentForm = ({
                   </AppText>
                 </Row>
               ) : null}
+              {sharedPercent > 0 ? (
+                <>
+                  <Row justify='space-between'>
+                    <AppText color='muted'>{t('shared.total')}</AppText>
+                    <AppText>
+                      {formatMoneyWithSymbol(breakdown.amountCents)}
+                    </AppText>
+                  </Row>
+                  <Row justify='space-between'>
+                    <AppText color='muted'>{t('shared.own')}</AppText>
+                    <AppText>{formatMoneyWithSymbol(ownAmount)}</AppText>
+                  </Row>
+                  <Row justify='space-between'>
+                    <AppText color='muted'>{t('shared.totalShared')}</AppText>
+                    <AppText>{formatMoneyWithSymbol(sharedAmount)}</AppText>
+                  </Row>
+                </>
+              ) : null}
             </Stack>
           </Surface>
 
@@ -530,7 +591,8 @@ export const FinancingPaymentForm = ({
       <FinancingRecordPicker
         visible={recordPickerVisible}
         date={date}
-        amount={amount}
+        amount={ownAmount}
+        paymentId={payment?.id}
         onClose={() => setRecordPickerVisible(false)}
         onSelect={selectLinkedRecord}
       />
