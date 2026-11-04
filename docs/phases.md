@@ -17,6 +17,7 @@
 | Fase 8 — Vehículo | ✅ Finalizada | 2026-10-31 |
 | Fase 9 — Gastos fijos y Créditos | ✅ Finalizada | 2026-11-03 |
 | Fase 10 - Errores y ajustes de siguiente versión | ✅ Finalizada | 2026-11-03 |
+| Fase 11 — Ahorros compartidos y metas | 🚧 Planificación | 2026-11-04 |
 
 El detalle histórico de las fases 0–3 vive en
 [`legacy/phase-history.md`](legacy/phase-history.md). El detalle de la Fase 4
@@ -363,6 +364,33 @@ Cierre:
 - Temas de ayuda de **Personas** y **Tu parte / Total / Compartido** agregados.
 - Commits principales: `1f77b6a`, `3cc8dc8`, `6de9ff7`, `745f052`, `cf50c0b`,
   `4a3afaf`, `d454e75`, `f651333`, `7e03428`, `892875d`.
+
+## Fase 11 — Ahorros compartidos y metas (🚧 Planificación, 2026-11-04)
+
+**Plan completo:** [`savings-plan.md`](savings-plan.md)
+
+Estado: **planificación**. No hay cambios de esquema ni de UI todavía.
+
+Objetivo: convertir Ahorros en un módulo de cuentas y metas compartidas, con
+progreso global/propio/otras partes, intereses manuales, archivo histórico y una
+integración opcional con `Records` para decidir si un gasto se paga con el
+dinero del mes o con un ahorro.
+
+Alcance:
+
+- Participantes por ahorro reutilizando `People` y
+  `SharedExpenseParticipants` (`owner_type = 'saving'`).
+- Movimientos tipados: inicial, aporte, retiro, interés y ajuste.
+- Meta global, progreso, restante y proyección.
+- Modo de `Records` por ahorro: separado, transferencias o gastos desde ahorro.
+- Archivo de ahorros cumplidos o inactivos.
+- Gráfico con series global, propia y de otras partes.
+
+Subfases: SAV-0 a SAV-5, detalladas en el plan.
+
+Decisiones pendientes: reparto de intereses, meta global o por persona,
+aportaciones libres o por porcentaje, y alcance de la integración con
+`Records`.
 
 ## Documentación
 
