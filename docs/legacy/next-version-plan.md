@@ -1,6 +1,6 @@
 # Plan de la siguiente versión — Fase 10 (NV)
 
-**Estado:** 🚧 Implementación funcional completa; pendiente QA y cierre
+**Estado:** ✅ Finalizada, validada y archivada (2026-11-03)
 **Fecha:** 2026-11-03
 **Objetivo:** cerrar los errores de integración entre Registros, Gastos fijos,
 Créditos/Préstamos, Vehículo y Resúmenes, y añadir un modelo reutilizable de

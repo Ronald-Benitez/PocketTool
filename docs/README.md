@@ -7,12 +7,6 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 
 - [`phases.md`](phases.md): estado actual y fases activas. El detalle histórico
   de fases completadas vive en `legacy/`.
-- [`credits-fixed-plan.md`](credits-fixed-plan.md): plan de Gastos fijos y
-  Créditos (Fase 9): tarjetas, compras a plazo, préstamos, refinanciamientos,
-  simulaciones y gráficos.
-- [`next-version-plan.md`](next-version-plan.md): plan de errores y ajustes de la
-  siguiente versión (Fase 10): personas, compartidos, pendientes en Registros,
-  odómetro efectivo, tipo de registro y resúmenes.
 - [`database.md`](database.md): documentación actual de la base de datos,
   migraciones, triggers y backups.
 - [`schema.md`](schema.md): esquema generado desde
@@ -30,6 +24,10 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
   implementado y archivado.
 - [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md): plan de Vehículo (Fase 8)
   implementado, validado y archivado.
+- [`legacy/credits-fixed-plan.md`](legacy/credits-fixed-plan.md): plan de Gastos
+  fijos y Créditos (Fase 9) implementado, validado y archivado.
+- [`legacy/next-version-plan.md`](legacy/next-version-plan.md): plan de errores y
+  ajustes de la siguiente versión (Fase 10) implementado, validado y archivado.
 - [`legacy/db-summary.md`](legacy/db-summary.md): resumen anterior de base de
   datos.
 - [`../AGENTS.md`](../AGENTS.md): contexto e instrucciones para agentes.
@@ -48,8 +46,8 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 | Fase 6 — Centro de ayuda | ✅ Finalizada (2026-10-29) |
 | Fase 7 — Presupuestos | ✅ Finalizada (2026-10-29) |
 | Fase 8 — Vehículo | ✅ Finalizada (2026-10-31) |
-| Fase 9 — Gastos fijos y Créditos | 🚧 En implementación (2026-11-02) |
-| Fase 10 — Errores y ajustes de siguiente versión | 🚧 En implementación (2026-11-03) |
+| Fase 9 — Gastos fijos y Créditos | ✅ Finalizada (2026-11-03) |
+| Fase 10 — Errores y ajustes de siguiente versión | ✅ Finalizada (2026-11-03) |
 
 ## Regla de mantenimiento
 

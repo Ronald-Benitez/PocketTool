@@ -14,23 +14,25 @@ métodos de pago, créditos, ahorros y vehículo.
 - **Fase 1 — Fuente única de verdad del esquema: FINALIZADA** (2026-10-28).
 - **Fase 2 — Repositorios y ORM robusto: FINALIZADA** (2026-10-28).
 - **Fase 3 — Calidad, pruebas y operación: FINALIZADA** (2026-10-28).
-- **Fase 4 — Sistema de UI reutilizable: FINALIZADA** (2026-10-29). Queda
-  pendiente el checklist visual final.
+- **Fase 4 — Sistema de UI reutilizable: FINALIZADA** (2026-10-29), con
+  checklist visual completado.
 - **Fase 5 — Traducciones tipadas: FINALIZADA** (2026-10-29).
 - **Fase 6 — Centro de ayuda: FINALIZADA** (2026-10-29).
 - **Fase 7 — Presupuestos: FINALIZADA** (2026-10-29). El plan archivado vive en
   [`docs/legacy/budget-plan.md`](docs/legacy/budget-plan.md).
 - **Fase 8 — Vehículo: FINALIZADA** (2026-10-31). El plan archivado vive en
   [`docs/legacy/vehicle-plan.md`](docs/legacy/vehicle-plan.md).
-- **Fase 9 — Gastos fijos y Créditos: EN IMPLEMENTACIÓN** (2026-11-02). El plan
-  vive en [`docs/credits-fixed-plan.md`](docs/credits-fixed-plan.md).
-- **Fase 10 — Errores y ajustes de siguiente versión: IMPLEMENTACIÓN FUNCIONAL
-  COMPLETA; PENDIENTE QA** (2026-11-03). El plan vive en
-  [`docs/next-version-plan.md`](docs/next-version-plan.md). Incluye pendientes de
-  créditos/préstamos en Registros, tipo de registro de Vehículo, odómetro
-  efectivo, financiamientos en resúmenes de fijos, renombre a Compromisos,
-  cambio de grupo en Resumen, personas como sección propia con historial de
-  pagos, compartidos ilimitados y snapshot propio/compartido en `Records`.
+- **Fase 9 — Gastos fijos y Créditos: FINALIZADA** (2026-11-03). El plan
+  archivado vive en
+  [`docs/legacy/credits-fixed-plan.md`](docs/legacy/credits-fixed-plan.md).
+- **Fase 10 — Errores y ajustes de siguiente versión: FINALIZADA** (2026-11-03).
+  El plan archivado vive en
+  [`docs/legacy/next-version-plan.md`](docs/legacy/next-version-plan.md). Incluye
+  créditos/préstamos pendientes en Registros, tipo de registro de Vehículo,
+  odómetro efectivo, financiamientos en resúmenes de fijos, renombre a
+  Compromisos, cambio de grupo en Resumen, personas como sección propia con
+  historial de pagos, compartidos ilimitados, snapshot propio/compartido y modos
+  de importe propio/total/compartido.
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -469,14 +471,14 @@ npm run doctor
 
 - [`docs/README.md`](docs/README.md): índice de documentación.
 - [`docs/phases.md`](docs/phases.md): estado actual y fases activas.
-- [`docs/credits-fixed-plan.md`](docs/credits-fixed-plan.md): plan de Gastos
-  fijos y Créditos (Fase 9).
-- [`docs/next-version-plan.md`](docs/next-version-plan.md): plan de errores y
-  ajustes de la siguiente versión (Fase 10).
 - [`docs/legacy/budget-plan.md`](docs/legacy/budget-plan.md): plan archivado de
   Presupuestos (Fase 7).
 - [`docs/legacy/vehicle-plan.md`](docs/legacy/vehicle-plan.md): plan archivado de
   Vehículo (Fase 8).
+- [`docs/legacy/credits-fixed-plan.md`](docs/legacy/credits-fixed-plan.md): plan
+  archivado de Gastos fijos y Créditos (Fase 9).
+- [`docs/legacy/next-version-plan.md`](docs/legacy/next-version-plan.md): plan
+  archivado de errores y ajustes de la siguiente versión (Fase 10).
 - [`docs/schema.md`](docs/schema.md): esquema generado.
 - [`docs/database.md`](docs/database.md): documentación de la base de datos.
 - [`docs/legacy/phase-history.md`](docs/legacy/phase-history.md): historial de

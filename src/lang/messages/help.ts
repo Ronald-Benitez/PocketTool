@@ -409,6 +409,66 @@ export const helpEn = {
                 "body": "An extra payment can reduce the term or the payment. Choose the strategy before saving, and do not record the same purchase twice as a card expense and as a financing."
             }
         },
+        "people": {
+            "title": "People",
+            "summary": "Manage the people you share expenses with and review their payment history.",
+            "what": {
+                "title": "What it is",
+                "body": "People is the shared registry used by fixed expenses and financings. Each person has a name, optional notes and an active state."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "When you assign a person to a fixed expense or financing, you also set their share percentage. Each shared payment creates an allocation for every participant. The history shows the date, concept, percentage and amount of that person's share, including capital reductions and payments that reduce the installment."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Open the People section and create the people you share expenses with.",
+                "step2": "Add them as participants in a fixed expense or financing and set their percentages.",
+                "step3": "Open a person's payment history to review their accumulated shared amount."
+            },
+            "example": {
+                "title": "Example",
+                "body": "A 1,000 rent is shared 50% with Ana. The record keeps 500 as your own amount and 500 as shared. Ana's history shows a 500 entry with the date and the rent concept."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Keep the sum of participant percentages at 100% or less. Archive a person instead of deleting them when you want to keep their history."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "Deleting a person removes their shared links and payment history. If they are only temporarily inactive, archive them."
+            }
+        },
+        "amountModes": {
+            "title": "Your share, total and shared",
+            "summary": "Choose how summaries, budgets and credits display amounts.",
+            "what": {
+                "title": "What it is",
+                "body": "The amount mode has three options: your share, total and shared. Your share is what you really pay, shared is the part covered by other people and total is the sum of both."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "The selector is available in Summaries, Commitments, Budgets and Credits. It changes the amounts shown in totals and in each category, payment method, payment type and record type bucket. It never changes the saved records. The selected mode is remembered the next time you open the app."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Open a summary, budget or credit screen.",
+                "step2": "Tap Your share, Total or Shared above the figures.",
+                "step3": "Review the totals and buckets with the selected view."
+            },
+            "example": {
+                "title": "Example",
+                "body": "A 1,000 expense shared 50% shows 500 as your share, 500 as shared and 1,000 as total. On a budget, Your share compares 500 against the planned amount."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Use Your share for your personal balance, Total to see the full commitment and Shared to review what others cover."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "Shared is not money you paid. Do not use it as your personal expense when reviewing your balance."
+            }
+        },
         "savings": {
             "title": "Savings",
             "summary": "Track savings accounts, amounts, and changes over time.",
@@ -909,6 +969,66 @@ export const helpEs: MessageShape<typeof helpEn> = {
             "warning": {
                 "title": "Error común",
                 "body": "Un pago extra puede reducir el plazo o la cuota. Elige la estrategia antes de guardar y no registres la misma compra dos veces como gasto de tarjeta y como financiamiento."
+            }
+        },
+        "people": {
+            "title": "Personas",
+            "summary": "Gestiona las personas con las que compartes gastos y revisa su historial de pagos.",
+            "what": {
+                "title": "Qué es",
+                "body": "Personas es el registro compartido que usan los gastos fijos y los financiamientos. Cada persona tiene nombre, notas opcionales y un estado activo o inactivo."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "Cuando asignas una persona a un gasto fijo o financiamiento también defines su porcentaje. Cada pago compartido genera una asignación por participante. El historial muestra la fecha, el concepto, el porcentaje y el monto de la parte de esa persona, incluidos los abonos a capital y los pagos que reducen la cuota."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Abre la sección Personas y crea las personas con las que compartes gastos.",
+                "step2": "Agrégalas como participantes en un gasto fijo o financiamiento y define sus porcentajes.",
+                "step3": "Abre el historial de pagos de una persona para revisar su monto compartido acumulado."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "Una renta de 1,000 se comparte al 50% con Ana. El registro guarda 500 como tu parte y 500 como compartido. El historial de Ana muestra un movimiento de 500 con la fecha y el concepto de la renta."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Mantén la suma de porcentajes en 100% o menos. Archiva a una persona en lugar de eliminarla cuando quieras conservar su historial."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "Eliminar a una persona quita sus vínculos compartidos y su historial de pagos. Si solo está inactiva temporalmente, archívala."
+            }
+        },
+        "amountModes": {
+            "title": "Tu parte, total y compartido",
+            "summary": "Elige cómo muestran los importes los resúmenes, presupuestos y créditos.",
+            "what": {
+                "title": "Qué es",
+                "body": "El modo de importe tiene tres opciones: tu parte, total y compartido. Tu parte es lo que realmente pagas, compartido es lo que cubren otras personas y total es la suma de ambos."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "El selector está disponible en Resúmenes, Compromisos, Presupuestos y Créditos. Cambia los importes de los totales y de cada bucket de categoría, método de pago, tipo de pago y tipo de registro. Nunca modifica los registros guardados. El modo elegido se recuerda la próxima vez que abras la app."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Abre una pantalla de resumen, presupuesto o créditos.",
+                "step2": "Toca Tu parte, Total o Compartido encima de las cifras.",
+                "step3": "Revisa los totales y los buckets con la vista seleccionada."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "Un gasto de 1,000 compartido al 50% muestra 500 como tu parte, 500 como compartido y 1,000 como total. En un presupuesto, Tu parte compara 500 contra el monto planificado."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Usa Tu parte para tu balance personal, Total para ver el compromiso completo y Compartido para revisar lo que cubren otras personas."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "Compartido no es dinero que pagaste. No lo uses como tu gasto personal al revisar tu balance."
             }
         },
         "savings": {

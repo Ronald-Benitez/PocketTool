@@ -15,16 +15,18 @@
 | Fase 6 — Centro de ayuda | ✅ Finalizada | 2026-10-29 |
 | Fase 7 — Presupuestos | ✅ Finalizada | 2026-10-29 |
 | Fase 8 — Vehículo | ✅ Finalizada | 2026-10-31 |
-| Fase 9 — Gastos fijos y Créditos | 🚧 En implementación | 2026-11-02 |
-| Fase 10 - Errores y ajustes de siguiente versión | ✅ Funcional; pendiente QA | 2026-11-03 |
+| Fase 9 — Gastos fijos y Créditos | ✅ Finalizada | 2026-11-03 |
+| Fase 10 - Errores y ajustes de siguiente versión | ✅ Finalizada | 2026-11-03 |
 
 El detalle histórico de las fases 0–3 vive en
 [`legacy/phase-history.md`](legacy/phase-history.md). El detalle de la Fase 4
 vive en [`legacy/ui-history.md`](legacy/ui-history.md) y su plan original en
-[`legacy/ui-plan.md`](legacy/ui-plan.md). Queda pendiente únicamente el checklist
-visual de la Fase 4 en iOS/Android/web. Los planes de Presupuestos y Vehículo
-están archivados en [`legacy/budget-plan.md`](legacy/budget-plan.md) y
-[`legacy/vehicle-plan.md`](legacy/vehicle-plan.md).
+[`legacy/ui-plan.md`](legacy/ui-plan.md). Los planes de Presupuestos, Vehículo,
+Gastos fijos/Créditos y de la siguiente versión están archivados en
+[`legacy/budget-plan.md`](legacy/budget-plan.md),
+[`legacy/vehicle-plan.md`](legacy/vehicle-plan.md),
+[`legacy/credits-fixed-plan.md`](legacy/credits-fixed-plan.md) y
+[`legacy/next-version-plan.md`](legacy/next-version-plan.md).
 
 ## Arquitectura actual (resumen)
 
@@ -247,11 +249,12 @@ Ajustes posteriores implementados (2026-11-01 y 2026-11-02):
 
 Detalle en [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md), sección 19.
 
-## Fase 9 — Gastos fijos y Créditos (🚧 En implementación, 2026-11-02)
+## Fase 9 — Gastos fijos y Créditos (✅ Finalizada, 2026-11-03)
 
-**Plan completo:** [`credits-fixed-plan.md`](credits-fixed-plan.md)
+**Plan completo:** [`legacy/credits-fixed-plan.md`](legacy/credits-fixed-plan.md)
 
-Estado: **en implementación**. Se retomó después de los ajustes de Vehículo.
+Estado: **finalizada y validada**. Se cerró después de los ajustes de Vehículo y
+de la Fase 10.
 
 Objetivo: pasar de montos a pagar de tarjetas a un módulo real de obligaciones:
 límite y utilización de tarjetas, compras a plazo, préstamos, pagos, abonos a
@@ -309,28 +312,29 @@ Implementado hasta ahora:
 - Plazo en meses o años y tipo de tasa fija/variable.
 - Ayuda bilingüe de financiamientos y actualización del tema de créditos.
 
-Pendiente:
+Cierre:
 
-- Formularios separados por caso, si se mantiene ese criterio de UX.
-- QA Android/iOS y checklist visual final.
-- `expo-doctor` y verificación completa de cierre.
-- Opcionales complejos: estados de cuenta, participantes múltiples, categoría
-  de seguros y amortización alemana.
+- Se mantuvo el criterio de formularios existentes por caso.
+- QA Android/iOS y checklist visual completados.
+- `expo-doctor`, typecheck, pruebas, lint y export Android verificados.
+- Los opcionales complejos (estados de cuenta, amortización alemana, etc.)
+  quedan fuera del alcance de la fase.
 
-Subfases: CRED-0 a CRED-6, detalladas en el plan.
+Subfases: CRED-0 a CRED-6, detalladas en el plan archivado.
 
-## Fase 10 — Errores y ajustes de siguiente versión (🚧 En implementación, 2026-11-03)
+## Fase 10 — Errores y ajustes de siguiente versión (✅ Finalizada, 2026-11-03)
 
-**Plan completo:** [`next-version-plan.md`](next-version-plan.md)
+**Plan completo:** [`legacy/next-version-plan.md`](legacy/next-version-plan.md)
 
-Estado: **implementación funcional completa; pendiente QA y cierre**. Se
-completaron créditos/préstamos pendientes en Registros, tipo de registro de
-Vehículo, odómetro efectivo, financiamientos en resúmenes de fijos, renombre de
-la sección a Compromisos, corrección del cambio de grupo en Resumen, personas y
-compartidos ilimitados, snapshot propio/compartido en `Records`, sección propia
-de Personas con ledger de pagos compartidos, compromisos pendientes listados en
-Home y Registros, y correcciones de vínculo e inferencia de odómetro en
-Vehículo.
+Estado: **finalizada y validada**. Se completaron créditos/préstamos pendientes
+en Registros, tipo de registro de Vehículo, odómetro efectivo, financiamientos
+en resúmenes de fijos, renombre de la sección a Compromisos, corrección del
+cambio de grupo en Resumen, personas y compartidos ilimitados, snapshot
+propio/compartido en `Records`, sección propia de Personas con ledger de pagos
+compartidos, compromisos pendientes listados en Home y Registros, correcciones
+de vínculo e inferencia de odómetro en Vehículo, modo de importe
+propio/total/compartido y desglose por bucket, además de la protección de
+centavos al reconstruir el esquema.
 
 Objetivo: resolver la integración pendiente entre Registros, Gastos fijos,
 Créditos/Préstamos, Vehículo y Resúmenes, y añadir un modelo reutilizable de
@@ -348,15 +352,25 @@ Alcance:
 - Renombre de la sección de fijos.
 - Corrección del cambio de grupo en Resumen.
 
-Subfases: NV-0 a NV-6, detalladas en el plan.
+Subfases: NV-0 a NV-11, detalladas en el plan archivado.
+
+Cierre:
+
+- QA Android/iOS, checklist visual y validación de los ajustes de scroll,
+  swipe, unidades de combustible y modos de importe.
+- Verificación completa con typecheck, pruebas de base de datos, Jest, lint,
+  `expo-doctor` y export Android.
+- Temas de ayuda de **Personas** y **Tu parte / Total / Compartido** agregados.
+- Commits principales: `1f77b6a`, `3cc8dc8`, `6de9ff7`, `745f052`, `cf50c0b`,
+  `4a3afaf`, `d454e75`, `f651333`, `7e03428`, `892875d`.
 
 ## Documentación
 
 - [`README.md`](README.md): índice de documentación.
-- [`credits-fixed-plan.md`](credits-fixed-plan.md): plan de Gastos fijos y
-  Créditos (Fase 9).
-- [`next-version-plan.md`](next-version-plan.md): plan de errores y ajustes de
-  la siguiente versión (Fase 10).
+- [`legacy/credits-fixed-plan.md`](legacy/credits-fixed-plan.md): plan de Gastos
+  fijos y Créditos (Fase 9) archivado.
+- [`legacy/next-version-plan.md`](legacy/next-version-plan.md): plan de errores y
+  ajustes de la siguiente versión (Fase 10) archivado.
 - [`legacy/budget-plan.md`](legacy/budget-plan.md): plan de Presupuestos
   archivado.
 - [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md): plan de Vehículo (Fase 8)

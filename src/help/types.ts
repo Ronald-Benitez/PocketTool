@@ -19,6 +19,8 @@ export type HelpTopicId =
   | 'vehicleReminders'
   | 'credits'
   | 'financings'
+  | 'people'
+  | 'amountModes'
   | 'savings'
   | 'filters'
   | 'theme';
