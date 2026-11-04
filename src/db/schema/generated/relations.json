@@ -56,6 +56,10 @@
     "Financings.Categories": "Financings.Categories",
     "Financings.RecordTypes": "Financings.RecordTypes"
   },
+  "People": {},
+  "SharedExpenseParticipants": {
+    "People": "People"
+  },
   "BudgetTemplates": {},
   "BudgetTemplateItems": {
     "BudgetTemplates": "BudgetTemplates",

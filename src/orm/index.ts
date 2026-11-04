@@ -26,6 +26,9 @@ import type {
   FinancingPaymentWithRelations,
   FinancingAdjustment,
   FinancingAdjustmentWithRelations,
+  Person,
+  SharedExpenseParticipant,
+  SharedExpenseParticipantWithRelations,
   BudgetTemplate,
   BudgetTemplateWithRelations,
   BudgetTemplateItem,
@@ -67,6 +70,8 @@ export type BaseSchemaMap = {
   Financings: Financing;
   FinancingPayments: FinancingPayment;
   FinancingAdjustments: FinancingAdjustment;
+  People: Person;
+  SharedExpenseParticipants: SharedExpenseParticipant;
   BudgetTemplates: BudgetTemplate;
   BudgetTemplateItems: BudgetTemplateItem;
   BudgetPlans: BudgetPlan;
@@ -97,6 +102,8 @@ export type RelationsSchemaMap = {
   Financings: FinancingWithRelations;
   FinancingPayments: FinancingPaymentWithRelations;
   FinancingAdjustments: FinancingAdjustmentWithRelations;
+  People: Person;
+  SharedExpenseParticipants: SharedExpenseParticipantWithRelations;
   BudgetTemplates: BudgetTemplateWithRelations;
   BudgetTemplateItems: BudgetTemplateItemWithRelations;
   BudgetPlans: BudgetPlanWithRelations;

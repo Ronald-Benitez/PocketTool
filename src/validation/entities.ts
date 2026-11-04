@@ -549,3 +549,32 @@ export const financingAdjustmentInputSchema = z
 
 export const financingAdjustmentUpdateSchema =
   financingAdjustmentInputSchema.partial().extend(updateMeta);
+
+const sharedOwnerType = z.enum(['fixed', 'financing']);
+
+export const personInputSchema = z
+  .object({
+    name: z.string().min(1).max(120),
+    notes: z.string().nullable().optional(),
+    is_active: z.boolean().or(z.number().int().min(0).max(1)).optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const personUpdateSchema = personInputSchema
+  .partial()
+  .extend(updateMeta);
+
+export const sharedParticipantInputSchema = z
+  .object({
+    owner_type: sharedOwnerType,
+    owner_id: z.number().int().positive(),
+    person_id: z.number().int().positive(),
+    share_percent: z.number().finite().min(0).max(100),
+    notes: z.string().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const sharedParticipantUpdateSchema =
+  sharedParticipantInputSchema.partial().extend(updateMeta);

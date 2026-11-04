@@ -22,10 +22,12 @@ import type {
   PaidCredit,
   PaymentMethod,
   PaymentType,
+  Person,
   RecordEntry,
   RecordType,
   Saving,
   SavingsHistoryEntry,
+  SharedExpenseParticipant,
   SoftDeletable,
   TimestampMs,
   Vehicle,
@@ -54,10 +56,12 @@ export type {
   PaidCredit,
   PaymentMethod,
   PaymentType,
+  Person,
   RecordEntry,
   RecordType,
   Saving,
   SavingsHistoryEntry,
+  SharedExpenseParticipant,
   SoftDeletable,
   TimestampMs,
   Vehicle,
@@ -111,6 +115,11 @@ export interface FinancingPaymentWithRelations extends FinancingPayment {
 
 export interface FinancingAdjustmentWithRelations extends FinancingAdjustment {
   Financings?: FinancingWithRelations | null;
+}
+
+export interface SharedExpenseParticipantWithRelations
+  extends SharedExpenseParticipant {
+  People?: Person | null;
 }
 
 export interface RecordWithRelations extends RecordEntry {

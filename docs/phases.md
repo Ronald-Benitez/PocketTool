@@ -39,8 +39,8 @@ están archivados en [`legacy/budget-plan.md`](legacy/budget-plan.md) y
   `0005_drop_budget_legacy`, `0006_drop_budget_plan_status`,
   `0007_vehicle_module`, `0008_fuel_baseline`, `0009_vehicle_type`,
   `0010_vehicle_type_models`, `0011_credit_cards_and_financings`,
-  `0012_financing_payment_cents`, `0013_vehicle_settings_record_type`;
-  `SCHEMA_VERSION = 13`.
+  `0012_financing_payment_cents`, `0013_vehicle_settings_record_type`,
+  `0014_people_and_shared_participants`; `SCHEMA_VERSION = 14`.
 - **Presupuestos:** `BudgetPlans` (un plan por grupo), `BudgetLines` (categoría
   o fijo) y plantillas reutilizables. El real se deriva de `Records`; no se
   guarda. `budgets_legacy` se elimina en `0005`.
@@ -275,8 +275,8 @@ Implementado hasta ahora:
 
 - Migraciones `0011_credit_cards_and_financings` y
   `0012_financing_payment_cents`; `SCHEMA_VERSION = 12` al cerrar la parte de
-  créditos. La Fase 10 añade `0013_vehicle_settings_record_type` y lleva el
-  esquema a 13.
+  créditos. La Fase 10 añade `0013_vehicle_settings_record_type` y
+  `0014_people_and_shared_participants`, y lleva el esquema a 14.
 - Campos de tarjeta en `PaymentMethods`: tarjeta de crédito explícita, límite,
   visual, marca, acabado, color, últimos cuatro, titular y emisor.
 - Backfill legacy: tarjetas por `closing_date` y color desde el tipo de pago.
@@ -323,8 +323,10 @@ Subfases: CRED-0 a CRED-6, detalladas en el plan.
 
 Estado: **en implementación**. Ya se completaron créditos/préstamos pendientes
 en Registros, tipo de registro de Vehículo, odómetro efectivo, financiamientos
-en resúmenes de fijos, renombre de la sección a Compromisos y la corrección del
-cambio de grupo en Resumen. Queda pendiente NV-2 a NV-5: personas y compartidos.
+en resúmenes de fijos, renombre de la sección a Compromisos, corrección del
+cambio de grupo en Resumen y el registro de personas con participantes
+ilimitados en fijos y financiamientos. Queda pendiente cerrar la separación
+total/propio/compartido en todos los resúmenes y `Records`.
 
 Objetivo: resolver la integración pendiente entre Registros, Gastos fijos,
 Créditos/Préstamos, Vehículo y Resúmenes, y añadir un modelo reutilizable de

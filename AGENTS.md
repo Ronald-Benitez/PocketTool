@@ -29,8 +29,10 @@ métodos de pago, créditos, ahorros y vehículo.
   [`docs/next-version-plan.md`](docs/next-version-plan.md). Ya están implementados
   los pendientes de créditos/préstamos en Registros, el tipo de registro de
   Vehículo, la inferencia de odómetro efectivo, los financiamientos en resúmenes
-  de fijos, el renombre de la sección a Compromisos y el cambio de grupo en
-  Resumen. Queda pendiente el modelo de personas y compartidos.
+  de fijos, el renombre de la sección a Compromisos, el cambio de grupo en
+  Resumen y el registro de personas con compartidos en fijos y financiamientos.
+  Queda pendiente cerrar la separación total/propio/compartido en todos los
+  resúmenes y `Records`.
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -196,6 +198,11 @@ commits relevantes, archivos tocados y verificaciones realizadas.
   eliminación de pagos; el registro vinculado se conserva por defecto.
 - `src/db/repositories/financings.ts`: financiamientos, pagos, ajustes y
   vínculos de pagos con `Records` (crear, vincular u omitir).
+- `src/db/repositories/people.ts`: registro de personas y participantes de
+  gastos compartidos (`fixed`/`financing`).
+- `app/(fixeds)/PeopleScreen.tsx`: alta, edición y archivo de personas.
+- `src/components/shared/SharedParticipantsField.tsx`: selector reutilizable de
+  personas y porcentajes con total/propio/compartido.
 - `src/stores/CreditsStore.ts`: totales por ciclo y uso de tarjeta con compras a
   plazo al 0%. No duplicar una compra como gasto de tarjeta y financiamiento.
 - `src/stores/FixedsResumesStore.ts`: resumen de compromisos; suma gastos fijos y

@@ -8,6 +8,7 @@ import { helpEn, helpEs } from './help';
 import { homeEn, homeEs } from './home';
 import { recordsEn, recordsEs } from './records';
 import { settingsEn, settingsEs } from './settings';
+import { sharedEn, sharedEs } from './shared';
 import { summariesEn, summariesEs } from './summaries';
 import { filtersEn, filtersEs } from './filters';
 import { financingsEn, financingsEs } from './financings';
@@ -24,6 +25,7 @@ export const en = {
   ...recordsEn,
   ...filtersEn,
   ...settingsEn,
+  ...sharedEn,
   ...summariesEn,
   budget: budgetEn,
   ...financingsEn,
@@ -41,6 +43,7 @@ export const es: MessageShape<typeof en> = {
   ...recordsEs,
   ...filtersEs,
   ...settingsEs,
+  ...sharedEs,
   ...summariesEs,
   budget: budgetEs,
   ...financingsEs,
@@ -75,6 +78,7 @@ export type TranslationKey =
   | Leaves<typeof recordsEn>
   | Leaves<typeof filtersEn>
   | Leaves<typeof settingsEn>
+  | Leaves<typeof sharedEn>
   | Leaves<typeof summariesEn>
   | Leaves<typeof budgetEn, 'budget.'>
   | Leaves<typeof financingsEn>

@@ -1,6 +1,6 @@
 import type { TableDefinition, TableSchema } from '../types';
 
-export const SCHEMA_VERSION = 13;
+export const SCHEMA_VERSION = 14;
 
 export type TableName =
   | 'Groups'
@@ -14,6 +14,8 @@ export type TableName =
   | 'Financings'
   | 'FinancingPayments'
   | 'FinancingAdjustments'
+  | 'People'
+  | 'SharedExpenseParticipants'
   | 'BudgetTemplates'
   | 'BudgetTemplateItems'
   | 'BudgetPlans'
@@ -346,6 +348,64 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
     ],
     indexes: [
       { name: 'idx_financing_adjustments_financing_date', columns: ['financing_id', 'date'], where: 'deleted_at IS NULL' },
+    ],
+  },
+  People: {
+    name: 'People',
+    sqlName: 'people',
+    entity: 'Person',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      { name: 'name', type: 'TEXT', notNull: true },
+      { name: 'notes', type: 'TEXT' },
+      {
+        name: 'is_active',
+        type: 'INTEGER',
+        kind: 'boolean',
+        notNull: true,
+        defaultValue: 1,
+      },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      {
+        name: 'idx_people_active',
+        columns: ['is_active'],
+        where: 'deleted_at IS NULL',
+      },
+    ],
+  },
+  SharedExpenseParticipants: {
+    name: 'SharedExpenseParticipants',
+    sqlName: 'shared_expense_participants',
+    entity: 'SharedExpenseParticipant',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      { name: 'owner_type', type: 'TEXT', notNull: true },
+      { name: 'owner_id', type: 'INTEGER', notNull: true },
+      {
+        name: 'person_id',
+        type: 'INTEGER',
+        references: { table: 'People', column: 'id', onDelete: 'CASCADE' },
+        notNull: true,
+      },
+      { name: 'share_percent', type: 'REAL', notNull: true },
+      { name: 'notes', type: 'TEXT' },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      {
+        name: 'idx_shared_owner',
+        columns: ['owner_type', 'owner_id'],
+        where: 'deleted_at IS NULL',
+      },
+      {
+        name: 'idx_shared_person',
+        columns: ['person_id'],
+        where: 'deleted_at IS NULL',
+      },
     ],
   },
   BudgetTemplates: {

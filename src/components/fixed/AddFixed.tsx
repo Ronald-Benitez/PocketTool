@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { useLanguage } from "@/src/lang/LanguageContext";
 import { useToast } from "@/src/ui/feedback/ToastProvider";
 import useRecordsStore from '@/src/stores/RecordsStore';
-import { useFixeds } from "@/src/db";
+import { useFixeds, usePeopleRepository, useSharedParticipantsRepository } from "@/src/db";
 import { useDataStore } from "@/src/stores";
 import type {
     Category,
@@ -12,8 +12,11 @@ import type {
     FixedView,
     Insertable,
     PaymentMethodWithRelations,
+    Person,
     RecordType,
 } from "@/src/interfaces/schema";
+import type { ParticipantDraft } from "@/src/db/repositories/people";
+import { SharedParticipantsField } from "@/src/components/shared/SharedParticipantsField";
 import { Button } from "@/src/ui/actions/Button";
 import { ColoredSelectOption } from "@/src/ui/forms/ColoredSelectOption";
 import { MoneyField } from "@/src/ui/forms/MoneyField";
@@ -38,14 +41,27 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
     const [payment_method, setPaymentMethod] = useState<PaymentMethodWithRelations>()
     const [category, setCategory] = useState<Category>()
     const [amountCents, setAmountCents] = useState<number>(0)
+    const [people, setPeople] = useState<Person[]>([])
+    const [participants, setParticipants] = useState<ParticipantDraft[]>([])
     const { showToast } = useToast()
     const { RecordTypes, PaymentMethods, Categories, setFixeds } = useDataStore()
     const { fetchFixeds, handler: fixedsHandler } = useFixeds()
+    const peopleRepository = usePeopleRepository()
+    const participantsRepository = useSharedParticipantsRepository()
     const firstOpenEffect = useRef(true)
 
     const recordTypes = RecordTypes ?? []
     const paymentMethods = PaymentMethods ?? []
     const categories = Categories ?? []
+
+    useEffect(() => {
+        if (!visible) return
+        let active = true
+        peopleRepository.fetchPeople().then((rows) => {
+            if (active) setPeople(rows)
+        })
+        return () => { active = false }
+    }, [visible])
 
     useEffect(() => {
         if (firstOpenEffect.current) {
@@ -56,13 +72,32 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
     }, [open])
 
     useEffect(() => {
-        if (!item) return
+        if (!item) {
+            setParticipants([])
+            return
+        }
         setName(item.fixed_name)
         setAmountCents(item.fixed_amount)
         setDay(item.fixed_day)
         setType(recordTypes.find(val => val.id === item.record_type_id))
         setCategory(categories.find(cat => cat.id === item.category_id))
         setPaymentMethod(paymentMethods.find(pay => pay.id === item.payment_method_id))
+        if (!item.id) {
+            setParticipants([])
+            return
+        }
+        let active = true
+        participantsRepository.fetchFor('fixed', item.id).then((rows) => {
+            if (!active) return
+            setParticipants(
+                rows.map((row) => ({
+                    personId: row.person_id,
+                    sharePercent: row.share_percent,
+                    notes: row.notes,
+                }))
+            )
+        })
+        return () => { active = false }
     }, [item])
 
     const closeModal = () => setVisible(false)
@@ -72,6 +107,19 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
 
         if (amountCents <= 0 || !payment_method?.id || !category?.id || !type?.id) {
             showToast({ message: t('toast.empty'), type: 'warning' })
+            return
+        }
+
+        const totalShared = participants.reduce(
+            (total, participant) => total + participant.sharePercent,
+            0
+        )
+        if (totalShared > 100.0001) {
+            showToast({ message: t('shared.invalidTotal'), type: 'warning' })
+            return
+        }
+        if (new Set(participants.map((participant) => participant.personId)).size !== participants.length) {
+            showToast({ message: t('shared.duplicate'), type: 'warning' })
             return
         }
 
@@ -85,14 +133,18 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
         }
 
         try {
+            let fixedId = item?.id
             if (item?.id) {
                 await fixedsHandler.edit({ ...newItem, id: item.id })
                 showToast({ message: t('toast.edited'), type: 'success' })
             } else {
-                await fixedsHandler.add(newItem)
+                fixedId = await fixedsHandler.add(newItem)
                 showToast({ message: t('toast.added'), type: 'success' })
                 setName("")
                 setAmountCents(0)
+            }
+            if (fixedId) {
+                await participantsRepository.replaceFor('fixed', fixedId, participants)
             }
             const fixeds = await fetchFixeds()
             setFixeds(fixeds)
@@ -213,6 +265,12 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
                         required
                         value={amountCents}
                         onChangeCents={setAmountCents}
+                    />
+                    <SharedParticipantsField
+                        people={people}
+                        value={participants}
+                        onChange={setParticipants}
+                        totalCents={amountCents}
                     />
                     <TextField
                         label={t('item.date')}

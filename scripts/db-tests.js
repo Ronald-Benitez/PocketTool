@@ -410,7 +410,7 @@ async function testEmptyDatabase() {
   assert.strictEqual(q(raw, 'SELECT goal FROM groups')[0].goal, 500000);
   assert.strictEqual(q(raw, 'SELECT amount FROM records ORDER BY id')[0].amount, 100000);
   assert.strictEqual(q(raw, 'SELECT migration_name FROM migrations')[0].migration_name, '0001_baseline');
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 13);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 14);
   const recordColumns = q(raw, 'PRAGMA table_info(records)').map(c => c.name);
   assert.ok(recordColumns.includes('created_at'));
   assert.ok(recordColumns.includes('updated_at'));
@@ -447,7 +447,7 @@ async function testExportImport() {
   assert.ok(metadata);
   assert.strictEqual(metadata.formatVersion, BACKUP_FORMAT_VERSION);
   assert.strictEqual(metadata.appVersion, 'test-version');
-  assert.strictEqual(metadata.schemaVersion, 13);
+  assert.strictEqual(metadata.schemaVersion, 14);
   assert.ok(metadata.tables.includes('records'));
   assert.doesNotThrow(() => validateSqlDump(backupSql));
   assert.strictEqual(parseBackupMetadata(dump), null);
@@ -500,7 +500,7 @@ async function testAuditTimestampMigration() {
   const backfilled = q(raw, 'SELECT created_at, updated_at FROM records LIMIT 1')[0];
   assert.ok(backfilled.created_at > 0);
   assert.ok(backfilled.updated_at > 0);
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 13);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 14);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,
     1
@@ -870,6 +870,49 @@ async function testFinancingPaymentCentsMigration() {
   console.log('financing payment cents migration: OK');
 }
 
+async function testPeopleAndSharedParticipantsMigration() {
+  const raw = new DatabaseSync(':memory:');
+  raw.exec(`
+    CREATE TABLE financings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      is_shared INTEGER NOT NULL DEFAULT 0,
+      shared_percent REAL,
+      shared_counterparty TEXT,
+      deleted_at INTEGER
+    );
+    INSERT INTO financings (name, is_shared, shared_percent, shared_counterparty)
+      VALUES ('Shared loan', 1, 50, 'Ana');
+  `);
+  const migration = require(path.join(
+    ROOT,
+    'src/db/migrations/0014_people_and_shared_participants.ts'
+  )).default;
+  await migration.up(shim(raw));
+
+  const tables = q(
+    raw,
+    "SELECT name FROM sqlite_master WHERE type='table'"
+  ).map((row) => row.name);
+  assert.ok(tables.includes('people'), 'missing people table');
+  assert.ok(
+    tables.includes('shared_expense_participants'),
+    'missing shared_expense_participants table'
+  );
+  const person = q(raw, 'SELECT id, name FROM people')[0];
+  assert.strictEqual(person.name, 'Ana');
+  const participant = q(
+    raw,
+    'SELECT owner_type, owner_id, person_id, share_percent FROM shared_expense_participants'
+  )[0];
+  assert.strictEqual(participant.owner_type, 'financing');
+  assert.strictEqual(participant.owner_id, 1);
+  assert.strictEqual(participant.person_id, person.id);
+  assert.strictEqual(participant.share_percent, 50);
+  raw.close();
+  console.log('people and shared participants migration: OK');
+}
+
 async function testVehicleSettingsRecordTypeMigration() {
   const raw = new DatabaseSync(':memory:');
   raw.exec(`
@@ -1073,6 +1116,7 @@ async function testInterruptedRebuild() {
   await testBudgetStatusRemoval();
   await testCreditCardsAndFinancingsMigration();
   await testFinancingPaymentCentsMigration();
+  await testPeopleAndSharedParticipantsMigration();
   await testVehicleSettingsRecordTypeMigration();
   await testVehicleInsert();
   await testVehicleTypeMigration();

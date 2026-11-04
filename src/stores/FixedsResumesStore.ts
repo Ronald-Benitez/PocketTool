@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { create } from "zustand";
 
 import { useConfigs } from "../hooks/useConfigs";
-import { useFinancingsRepository } from "../db";
+import { useFinancingsRepository, useSharedParticipantsRepository } from "../db";
 import { summarizeFinancing } from "../domain/credits/summary";
 import type {
     RecordType as RecordTypes,
@@ -10,6 +10,7 @@ import type {
     PaymentMethod as PaymentMethods,
     Category as Categories,
     FinancingWithRelations,
+    SharedExpenseParticipant,
 } from "../interfaces/schema";
 import { useDataStore } from ".";
 interface totalPerRecordType extends RecordTypes {
@@ -18,6 +19,8 @@ interface totalPerRecordType extends RecordTypes {
 
 export interface Resumes {
     balance: number;
+    ownBalance: number;
+    sharedBalance: number;
     balanceByRecordType: (RecordTypes & {
         total: number;
     })[];
@@ -37,9 +40,11 @@ export interface Resumes {
 
 export const useFixedsResumesStore = () => {
     const { configs: { recordTypes } } = useConfigs();
-    const { PaymentMethods, Categories, RecordTypes, PaymentTypes, Fixeds } = useDataStore()
+    const { PaymentMethods, Categories, RecordTypes, PaymentTypes, Fixeds, Financings } = useDataStore()
     const financingsRepository = useFinancingsRepository()
+    const participantsRepository = useSharedParticipantsRepository()
     const [financings, setFinancings] = useState<FinancingWithRelations[]>([])
+    const [participants, setParticipants] = useState<SharedExpenseParticipant[]>([])
 
     useEffect(() => {
         let active = true
@@ -47,7 +52,15 @@ export const useFixedsResumesStore = () => {
             if (active) setFinancings(rows)
         })
         return () => { active = false }
-    }, [])
+    }, [Financings])
+
+    useEffect(() => {
+        let active = true
+        participantsRepository.fetchAll().then((rows) => {
+            if (active) setParticipants(rows)
+        })
+        return () => { active = false }
+    }, [Fixeds, Financings, financings])
 
     const financingObligations = financings
         .filter((financing) => financing.status === 'active')
@@ -61,41 +74,63 @@ export const useFixedsResumesStore = () => {
         }))
         .filter(({ summary }) => summary.monthlyPaymentCents > 0)
 
-    const calculateBalance = (): number => {
-        const fixedsBalance = Fixeds.reduce((acc, fixed) => {
-            if (fixed.record_type_id == null || !recordTypes.includes(fixed.record_type_id)) {
-                return acc;
-            }
-            const effect = fixed.RecordTypes?.effect;
-            if (effect === '+') {
-                acc += fixed.fixed_amount;
-            }
-            else if (effect === '-') {
-                acc -= fixed.fixed_amount;
-            }
-            return acc;
-        }, 0);
+    const participantsByOwner = new Map<string, SharedExpenseParticipant[]>()
+    participants.forEach((participant) => {
+        const key = `${participant.owner_type}:${participant.owner_id}`
+        const list = participantsByOwner.get(key) ?? []
+        list.push(participant)
+        participantsByOwner.set(key, list)
+    })
 
-        const financingsBalance = financingObligations.reduce((acc, { financing, summary }) => {
-            if (
-                financing.record_type_id == null ||
-                !recordTypes.includes(financing.record_type_id)
-            ) {
-                return acc;
-            }
-            const effect = financing.RecordTypes?.effect;
-            if (effect === '+') {
-                acc += summary.monthlyPaymentCents;
-            } else if (effect === '-') {
-                acc -= summary.monthlyPaymentCents;
-            }
-            return acc;
-        }, 0);
-
-        return fixedsBalance + financingsBalance;
+    const splitAmount = (ownerType: 'fixed' | 'financing', ownerId: number | undefined, amount: number) => {
+        if (!ownerId) return { total: amount, own: amount, shared: 0 }
+        const list = participantsByOwner.get(`${ownerType}:${ownerId}`) ?? []
+        const percent = Math.min(
+            100,
+            list.reduce((sum, participant) => sum + participant.share_percent, 0)
+        )
+        const shared = Math.round((amount * percent) / 100)
+        return { total: amount, own: amount - shared, shared }
     }
 
-    const calculeteResumes = (): Omit<Resumes, "balance"> => {
+    const calculateBalances = () => {
+        const balances = { total: 0, own: 0, shared: 0 }
+
+        Fixeds.forEach((fixed) => {
+            if (fixed.record_type_id == null || !recordTypes.includes(fixed.record_type_id)) return
+            const split = splitAmount('fixed', fixed.id, fixed.fixed_amount)
+            if (fixed.RecordTypes?.effect === '+') {
+                balances.total += split.total
+                balances.own += split.own
+                balances.shared += split.shared
+            } else if (fixed.RecordTypes?.effect === '-') {
+                balances.total -= split.total
+                balances.own -= split.own
+                balances.shared -= split.shared
+            }
+        })
+
+        financingObligations.forEach(({ financing, summary }) => {
+            if (financing.record_type_id == null || !recordTypes.includes(financing.record_type_id)) return
+            const split = splitAmount('financing', financing.id, summary.monthlyPaymentCents)
+            if (financing.RecordTypes?.effect === '+') {
+                balances.total += split.total
+                balances.own += split.own
+                balances.shared += split.shared
+            } else if (financing.RecordTypes?.effect === '-') {
+                balances.total -= split.total
+                balances.own -= split.own
+                balances.shared -= split.shared
+            }
+        })
+
+        return balances
+    }
+
+    const calculeteResumes = (): Omit<
+        Resumes,
+        "balance" | "ownBalance" | "sharedBalance"
+    > => {
 
         const recordTypeResume = RecordTypes.map(rt => ({
             ...rt,
@@ -228,8 +263,12 @@ export const useFixedsResumesStore = () => {
         }
     }
 
+    const balances = calculateBalances()
+
     return create<Resumes>((set, get) => ({
-        balance: calculateBalance(),
+        balance: balances.total,
+        ownBalance: balances.own,
+        sharedBalance: balances.shared,
         ...calculeteResumes(),
     }))();
 }

@@ -118,7 +118,7 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "On the configured day, PocketTool reminds you to confirm it. Confirming creates the corresponding record for the selected group. Pending credit and loan payments also appear in Records; opening one loads the payment form with its amount, date and expense data."
+                "body": "On the configured day, PocketTool reminds you to confirm it. Confirming creates the corresponding record for the selected group. Pending credit and loan payments also appear in Records; opening one loads the payment form with its amount, date and expense data. A fixed expense can be split among several people registered in the People section."
             },
             "steps": {
                 "title": "Step by step",
@@ -388,7 +388,7 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "The balance is derived from the financed amount, prior installments, prior capital payments, registered payments and extra principal. You can enter the term in months or years. You can use the calculated payment or enter the agreed one; if a payment is higher, the difference is recorded as insurance or other charges, not as principal or interest. A 0% installment purchase linked to a credit card also reduces that card's available credit by its pending balance."
+                "body": "The balance is derived from the financed amount, prior installments, prior capital payments, registered payments and extra principal. You can enter the term in months or years. You can use the calculated payment or enter the agreed one; if a payment is higher, the difference is recorded as insurance or other charges, not as principal or interest. A 0% installment purchase linked to a credit card also reduces that card's available credit by its pending balance. Shared loans can be split among several people registered in the People section."
             },
             "steps": {
                 "title": "Step by step",
@@ -620,7 +620,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "En el día configurado, PocketTool te recuerda confirmarla. Al confirmar se crea el registro correspondiente en el grupo seleccionado. Los pagos pendientes de créditos y préstamos también aparecen en Registros; al abrirlos se carga el formulario de pago con su monto, fecha y datos del gasto."
+                "body": "En el día configurado, PocketTool te recuerda confirmarla. Al confirmar se crea el registro correspondiente en el grupo seleccionado. Los pagos pendientes de créditos y préstamos también aparecen en Registros; al abrirlos se carga el formulario de pago con su monto, fecha y datos del gasto. Un gasto fijo puede dividirse entre varias personas registradas en la sección Personas."
             },
             "steps": {
                 "title": "Paso a paso",
@@ -890,7 +890,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "El saldo se deriva del monto financiado, las cuotas ya pagadas, el capital abonado antes de usar la app, los pagos registrados y los abonos a capital. Puedes ingresar el plazo en meses o años. Puedes usar la cuota calculada o ingresar la pactada; si un pago es mayor, la diferencia se registra como seguro u otros cargos, no como capital ni interés. Una compra a plazo al 0% vinculada a una tarjeta también reduce el crédito disponible de esa tarjeta por su saldo pendiente."
+                "body": "El saldo se deriva del monto financiado, las cuotas ya pagadas, el capital abonado antes de usar la app, los pagos registrados y los abonos a capital. Puedes ingresar el plazo en meses o años. Puedes usar la cuota calculada o ingresar la pactada; si un pago es mayor, la diferencia se registra como seguro u otros cargos, no como capital ni interés. Una compra a plazo al 0% vinculada a una tarjeta también reduce el crédito disponible de esa tarjeta por su saldo pendiente. Los préstamos compartidos pueden dividirse entre varias personas registradas en la sección Personas."
             },
             "steps": {
                 "title": "Paso a paso",

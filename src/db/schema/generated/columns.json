@@ -543,6 +543,33 @@
     "Financings.RecordTypes.updated_at": "Financings.RecordTypes.updated_at",
     "Financings.RecordTypes.deleted_at": "Financings.RecordTypes.deleted_at"
   },
+  "People": {
+    "id": "id",
+    "name": "name",
+    "notes": "notes",
+    "is_active": "is_active",
+    "created_at": "created_at",
+    "updated_at": "updated_at",
+    "deleted_at": "deleted_at"
+  },
+  "SharedExpenseParticipants": {
+    "id": "id",
+    "owner_type": "owner_type",
+    "owner_id": "owner_id",
+    "person_id": "person_id",
+    "share_percent": "share_percent",
+    "notes": "notes",
+    "created_at": "created_at",
+    "updated_at": "updated_at",
+    "deleted_at": "deleted_at",
+    "People.id": "People.id",
+    "People.name": "People.name",
+    "People.notes": "People.notes",
+    "People.is_active": "People.is_active",
+    "People.created_at": "People.created_at",
+    "People.updated_at": "People.updated_at",
+    "People.deleted_at": "People.deleted_at"
+  },
   "BudgetTemplates": {
     "id": "id",
     "template_name": "template_name",

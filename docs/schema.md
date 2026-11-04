@@ -3,7 +3,7 @@
 > Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.
 > Fuente de verdad: `src/db/schema/tables.ts`.
 
-Versión de esquema: **13**
+Versión de esquema: **14**
 
 ## Convenciones
 
@@ -27,6 +27,8 @@ Versión de esquema: **13**
 | `Financings` | `financings` | `Financing` | 27 | 2 |
 | `FinancingPayments` | `financing_payments` | `FinancingPayment` | 19 | 2 |
 | `FinancingAdjustments` | `financing_adjustments` | `FinancingAdjustment` | 13 | 1 |
+| `People` | `people` | `Person` | 7 | 1 |
+| `SharedExpenseParticipants` | `shared_expense_participants` | `SharedExpenseParticipant` | 9 | 2 |
 | `BudgetTemplates` | `budget_templates` | `BudgetTemplate` | 8 | 0 |
 | `BudgetTemplateItems` | `budget_template_items` | `BudgetTemplateItem` | 13 | 4 |
 | `BudgetPlans` | `budget_plans` | `BudgetPlan` | 10 | 2 |
@@ -321,6 +323,49 @@ Relaciones navegables: `Financings`, `Financings.PaymentMethods`, `Financings.Pa
 
 Índices:
 - `idx_financing_adjustments_financing_date` (financing_id, date) WHERE deleted_at IS NULL
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
+## People (`people`)
+
+Entidad TypeScript: `Person`
+
+| Columna | SQL | TS | Notas |
+| --- | --- | --- | --- |
+| `id` | `INTEGER` | `number` | PK, autoincrement |
+| `name` | `TEXT` | `string` | NOT NULL |
+| `notes` | `TEXT` | `string` |  |
+| `is_active` | `INTEGER` | `boolean | number` | NOT NULL, kind=boolean, default=1 |
+| `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Índices:
+- `idx_people_active` (is_active) WHERE deleted_at IS NULL
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
+## SharedExpenseParticipants (`shared_expense_participants`)
+
+Entidad TypeScript: `SharedExpenseParticipant`
+
+| Columna | SQL | TS | Notas |
+| --- | --- | --- | --- |
+| `id` | `INTEGER` | `number` | PK, autoincrement |
+| `owner_type` | `TEXT` | `string` | NOT NULL |
+| `owner_id` | `INTEGER` | `number` | NOT NULL |
+| `person_id` | `INTEGER` | `number` | NOT NULL, FK → People.id ON DELETE CASCADE |
+| `share_percent` | `REAL` | `number` | NOT NULL |
+| `notes` | `TEXT` | `string` |  |
+| `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Relaciones navegables: `People`
+
+Índices:
+- `idx_shared_owner` (owner_type, owner_id) WHERE deleted_at IS NULL
+- `idx_shared_person` (person_id) WHERE deleted_at IS NULL
 
 Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
 

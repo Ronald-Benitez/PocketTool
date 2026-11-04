@@ -5,13 +5,18 @@ import {
   useCategories,
   useFinancingsRepository,
   usePaymentMethods,
+  usePeopleRepository,
+  useSharedParticipantsRepository,
   useTableRepository,
 } from '@/src/db';
 import { calculatePaymentCents } from '@/src/domain/credits/amortization';
 import type {
   FinancingWithRelations,
+  Person,
   RecordType,
 } from '@/src/interfaces/schema';
+import type { ParticipantDraft } from '@/src/db/repositories/people';
+import { SharedParticipantsField } from '@/src/components/shared/SharedParticipantsField';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { formatMoneyWithSymbol } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
@@ -62,6 +67,8 @@ export const FinancingForm = ({
   const paymentsRepository = usePaymentMethods();
   const categoriesRepository = useCategories();
   const recordTypesRepository = useTableRepository('RecordTypes');
+  const peopleRepository = usePeopleRepository();
+  const participantsRepository = useSharedParticipantsRepository();
   const [kind, setKind] = useState<(typeof KINDS)[number]>(
     'installment_purchase'
   );
@@ -78,9 +85,8 @@ export const FinancingForm = ({
   const [firstPaymentDate, setFirstPaymentDate] = useState(() => Date.now());
   const [paidInstallments, setPaidInstallments] = useState('0');
   const [capitalPaid, setCapitalPaid] = useState(0);
-  const [isShared, setIsShared] = useState(false);
-  const [sharedPercent, setSharedPercent] = useState('50');
-  const [sharedCounterparty, setSharedCounterparty] = useState('');
+  const [people, setPeople] = useState<Person[]>([]);
+  const [participants, setParticipants] = useState<ParticipantDraft[]>([]);
   const [paymentMethodId, setPaymentMethodId] = useState<number | null>(null);
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [recordTypeId, setRecordTypeId] = useState<number | null>(null);
@@ -119,9 +125,7 @@ export const FinancingForm = ({
     );
     setPaidInstallments(String(financing?.paid_installments_before_app ?? 0));
     setCapitalPaid(financing?.capital_paid_before_app_cents ?? 0);
-    setIsShared(Boolean(financing?.is_shared));
-    setSharedPercent(String(financing?.shared_percent ?? 50));
-    setSharedCounterparty(financing?.shared_counterparty ?? '');
+    setParticipants([]);
     setPaymentMethodId(financing?.payment_method_id ?? null);
     setCategoryId(financing?.category_id ?? null);
     setRecordTypeId(financing?.record_type_id ?? null);
@@ -136,11 +140,13 @@ export const FinancingForm = ({
       paymentsRepository.fetchPaymentMethods(),
       categoriesRepository.fetchCategories(),
       recordTypesRepository.fetchAll(),
-    ]).then(([methods, nextCategories, nextRecordTypes]) => {
+      peopleRepository.fetchPeople(),
+    ]).then(([methods, nextCategories, nextRecordTypes, nextPeople]) => {
       if (!active) return;
       setPaymentMethods(methods ?? []);
       setCategories(nextCategories ?? []);
       setRecordTypes((nextRecordTypes ?? []) as RecordType[]);
+      setPeople(nextPeople ?? []);
       setPaymentMethodId((current) => current ?? methods?.[0]?.id ?? null);
       setCategoryId((current) => current ?? nextCategories?.[0]?.id ?? null);
       const expenseTypes = (nextRecordTypes ?? []).filter(
@@ -152,6 +158,27 @@ export const FinancingForm = ({
       active = false;
     };
   }, [visible]);
+
+  useEffect(() => {
+    if (!visible || !financing?.id) {
+      setParticipants([]);
+      return;
+    }
+    let active = true;
+    participantsRepository.fetchFor('financing', financing.id).then((rows) => {
+      if (!active) return;
+      setParticipants(
+        rows.map((row) => ({
+          personId: row.person_id,
+          sharePercent: row.share_percent,
+          notes: row.notes,
+        }))
+      );
+    });
+    return () => {
+      active = false;
+    };
+  }, [visible, financing?.id]);
 
   const financed = Math.max(0, principal - downPayment);
   const rateBps = Math.round(parseNumber(annualRate) * 100);
@@ -185,11 +212,30 @@ export const FinancingForm = ({
       setError(t('financings.invalidFields'));
       return;
     }
+    const totalShared = participants.reduce(
+      (total, participant) => total + participant.sharePercent,
+      0
+    );
+    const uniquePeople = new Set(
+      participants.map((participant) => participant.personId)
+    );
+    if (totalShared > 100.0001) {
+      setError(t('shared.invalidTotal'));
+      return;
+    }
+    if (uniquePeople.size !== participants.length) {
+      setError(t('shared.duplicate'));
+      return;
+    }
+    const sharedNames = participants
+      .map((participant) => people.find((person) => person.id === participant.personId)?.name)
+      .filter((value): value is string => Boolean(value))
+      .join(', ');
 
     setSaving(true);
     setError(null);
     try {
-      await repository.saveFinancing({
+      const savedId = await repository.saveFinancing({
         id: financing?.id,
         name: name.trim(),
         kind,
@@ -212,11 +258,9 @@ export const FinancingForm = ({
           Math.floor(parseNumber(paidInstallments))
         ),
         capital_paid_before_app_cents: capitalPaid,
-        is_shared: isShared ? 1 : 0,
-        shared_percent: isShared ? parseNumber(sharedPercent) : null,
-        shared_counterparty: isShared
-          ? sharedCounterparty.trim() || null
-          : null,
+        is_shared: participants.length > 0 ? 1 : 0,
+        shared_percent: participants.length > 0 ? totalShared : null,
+        shared_counterparty: participants.length > 0 ? sharedNames || null : null,
         status:
           (financing?.status as
             | 'active'
@@ -226,6 +270,11 @@ export const FinancingForm = ({
             | undefined) ?? 'active',
         notes: notes.trim() || null,
       });
+      await participantsRepository.replaceFor(
+        'financing',
+        savedId,
+        participants
+      );
       showToast({ message: t('financings.financingSaved'), type: 'success' });
       onSaved();
       onClose();
@@ -377,26 +426,12 @@ export const FinancingForm = ({
           value={capitalPaid}
           onChangeCents={setCapitalPaid}
         />
-        <SwitchField
-          label={t('financings.shared')}
-          value={isShared}
-          onChange={setIsShared}
+        <SharedParticipantsField
+          people={people}
+          value={participants}
+          onChange={setParticipants}
+          totalCents={financed}
         />
-        {isShared ? (
-          <>
-            <TextField
-              label={t('financings.sharedPercent')}
-              value={sharedPercent}
-              onChangeText={setSharedPercent}
-              keyboardType='decimal-pad'
-            />
-            <TextField
-              label={t('financings.sharedCounterparty')}
-              value={sharedCounterparty}
-              onChangeText={setSharedCounterparty}
-            />
-          </>
-        ) : null}
         <SelectField
           label={t('financings.paymentMethod')}
           value={paymentMethodId}

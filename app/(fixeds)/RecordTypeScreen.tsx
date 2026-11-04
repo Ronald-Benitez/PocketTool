@@ -7,7 +7,7 @@ import { AppText } from '@/src/ui/primitives/AppText';
 import { FinanceValue } from '@/src/ui/data-display/FinanceValue';
 import { ListItem } from '@/src/ui/data-display/ListItem';
 import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock';
-import { Stack } from '@/src/ui/primitives/Stack';
+import { Row, Stack } from '@/src/ui/primitives/Stack';
 import { Screen } from '@/src/ui/primitives/Screen';
 import { Surface } from '@/src/ui/primitives/Surface';
 import { useTheme } from '@/src/ui/theme/ThemeProvider';
@@ -15,7 +15,7 @@ import { useTheme } from '@/src/ui/theme/ThemeProvider';
 const RecordTypeScreen = () => {
     const { t } = useLanguage();
     const { colors } = useTheme();
-    const { balance, balanceByRecordType } = useFixedsResumesStore()
+    const { balance, ownBalance, sharedBalance, balanceByRecordType } = useFixedsResumesStore()
 
     return (
         <Screen scroll edges={['left', 'right']}>
@@ -30,6 +30,25 @@ const RecordTypeScreen = () => {
                         accentColor={colors.primary}
                     />
                 </Surface>
+
+                <Row gap='md'>
+                    <SummaryBlock
+                        label={t('resume.own')}
+                        cents={ownBalance}
+                        size='md'
+                        valueColorOverride={colors.text}
+                        accentColor={colors.primary}
+                        style={{ flex: 1 }}
+                    />
+                    <SummaryBlock
+                        label={t('resume.shared')}
+                        cents={sharedBalance}
+                        size='md'
+                        valueColorOverride={colors.textMuted}
+                        accentColor={colors.textMuted}
+                        style={{ flex: 1 }}
+                    />
+                </Row>
 
                 <Stack gap='sm'>
                     <AppText variant='subtitle'>{t('resume.summaryByRecordType')}</AppText>

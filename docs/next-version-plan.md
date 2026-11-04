@@ -1,6 +1,6 @@
 # Plan de la siguiente versión — Fase 10 (NV)
 
-**Estado:** 🚧 En implementación (NV-1 y NV-6 a NV-10 completados)
+**Estado:** 🚧 En implementación (NV-1, NV-4, NV-5, NV-6 a NV-10 parciales)
 **Fecha:** 2026-11-03
 **Objetivo:** cerrar los errores de integración entre Registros, Gastos fijos,
 Créditos/Préstamos, Vehículo y Resúmenes, y añadir un modelo reutilizable de
@@ -371,7 +371,7 @@ Migraciones pequeñas por dominio:
 
 1. `0013_vehicle_settings_record_type` — **implementada**.
    - `VehicleSettings.record_type_id`.
-2. `0014_people_and_shared_participants`
+2. `0014_people_and_shared_participants` — **implementada**.
    - `People`.
    - `SharedExpenseParticipants`.
    - Backfill de `Financings.is_shared`/`shared_percent`/
@@ -473,16 +473,21 @@ Implementado:
   gasto, sin asignación automática.
 - NV-8: los resúmenes de fijos incluyen la cuota mensual de financiamientos
   activos por tipo de registro, tipo de pago, método de pago y categoría.
+- NV-4/NV-5: registro de personas y participantes ilimitados con porcentajes;
+  aplicado a financiamientos y gastos fijos.
+- NV-8: los resúmenes de fijos incluyen la cuota mensual de financiamientos
+  activos por tipo de registro, tipo de pago, método de pago y categoría.
 - NV-9: la sección se renombró a **Compromisos** en el drawer.
 - NV-10: se corrigió la carrera de selección de grupo en Resumen; una selección
   del usuario ya no es sobrescrita por la carga asíncrona del grupo fijado y las
   cargas antiguas de registros no pisan la selección nueva.
-- Migración `0013_vehicle_settings_record_type`.
+- Migraciones `0013_vehicle_settings_record_type` y
+  `0014_people_and_shared_participants`.
 
 Pendiente:
 
-- NV-2 a NV-5: personas, compartidos ilimitados y separación total/propio/
-  compartido.
+- NV-2/NV-3: terminar la integración de compartidos en todos los resúmenes y
+  guardar `own_amount_cents`/`shared_amount_cents` en `Records`.
 
 ## 8. Verificación
 

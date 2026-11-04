@@ -49,6 +49,8 @@ No editar esos archivos a mano.
 | `Financings` | `financings` | Compras a plazo y préstamos con tasa, plazo y estado inicial. |
 | `FinancingPayments` | `financing_payments` | Pagos, capital, interés, seguros, honorarios, abonos y vínculo opcional con `Records`. |
 | `FinancingAdjustments` | `financing_adjustments` | Refinanciamientos y cambios de tasa/plazo. |
+| `People` | `people` | Registro de personas para gastos compartidos. |
+| `SharedExpenseParticipants` | `shared_expense_participants` | Participantes y porcentajes de fijos y financiamientos compartidos. |
 | `BudgetTemplates` | `budget_templates` | Plantillas de presupuesto reutilizables. |
 | `BudgetTemplateItems` | `budget_template_items` | Líneas de plantilla (categoría o fijo). |
 | `BudgetPlans` | `budget_plans` | Plan mensual por grupo. |
@@ -60,7 +62,7 @@ No editar esos archivos a mano.
 | `VehicleMaintenance` | `vehicle_maintenance` | Servicios, reparaciones y costos. |
 | `VehicleMaintenanceItems` | `vehicle_maintenance_items` | Piezas y detalles flexibles. |
 | `VehicleReminders` | `vehicle_reminders` | Recordatorios e intervalos de servicio. |
-| `VehicleSettings` | `vehicle_settings` | Categorías y pagos por defecto. |
+| `VehicleSettings` | `vehicle_settings` | Categorías, pagos y tipos de registro por defecto de la sección Vehículo. |
 | `VehicleExpenseLinks` | `vehicle_expense_links` | Vínculo uno a uno con `Records`. |
 | `Migrations` | `migrations` | Historial de migraciones. |
 
@@ -102,6 +104,7 @@ Las rutas navegables se generan en `relations.json` a partir de las FKs.
 | 11 | `0011_credit_cards_and_financings` | Agrega campos visuales/tarjeta a `payment_methods` y crea `financings`, `financing_payments` y `financing_adjustments`. |
 | 12 | `0012_financing_payment_cents` | Agrega `payment_cents` a `financings` para la cuota pactada opcional. |
 | 13 | `0013_vehicle_settings_record_type` | Agrega `record_type_id` a `vehicle_settings` para el tipo de registro por defecto de la sección Vehículo. |
+| 14 | `0014_people_and_shared_participants` | Crea `people` y `shared_expense_participants`, y migra los compartidos existentes de financiamientos. |
 
 Reglas:
 

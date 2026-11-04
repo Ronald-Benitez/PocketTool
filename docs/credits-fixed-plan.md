@@ -384,7 +384,8 @@ simulación” después si el usuario lo necesita.
 
 Migraciones `0011_credit_cards_and_financings` y
 `0012_financing_payment_cents`; la Fase 10 añade
-`0013_vehicle_settings_record_type` y el esquema actual es 13.
+`0013_vehicle_settings_record_type` y `0014_people_and_shared_participants`;
+el esquema actual es 14.
 
 ### 5.1 `PaymentMethods`
 
@@ -610,7 +611,8 @@ Implementado:
 
 - Migraciones `0011_credit_cards_and_financings` y
   `0012_financing_payment_cents`; la Fase 10 añade
-  `0013_vehicle_settings_record_type` y el esquema actual es 13.
+  `0013_vehicle_settings_record_type` y `0014_people_and_shared_participants`;
+el esquema actual es 14.
 - `Financings.payment_cents` para la cuota pactada opcional.
 - `PaymentMethods` con `is_credit_card`, `credit_limit`, `visual_kind`,
   `card_brand`, `card_style`, `card_color`, `card_last4`, `card_holder` y

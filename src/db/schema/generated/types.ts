@@ -159,6 +159,24 @@ export interface FinancingAdjustment extends Entity, SoftDeletable {
   updated_at?: TimestampMs | null;
 }
 
+export interface Person extends Entity, SoftDeletable {
+  name: string;
+  notes?: string | null;
+  is_active: boolean | number;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
+export interface SharedExpenseParticipant extends Entity, SoftDeletable {
+  owner_type: string;
+  owner_id: number;
+  person_id: number;
+  share_percent: number;
+  notes?: string | null;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
 export interface BudgetTemplate extends Entity, SoftDeletable {
   template_name: string;
   description?: string | null;
