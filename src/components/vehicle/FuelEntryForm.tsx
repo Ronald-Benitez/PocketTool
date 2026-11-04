@@ -5,12 +5,17 @@ import { StyleSheet, View } from 'react-native';
 import {
   useCategories,
   usePaymentMethods,
+  useTableRepository,
   useVehicleFuelRepository,
   useVehicleSettingsRepository,
 } from '@/src/db';
 import type { VehicleFuelEntryView } from '@/src/db/repositories/vehicle';
 import type { VehicleExpenseOption } from '@/src/db/repositories/vehicle';
-import type { Vehicle, VehicleSetting } from '@/src/interfaces/schema';
+import type {
+  RecordType,
+  Vehicle,
+  VehicleSetting,
+} from '@/src/interfaces/schema';
 import useRecordsStore from '@/src/stores/RecordsStore';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { Button } from '@/src/ui/actions/Button';
@@ -69,6 +74,7 @@ export const FuelEntryForm = ({
   const settingsRepository = useVehicleSettingsRepository();
   const categoriesRepository = useCategories();
   const paymentsRepository = usePaymentMethods();
+  const recordTypesRepository = useTableRepository('RecordTypes');
   const [date, setDate] = useState(() => Date.now());
   const [odometerMode, setOdometerMode] = useState<'odometer' | 'distance'>('odometer');
   const [odometer, setOdometer] = useState('');
@@ -87,10 +93,12 @@ export const FuelEntryForm = ({
   const [notes, setNotes] = useState('');
   const [categories, setCategories] = useState<{ id?: number; category_name: string }[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<{ id?: number; method_name: string }[]>([]);
+  const [recordTypes, setRecordTypes] = useState<RecordType[]>([]);
   const [settings, setSettings] = useState<VehicleSetting[]>([]);
   const [groupId, setGroupId] = useState<number | null>(null);
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [paymentMethodId, setPaymentMethodId] = useState<number | null>(null);
+  const [recordTypeId, setRecordTypeId] = useState<number | null>(null);
   const [linkMode, setLinkMode] = useState<'create' | 'link' | 'none'>('create');
   const [linkedRecord, setLinkedRecord] = useState<VehicleExpenseOption | null>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
@@ -119,6 +127,7 @@ export const FuelEntryForm = ({
     setStation(entry?.station ?? '');
     setNotes(entry?.notes ?? '');
     setLinkMode(baseline ? 'none' : entry?.record_id ? 'link' : 'create');
+    setRecordTypeId(null);
     setLinkedRecord(
       entry?.record_id && !baseline
         ? {
@@ -176,11 +185,13 @@ export const FuelEntryForm = ({
       categoriesRepository.fetchCategories(),
       paymentsRepository.fetchPaymentMethods(),
       settingsRepository.fetchSettings(),
-    ]).then(([nextCategories, nextPayments, nextSettings]) => {
+      recordTypesRepository.fetchAll(),
+    ]).then(([nextCategories, nextPayments, nextSettings, nextRecordTypes]) => {
       if (!active) return;
       setCategories(nextCategories ?? []);
       setPaymentMethods(nextPayments ?? []);
       setSettings(nextSettings);
+      setRecordTypes((nextRecordTypes ?? []) as RecordType[]);
     });
     return () => {
       active = false;
@@ -207,7 +218,11 @@ export const FuelEntryForm = ({
       (current) =>
         current ?? fuelSetting?.payment_method_id ?? paymentMethods[0]?.id ?? null
     );
-  }, [visible, settings, entry, isBaseline, categories, paymentMethods]);
+    const expenseTypes = recordTypes.filter((type) => type.effect === '-');
+    setRecordTypeId(
+      (current) => current ?? fuelSetting?.record_type_id ?? expenseTypes[0]?.id ?? null
+    );
+  }, [visible, settings, entry, isBaseline, categories, paymentMethods, recordTypes]);
 
   const volumeNumber = parseNumber(volume);
   const categoryOptions = useMemo(
@@ -225,6 +240,15 @@ export const FuelEntryForm = ({
         method.id === undefined ? [] : [{ label: method.method_name, value: method.id }]
       ),
     [paymentMethods]
+  );
+  const recordTypeOptions = useMemo(
+    () =>
+      recordTypes.flatMap((type) =>
+        type.id === undefined || type.effect !== '-'
+          ? []
+          : [{ label: type.type_name, value: type.id }]
+      ),
+    [recordTypes]
   );
 
 
@@ -392,6 +416,10 @@ export const FuelEntryForm = ({
       setError(t('vehicle.fuel.fullTankDistanceRequired'));
       return;
     }
+    if (linkMode === 'create' && !recordTypeId) {
+      setError(t('vehicle.records.recordTypeRequired'));
+      return;
+    }
     if (linkMode === 'create' && !groupId) {
       setError(t('vehicle.records.groupRequired'));
       return;
@@ -452,6 +480,7 @@ export const FuelEntryForm = ({
           groupId,
           categoryId,
           paymentMethodId,
+          recordTypeId,
         },
       });
       await persistUnits();
@@ -468,7 +497,9 @@ export const FuelEntryForm = ({
             ? t('vehicle.records.categoryRequired')
             : message === 'PAYMENT_METHOD_REQUIRED'
               ? t('vehicle.records.paymentRequired')
-              : message === 'PREVIOUS_ODOMETER_REQUIRED'
+              : message === 'RECORD_TYPE_REQUIRED'
+                ? t('vehicle.records.recordTypeRequired')
+                : message === 'PREVIOUS_ODOMETER_REQUIRED'
                 ? t('vehicle.fuel.previousOdometerRequired')
                 : message === 'BASELINE_NOT_ALLOWED'
                   ? t('vehicle.fuel.baselineNotAllowed')
@@ -672,6 +703,12 @@ export const FuelEntryForm = ({
               />
               {linkMode === 'create' ? (
                 <>
+                  <SelectField
+                    label={t('vehicle.records.recordType')}
+                    value={recordTypeId}
+                    options={recordTypeOptions}
+                    onChange={setRecordTypeId}
+                  />
                   <SelectField
                     label={t('vehicle.records.category')}
                     value={categoryId}

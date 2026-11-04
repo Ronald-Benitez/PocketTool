@@ -3,7 +3,7 @@
 > Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.
 > Fuente de verdad: `src/db/schema/tables.ts`.
 
-Versión de esquema: **12**
+Versión de esquema: **13**
 
 ## Convenciones
 
@@ -39,7 +39,7 @@ Versión de esquema: **12**
 | `VehicleMaintenance` | `vehicle_maintenance` | `VehicleMaintenanceEntry` | 13 | 2 |
 | `VehicleMaintenanceItems` | `vehicle_maintenance_items` | `VehicleMaintenanceItem` | 10 | 1 |
 | `VehicleReminders` | `vehicle_reminders` | `VehicleReminder` | 17 | 1 |
-| `VehicleSettings` | `vehicle_settings` | `VehicleSetting` | 6 | 0 |
+| `VehicleSettings` | `vehicle_settings` | `VehicleSetting` | 7 | 0 |
 | `VehicleExpenseLinks` | `vehicle_expense_links` | `VehicleExpenseLink` | 6 | 3 |
 
 ## Groups (`groups`)
@@ -635,10 +635,11 @@ Entidad TypeScript: `VehicleSetting`
 | `setting_key` | `TEXT` | `string` | NOT NULL, UNIQUE |
 | `category_id` | `INTEGER` | `number` | FK → Categories.id ON DELETE SET NULL |
 | `payment_method_id` | `INTEGER` | `number` | FK → PaymentMethods.id ON DELETE SET NULL |
+| `record_type_id` | `INTEGER` | `number` | FK → RecordTypes.id ON DELETE SET NULL |
 | `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 
-Relaciones navegables: `Categories`, `PaymentMethods`, `PaymentMethods.PaymentTypes`
+Relaciones navegables: `Categories`, `PaymentMethods`, `PaymentMethods.PaymentTypes`, `RecordTypes`
 
 Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
 

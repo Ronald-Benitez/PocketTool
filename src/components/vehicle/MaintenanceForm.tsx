@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import {
   useCategories,
   usePaymentMethods,
+  useTableRepository,
   useVehicleMaintenanceRepository,
   useVehicleRemindersRepository,
   useVehicleSettingsRepository,
@@ -12,7 +13,11 @@ import type {
   VehicleExpenseOption,
   VehicleMaintenanceView,
 } from '@/src/db/repositories/vehicle';
-import type { Vehicle, VehicleSetting } from '@/src/interfaces/schema';
+import type {
+  RecordType,
+  Vehicle,
+  VehicleSetting,
+} from '@/src/interfaces/schema';
 import useRecordsStore from '@/src/stores/RecordsStore';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { Button } from '@/src/ui/actions/Button';
@@ -83,6 +88,7 @@ export const MaintenanceForm = ({
   const settingsRepository = useVehicleSettingsRepository();
   const categoriesRepository = useCategories();
   const paymentsRepository = usePaymentMethods();
+  const recordTypesRepository = useTableRepository('RecordTypes');
   const [date, setDate] = useState(() => Date.now());
   const [odometer, setOdometer] = useState('');
   const [distanceUnit, setDistanceUnit] = useState<'mi' | 'km'>('mi');
@@ -96,10 +102,12 @@ export const MaintenanceForm = ({
   const [editingItem, setEditingItem] = useState<MaintenanceItemDraft | null>(null);
   const [categories, setCategories] = useState<{ id?: number; category_name: string }[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<{ id?: number; method_name: string }[]>([]);
+  const [recordTypes, setRecordTypes] = useState<RecordType[]>([]);
   const [settings, setSettings] = useState<VehicleSetting[]>([]);
   const [groupId, setGroupId] = useState<number | null>(null);
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [paymentMethodId, setPaymentMethodId] = useState<number | null>(null);
+  const [recordTypeId, setRecordTypeId] = useState<number | null>(null);
   const [linkMode, setLinkMode] = useState<'create' | 'link' | 'none'>('create');
   const [linkedRecord, setLinkedRecord] = useState<VehicleExpenseOption | null>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
@@ -130,6 +138,7 @@ export const MaintenanceForm = ({
       cost: item.cost,
     })) ?? []);
     setLinkMode(entry?.record_id ? 'link' : 'create');
+    setRecordTypeId(null);
     setLinkedRecord(
       entry?.record_id
         ? {
@@ -160,11 +169,13 @@ export const MaintenanceForm = ({
       categoriesRepository.fetchCategories(),
       paymentsRepository.fetchPaymentMethods(),
       settingsRepository.fetchSettings(),
-    ]).then(([nextCategories, nextPayments, nextSettings]) => {
+      recordTypesRepository.fetchAll(),
+    ]).then(([nextCategories, nextPayments, nextSettings, nextRecordTypes]) => {
       if (!active) return;
       setCategories(nextCategories ?? []);
       setPaymentMethods(nextPayments ?? []);
       setSettings(nextSettings);
+      setRecordTypes((nextRecordTypes ?? []) as RecordType[]);
       const key =
         serviceType === 'repair' || serviceType === 'tires' || serviceType === 'oil_change'
           ? serviceType
@@ -183,6 +194,13 @@ export const MaintenanceForm = ({
           setting?.payment_method_id ??
           nextPayments?.[0]?.id ??
           null
+      );
+      const expenseTypes = (nextRecordTypes ?? []).filter(
+        (type) => type.effect === '-'
+      );
+      setRecordTypeId(
+        (current) =>
+          current ?? setting?.record_type_id ?? expenseTypes[0]?.id ?? null
       );
     });
     return () => {
@@ -211,6 +229,15 @@ export const MaintenanceForm = ({
       ),
     [paymentMethods]
   );
+  const recordTypeOptions = useMemo(
+    () =>
+      recordTypes.flatMap((type) =>
+        type.id === undefined || type.effect !== '-'
+          ? []
+          : [{ label: type.type_name, value: type.id }]
+      ),
+    [recordTypes]
+  );
 
 
   const selectLinkedRecord = (option: VehicleExpenseOption) => {
@@ -222,6 +249,10 @@ export const MaintenanceForm = ({
   const save = async () => {
     if (!vehicle.id || !title.trim()) {
       setError(t('vehicle.toast.empty'));
+      return;
+    }
+    if (linkMode === 'create' && !recordTypeId) {
+      setError(t('vehicle.records.recordTypeRequired'));
       return;
     }
     if (linkMode === 'create' && !groupId) {
@@ -273,6 +304,7 @@ export const MaintenanceForm = ({
           groupId,
           categoryId,
           paymentMethodId,
+          recordTypeId,
         },
       });
     } catch (cause) {
@@ -285,7 +317,9 @@ export const MaintenanceForm = ({
             ? t('vehicle.records.categoryRequired')
             : message === 'PAYMENT_METHOD_REQUIRED'
               ? t('vehicle.records.paymentRequired')
-              : t('vehicle.toast.error')
+              : message === 'RECORD_TYPE_REQUIRED'
+                ? t('vehicle.records.recordTypeRequired')
+                : t('vehicle.toast.error')
       );
       setSaving(false);
       return;
@@ -490,6 +524,12 @@ export const MaintenanceForm = ({
           </Stack>
           {linkMode === 'create' ? (
             <>
+              <SelectField
+                label={t('vehicle.records.recordType')}
+                value={recordTypeId}
+                options={recordTypeOptions}
+                onChange={setRecordTypeId}
+              />
               <SelectField
                 label={t('vehicle.records.category')}
                 value={categoryId}

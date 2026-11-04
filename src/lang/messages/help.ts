@@ -238,13 +238,13 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "Each vehicle has default distance and volume units and a preferred consumption format. Fuel and maintenance entries use explicit units, and the odometer or distance can be entered or inferred. A default vehicle is used when you open the section."
+                "body": "Each vehicle has default distance and volume units and a preferred consumption format. Fuel and maintenance entries use explicit units, and the odometer or distance can be entered or inferred. The effective odometer is carried through distance-only entries, so later odometer readings and reminders use the full history. A default vehicle is used when you open the section."
             },
             "steps": {
                 "title": "Step by step",
                 "step1": "Add a vehicle and choose its default units.",
                 "step2": "Register fuel and maintenance from their tabs.",
-                "step3": "Review the dashboard, reminders and histories."
+                "step3": "Review the dashboard, reminders and histories. When creating an expense, choose its record type; the default comes from Vehicle settings."
             },
             "example": {
                 "title": "Example",
@@ -740,13 +740,13 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "Cada vehículo tiene unidades por defecto de distancia y volumen y un formato de consumo preferido. Las entradas de combustible y mantenimiento usan unidades explícitas, y el odómetro o la distancia se pueden ingresar o inferir. Al abrir la sección se usa el vehículo predeterminado."
+                "body": "Cada vehículo tiene unidades por defecto de distancia y volumen y un formato de consumo preferido. Las entradas de combustible y mantenimiento usan unidades explícitas, y el odómetro o la distancia se pueden ingresar o inferir. El odómetro efectivo se conserva a través de entradas con solo distancia, por lo que las lecturas posteriores y los recordatorios usan el historial completo. Al abrir la sección se usa el vehículo predeterminado."
             },
             "steps": {
                 "title": "Paso a paso",
                 "step1": "Agrega un vehículo y elige sus unidades por defecto.",
                 "step2": "Registra combustible y mantenimiento desde sus pestañas.",
-                "step3": "Revisa el resumen, los recordatorios y los históricos."
+                "step3": "Revisa el resumen, los recordatorios y los históricos. Al crear un gasto, elige su tipo de registro; el valor por defecto viene de los ajustes de Vehículo."
             },
             "example": {
                 "title": "Ejemplo",

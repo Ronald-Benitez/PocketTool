@@ -3,7 +3,6 @@ import { z } from 'zod';
 
 import { ORM, useORM } from '@/src/orm';
 import { withExclusiveTransaction } from '@/src/db/transaction';
-import { useConfigs } from '@/src/hooks/useConfigs';
 import type {
   Financing,
   FinancingAdjustment,
@@ -11,7 +10,6 @@ import type {
   FinancingWithRelations,
   Insertable,
   RecordEntry,
-  RecordType,
   VehicleExpenseLink,
 } from '@/src/interfaces/schema';
 import {
@@ -43,25 +41,7 @@ export type FinancingPaymentRecordInput = {
   groupId?: number | null;
   categoryId?: number | null;
   paymentMethodId?: number | null;
-};
-
-const expenseTypeKey = (type: RecordType) =>
-  (type.type_name ?? '').toLowerCase() === 'payments';
-
-const resolveExpenseType = async (
-  db: Parameters<typeof withExclusiveTransaction>[0]
-) => {
-  const excluded = useConfigs.getState().configs.paymentCreditType;
-  const types = (await new ORM(db, 'RecordTypes').getAll()) as RecordType[];
-  return (
-    types.find(
-      (type) =>
-        type.id !== undefined &&
-        type.id !== excluded &&
-        type.effect === '-' &&
-        !expenseTypeKey(type)
-    ) ?? null
-  );
+  recordTypeId?: number | null;
 };
 
 const isSameDay = (left: number, right: number) => {
@@ -251,17 +231,18 @@ export const useFinancingsRepository = () => {
         const category = record.categoryId ?? financing.category_id ?? null;
         const method =
           record.paymentMethodId ?? financing.payment_method_id ?? null;
+        const recordType =
+          record.recordTypeId ?? financing.record_type_id ?? null;
         if (!group) throw new Error('GROUP_REQUIRED');
         if (!category) throw new Error('CATEGORY_REQUIRED');
         if (!method) throw new Error('PAYMENT_METHOD_REQUIRED');
-        const expenseType = await resolveExpenseType(txn);
-        if (!expenseType?.id) throw new Error('RECORD_TYPE_REQUIRED');
+        if (!recordType) throw new Error('RECORD_TYPE_REQUIRED');
 
         const recordPayload = recordInputSchema.parse({
           amount: values.amount_cents,
           record_name: `Payment · ${financing.name}`,
           date: values.date,
-          record_type_id: expenseType.id,
+          record_type_id: recordType,
           group_id: group,
           category_id: category,
           payment_method_id: method,

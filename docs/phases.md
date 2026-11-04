@@ -16,7 +16,7 @@
 | Fase 7 — Presupuestos | ✅ Finalizada | 2026-10-29 |
 | Fase 8 — Vehículo | ✅ Finalizada | 2026-10-31 |
 | Fase 9 — Gastos fijos y Créditos | 🚧 En implementación | 2026-11-02 |
-| Fase 10 — Errores y ajustes de siguiente versión | 📋 Planificada | 2026-11-03 |
+| Fase 10 — Errores y ajustes de siguiente versión | 🚧 En implementación | 2026-11-03 |
 
 El detalle histórico de las fases 0–3 vive en
 [`legacy/phase-history.md`](legacy/phase-history.md). El detalle de la Fase 4
@@ -39,7 +39,8 @@ están archivados en [`legacy/budget-plan.md`](legacy/budget-plan.md) y
   `0005_drop_budget_legacy`, `0006_drop_budget_plan_status`,
   `0007_vehicle_module`, `0008_fuel_baseline`, `0009_vehicle_type`,
   `0010_vehicle_type_models`, `0011_credit_cards_and_financings`,
-  `0012_financing_payment_cents`; `SCHEMA_VERSION = 12`.
+  `0012_financing_payment_cents`, `0013_vehicle_settings_record_type`;
+  `SCHEMA_VERSION = 13`.
 - **Presupuestos:** `BudgetPlans` (un plan por grupo), `BudgetLines` (categoría
   o fijo) y plantillas reutilizables. El real se deriva de `Records`; no se
   guarda. `budgets_legacy` se elimina en `0005`.
@@ -273,7 +274,9 @@ Alcance principal:
 Implementado hasta ahora:
 
 - Migraciones `0011_credit_cards_and_financings` y
-  `0012_financing_payment_cents`; `SCHEMA_VERSION = 12`.
+  `0012_financing_payment_cents`; `SCHEMA_VERSION = 12` al cerrar la parte de
+  créditos. La Fase 10 añade `0013_vehicle_settings_record_type` y lleva el
+  esquema a 13.
 - Campos de tarjeta en `PaymentMethods`: tarjeta de crédito explícita, límite,
   visual, marca, acabado, color, últimos cuatro, titular y emisor.
 - Backfill legacy: tarjetas por `closing_date` y color desde el tipo de pago.
@@ -314,9 +317,13 @@ Pendiente:
 
 Subfases: CRED-0 a CRED-6, detalladas en el plan.
 
-## Fase 10 — Errores y ajustes de siguiente versión (📋 Planificada, 2026-11-03)
+## Fase 10 — Errores y ajustes de siguiente versión (🚧 En implementación, 2026-11-03)
 
 **Plan completo:** [`next-version-plan.md`](next-version-plan.md)
+
+Estado: **en implementación**. Ya se completaron el tipo de registro de Vehículo
+(global de la sección y también disponible en pagos de financiamientos) y la
+inferencia de odómetro efectivo. El resto de NV-1 a NV-6 sigue pendiente.
 
 Objetivo: resolver la integración pendiente entre Registros, Gastos fijos,
 Créditos/Préstamos, Vehículo y Resúmenes, y añadir un modelo reutilizable de

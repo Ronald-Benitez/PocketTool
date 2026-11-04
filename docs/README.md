@@ -49,7 +49,7 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 | Fase 7 — Presupuestos | ✅ Finalizada (2026-10-29) |
 | Fase 8 — Vehículo | ✅ Finalizada (2026-10-31) |
 | Fase 9 — Gastos fijos y Créditos | 🚧 En implementación (2026-11-02) |
-| Fase 10 — Errores y ajustes de siguiente versión | 📋 Planificada (2026-11-03) |
+| Fase 10 — Errores y ajustes de siguiente versión | 🚧 En implementación (2026-11-03) |
 
 ## Regla de mantenimiento
 

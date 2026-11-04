@@ -317,6 +317,7 @@ export interface VehicleSetting extends Entity {
   setting_key: string;
   category_id?: number | null;
   payment_method_id?: number | null;
+  record_type_id?: number | null;
   created_at?: TimestampMs | null;
   updated_at?: TimestampMs | null;
 }

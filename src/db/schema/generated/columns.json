@@ -1050,6 +1050,7 @@
     "setting_key": "setting_key",
     "category_id": "category_id",
     "payment_method_id": "payment_method_id",
+    "record_type_id": "record_type_id",
     "created_at": "created_at",
     "updated_at": "updated_at",
     "Categories.id": "Categories.id",
@@ -1079,7 +1080,14 @@
     "PaymentMethods.PaymentTypes.payment_color": "PaymentMethods.PaymentTypes.payment_color",
     "PaymentMethods.PaymentTypes.created_at": "PaymentMethods.PaymentTypes.created_at",
     "PaymentMethods.PaymentTypes.updated_at": "PaymentMethods.PaymentTypes.updated_at",
-    "PaymentMethods.PaymentTypes.deleted_at": "PaymentMethods.PaymentTypes.deleted_at"
+    "PaymentMethods.PaymentTypes.deleted_at": "PaymentMethods.PaymentTypes.deleted_at",
+    "RecordTypes.id": "RecordTypes.id",
+    "RecordTypes.type_name": "RecordTypes.type_name",
+    "RecordTypes.effect": "RecordTypes.effect",
+    "RecordTypes.record_color": "RecordTypes.record_color",
+    "RecordTypes.created_at": "RecordTypes.created_at",
+    "RecordTypes.updated_at": "RecordTypes.updated_at",
+    "RecordTypes.deleted_at": "RecordTypes.deleted_at"
   },
   "VehicleExpenseLinks": {
     "id": "id",

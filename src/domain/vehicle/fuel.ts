@@ -1,5 +1,6 @@
 import type {
   ConsumptionFormat,
+  DistanceUnit,
   FuelEntryAnalysis,
   FuelEntryLike,
   FuelSegment,
@@ -10,6 +11,7 @@ import {
   buildFuelMetrics,
   convertDistance,
   distanceUnitOf,
+  fromKm,
   selectConsumption,
   toKm,
   toLiters,
@@ -21,6 +23,70 @@ const sortEntries = (entries: FuelEntryLike[]) =>
     if (a.date !== b.date) return a.date - b.date;
     return (a.odometer ?? 0) - (b.odometer ?? 0);
   });
+
+export type FuelOdometerPoint = {
+  id?: number;
+  date: number;
+  km: number;
+  odometer: number;
+  distanceUnit: DistanceUnit;
+};
+
+export const fuelOdometerPoints = (
+  entries: FuelEntryLike[]
+): FuelOdometerPoint[] => {
+  const sorted = sortEntries(entries);
+  let previousKm: number | null = null;
+
+  return sorted.flatMap((entry) => {
+    const distanceUnit = distanceUnitOf(entry.distance_unit);
+    const explicitKm =
+      entry.odometer != null ? toKm(entry.odometer, distanceUnit) : null;
+    const traveledKm =
+      entry.distance_traveled != null
+        ? toKm(entry.distance_traveled, distanceUnit)
+        : null;
+
+    let effectiveKm: number | null = null;
+    if (explicitKm != null) {
+      effectiveKm = explicitKm;
+    } else if (previousKm != null) {
+      effectiveKm = previousKm + Math.max(0, traveledKm ?? 0);
+    }
+
+    if (effectiveKm == null) return [];
+    previousKm = effectiveKm;
+    return [
+      {
+        id: entry.id,
+        date: entry.date,
+        km: effectiveKm,
+        odometer: fromKm(effectiveKm, distanceUnit),
+        distanceUnit,
+      },
+    ];
+  });
+};
+
+export const selectPreviousFuelReading = (
+  entries: FuelEntryLike[],
+  date: number,
+  excludeId?: number
+) => {
+  const points = fuelOdometerPoints(
+    entries.filter((entry) => entry.id !== excludeId)
+  ).filter((point) => {
+    if (point.date < date) return true;
+    if (point.date > date) return false;
+    return excludeId === undefined || (point.id ?? 0) < excludeId;
+  });
+
+  return (
+    points.sort(
+      (a, b) => b.date - a.date || (b.id ?? 0) - (a.id ?? 0)
+    )[0] ?? null
+  );
+};
 
 export const analyzeFuelEntries = (entries: FuelEntryLike[]): FuelEntryAnalysis[] => {
   const sorted = sortEntries(entries);
@@ -36,13 +102,26 @@ export const analyzeFuelEntries = (entries: FuelEntryLike[]): FuelEntryAnalysis[
     const volumeUnit = volumeUnitOf(entry.volume_unit);
     const volumeL = toLiters(entry.volume ?? 0, volumeUnit);
     const totalCostCents = entry.total_cost ?? 0;
-    const odometerKm = entry.odometer != null ? toKm(entry.odometer, distanceUnit) : null;
+    const explicitOdometerKm =
+      entry.odometer != null ? toKm(entry.odometer, distanceUnit) : null;
+    const traveledKm =
+      entry.distance_traveled != null
+        ? toKm(entry.distance_traveled, distanceUnit)
+        : null;
 
+    let odometerKm: number | null = null;
     let distanceKm: number | null = null;
-    if (odometerKm != null && previousOdometerKm != null) {
-      distanceKm = Math.max(0, odometerKm - previousOdometerKm);
-    } else if (entry.distance_traveled != null) {
-      distanceKm = toKm(entry.distance_traveled, distanceUnit);
+    if (explicitOdometerKm != null) {
+      odometerKm = explicitOdometerKm;
+      distanceKm =
+        previousOdometerKm != null
+          ? Math.max(0, explicitOdometerKm - previousOdometerKm)
+          : null;
+    } else if (previousOdometerKm != null) {
+      distanceKm = Math.max(0, traveledKm ?? 0);
+      odometerKm = previousOdometerKm + distanceKm;
+    } else if (traveledKm != null) {
+      distanceKm = traveledKm;
     }
 
     const metrics =

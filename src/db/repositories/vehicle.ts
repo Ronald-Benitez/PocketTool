@@ -3,14 +3,12 @@ import { z } from 'zod';
 
 import { ORM, useORM } from '@/src/orm';
 import { withExclusiveTransaction } from '@/src/db/transaction';
-import { useConfigs } from '@/src/hooks/useConfigs';
 import type {
   Category,
   Group,
   Insertable,
   PaymentMethod,
   RecordEntry,
-  RecordType,
   Vehicle,
   VehicleExpenseLink,
   VehicleFuelEntry,
@@ -34,7 +32,10 @@ import {
   vehicleUpdateSchema,
 } from '@/src/validation/entities';
 import { computeNextDue } from '@/src/domain/vehicle/reminders';
-import { resolvePartialOdometer } from '@/src/domain/vehicle/fuel';
+import {
+  resolvePartialOdometer,
+  selectPreviousFuelReading,
+} from '@/src/domain/vehicle/fuel';
 
 export type VehicleLinkMode = 'create' | 'link' | 'none';
 
@@ -74,10 +75,8 @@ export type VehicleEntryFinanceInput = {
   groupId?: number | null;
   categoryId?: number | null;
   paymentMethodId?: number | null;
+  recordTypeId?: number | null;
 };
-
-const expenseTypeKey = (type: RecordType) =>
-  (type.type_name ?? '').toLowerCase() === 'payments';
 
 const resolveVehicle = async (
   db: Parameters<typeof withExclusiveTransaction>[0],
@@ -95,20 +94,6 @@ const resolveSetting = async (
     | VehicleSetting
     | null;
 
-const resolveExpenseType = async (db: Parameters<typeof withExclusiveTransaction>[0]) => {
-  const excluded = useConfigs.getState().configs.paymentCreditType;
-  const types = (await new ORM(db, 'RecordTypes').getAll()) as RecordType[];
-  return (
-    types.find(
-      (type) =>
-        type.id !== undefined &&
-        type.id !== excluded &&
-        type.effect === '-' &&
-        !expenseTypeKey(type)
-    ) ?? null
-  );
-};
-
 const createOrUpdateRecord = async ({
   db,
   recordId,
@@ -117,6 +102,7 @@ const createOrUpdateRecord = async ({
   groupId,
   categoryId,
   paymentMethodId,
+  recordTypeId,
   name,
 }: {
   db: Parameters<typeof withExclusiveTransaction>[0];
@@ -126,25 +112,29 @@ const createOrUpdateRecord = async ({
   groupId: number;
   categoryId: number;
   paymentMethodId: number;
+  recordTypeId: number;
   name: string;
 }) => {
+  if (!recordTypeId) throw new Error('RECORD_TYPE_REQUIRED');
   const records = new ORM(db, 'Records');
   if (recordId) {
     await records.update(recordId, {
       amount,
       record_name: name,
       date,
+      record_type_id: recordTypeId,
+      group_id: groupId,
+      category_id: categoryId,
+      payment_method_id: paymentMethodId,
     });
     return recordId;
   }
 
-  const type = await resolveExpenseType(db);
-  if (!type?.id) throw new Error('No expense record type configured');
   const payload = recordInputSchema.parse({
     amount,
     record_name: name,
     date,
-    record_type_id: type.id,
+    record_type_id: recordTypeId,
     group_id: groupId,
     category_id: categoryId,
     payment_method_id: paymentMethodId,
@@ -218,13 +208,16 @@ const requireFinanceFields = async (
   const categoryId = input.categoryId ?? setting?.category_id ?? null;
   const paymentMethodId =
     input.paymentMethodId ?? setting?.payment_method_id ?? null;
+  const recordTypeId = input.recordTypeId ?? setting?.record_type_id ?? null;
   if (!input.groupId) throw new Error('GROUP_REQUIRED');
   if (!categoryId) throw new Error('CATEGORY_REQUIRED');
   if (!paymentMethodId) throw new Error('PAYMENT_METHOD_REQUIRED');
+  if (!recordTypeId) throw new Error('RECORD_TYPE_REQUIRED');
   return {
     groupId: input.groupId,
     categoryId,
     paymentMethodId,
+    recordTypeId,
   };
 };
 
@@ -237,17 +230,7 @@ const findPreviousFuelEntry = async (
   const rows = (await new ORM(db, 'VehicleFuelEntries')
     .where('vehicle_id', vehicleId)
     .getAll()) as VehicleFuelEntry[];
-  return (
-    rows
-      .filter((row) => {
-        if (row.id === excludeId) return false;
-        if (row.odometer == null || row.odometer <= 0) return false;
-        if (row.date < date) return true;
-        if (row.date > date) return false;
-        return excludeId === undefined || (row.id ?? 0) < excludeId;
-      })
-      .sort((a, b) => b.date - a.date || (b.id ?? 0) - (a.id ?? 0))[0] ?? null
-  );
+  return selectPreviousFuelReading(rows, date, excludeId);
 };
 
 export const useVehiclesRepository = () => {
@@ -471,7 +454,7 @@ export const useVehicleFuelRepository = () => {
             entryValues.date,
             id
           );
-          if (!previous?.odometer) {
+          if (!previous || previous.odometer <= 0) {
             throw new Error('PREVIOUS_ODOMETER_REQUIRED');
           }
 
@@ -479,7 +462,7 @@ export const useVehicleFuelRepository = () => {
             distanceTraveled: entryValues.distance_traveled,
             distanceUnit: entryValues.distance_unit ?? 'mi',
             previousOdometer: previous.odometer,
-            previousDistanceUnit: previous.distance_unit,
+            previousDistanceUnit: previous.distanceUnit,
           });
           if (!resolution.ok) {
             throw new Error('PREVIOUS_ODOMETER_REQUIRED');
@@ -521,7 +504,12 @@ export const useVehicleFuelRepository = () => {
         .where('fuel_entry_id', entryId)
         .first()) as VehicleExpenseLink | null;
       const fields = existingLink
-        ? { groupId: 0, categoryId: 0, paymentMethodId: 0 }
+        ? {
+            groupId: finance.groupId ?? 0,
+            categoryId: finance.categoryId ?? 0,
+            paymentMethodId: finance.paymentMethodId ?? 0,
+            recordTypeId: finance.recordTypeId ?? 0,
+          }
         : await requireFinanceFields(txn, 'fuel', finance);
       const recordId = await createOrUpdateRecord({
         db: txn,
@@ -531,6 +519,7 @@ export const useVehicleFuelRepository = () => {
         groupId: fields.groupId,
         categoryId: fields.categoryId,
         paymentMethodId: fields.paymentMethodId,
+        recordTypeId: fields.recordTypeId,
         name: `Fuel · ${vehicle.name}`,
       });
       await replaceLink({
@@ -672,7 +661,12 @@ export const useVehicleMaintenanceRepository = () => {
           .where('maintenance_id', entryId)
           .first()) as VehicleExpenseLink | null;
         const fields = existingLink
-          ? { groupId: 0, categoryId: 0, paymentMethodId: 0 }
+          ? {
+              groupId: finance.groupId ?? 0,
+              categoryId: finance.categoryId ?? 0,
+              paymentMethodId: finance.paymentMethodId ?? 0,
+              recordTypeId: finance.recordTypeId ?? 0,
+            }
           : await requireFinanceFields(txn, settingKey, finance);
         const recordId = await createOrUpdateRecord({
           db: txn,
@@ -682,6 +676,7 @@ export const useVehicleMaintenanceRepository = () => {
           groupId: fields.groupId,
           categoryId: fields.categoryId,
           paymentMethodId: fields.paymentMethodId,
+          recordTypeId: fields.recordTypeId,
           name: `${saved.title} · ${vehicle.name}`,
         });
         await replaceLink({

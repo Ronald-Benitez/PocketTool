@@ -24,9 +24,10 @@ métodos de pago, créditos, ahorros y vehículo.
   [`docs/legacy/vehicle-plan.md`](docs/legacy/vehicle-plan.md).
 - **Fase 9 — Gastos fijos y Créditos: EN IMPLEMENTACIÓN** (2026-11-02). El plan
   vive en [`docs/credits-fixed-plan.md`](docs/credits-fixed-plan.md).
-- **Fase 10 — Errores y ajustes de siguiente versión: PLANIFICADA**
+- **Fase 10 — Errores y ajustes de siguiente versión: EN IMPLEMENTACIÓN**
   (2026-11-03). El plan vive en
-  [`docs/next-version-plan.md`](docs/next-version-plan.md).
+  [`docs/next-version-plan.md`](docs/next-version-plan.md). Ya están implementados
+  el tipo de registro de Vehículo y la inferencia de odómetro efectivo.
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -72,6 +73,9 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 - `src/domain/vehicle/`: unidades, consumo, promedios, recordatorios,
   resolución de colores (`colors.ts`) y tipos/referencias visuales
   (`models.ts`).
+- `src/domain/vehicle/fuel.ts`: odómetro efectivo que conserva la inferencia a
+  través de entradas con solo distancia; se usa en consumo, recordatorios y
+  lecturas previas.
 - `src/domain/vehicle/charts.ts`: builders de rendimiento, volumen, precio,
   total gastado y comparativa de movilidad (volumen, distancia y costo total),
   agrupados por segmento de tanque lleno.
@@ -82,7 +86,8 @@ commits relevantes, archivos tocados y verificaciones realizadas.
 - `src/components/vehicle/VehicleVisual.tsx`: modelos SVG por tipo de vehículo
   con animación Reanimated; `VehicleColorField` resuelve texto/HEX/paleta.
 - `src/db/repositories/vehicle.ts`: vehículos, combustible, mantenimiento,
-  piezas, recordatorios, settings y vínculos con `Records`.
+  piezas, recordatorios, settings y vínculos con `Records`. El tipo de registro
+  del gasto es explícito y se configura en `VehicleSettings.record_type_id`.
 - `src/hooks/useVehicle.ts` y `src/stores/VehicleStore.ts`: vehículo activo y
   refresco.
 - `app/(vehicle)/`: `StackBase` con tabs de resumen, combustible, mantenimiento

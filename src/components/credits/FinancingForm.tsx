@@ -5,9 +5,13 @@ import {
   useCategories,
   useFinancingsRepository,
   usePaymentMethods,
+  useTableRepository,
 } from '@/src/db';
 import { calculatePaymentCents } from '@/src/domain/credits/amortization';
-import type { FinancingWithRelations } from '@/src/interfaces/schema';
+import type {
+  FinancingWithRelations,
+  RecordType,
+} from '@/src/interfaces/schema';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { formatMoneyWithSymbol } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
@@ -57,6 +61,7 @@ export const FinancingForm = ({
   const repository = useFinancingsRepository();
   const paymentsRepository = usePaymentMethods();
   const categoriesRepository = useCategories();
+  const recordTypesRepository = useTableRepository('RecordTypes');
   const [kind, setKind] = useState<(typeof KINDS)[number]>(
     'installment_purchase'
   );
@@ -78,6 +83,8 @@ export const FinancingForm = ({
   const [sharedCounterparty, setSharedCounterparty] = useState('');
   const [paymentMethodId, setPaymentMethodId] = useState<number | null>(null);
   const [categoryId, setCategoryId] = useState<number | null>(null);
+  const [recordTypeId, setRecordTypeId] = useState<number | null>(null);
+  const [recordTypes, setRecordTypes] = useState<RecordType[]>([]);
   const [notes, setNotes] = useState('');
   const [paymentMethods, setPaymentMethods] = useState<
     { id?: number; method_name: string; is_credit_card?: boolean | number | null }[]
@@ -117,6 +124,7 @@ export const FinancingForm = ({
     setSharedCounterparty(financing?.shared_counterparty ?? '');
     setPaymentMethodId(financing?.payment_method_id ?? null);
     setCategoryId(financing?.category_id ?? null);
+    setRecordTypeId(financing?.record_type_id ?? null);
     setNotes(financing?.notes ?? '');
     setError(null);
   }, [visible, financing]);
@@ -127,12 +135,18 @@ export const FinancingForm = ({
     Promise.all([
       paymentsRepository.fetchPaymentMethods(),
       categoriesRepository.fetchCategories(),
-    ]).then(([methods, nextCategories]) => {
+      recordTypesRepository.fetchAll(),
+    ]).then(([methods, nextCategories, nextRecordTypes]) => {
       if (!active) return;
       setPaymentMethods(methods ?? []);
       setCategories(nextCategories ?? []);
+      setRecordTypes((nextRecordTypes ?? []) as RecordType[]);
       setPaymentMethodId((current) => current ?? methods?.[0]?.id ?? null);
       setCategoryId((current) => current ?? nextCategories?.[0]?.id ?? null);
+      const expenseTypes = (nextRecordTypes ?? []).filter(
+        (type) => type.effect === '-'
+      );
+      setRecordTypeId((current) => current ?? expenseTypes[0]?.id ?? null);
     });
     return () => {
       active = false;
@@ -192,7 +206,7 @@ export const FinancingForm = ({
         payment_day: new Date(firstPaymentDate).getDate(),
         payment_method_id: paymentMethodId,
         category_id: categoryId,
-        record_type_id: null,
+        record_type_id: recordTypeId,
         paid_installments_before_app: Math.max(
           0,
           Math.floor(parseNumber(paidInstallments))
@@ -396,6 +410,16 @@ export const FinancingForm = ({
         {affectsCard ? (
           <InlineMessage variant='info' message={t('financings.cardImpactHint')} />
         ) : null}
+        <SelectField
+          label={t('financings.recordType')}
+          value={recordTypeId}
+          options={recordTypes.flatMap((type) =>
+            type.id === undefined || type.effect !== '-'
+              ? []
+              : [{ label: type.type_name, value: type.id }]
+          )}
+          onChange={setRecordTypeId}
+        />
         <SelectField
           label={t('financings.category')}
           value={categoryId}

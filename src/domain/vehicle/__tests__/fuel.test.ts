@@ -1,8 +1,10 @@
 import {
   analyzeFuelEntries,
   buildFuelStats,
+  fuelOdometerPoints,
   groupFuelSegments,
   resolvePartialOdometer,
+  selectPreviousFuelReading,
 } from '../fuel';
 
 const base = {
@@ -233,6 +235,73 @@ describe('vehicle fuel analysis', () => {
         previousDistanceUnit: null,
       })
     ).toEqual({ ok: false, error: 'PREVIOUS_ODOMETER_REQUIRED' });
+  });
+
+  it('infers odometer through distance-only entries', () => {
+    const entries = [
+      { ...base, id: 1, date: 1, odometer: 1000, volume: 10 },
+      {
+        ...base,
+        id: 2,
+        date: 2,
+        distance_traveled: 300,
+        odometer: null,
+        volume: 10,
+      },
+      {
+        ...base,
+        id: 3,
+        date: 3,
+        distance_traveled: 200,
+        odometer: null,
+        volume: 10,
+        is_full_tank: 0,
+      },
+      { ...base, id: 4, date: 4, odometer: 1600, volume: 10 },
+    ];
+
+    const odometers = fuelOdometerPoints(entries).map(
+      (point) => point.odometer
+    );
+    expect(odometers).toHaveLength(4);
+    expect(odometers[0]).toBeCloseTo(1000, 6);
+    expect(odometers[1]).toBeCloseTo(1300, 6);
+    expect(odometers[2]).toBeCloseTo(1500, 6);
+    expect(odometers[3]).toBeCloseTo(1600, 6);
+
+    const analysis = analyzeFuelEntries(entries);
+    expect(analysis[3].distanceKm).toBeCloseTo(100 * 1.609344, 6);
+    expect(analysis[3].segmentMetrics?.distanceKm).toBeCloseTo(
+      300 * 1.609344,
+      6
+    );
+  });
+
+  it('selects the previous inferred reading for a new partial fill', () => {
+    const entries = [
+      { ...base, id: 1, date: 1, odometer: 1000, volume: 10 },
+      {
+        ...base,
+        id: 2,
+        date: 2,
+        distance_traveled: 300,
+        odometer: null,
+        volume: 10,
+      },
+      {
+        ...base,
+        id: 3,
+        date: 3,
+        distance_traveled: 200,
+        odometer: null,
+        volume: 10,
+      },
+    ];
+
+    expect(selectPreviousFuelReading(entries, 10)?.odometer).toBeCloseTo(
+      1500,
+      6
+    );
   });
 
   it('builds weighted stats', () => {

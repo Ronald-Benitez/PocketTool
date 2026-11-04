@@ -114,7 +114,8 @@
   "VehicleSettings": {
     "Categories": "Categories",
     "PaymentMethods": "PaymentMethods",
-    "PaymentMethods.PaymentTypes": "PaymentMethods.PaymentTypes"
+    "PaymentMethods.PaymentTypes": "PaymentMethods.PaymentTypes",
+    "RecordTypes": "RecordTypes"
   },
   "VehicleExpenseLinks": {
     "Records": "Records",

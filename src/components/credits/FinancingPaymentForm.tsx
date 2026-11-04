@@ -5,6 +5,7 @@ import {
   useCategories,
   useFinancingsRepository,
   usePaymentMethods,
+  useTableRepository,
 } from '@/src/db';
 import type {
   FinancingLinkMode,
@@ -13,6 +14,7 @@ import type {
 import type {
   FinancingPayment,
   FinancingWithRelations,
+  RecordType,
 } from '@/src/interfaces/schema';
 import type { FinancingSummary } from '@/src/domain/credits/summary';
 import {
@@ -68,6 +70,7 @@ export const FinancingPaymentForm = ({
   const repository = useFinancingsRepository();
   const categoriesRepository = useCategories();
   const paymentMethodsRepository = usePaymentMethods();
+  const recordTypesRepository = useTableRepository('RecordTypes');
   const [date, setDate] = useState(() => Date.now());
   const [amount, setAmount] = useState(0);
   const [extraPrincipal, setExtraPrincipal] = useState(0);
@@ -80,12 +83,14 @@ export const FinancingPaymentForm = ({
   const [recordPickerVisible, setRecordPickerVisible] = useState(false);
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [paymentMethodId, setPaymentMethodId] = useState<number | null>(null);
+  const [recordTypeId, setRecordTypeId] = useState<number | null>(null);
   const [categories, setCategories] = useState<
     { id?: number; category_name: string }[]
   >([]);
   const [paymentMethods, setPaymentMethods] = useState<
     { id?: number; method_name: string }[]
   >([]);
+  const [recordTypes, setRecordTypes] = useState<RecordType[]>([]);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -105,6 +110,7 @@ export const FinancingPaymentForm = ({
     setLinkedRecord(null);
     setCategoryId(financing?.category_id ?? null);
     setPaymentMethodId(financing?.payment_method_id ?? null);
+    setRecordTypeId(financing?.record_type_id ?? null);
     setNotes(payment?.notes ?? '');
     setError(null);
   }, [visible, summary, financing, payment]);
@@ -126,10 +132,12 @@ export const FinancingPaymentForm = ({
     Promise.all([
       categoriesRepository.fetchCategories(),
       paymentMethodsRepository.fetchPaymentMethods(),
-    ]).then(([nextCategories, nextPayments]) => {
+      recordTypesRepository.fetchAll(),
+    ]).then(([nextCategories, nextPayments, nextRecordTypes]) => {
       if (!active) return;
       setCategories(nextCategories ?? []);
       setPaymentMethods(nextPayments ?? []);
+      setRecordTypes((nextRecordTypes ?? []) as RecordType[]);
       setCategoryId(
         (current) =>
           current ?? financing?.category_id ?? nextCategories?.[0]?.id ?? null
@@ -140,6 +148,13 @@ export const FinancingPaymentForm = ({
           financing?.payment_method_id ??
           nextPayments?.[0]?.id ??
           null
+      );
+      const expenseTypes = (nextRecordTypes ?? []).filter(
+        (type) => type.effect === '-'
+      );
+      setRecordTypeId(
+        (current) =>
+          current ?? financing?.record_type_id ?? expenseTypes[0]?.id ?? null
       );
     });
     return () => {
@@ -183,6 +198,10 @@ export const FinancingPaymentForm = ({
       return;
     }
     if (linkMode === 'create') {
+      if (!recordTypeId) {
+        setError(t('financings.records.typeRequired'));
+        return;
+      }
       if (!group) {
         setError(t('financings.records.groupRequired'));
         return;
@@ -238,6 +257,7 @@ export const FinancingPaymentForm = ({
           groupId: group?.id ?? null,
           categoryId,
           paymentMethodId,
+          recordTypeId,
         },
       });
       showToast({ message: t('financings.paymentSaved'), type: 'success' });
@@ -457,6 +477,16 @@ export const FinancingPaymentForm = ({
           ) : null}
           {linkMode === 'create' ? (
             <>
+              <SelectField
+                label={t('financings.recordType')}
+                value={recordTypeId}
+                options={recordTypes.flatMap((type) =>
+                  type.id === undefined || type.effect !== '-'
+                    ? []
+                    : [{ label: type.type_name, value: type.id }]
+                )}
+                onChange={setRecordTypeId}
+              />
               <SelectField
                 label={t('financings.records.category')}
                 value={categoryId}

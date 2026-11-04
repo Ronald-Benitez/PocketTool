@@ -413,6 +413,7 @@ export const vehicleSettingInputSchema = z
     setting_key: vehicleSettingKey,
     category_id: id,
     payment_method_id: id,
+    record_type_id: id,
     ...auditTimestamps,
   })
   .strict();

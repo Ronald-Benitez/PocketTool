@@ -1,6 +1,6 @@
 # Plan de la siguiente versión — Fase 10 (NV)
 
-**Estado:** 📋 Planificada
+**Estado:** 🚧 En implementación (NV-4/NV-7 parciales)
 **Fecha:** 2026-11-03
 **Objetivo:** cerrar los errores de integración entre Registros, Gastos fijos,
 Créditos/Préstamos, Vehículo y Resúmenes, y añadir un modelo reutilizable de
@@ -12,8 +12,7 @@ personas y gastos compartidos.
 
 La siguiente versión debe resolver diez frentes:
 
-1. Mostrar créditos/préstamos pendientes en `Records`, con el modal de registro
-   autocontentado.
+1. Mostrar créditos/préstamos pendientes en `Records`, con el modal de registro autocompletado.
 2. Llevar los compartidos de Créditos/Préstamos también a Gastos fijos.
 3. Separar explícitamente total, monto propio y monto compartido.
 4. Permitir compartidos con un número ilimitado de personas.
@@ -73,9 +72,11 @@ La siguiente versión debe resolver diez frentes:
 ### 2.3 Tipo de registro en Vehículo
 
 - Añadir `record_type_id` a `VehicleSettings`.
+- La configuración es **global de la sección Vehículo**, por clave de flujo
+  (`fuel`, `maintenance`, etc.), no por vehículo.
 - El formulario de combustible y mantenimiento debe mostrar un selector de tipo
   de registro cuando el usuario elija crear un gasto.
-- El valor inicial debe venir de la configuración del vehículo para esa clave
+- El valor inicial debe venir de la configuración de la sección para esa clave
   (`fuel`, `maintenance`, etc.).
 - El tipo seleccionado debe guardarse en el `Record`; no debe inferirse
   automáticamente.
@@ -369,21 +370,20 @@ selección con el valor persistido anterior.
 
 Migraciones pequeñas por dominio:
 
-1. `0013_people_and_shared_participants`
+1. `0013_vehicle_settings_record_type` — **implementada**.
+   - `VehicleSettings.record_type_id`.
+2. `0014_people_and_shared_participants`
    - `People`.
    - `SharedExpenseParticipants`.
    - Backfill de `Financings.is_shared`/`shared_percent`/
      `shared_counterparty`.
-2. `0014_records_shared_amounts`
+3. `0015_records_shared_amounts`
    - `Records.own_amount_cents`.
    - `Records.shared_amount_cents`.
    - Backfill: `own = amount`, `shared = 0`.
-3. `0015_records_financing_payment_link`
+4. `0016_records_financing_payment_link`
    - `Records.financing_payment_id`.
    - Índice por `financing_payment_id`.
-4. `0016_vehicle_settings_record_type`
-   - `VehicleSettings.record_type_id`.
-   - Backfill con el tipo de gasto por defecto.
 
 Reglas:
 
@@ -459,7 +459,28 @@ Reglas:
 
 ---
 
-## 7. Verificación
+## 7. Estado de implementación
+
+Implementado:
+
+- NV-6: odómetro efectivo en análisis de combustible, recordatorios y lectura
+  previa para cargas parciales.
+- NV-7: `VehicleSettings.record_type_id` global de la sección Vehículo (no por
+  vehículo), selector en ajustes, combustible y mantenimiento. Los pagos de
+  financiamientos también permiten seleccionar el tipo de registro al crear el
+  gasto, sin asignación automática.
+- Migración `0013_vehicle_settings_record_type`.
+
+Pendiente:
+
+- NV-1: créditos/préstamos pendientes en Registros.
+- NV-2 a NV-5: personas, compartidos ilimitados y separación total/propio/
+  compartido.
+- NV-8: financiamientos en resúmenes de fijos.
+- NV-9: renombre de la sección.
+- NV-10: cambio de grupo en Resumen.
+
+## 8. Verificación
 
 ```bash
 npm run typecheck

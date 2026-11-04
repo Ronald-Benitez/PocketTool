@@ -4,6 +4,7 @@ import type {
   ReminderStatus,
   VehicleMaintenanceLike,
 } from './types';
+import { fuelOdometerPoints } from './fuel';
 import { convertDistance, distanceUnitOf, toKm } from './units';
 
 export const latestOdometerKm = (
@@ -11,15 +12,10 @@ export const latestOdometerKm = (
   maintenance: VehicleMaintenanceLike[],
   fallbackDate?: number
 ) => {
-  const values: { date: number; km: number }[] = [];
+  const values: { date: number; km: number }[] = fuelOdometerPoints(
+    fuelEntries
+  ).map((point) => ({ date: point.date, km: point.km }));
 
-  for (const entry of fuelEntries) {
-    if (entry.odometer == null) continue;
-    values.push({
-      date: entry.date,
-      km: toKm(entry.odometer, distanceUnitOf(entry.distance_unit)),
-    });
-  }
   for (const entry of maintenance) {
     if (entry.odometer == null) continue;
     values.push({

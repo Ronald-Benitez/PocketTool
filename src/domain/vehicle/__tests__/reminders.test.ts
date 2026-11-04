@@ -21,6 +21,19 @@ describe('vehicle reminders', () => {
     expect(value).toBeCloseTo(2000 * 1.609344, 6);
   });
 
+  it('uses inferred odometers from distance-only fuel entries', () => {
+    const value = latestOdometerKm(
+      [
+        { vehicle_id: 1, date: 1, odometer: 1000, distance_unit: 'km', volume: 1, volume_unit: 'gal', price_per_unit: 1, total_cost: 1 },
+        { vehicle_id: 1, date: 2, odometer: null, distance_traveled: 300, distance_unit: 'km', volume: 1, volume_unit: 'gal', price_per_unit: 1, total_cost: 1 },
+        { vehicle_id: 1, date: 3, odometer: null, distance_traveled: 200, distance_unit: 'km', volume: 1, volume_unit: 'gal', price_per_unit: 1, total_cost: 1 },
+        { vehicle_id: 1, date: 4, odometer: 1600, distance_unit: 'km', volume: 1, volume_unit: 'gal', price_per_unit: 1, total_cost: 1 },
+      ],
+      []
+    );
+    expect(value).toBe(1600);
+  });
+
   it('marks a reminder due soon or overdue', () => {
     const dueSoon = buildReminderStatus(
       { ...baseReminder, last_service_odometer: 10000 },

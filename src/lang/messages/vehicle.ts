@@ -189,7 +189,7 @@ export const vehicleEn = {
   },
   settings: {
     title: 'Vehicle settings',
-    subtitle: 'Map vehicle expenses to your existing categories.',
+    subtitle: 'Map vehicle expenses to categories, payment methods and record types.',
     categories: 'Default categories',
     fuel: 'Fuel',
     maintenance: 'Maintenance',
@@ -200,6 +200,7 @@ export const vehicleEn = {
     inspection: 'Inspection',
     other: 'Other',
     paymentMethod: 'Default payment method',
+    recordType: 'Default record type',
     saved: 'Vehicle settings saved',
   },
   formats: {
@@ -261,6 +262,8 @@ export const vehicleEn = {
     groupRequired: 'There is no group for this month. You can save the vehicle entry without an expense.',
     category: 'Category',
     paymentMethod: 'Payment method',
+    recordType: 'Record type',
+    recordTypeRequired: 'Select a record type for the expense.',
     linked: 'Expense linked',
     linkedTo: 'Linked to {name}',
     amountMismatch: 'The total must match the amount of the linked expense.',
@@ -494,7 +497,7 @@ export const vehicleEs: MessageShape<typeof vehicleEn> = {
   },
   settings: {
     title: 'Ajustes de vehículo',
-    subtitle: 'Relaciona los gastos del vehículo con tus categorías existentes.',
+    subtitle: 'Relaciona los gastos del vehículo con categorías, métodos de pago y tipos de registro.',
     categories: 'Categorías por defecto',
     fuel: 'Gasolina',
     maintenance: 'Mantenimiento',
@@ -505,6 +508,7 @@ export const vehicleEs: MessageShape<typeof vehicleEn> = {
     inspection: 'Inspección',
     other: 'Otros',
     paymentMethod: 'Método de pago por defecto',
+    recordType: 'Tipo de registro por defecto',
     saved: 'Ajustes de vehículo guardados',
   },
   formats: {
@@ -566,6 +570,8 @@ export const vehicleEs: MessageShape<typeof vehicleEn> = {
     groupRequired: 'No hay un grupo para este mes. Puedes guardar la entrada del vehículo sin gasto.',
     category: 'Categoría',
     paymentMethod: 'Método de pago',
+    recordType: 'Tipo de registro',
+    recordTypeRequired: 'Selecciona un tipo de registro para el gasto.',
     linked: 'Gasto vinculado',
     linkedTo: 'Vinculado a {name}',
     amountMismatch: 'El total debe coincidir con el monto del gasto vinculado.',

@@ -410,7 +410,7 @@ async function testEmptyDatabase() {
   assert.strictEqual(q(raw, 'SELECT goal FROM groups')[0].goal, 500000);
   assert.strictEqual(q(raw, 'SELECT amount FROM records ORDER BY id')[0].amount, 100000);
   assert.strictEqual(q(raw, 'SELECT migration_name FROM migrations')[0].migration_name, '0001_baseline');
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 12);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 13);
   const recordColumns = q(raw, 'PRAGMA table_info(records)').map(c => c.name);
   assert.ok(recordColumns.includes('created_at'));
   assert.ok(recordColumns.includes('updated_at'));
@@ -447,7 +447,7 @@ async function testExportImport() {
   assert.ok(metadata);
   assert.strictEqual(metadata.formatVersion, BACKUP_FORMAT_VERSION);
   assert.strictEqual(metadata.appVersion, 'test-version');
-  assert.strictEqual(metadata.schemaVersion, 12);
+  assert.strictEqual(metadata.schemaVersion, 13);
   assert.ok(metadata.tables.includes('records'));
   assert.doesNotThrow(() => validateSqlDump(backupSql));
   assert.strictEqual(parseBackupMetadata(dump), null);
@@ -500,7 +500,7 @@ async function testAuditTimestampMigration() {
   const backfilled = q(raw, 'SELECT created_at, updated_at FROM records LIMIT 1')[0];
   assert.ok(backfilled.created_at > 0);
   assert.ok(backfilled.updated_at > 0);
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 12);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 13);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,
     1
@@ -870,6 +870,33 @@ async function testFinancingPaymentCentsMigration() {
   console.log('financing payment cents migration: OK');
 }
 
+async function testVehicleSettingsRecordTypeMigration() {
+  const raw = new DatabaseSync(':memory:');
+  raw.exec(`
+    CREATE TABLE vehicle_settings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      setting_key TEXT NOT NULL UNIQUE,
+      category_id INTEGER,
+      payment_method_id INTEGER
+    );
+    INSERT INTO vehicle_settings (setting_key) VALUES ('fuel');
+  `);
+  const migration = require(path.join(
+    ROOT,
+    'src/db/migrations/0013_vehicle_settings_record_type.ts'
+  )).default;
+  await migration.up(shim(raw));
+
+  const columns = q(raw, 'PRAGMA table_info(vehicle_settings)').map(
+    (column) => column.name
+  );
+  assert.ok(columns.includes('record_type_id'), 'missing record_type_id');
+  const row = q(raw, 'SELECT record_type_id FROM vehicle_settings')[0];
+  assert.strictEqual(row.record_type_id, null);
+  raw.close();
+  console.log('vehicle settings record type migration: OK');
+}
+
 async function testVehicleInsert() {
   const raw = new DatabaseSync(':memory:');
   const db = shim(raw);
@@ -1046,6 +1073,7 @@ async function testInterruptedRebuild() {
   await testBudgetStatusRemoval();
   await testCreditCardsAndFinancingsMigration();
   await testFinancingPaymentCentsMigration();
+  await testVehicleSettingsRecordTypeMigration();
   await testVehicleInsert();
   await testVehicleTypeMigration();
   await testVehicleTypeModelsMigration();
