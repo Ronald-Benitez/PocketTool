@@ -12,15 +12,17 @@ import type {
 } from "../interfaces/schema";
 import { useDataStore } from ".";
 
-type TotalPerRecordType = RecordType & {
+type AmountBuckets = {
+    own: number;
+    shared: number;
     total: number;
 };
 
-type RecordTypeResume = RecordType & {
-    total: number;
-};
+type TotalPerRecordType = RecordType & AmountBuckets;
 
-type PaymentResume<T> = T & {
+type RecordTypeResume = RecordType & AmountBuckets;
+
+type PaymentResume<T> = T & AmountBuckets & {
     balance: number;
     totalPerRecordType: TotalPerRecordType[];
 };
@@ -38,6 +40,28 @@ export interface Resumes {
     balanceByPaymentMethod: PaymentResume<PaymentMethod>[];
     balanceByCategory: PaymentResume<Category>[];
 }
+
+const emptyBuckets = (): AmountBuckets => ({ own: 0, shared: 0, total: 0 });
+
+const addBuckets = (
+    target: AmountBuckets,
+    own: number,
+    shared: number
+) => {
+    target.own += own;
+    target.shared += shared;
+    target.total += own + shared;
+};
+
+const reduceBuckets = (
+    items: TotalPerRecordType[],
+    field: keyof AmountBuckets
+) =>
+    items.reduce((balance, item) => {
+        if (item.effect === "-") return balance - item[field];
+        if (item.effect === "+") return balance + item[field];
+        return balance;
+    }, 0);
 
 export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
     const { configs: { recordTypes: configuredRecordTypes } } = useConfigs();
@@ -69,7 +93,7 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
     };
 
     const createRecordTypeTotals = (): TotalPerRecordType[] =>
-        RecordTypes.map(recordType => ({ ...recordType, total: 0 }));
+        RecordTypes.map(recordType => ({ ...recordType, ...emptyBuckets() }));
 
     const calculateResumes = (): Omit<
         Resumes,
@@ -79,16 +103,19 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
         const balanceByRecordType = createRecordTypeTotals();
         const balanceByPaymentType: PaymentResume<PaymentType>[] = PaymentTypes.map(paymentType => ({
             ...paymentType,
+            ...emptyBuckets(),
             balance: 0,
             totalPerRecordType: createRecordTypeTotals()
         }));
         const balanceByPaymentMethod: PaymentResume<PaymentMethod>[] = PaymentMethods.map(paymentMethod => ({
             ...paymentMethod,
+            ...emptyBuckets(),
             balance: 0,
             totalPerRecordType: createRecordTypeTotals()
         }));
         const balanceByCategory: PaymentResume<Category>[] = Categories.map(category => ({
             ...category,
+            ...emptyBuckets(),
             balance: 0,
             totalPerRecordType: createRecordTypeTotals()
         }));
@@ -100,12 +127,17 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
 
         records.forEach(record => {
             const ownAmount = record.own_amount_cents ?? record.amount;
+            const sharedAmount = record.shared_amount_cents ?? 0;
             const recordType = balanceByRecordType.find(item => item.id === record.record_type_id);
-            if (recordType) recordType.total += ownAmount;
+            if (recordType) addBuckets(recordType, ownAmount, sharedAmount);
 
             const todayRecordType = todayBalanceByRecordType.find(item => item.id === record.record_type_id);
-            if (todayRecordType && record.date >= startOfToday && record.date <= endOfToday) {
-                todayRecordType.total += ownAmount;
+            if (
+                todayRecordType &&
+                record.date >= startOfToday &&
+                record.date <= endOfToday
+            ) {
+                addBuckets(todayRecordType, ownAmount, sharedAmount);
             }
 
             const paymentMethodId = record.payment_method_id;
@@ -120,8 +152,11 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
                 const typeTotal = resume.totalPerRecordType.find(
                     item => item.id === record.record_type_id
                 );
-                if (typeTotal) typeTotal.total += ownAmount;
-                resume.balance = resume.totalPerRecordType.reduce(typeReducer, 0);
+                if (typeTotal) addBuckets(typeTotal, ownAmount, sharedAmount);
+                resume.own = reduceBuckets(resume.totalPerRecordType, 'own');
+                resume.shared = reduceBuckets(resume.totalPerRecordType, 'shared');
+                resume.total = reduceBuckets(resume.totalPerRecordType, 'total');
+                resume.balance = resume.own;
             }
         });
 
@@ -143,12 +178,6 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
         sharedBalance: balances.shared,
         ...calculateResumes()
     }))();
-};
-
-const typeReducer = (balance: number, recordType: TotalPerRecordType) => {
-    if (recordType.effect === "-") return balance - recordType.total;
-    if (recordType.effect === "+") return balance + recordType.total;
-    return balance;
 };
 
 export default useResumesStore;

@@ -375,6 +375,38 @@ selección con el valor persistido anterior.
 - No hay parpadeo ni reversión al grupo anterior.
 - Cambios sucesivos funcionan siempre.
 
+### NV-11. Modo de importe y desglose por bucket (implementado)
+
+**Problema:** Los resúmenes solo mostraban el total propio y un total general
+compartido, sin poder alternar entre propio, total y compartido ni ver el
+desglose dentro de cada categoría, método o tipo.
+
+**Solución propuesta:**
+
+- Añadir a cada bucket de resumen (`categoría`, `método de pago`, `tipo de pago`
+  y `tipo de registro`) los valores `own`, `shared` y `total`.
+- Crear un selector reutilizable **Tu parte / Total / Compartido** persistido en
+  `AsyncStorage`.
+- Aplicarlo en Resúmenes, Compromisos, Presupuestos y Créditos.
+- En Presupuestos y Créditos, el modo selecciona el importe usado para los
+  totales y las filas; los registros de origen no se modifican.
+
+**Archivos:** `src/hooks/useSummaryMode.ts`,
+`src/components/summaries/SummaryModeToggle.tsx`,
+`src/stores/ResumesStore.ts`, `src/stores/FixedsResumesStore.ts`,
+`src/components/summaries/FinanceTableBlock.tsx`,
+`src/hooks/useBudgetPlan.ts`, `src/db/repositories/budgets.ts`,
+`src/stores/CreditsStore.ts`, `app/(summaries)/index.tsx`,
+`app/(fixeds)/RecordTypeScreen.tsx`, `app/(budget)/index.tsx`,
+`app/(credits)/index.tsx`.
+
+**Aceptación:**
+
+- El modo elegido se mantiene al cambiar de pantalla o reiniciar.
+- Los buckets muestran el importe del modo activo.
+- `own + shared = total` en cada bucket.
+- Presupuestos y Créditos respetan el modo sin alterar datos guardados.
+
 ---
 
 ## 4. Modelo de datos y migraciones propuestas
@@ -521,7 +553,11 @@ Implementado:
   (galones o litros) sin heredar la unidad por defecto del vehículo, y los
   selectores de consumo y de volumen/precio recuerdan la selección del usuario.
 - UI: los modales ajustan el scroll vertical (`nestedScrollEnabled`,
-  `flexGrow`) para que no se queden trabados.
+  `flexGrow`) y el swipe de las tarjetas solo se activa en gestos horizontales
+  (`activeOffsetX`/`failOffsetY`) para no bloquear el scroll vertical.
+- NV-11: selector persistente **Tu parte / Total / Compartido** y desglose
+  `own`/`shared`/`total` por bucket en Resúmenes, Compromisos, Presupuestos y
+  Créditos.
 
 Pendiente:
 

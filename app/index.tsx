@@ -228,6 +228,7 @@ const Index = () => {
     const [message, Icon] = decideText()
 
     return (
+        <>
         <Screen scroll edges={['left', 'right']}>
             <Stack gap='lg'>
                 <Row justify='space-between' align='center'>
@@ -378,7 +379,7 @@ const Index = () => {
                                             {item.type_name}
                                         </AppText>
                                     </Row>
-                                    <FinanceValue cents={item.total} size='lg' color={colors.text} />
+                                    <FinanceValue cents={item.own} size='lg' color={colors.text} />
                                 </Row>
                             ))
                         ) : (
@@ -387,6 +388,7 @@ const Index = () => {
                     </Stack>
                 </Surface>
             </Stack>
+        </Screen>
 
             {group && <AddItem open={open} item={fixedToSave} />}
             <FinancingPaymentForm
@@ -409,7 +411,7 @@ const Index = () => {
                     });
                 }}
             />
-        </Screen>
+        </>
     );
 };
 

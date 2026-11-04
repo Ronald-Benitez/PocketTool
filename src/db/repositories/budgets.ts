@@ -138,7 +138,12 @@ export const useBudgetPlansRepository = () => {
     await plansOrm.update(planId, payload);
   };
 
-  const fetchPlanView = async (groupId: number): Promise<BudgetPlanView | null> => {
+  type AmountMode = 'own' | 'total' | 'shared';
+
+  const fetchPlanView = async (
+    groupId: number,
+    mode: AmountMode = 'own'
+  ): Promise<BudgetPlanView | null> => {
     const plan = await fetchPlan(groupId);
     if (!plan?.id) return null;
 
@@ -161,13 +166,22 @@ export const useBudgetPlansRepository = () => {
       year: group.year,
       templateName: template?.template_name ?? null,
       lines: lines as BudgetLine[],
-      records: records.map((record) => ({
-        id: record.id as number,
-        amount: record.amount,
-        category_id: record.category_id ?? null,
-        record_type_id: record.record_type_id ?? null,
-        fixed_id: record.fixed_id ?? null,
-      })),
+      records: records.map((record) => {
+        const own = record.own_amount_cents ?? record.amount;
+        const shared = record.shared_amount_cents ?? 0;
+        return {
+          id: record.id as number,
+          amount:
+            mode === 'total'
+              ? own + shared
+              : mode === 'shared'
+                ? shared
+                : own,
+          category_id: record.category_id ?? null,
+          record_type_id: record.record_type_id ?? null,
+          fixed_id: record.fixed_id ?? null,
+        };
+      }),
       fixeds: fixeds as FixedRecord[],
       categories: categories as Pick<Category, 'id' | 'category_name'>[],
       recordTypes: recordTypes as Pick<

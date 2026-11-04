@@ -5,8 +5,9 @@ import {
   useBudgetTemplatesRepository,
 } from '@/src/db';
 import type { BudgetPlanView, BudgetTemplateView } from '@/src/domain/budgets/types';
+import type { SummaryMode } from './useSummaryMode';
 
-export const useBudgetPlan = (groupId?: number) => {
+export const useBudgetPlan = (groupId?: number, mode: SummaryMode = 'own') => {
   const repository = useBudgetPlansRepository();
   const repositoryRef = useRef(repository);
   repositoryRef.current = repository;
@@ -22,14 +23,14 @@ export const useBudgetPlan = (groupId?: number) => {
     setLoading(true);
     setError(null);
     try {
-      const view = await repositoryRef.current.fetchPlanView(groupId);
+      const view = await repositoryRef.current.fetchPlanView(groupId, mode);
       setPlan(view);
     } catch (cause) {
       setError(cause instanceof Error ? cause : new Error(String(cause)));
     } finally {
       setLoading(false);
     }
-  }, [groupId]);
+  }, [groupId, mode]);
 
   useEffect(() => {
     refresh();

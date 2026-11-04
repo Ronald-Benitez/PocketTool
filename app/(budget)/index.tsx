@@ -8,6 +8,8 @@ import { BudgetGroupAverageDialog } from '@/src/components/budgets/BudgetGroupAv
 import { BudgetLineForm } from '@/src/components/budgets/BudgetLineForm';
 import { BudgetTemplateApplyDialog } from '@/src/components/budgets/BudgetTemplateApplyDialog';
 import { useBudgetPlan, useBudgetTemplates } from '@/src/hooks/useBudgetPlan';
+import { SummaryModeToggle } from '@/src/components/summaries/SummaryModeToggle';
+import { useSummaryMode } from '@/src/hooks/useSummaryMode';
 import useRecordsStore from '@/src/stores/RecordsStore';
 import type {
   BudgetApplyMode,
@@ -71,7 +73,8 @@ const Index = () => {
   const { showToast } = useToast();
   const router = useRouter();
   const { group } = useRecordsStore();
-  const { plan, loading, refresh, repository } = useBudgetPlan(group?.id);
+  const { mode } = useSummaryMode();
+  const { plan, loading, refresh, repository } = useBudgetPlan(group?.id, mode);
   const { templates, refresh: refreshTemplates } = useBudgetTemplates();
   const [lineFormVisible, setLineFormVisible] = useState(false);
   const [selectedLine, setSelectedLine] = useState<BudgetLineComparison | null>(null);
@@ -513,6 +516,8 @@ const Index = () => {
                 onPress={() => router.push('/(budget)/templates')}
               />
             </Row>
+
+            <SummaryModeToggle />
 
             <Surface variant='raised' padding='lg'>
               <Stack gap='md'>

@@ -1,8 +1,14 @@
 import { View } from "react-native";
 
 import { useLanguage } from "@/src/lang/LanguageContext";
+import {
+    pickSummaryAmount,
+    useSummaryMode,
+    type SummaryMode,
+} from "@/src/hooks/useSummaryMode";
 import useResumesStore, { Resumes } from "@/src/stores/ResumesStore";
 import useFixedsResumesStore from "@/src/stores/FixedsResumesStore";
+import { SummaryModeToggle } from "./SummaryModeToggle";
 import {
     SummaryGroup,
     type SummaryGroupItem,
@@ -23,14 +29,19 @@ interface props {
 
 const toGroupItems = (
     value: SummaryValue,
+    mode: SummaryMode,
     onSummarySelected: props['onSummarySelected']
 ): SummaryGroupItem[] =>
     (value.totalPerRecordType ?? [])
-        .filter((item) => item.total > 0)
         .map((item) => ({
+            item,
+            amount: pickSummaryAmount(mode, item),
+        }))
+        .filter(({ amount }) => amount > 0)
+        .map(({ item, amount }) => ({
             key: item.id ?? item.type_name,
             label: item.type_name,
-            cents: item.total,
+            cents: amount,
             color: item.record_color,
             onPress: () => onSummarySelected(value.id, item.id),
         }))
@@ -38,14 +49,17 @@ const toGroupItems = (
 const SummaryList = ({
     title,
     values,
+    mode,
     onSummarySelected,
 }: {
     title: string,
     values: SummaryValue[],
+    mode: SummaryMode,
     onSummarySelected: props['onSummarySelected'],
 }) => (
     <Stack gap='md'>
         <AppText variant='title'>{title}</AppText>
+        <SummaryModeToggle />
         {values.map((value, index) => (
             <SummaryGroup
                 key={value.id ?? index}
@@ -56,8 +70,8 @@ const SummaryList = ({
                             ? value.method_name
                             : value.payment_type_name ?? ''
                 }
-                totalCents={value.balance}
-                items={toGroupItems(value, onSummarySelected)}
+                totalCents={pickSummaryAmount(mode, value)}
+                items={toGroupItems(value, mode, onSummarySelected)}
                 onPress={() => onSummarySelected(value.id, undefined)}
             />
         ))}
@@ -68,6 +82,7 @@ const FinnanceTableBlock = ({ render, fixed, onSummarySelected }: props) => {
     const { t } = useLanguage()
     const resumes = useResumesStore()
     const fixedsResumes = useFixedsResumesStore()
+    const { mode } = useSummaryMode()
     const { balanceByCategory, balanceByPaymentMethod, balanceByPaymentType } = fixed ? fixedsResumes : resumes
 
     if (render === 'categories') {
@@ -75,6 +90,7 @@ const FinnanceTableBlock = ({ render, fixed, onSummarySelected }: props) => {
             <SummaryList
                 title={t("resume.summaryByCategories")}
                 values={balanceByCategory ?? []}
+                mode={mode}
                 onSummarySelected={onSummarySelected}
             />
         )
@@ -85,6 +101,7 @@ const FinnanceTableBlock = ({ render, fixed, onSummarySelected }: props) => {
             <SummaryList
                 title={t("resume.summaryByPayments")}
                 values={balanceByPaymentMethod ?? []}
+                mode={mode}
                 onSummarySelected={onSummarySelected}
             />
         )
@@ -95,6 +112,7 @@ const FinnanceTableBlock = ({ render, fixed, onSummarySelected }: props) => {
             <SummaryList
                 title={t("resume.summaryByTypes")}
                 values={balanceByPaymentType ?? []}
+                mode={mode}
                 onSummarySelected={onSummarySelected}
             />
         )

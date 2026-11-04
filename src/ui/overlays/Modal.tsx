@@ -93,8 +93,7 @@ export const Modal = ({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboard}
       >
-        <Pressable
-          onPress={dismissOnBackdrop ? onClose : undefined}
+        <View
           style={[
             styles.backdrop,
             {
@@ -104,7 +103,12 @@ export const Modal = ({
           ]}
         >
         <Pressable
-          onPress={() => {}}
+          style={StyleSheet.absoluteFill}
+          onPress={dismissOnBackdrop ? onClose : undefined}
+          accessibilityRole='button'
+          accessibilityLabel={closeLabel}
+        />
+        <View
           accessibilityViewIsModal
           onAccessibilityEscape={onClose}
           style={[
@@ -149,8 +153,8 @@ export const Modal = ({
           {footer ? (
             <View style={[styles.footer, { borderTopColor: colors.border }]}>{footer}</View>
           ) : null}
-        </Pressable>
-      </Pressable>
+        </View>
+        </View>
       </KeyboardAvoidingView>
     </RNModal>
   );

@@ -10,7 +10,13 @@ import { cardInstallmentUsage } from "../domain/credits/cards"
 
 export interface Credit extends PaymentMethod {
     totalCurrent?: number
+    totalCurrentOwn?: number
+    totalCurrentShared?: number
+    totalCurrentCombined?: number
     totalPrevious?: number
+    totalPreviousOwn?: number
+    totalPreviousShared?: number
+    totalPreviousCombined?: number
     totalCurrentPayments?: number
     installmentsPendingCents?: number
 }
@@ -65,20 +71,28 @@ export const useCreditStore = () => {
                 previousPeriodEnd
             )
 
-            const totalCurrent = currentTotals.recordsTotal
+            const totalCurrentOwn = currentTotals.recordsOwnTotal
+            const totalCurrentShared = currentTotals.recordsSharedTotal
+            const totalCurrentCombined = currentTotals.recordsCombinedTotal
+            const totalPreviousOwn = previousTotals.recordsOwnTotal
+            const totalPreviousShared = previousTotals.recordsSharedTotal
+            const totalPreviousCombined = previousTotals.recordsCombinedTotal
             const totalCurrentPayments = currentTotals.paymentsTotal
-            const totalPrevious = previousTotals.recordsTotal
             const installmentsPendingCents = payment.id
                 ? installmentUsage.get(payment.id) ?? 0
                 : 0
-            
-            //console.log(payment, previousCredits, new Date(previousPeriodStart), new Date(previousPeriodEnd), totalPrevious)
 
             const newPayment = {
                 ...payment,
-                totalCurrent,
+                totalCurrent: totalCurrentOwn,
+                totalCurrentOwn,
+                totalCurrentShared,
+                totalCurrentCombined,
                 totalCurrentPayments,
-                totalPrevious,
+                totalPrevious: totalPreviousOwn,
+                totalPreviousOwn,
+                totalPreviousShared,
+                totalPreviousCombined,
                 installmentsPendingCents
             }
             //console.log("New Payment", newPayment)

@@ -36,6 +36,11 @@ export const SwipeAction = ({
   const showDeleteDialog = () => setConfirmVisible(true);
 
   const pan = Gesture.Pan()
+    // Only claim clearly horizontal drags. Without these offsets the pan
+    // gesture captured vertical drags and prevented the parent ScrollView from
+    // scrolling unless the gesture started at the screen edge.
+    .activeOffsetX([-20, 20])
+    .failOffsetY([-12, 12])
     .onUpdate((event) => {
       const value = event.translationX;
       if (value > -150 && value < 150) {

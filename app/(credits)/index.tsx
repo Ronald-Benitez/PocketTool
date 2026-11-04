@@ -4,11 +4,13 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useThemedStyles } from '@/src/styles/useThemedStyles';
 import useColorStore from '@/src/stores/ColorsStore';
 import { useLanguage } from '@/src/lang/LanguageContext';
-import { useCreditStore } from '@/src/stores/CreditsStore';
+import { useCreditStore, type Credit } from '@/src/stores/CreditsStore';
 import { useDataStore } from '@/src/stores';
 import { useFinancingsRepository, usePaymentMethods } from '@/src/db';
 import { PaymentMethodVisual } from '@/src/components/payments/PaymentMethodVisual';
+import { SummaryModeToggle } from '@/src/components/summaries/SummaryModeToggle';
 import { cardUtilization } from '@/src/domain/credits/amortization';
+import { useSummaryMode } from '@/src/hooks/useSummaryMode';
 import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock';
 
 import useDate from '@/src/hooks/useDate';
@@ -23,13 +25,26 @@ const Index = () => {
     const financingsRepository = useFinancingsRepository();
     const paymentMethodsRepository = usePaymentMethods();
     const { getStringDate } = useDate();
-    const totalCurrent = credits ? credits.reduce((total, credit) => total + (credit?.totalCurrent || 0), 0) : 0;
-    const totalPrevious = credits ? credits.reduce((total, credit) => total + (credit?.totalPrevious || 0), 0): 0;
+    const { mode } = useSummaryMode();
+    const currentAmount = (credit: Credit) =>
+        mode === 'total'
+            ? credit.totalCurrentCombined ?? credit.totalCurrent ?? 0
+            : mode === 'shared'
+              ? credit.totalCurrentShared ?? 0
+              : credit.totalCurrentOwn ?? credit.totalCurrent ?? 0;
+    const previousAmount = (credit: Credit) =>
+        mode === 'total'
+            ? credit.totalPreviousCombined ?? credit.totalPrevious ?? 0
+            : mode === 'shared'
+              ? credit.totalPreviousShared ?? 0
+              : credit.totalPreviousOwn ?? credit.totalPrevious ?? 0;
+    const totalCurrent = credits ? credits.reduce((total, credit) => total + currentAmount(credit), 0) : 0;
+    const totalPrevious = credits ? credits.reduce((total, credit) => total + previousAmount(credit), 0): 0;
     const cardMetrics = useMemo(
         () =>
             (credits ?? []).map((credit) => {
                 const amountPaid = credit.totalCurrentPayments ?? 0;
-                const previousBalance = credit.totalPrevious ?? 0;
+                const previousBalance = previousAmount(credit);
                 const pendingCents = previousBalance - amountPaid;
                 const cardPendingCents = Math.max(0, pendingCents);
                 const installmentsPendingCents = Math.max(
@@ -52,7 +67,7 @@ const Index = () => {
                     utilization,
                 };
             }),
-        [credits]
+        [credits, mode]
     );
     const totalLimit = cardMetrics.reduce(
         (total, item) => total + (item.credit.credit_limit ?? 0),
@@ -104,6 +119,9 @@ const Index = () => {
 
     return (
         <View style={styles.container}>
+            <View style={{ paddingHorizontal: 10, marginBottom: 12 }}>
+                <SummaryModeToggle />
+            </View>
             <View style={[localStyles.summaryRow, { gap: 20 }]}>
                 <View style={{ flex: 1 }}>
                     <SummaryBlock
@@ -194,7 +212,7 @@ const Index = () => {
                                         {credit.method_name}
                                     </Text>
                                     <Text style={[localStyles.currentValue, { color: colors?.text }]}>
-                                        {t("credits.current")}: <Text style={[localStyles.amountValue, { color: colors?.text }]}>${formatMoney(credit?.totalCurrent)}</Text>
+                                        {t("credits.current")}: <Text style={[localStyles.amountValue, { color: colors?.text }]}>${formatMoney(currentAmount(credit))}</Text>
                                     </Text>
                                 </View>
 

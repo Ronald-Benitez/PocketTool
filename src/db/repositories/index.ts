@@ -363,8 +363,20 @@ export const useRecordsRepository = () => {
         .getAll(),
     ]);
 
+    const recordsOwnTotal = records.reduce(
+      (total, record) => total + (record.own_amount_cents ?? record.amount ?? 0),
+      0
+    );
+    const recordsSharedTotal = records.reduce(
+      (total, record) => total + (record.shared_amount_cents ?? 0),
+      0
+    );
+
     return {
       recordsTotal: records.reduce((total, record) => total + (record.amount || 0), 0),
+      recordsOwnTotal,
+      recordsSharedTotal,
+      recordsCombinedTotal: recordsOwnTotal + recordsSharedTotal,
       paymentsTotal: payments.reduce((total, payment) => total + (payment.amount || 0), 0),
     };
   };

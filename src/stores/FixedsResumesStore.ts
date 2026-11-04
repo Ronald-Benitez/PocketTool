@@ -13,9 +13,19 @@ import type {
     SharedExpenseParticipant,
 } from "../interfaces/schema";
 import { useDataStore } from ".";
-interface totalPerRecordType extends RecordTypes {
+
+type AmountBuckets = {
+    own: number;
+    shared: number;
     total: number;
-}
+};
+
+interface totalPerRecordType extends RecordTypes, AmountBuckets {}
+
+type BucketResume<T> = T & AmountBuckets & {
+    balance: number;
+    totalPerRecordType: totalPerRecordType[];
+};
 
 export interface Resumes {
     /** Personal balance: only the user's own share. */
@@ -24,22 +34,33 @@ export interface Resumes {
     totalBalance: number;
     ownBalance: number;
     sharedBalance: number;
-    balanceByRecordType: (RecordTypes & {
-        total: number;
-    })[];
-    balanceByPaymentType: (PaymentTypes & {
-        balance: number,
-        totalPerRecordType: totalPerRecordType[];
-    })[];
-    balanceByPaymentMethod: (PaymentMethods & {
-        balance: number,
-        totalPerRecordType: totalPerRecordType[];
-    })[];
-    balanceByCategory: (Categories & {
-        balance: number,
-        totalPerRecordType: totalPerRecordType[];
-    })[];
+    balanceByRecordType: (RecordTypes & AmountBuckets)[];
+    balanceByPaymentType: BucketResume<PaymentTypes>[];
+    balanceByPaymentMethod: BucketResume<PaymentMethods>[];
+    balanceByCategory: BucketResume<Categories>[];
 }
+
+const emptyBuckets = (): AmountBuckets => ({ own: 0, shared: 0, total: 0 });
+
+const addBuckets = (
+    target: AmountBuckets,
+    own: number,
+    shared: number
+) => {
+    target.own += own;
+    target.shared += shared;
+    target.total += own + shared;
+};
+
+const reduceBuckets = (
+    items: totalPerRecordType[],
+    field: keyof AmountBuckets
+) =>
+    items.reduce((balance, item) => {
+        if (item.effect === "-") return balance - item[field];
+        if (item.effect === "+") return balance + item[field];
+        return balance;
+    }, 0);
 
 export const useFixedsResumesStore = () => {
     const { configs: { recordTypes } } = useConfigs();
@@ -134,133 +155,109 @@ export const useFixedsResumesStore = () => {
         Resumes,
         "balance" | "totalBalance" | "ownBalance" | "sharedBalance"
     > => {
-
         const recordTypeResume = RecordTypes.map(rt => ({
             ...rt,
-            total: 0,
+            ...emptyBuckets(),
         }));
         const paymentTypeResume = PaymentTypes.map(pt => ({
             ...pt,
+            ...emptyBuckets(),
             balance: 0,
             totalPerRecordType: RecordTypes.map(r => ({
                 ...r,
-                total: 0
+                ...emptyBuckets(),
             })),
         }));
         const paymentMethodResume = PaymentMethods.map(pm => ({
             ...pm,
+            ...emptyBuckets(),
             balance: 0,
             totalPerRecordType: RecordTypes.map(r => ({
                 ...r,
-                total: 0
+                ...emptyBuckets(),
             })),
         }));
         const categoryResume = Categories.map(cat => ({
             ...cat,
+            ...emptyBuckets(),
             balance: 0,
             totalPerRecordType: RecordTypes.map(r => ({
                 ...r,
-                total: 0
+                ...emptyBuckets(),
             })),
         }));
 
-        Fixeds.map(fixed => {
-            const ownAmount = splitAmount('fixed', fixed.id, fixed.fixed_amount).own;
-            const recordType = recordTypeResume.find(rt => rt.id === fixed.record_type_id);
-            if (recordType) {
-                recordType.total += ownAmount;
-            }
+        const addToResumes = (
+            recordTypeId: number | null | undefined,
+            paymentTypeId: number | null | undefined,
+            paymentMethodId: number | null | undefined,
+            categoryId: number | null | undefined,
+            own: number,
+            shared: number
+        ) => {
+            const recordType = recordTypeResume.find(rt => rt.id === recordTypeId);
+            if (recordType) addBuckets(recordType, own, shared);
 
-            const paymentTypeId =
-                fixed.PaymentMethods?.payment_type_id ?? fixed.PaymentMethods?.PaymentTypes?.id;
             const paymentType = paymentTypeResume.find(pt => pt.id === paymentTypeId);
             if (paymentType) {
                 paymentType.totalPerRecordType.forEach(r => {
-                    if (r.id === fixed.record_type_id) {
-                        r.total += ownAmount;
-                    }
+                    if (r.id === recordTypeId) addBuckets(r, own, shared);
                 });
-                paymentType.balance = paymentType?.totalPerRecordType?.reduce(typeReducer, 0) || 0
+                paymentType.own = reduceBuckets(paymentType.totalPerRecordType, 'own');
+                paymentType.shared = reduceBuckets(paymentType.totalPerRecordType, 'shared');
+                paymentType.total = reduceBuckets(paymentType.totalPerRecordType, 'total');
+                paymentType.balance = paymentType.own;
             }
 
-
-            const paymentMethod = paymentMethodResume.find(pm => pm.id === fixed.payment_method_id);
+            const paymentMethod = paymentMethodResume.find(pm => pm.id === paymentMethodId);
             if (paymentMethod) {
                 paymentMethod.totalPerRecordType.forEach(r => {
-                    if (r.id === fixed.record_type_id) {
-                        r.total += ownAmount;
-                    }
+                    if (r.id === recordTypeId) addBuckets(r, own, shared);
                 });
-                paymentMethod.balance = paymentMethod?.totalPerRecordType?.reduce(typeReducer, 0) || 0;
+                paymentMethod.own = reduceBuckets(paymentMethod.totalPerRecordType, 'own');
+                paymentMethod.shared = reduceBuckets(paymentMethod.totalPerRecordType, 'shared');
+                paymentMethod.total = reduceBuckets(paymentMethod.totalPerRecordType, 'total');
+                paymentMethod.balance = paymentMethod.own;
             }
 
-
-
-            const category = categoryResume.find(cat => cat.id === fixed.category_id);
+            const category = categoryResume.find(cat => cat.id === categoryId);
             if (category) {
                 category.totalPerRecordType.forEach(r => {
-                    if (r.id === fixed.record_type_id) {
-                        r.total += ownAmount;
-                    }
+                    if (r.id === recordTypeId) addBuckets(r, own, shared);
                 });
-                category.balance = category?.totalPerRecordType?.reduce(typeReducer, 0) || 0;
+                category.own = reduceBuckets(category.totalPerRecordType, 'own');
+                category.shared = reduceBuckets(category.totalPerRecordType, 'shared');
+                category.total = reduceBuckets(category.totalPerRecordType, 'total');
+                category.balance = category.own;
             }
+        };
+
+        Fixeds.map(fixed => {
+            const split = splitAmount('fixed', fixed.id, fixed.fixed_amount);
+            addToResumes(
+                fixed.record_type_id,
+                fixed.PaymentMethods?.payment_type_id ?? fixed.PaymentMethods?.PaymentTypes?.id,
+                fixed.payment_method_id,
+                fixed.category_id,
+                split.own,
+                split.shared
+            );
         })
 
         financingObligations.forEach(({ financing, summary }) => {
-            const amount = splitAmount(
+            const split = splitAmount(
                 'financing',
                 financing.id,
                 summary.monthlyPaymentCents
-            ).own;
-            const recordType = recordTypeResume.find(
-                (rt) => rt.id === financing.record_type_id
             );
-            if (recordType) {
-                recordType.total += amount;
-            }
-
-            const paymentTypeId =
-                financing.PaymentMethods?.payment_type_id ??
-                financing.PaymentMethods?.PaymentTypes?.id;
-            const paymentType = paymentTypeResume.find(
-                (pt) => pt.id === paymentTypeId
+            addToResumes(
+                financing.record_type_id,
+                financing.PaymentMethods?.payment_type_id ?? financing.PaymentMethods?.PaymentTypes?.id,
+                financing.payment_method_id,
+                financing.category_id,
+                split.own,
+                split.shared
             );
-            if (paymentType) {
-                paymentType.totalPerRecordType.forEach((r) => {
-                    if (r.id === financing.record_type_id) {
-                        r.total += amount;
-                    }
-                });
-                paymentType.balance =
-                    paymentType?.totalPerRecordType?.reduce(typeReducer, 0) || 0;
-            }
-
-            const paymentMethod = paymentMethodResume.find(
-                (pm) => pm.id === financing.payment_method_id
-            );
-            if (paymentMethod) {
-                paymentMethod.totalPerRecordType.forEach((r) => {
-                    if (r.id === financing.record_type_id) {
-                        r.total += amount;
-                    }
-                });
-                paymentMethod.balance =
-                    paymentMethod?.totalPerRecordType?.reduce(typeReducer, 0) || 0;
-            }
-
-            const category = categoryResume.find(
-                (cat) => cat.id === financing.category_id
-            );
-            if (category) {
-                category.totalPerRecordType.forEach((r) => {
-                    if (r.id === financing.record_type_id) {
-                        r.total += amount;
-                    }
-                });
-                category.balance =
-                    category?.totalPerRecordType?.reduce(typeReducer, 0) || 0;
-            }
         })
 
         return {
@@ -280,16 +277,6 @@ export const useFixedsResumesStore = () => {
         sharedBalance: balances.shared,
         ...calculeteResumes(),
     }))();
-}
-
-const typeReducer = (acc: number, type: totalPerRecordType) => {
-    if (type.effect == "-") {
-        return acc - type.total;
-    }
-    if (type.effect == "+") {
-        return acc + type.total;
-    }
-    return acc;
 }
 
 export default useFixedsResumesStore;

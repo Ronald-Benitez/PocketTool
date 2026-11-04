@@ -1,6 +1,8 @@
 import React from 'react';
 import { View } from 'react-native';
 
+import { SummaryModeToggle } from '@/src/components/summaries/SummaryModeToggle';
+import { pickSummaryAmount, useSummaryMode } from '@/src/hooks/useSummaryMode';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import useFixedsResumesStore from '@/src/stores/FixedsResumesStore';
 import { AppText } from '@/src/ui/primitives/AppText';
@@ -16,14 +18,19 @@ const RecordTypeScreen = () => {
     const { t } = useLanguage();
     const { colors } = useTheme();
     const { balance, totalBalance, sharedBalance, balanceByRecordType } = useFixedsResumesStore()
+    const { mode } = useSummaryMode()
+    const selectedBalance =
+        mode === 'total' ? totalBalance : mode === 'shared' ? sharedBalance : balance
 
     return (
         <Screen scroll edges={['left', 'right']}>
             <Stack gap='lg'>
+                <SummaryModeToggle />
+
                 <Surface variant='raised' padding='lg'>
                     <SummaryBlock
                         label={t('resume.balance')}
-                        cents={balance}
+                        cents={selectedBalance}
                         size='xl'
                         labelVariant='subtitle'
                         valueColorOverride={colors.text}
@@ -70,7 +77,7 @@ const RecordTypeScreen = () => {
                                     }
                                     trailing={
                                         <FinanceValue
-                                            cents={item.total}
+                                            cents={pickSummaryAmount(mode, item)}
                                             size='lg'
                                             color={colors.text}
                                         />

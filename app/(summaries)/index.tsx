@@ -2,7 +2,9 @@ import React from 'react';
 import { View } from 'react-native';
 
 import { BudgetSummaryBlock } from '@/src/components/summaries/BudgetSummaryBlock';
+import { SummaryModeToggle } from '@/src/components/summaries/SummaryModeToggle';
 import { useLanguage } from '@/src/lang/LanguageContext';
+import { pickSummaryAmount, useSummaryMode } from '@/src/hooks/useSummaryMode';
 import GroupSelector from '@/src/components/groups/group-selector';
 import useResumesStore from '@/src/stores/ResumesStore';
 import { AppText } from '@/src/ui/primitives/AppText';
@@ -18,6 +20,9 @@ const Index = () => {
     const { t } = useLanguage();
     const { colors } = useTheme();
     const { balance, totalBalance, sharedBalance, balanceByRecordType } = useResumesStore()
+    const { mode } = useSummaryMode()
+    const selectedBalance =
+        mode === 'total' ? totalBalance : mode === 'shared' ? sharedBalance : balance
 
     return (
         <Screen scroll edges={['left', 'right']}>
@@ -26,10 +31,12 @@ const Index = () => {
                     <GroupSelector />
                 </Row>
 
+                <SummaryModeToggle />
+
                 <Surface variant='raised' padding='lg'>
                     <SummaryBlock
                         label={t('resume.balance')}
-                        cents={balance}
+                        cents={selectedBalance}
                         size='xl'
                         labelVariant='subtitle'
                         valueColorOverride={colors.text}
@@ -78,7 +85,7 @@ const Index = () => {
                                     }
                                     trailing={
                                         <FinanceValue
-                                            cents={item.total}
+                                            cents={pickSummaryAmount(mode, item)}
                                             size='lg'
                                             color={colors.text}
                                         />

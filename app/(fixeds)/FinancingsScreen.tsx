@@ -160,8 +160,9 @@ const FinancingsScreen = () => {
   };
 
   return (
-    <Screen scroll edges={['left', 'right']}>
-      <Stack gap='lg'>
+    <>
+      <Screen scroll edges={['left', 'right']}>
+        <Stack gap='lg'>
         <Stack gap='xxs'>
           <AppText variant='title'>{t('financings.title')}</AppText>
           <AppText color='muted'>{t('financings.subtitle')}</AppText>
@@ -431,7 +432,8 @@ const FinancingsScreen = () => {
             ))}
           </Stack>
         )}
-      </Stack>
+        </Stack>
+      </Screen>
 
       <FinancingForm
         visible={formVisible}
@@ -493,7 +495,7 @@ const FinancingsScreen = () => {
         summary={activeSummary}
         onClose={() => setScheduleVisible(false)}
       />
-    </Screen>
+    </>
   );
 };
 
