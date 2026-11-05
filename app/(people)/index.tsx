@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
-import { usePeopleRepository, useSharedLedgerRepository } from '@/src/db';
+import { usePeopleRepository, useSavings, useSharedLedgerRepository } from '@/src/db';
 import { mapDatabaseError } from '@/src/db/errors';
 import type { Person, SharedPaymentAllocation } from '@/src/interfaces/schema';
 import { useLanguage } from '@/src/lang/LanguageContext';
@@ -28,8 +28,12 @@ const PeopleScreen = () => {
   const { showToast } = useToast();
   const repository = usePeopleRepository();
   const ledgerRepository = useSharedLedgerRepository();
+  const savingsRepository = useSavings();
   const [people, setPeople] = useState<Person[]>([]);
   const [allocations, setAllocations] = useState<SharedPaymentAllocation[]>([]);
+  const [savingsTotals, setSavingsTotals] = useState<
+    Map<number, { contributedCents: number; balanceCents: number }>
+  >(new Map());
   const [ledgerPerson, setLedgerPerson] = useState<Person | null>(null);
   const [visible, setVisible] = useState(false);
   const [editing, setEditing] = useState<Person | null>(null);
@@ -43,11 +47,26 @@ const PeopleScreen = () => {
 
   useEffect(() => {
     let active = true;
-    Promise.all([repository.fetchPeople(), ledgerRepository.fetchAllocations()])
-      .then(([rows, ledger]) => {
+    Promise.all([
+      repository.fetchPeople(),
+      ledgerRepository.fetchAllocations(),
+      savingsRepository.fetchParticipantTotals(),
+    ])
+      .then(([rows, ledger, savingRows]) => {
         if (!active) return;
         setPeople(rows);
         setAllocations(ledger);
+        setSavingsTotals(
+          new Map(
+            savingRows.map((row) => [
+              row.personId,
+              {
+                contributedCents: row.contributedCents,
+                balanceCents: row.balanceCents,
+              },
+            ])
+          )
+        );
       })
       .catch((cause) => {
         if (!active) return;
@@ -194,6 +213,30 @@ const PeopleScreen = () => {
                       size='sm'
                     />
                   </Row>
+                  {person.id != null && savingsTotals.get(person.id) ? (
+                    <Row justify='space-between' align='center' gap='sm'>
+                      <Stack gap='xxs' style={{ flex: 1 }}>
+                        <AppText variant='caption' color='muted'>
+                          {t('shared.savingsContributed')}
+                        </AppText>
+                        <AppText weight='600'>
+                          {formatMoneyWithSymbol(
+                            savingsTotals.get(person.id)?.contributedCents ?? 0
+                          )}
+                        </AppText>
+                      </Stack>
+                      <Stack gap='xxs' align='flex-end'>
+                        <AppText variant='caption' color='muted'>
+                          {t('shared.savingsBalance')}
+                        </AppText>
+                        <AppText weight='600'>
+                          {formatMoneyWithSymbol(
+                            savingsTotals.get(person.id)?.balanceCents ?? 0
+                          )}
+                        </AppText>
+                      </Stack>
+                    </Row>
+                  ) : null}
                   {person.id != null && (ledgerTotals.get(person.id)?.count ?? 0) > 0 ? (
                     <Row justify='space-between' align='center' gap='sm'>
                       <Stack gap='xxs' style={{ flex: 1 }}>

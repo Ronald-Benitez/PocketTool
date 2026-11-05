@@ -5,7 +5,13 @@ import { useLanguage } from "@/src/lang/LanguageContext";
 import useDate from "@/src/hooks/useDate";
 import useRecordsStore from '@/src/stores/RecordsStore';
 import { useToast } from "@/src/ui/feedback/ToastProvider";
-import { usePaidCredits, usePaymentMethods, useRecords, useTableRepository } from "@/src/db";
+import {
+    usePaidCredits,
+    usePaymentMethods,
+    useRecords,
+    useSavings,
+    useTableRepository,
+} from "@/src/db";
 import type {
     Category,
     Insertable,
@@ -13,7 +19,8 @@ import type {
     PaymentMethodWithRelations,
     RecordEntry,
     RecordFormEntry,
-    RecordType
+    RecordType,
+    Saving
 } from "@/src/interfaces/schema";
 import { useConfigs } from "@/src/hooks/useConfigs";
 import { formatMoneyWithSymbol } from "@/src/utils";
@@ -53,6 +60,9 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     const [recordTypes, setRecordTypes] = useState<RecordType[]>([])
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethodWithRelations[]>([])
     const [categories, setCategories] = useState<Category[]>([])
+    const [savings, setSavings] = useState<Saving[]>([])
+    const [savingId, setSavingId] = useState<number | null>(null)
+    const savingsRepository = useSavings()
     const { fetchRecords, saveRecord, fetchPaidCreditsByGroup } = useRecords()
     const { fetchById: fetchPaidCreditById } = usePaidCredits()
     const { fetchPaymentMethods } = usePaymentMethods()
@@ -71,14 +81,16 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
 
     useEffect(() => {
         const loadOptions = async () => {
-            const [loadedRecordTypes, loadedPaymentMethods, loadedCategories] = await Promise.all([
+            const [loadedRecordTypes, loadedPaymentMethods, loadedCategories, loadedSavings] = await Promise.all([
                 recordTypesRepository.fetchAll(),
                 fetchPaymentMethods(),
-                categoriesRepository.fetchAll()
+                categoriesRepository.fetchAll(),
+                savingsRepository.fetchSavings({ status: 'active' })
             ])
             setRecordTypes(loadedRecordTypes)
             setPaymentMethods(loadedPaymentMethods)
             setCategories(loadedCategories)
+            setSavings(loadedSavings.filter((saving) => saving.records_mode === 'linked'))
         }
 
         loadOptions().catch((error) => {
@@ -103,6 +115,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
         setCategory(categories.find(cat => cat.id === item.category_id))
         setPaymentMethod(paymentMethods.find(pay => pay.id === item.payment_method_id))
         setFixedId(item.fixed_id ?? undefined)
+        setSavingId(null)
         const loadPaidMethod = async () => {
             const paidCredit = item.paid_credit_id
                 ? await fetchPaidCreditById(item.paid_credit_id)
@@ -117,6 +130,10 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
         })
     }, [item, recordTypes, paymentMethods, categories])
 
+    useEffect(() => {
+        if (type?.effect !== '-') setSavingId(null)
+    }, [type?.effect])
+
     const closeModal = () => setVisible(false)
 
     const typeOptions = recordTypes.flatMap(val =>
@@ -128,6 +145,12 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     const paymentOptions = paymentMethods.flatMap(pay =>
         typeof pay.id === 'number' ? [{ label: pay.method_name, value: pay.id }] : []
     )
+    const savingOptions = savings.flatMap(saving =>
+        typeof saving.id === 'number'
+            ? [{ label: saving.saving_name, value: saving.id }]
+            : []
+    )
+    const selectedSaving = savings.find((saving) => saving.id === savingId)
 
     const onSave = async () => {
         if (!group) return
@@ -172,6 +195,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                 recordId: item?.id,
                 paidCredit,
                 paidCreditId: item?.paid_credit_id ?? null,
+                savingId: item?.id ? null : savingId,
             })
 
             if (item?.id) {
@@ -181,6 +205,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                 setName("")
                 setAmountCents(0)
                 setSharedCents(0)
+                setSavingId(null)
             }
 
             const records = await fetchRecords(group_id)
@@ -190,7 +215,14 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
             closeModal()
         } catch (e) {
             console.error("Error al guardar el registro:", e)
-            showToast({ message: t('toast.error'), type: 'error' })
+            const message = e instanceof Error ? e.message : ''
+            showToast({
+                message:
+                    message === 'SAVING_INSUFFICIENT_FUNDS'
+                        ? t('savings.movement.insufficient')
+                        : t('toast.error'),
+                type: 'error',
+            })
         }
     }
 
@@ -319,6 +351,28 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                                 {formatMoneyWithSymbol(sharedCents)}
                             </AppText>
                         </Surface>
+                    ) : null}
+                    {!item?.id &&
+                    type?.effect === '-' &&
+                    type.id !== paymentCreditType &&
+                    savingOptions.length > 0 ? (
+                        <>
+                            <SelectField<number>
+                                label={t('savings.records.source')}
+                                value={savingId ?? 0}
+                                options={[
+                                    { label: t('savings.records.sourceMonthly'), value: 0 },
+                                    ...savingOptions,
+                                ]}
+                                onChange={(id) => setSavingId(id === 0 ? null : id)}
+                            />
+                            {selectedSaving ? (
+                                <AppText variant='caption' color='muted'>
+                                    {t('savings.records.available')}:{' '}
+                                    {formatMoneyWithSymbol(selectedSaving.amount)}
+                                </AppText>
+                            ) : null}
+                        </>
                     ) : null}
                     <DateField
                         label={t('item.date')}

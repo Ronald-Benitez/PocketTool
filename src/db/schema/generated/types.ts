@@ -246,15 +246,49 @@ export interface BudgetLine extends Entity, SoftDeletable {
 export interface Saving extends Entity, SoftDeletable {
   saving_name: string;
   amount: Cents;
+  target_amount_cents?: Cents | null;
+  target_date?: TimestampMs | null;
+  status: string;
+  goal_reached_at?: TimestampMs | null;
+  goal_alerted_at?: TimestampMs | null;
+  archived_at?: TimestampMs | null;
+  records_mode: string;
+  contribution_rule: string;
+  contribution_percent_bps?: number | null;
+  contribution_amount_cents?: Cents | null;
+  interest_rate_bps?: number | null;
+  icon?: string | null;
+  color?: string | null;
+  own_amount_cents?: Cents | null;
+  shared_amount_cents?: Cents | null;
   created_at?: TimestampMs | null;
   updated_at?: TimestampMs | null;
 }
 
 export interface SavingsHistoryEntry extends Entity, SoftDeletable {
   savings_id?: number | null;
+  person_id?: number | null;
+  kind: string;
+  amount_cents: Cents;
   previous_amount: Cents;
   new_amount: Cents;
   change_date: TimestampMs;
+  period_year: number;
+  period_month: number;
+  note?: string | null;
+  record_id?: number | null;
+  group_id?: number | null;
+  record_type_id?: number | null;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
+export interface SavingsSetting extends Entity, SoftDeletable {
+  setting_key: string;
+  record_type_id?: number | null;
+  payment_method_id?: number | null;
+  category_id?: number | null;
+  trophy_color?: string | null;
   created_at?: TimestampMs | null;
   updated_at?: TimestampMs | null;
 }

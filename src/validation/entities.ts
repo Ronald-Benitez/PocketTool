@@ -437,15 +437,71 @@ export const vehicleExpenseLinkInputSchema = z
     { message: 'Exactly one vehicle entry is required', path: ['fuel_entry_id'] }
   );
 
+export const savingStatus = z.enum(['active', 'archived']);
+export const savingRecordsMode = z.enum(['separate', 'linked']);
+export const savingContributionRule = z.enum(['none', 'percent', 'fixed']);
+export const savingMovementKind = z.enum([
+  'initial',
+  'deposit',
+  'withdrawal',
+  'interest',
+  'adjustment',
+]);
+
 export const savingInputSchema = z
   .object({
     saving_name: z.string().min(1),
     amount: cents,
+    target_amount_cents: cents.nonnegative().nullable().optional(),
+    target_date: timestamp.nullable().optional(),
+    status: savingStatus.optional(),
+    goal_reached_at: timestamp.nullable().optional(),
+    goal_alerted_at: timestamp.nullable().optional(),
+    archived_at: timestamp.nullable().optional(),
+    records_mode: savingRecordsMode.optional(),
+    contribution_rule: savingContributionRule.optional(),
+    contribution_percent_bps: z.number().int().min(0).max(10000).nullable().optional(),
+    contribution_amount_cents: cents.nonnegative().nullable().optional(),
+    interest_rate_bps: z.number().int().min(0).nullable().optional(),
+    icon: z.string().nullable().optional(),
+    color: z.string().nullable().optional(),
+    own_amount_cents: cents.nonnegative().nullable().optional(),
+    shared_amount_cents: cents.nonnegative().nullable().optional(),
     ...auditTimestamps,
   })
   .strict();
 
 export const savingUpdateSchema = savingInputSchema.partial().extend(updateMeta);
+
+export const savingMovementInputSchema = z
+  .object({
+    savings_id: id,
+    person_id: id,
+    kind: savingMovementKind,
+    amount_cents: cents.nonnegative(),
+    previous_amount: cents.optional(),
+    new_amount: cents.optional(),
+    change_date: timestamp,
+    period_year: z.number().int().min(0).max(9999).optional(),
+    period_month: z.number().int().min(0).max(12).optional(),
+    note: z.string().nullable().optional(),
+    record_id: id,
+    group_id: id,
+    record_type_id: id,
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const savingsSettingsInputSchema = z
+  .object({
+    setting_key: z.string().min(1).default('savings'),
+    record_type_id: id,
+    payment_method_id: id,
+    category_id: id,
+    trophy_color: z.string().min(1).nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
 
 export const paymentMethodInputSchema = z
   .object({
@@ -552,7 +608,7 @@ export const financingAdjustmentInputSchema = z
 export const financingAdjustmentUpdateSchema =
   financingAdjustmentInputSchema.partial().extend(updateMeta);
 
-const sharedOwnerType = z.enum(['fixed', 'financing']);
+const sharedOwnerType = z.enum(['fixed', 'financing', 'saving']);
 
 export const personInputSchema = z
   .object({

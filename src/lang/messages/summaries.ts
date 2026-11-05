@@ -43,12 +43,148 @@ export const summariesEn = {
         "totalAvailable": "Total available credit"
     },
     "savings": {
+        "title": "Savings",
+        "subtitle": "Track accounts, shared goals and monthly contributions.",
         "select": "Select a saving",
         "add": "Add a saving",
         "edit": "Edit a saving",
         "pin": "Pin saving",
         "unpin": "Unpin saving",
-        "delete": "Delete saving"
+        "delete": "Delete saving",
+        "deleteConfirm": "Delete this saving and all its movements?",
+        "archive": "Archive",
+        "restore": "Restore",
+        "active": "Active",
+        "archived": "Archived",
+        "all": "All",
+        "filter": "Show",
+        "empty": "No savings yet.",
+        "summary": {
+            "total": "Global",
+            "own": "Your share",
+            "shared": "Other people"
+        },
+        "scope": {
+            "own": "Your share",
+            "global": "Global"
+        },
+        "contribution": {
+            "title": "Monthly contribution",
+            "suggested": "Suggested",
+            "actual": "Contributed",
+            "exceeded": "Exceeded",
+            "met": "Reached",
+            "notMet": "Not reached",
+            "noBase": "No income base",
+            "noRule": "No rule",
+            "noRuleHint": "Set a percentage of income or a fixed amount when editing this saving."
+        },
+        "goal": {
+            "title": "Goal",
+            "target": "Target",
+            "remaining": "Remaining",
+            "reached": "Goal reached",
+            "actualProjection": "Projected with your contributions",
+            "expectedProjection": "Projected with the expected contribution"
+        },
+        "chart": {
+            "title": "Progress",
+            "total": "Global",
+            "own": "Yours",
+            "shared": "Others",
+            "empty": "Register a movement to see the chart."
+        },
+        "movement": {
+            "add": "Add movement",
+            "title": "Saving movement",
+            "kind": "Movement type",
+            "deposit": "Deposit",
+            "withdrawal": "Withdrawal",
+            "interest": "Interest",
+            "adjustment": "Adjustment",
+            "amount": "Amount",
+            "date": "Date",
+            "person": "Person",
+            "own": "Your part",
+            "note": "Note",
+            "invalid": "Enter a valid amount.",
+            "insufficient": "The saving does not have enough balance.",
+            "suggested": "Suggested contribution",
+            "useSuggested": "Use suggested",
+            "saved": "Movement saved",
+            "kinds": {
+                "initial": "Initial balance",
+                "deposit": "Deposit",
+                "withdrawal": "Withdrawal",
+                "interest": "Interest",
+                "adjustment": "Adjustment"
+            }
+        },
+        "history": {
+            "title": "Movements",
+            "empty": "No movements yet.",
+            "delete": "Delete movement",
+            "deleteConfirm": "Delete this movement? The balance will be recalculated."
+        },
+        "form": {
+            "required": "Enter a name and an amount.",
+            "targetRequired": "Enter the goal amount.",
+            "percentRequired": "Enter a percentage greater than zero.",
+            "amountRequired": "Enter a monthly amount greater than zero.",
+            "currentAmount": "Current amount",
+            "hasGoal": "This saving has a goal",
+            "targetAmount": "Goal amount",
+            "targetDate": "Goal date",
+            "contributionRule": "Contribution rule",
+            "ruleNone": "No rule",
+            "rulePercent": "Percentage of monthly income",
+            "ruleFixed": "Fixed monthly amount",
+            "percentOfIncome": "Percentage of monthly income",
+            "fixedContribution": "Monthly amount",
+            "recordsMode": "Records integration",
+            "recordsSeparate": "Separate from Records",
+            "recordsLinked": "Allow creating a Record",
+            "interestRate": "Annual interest rate (optional)",
+            "interestHint": "Informational only. Interest is recorded manually as a movement.",
+            "participants": "People sharing this saving"
+        },
+        "records": {
+            "title": "Link a record",
+            "search": "Search by name",
+            "empty": "No records found.",
+            "mode": "Record",
+            "source": "Money source",
+            "sourceMonthly": "This month's money",
+            "available": "Available in saving",
+            "create": "Create a new record",
+            "link": "Link an existing record",
+            "none": "Do not create or link a record",
+            "linkedTo": "Linked to {name}",
+            "choose": "Choose a record",
+            "recordType": "Record type",
+            "category": "Category",
+            "paymentMethod": "Payment method",
+            "group": "Month group",
+            "groupRequired": "There is no group for this month.",
+            "categoryRequired": "Select a category for the record.",
+            "paymentRequired": "Select a payment method for the record.",
+            "amountMismatch": "The amount must match the linked record.",
+            "dateMismatch": "The date must match the linked record.",
+            "alreadyLinked": "That record is already linked to another operation.",
+            "required": "Choose a record or switch to create/none."
+        },
+        "settings": {
+            "title": "Savings defaults",
+            "subtitle": "Default data for records created from savings. You can edit them when confirming a movement.",
+            "recordType": "Default record type",
+            "category": "Default category",
+            "paymentMethod": "Default payment method",
+            "trophyColor": "Goal trophy color",
+            "saved": "Savings defaults saved"
+        },
+        "toast": {
+            "updated": "Saving updated"
+        }
     },
     "budget": {
         "budget": "Budget",
@@ -99,12 +235,148 @@ export const summariesEs: MessageShape<typeof summariesEn> = {
         "totalAvailable": "Crédito disponible total"
     },
     "savings": {
+        "title": "Ahorros",
+        "subtitle": "Gestiona cuentas, metas compartidas y aportes mensuales.",
         "select": "Selecciona un ahorro",
         "add": "Agrega un ahorro",
         "edit": "Edita un ahorro",
         "pin": "Fijar ahorro",
         "unpin": "Quitar fijado",
-        "delete": "Eliminar ahorro"
+        "delete": "Eliminar ahorro",
+        "deleteConfirm": "¿Eliminar este ahorro y todos sus movimientos?",
+        "archive": "Archivar",
+        "restore": "Restaurar",
+        "active": "Activos",
+        "archived": "Archivados",
+        "all": "Todos",
+        "filter": "Mostrar",
+        "empty": "Todavía no hay ahorros.",
+        "summary": {
+            "total": "Global",
+            "own": "Tu parte",
+            "shared": "Otras personas"
+        },
+        "scope": {
+            "own": "Tu parte",
+            "global": "Global"
+        },
+        "contribution": {
+            "title": "Aporte mensual",
+            "suggested": "Sugerido",
+            "actual": "Aportado",
+            "exceeded": "Superado",
+            "met": "Alcanzado",
+            "notMet": "No alcanzado",
+            "noBase": "Sin base de ingresos",
+            "noRule": "Sin regla",
+            "noRuleHint": "Configura un porcentaje de ingresos o un monto fijo al editar este ahorro."
+        },
+        "goal": {
+            "title": "Meta",
+            "target": "Objetivo",
+            "remaining": "Restante",
+            "reached": "Meta alcanzada",
+            "actualProjection": "Proyección con tus aportes",
+            "expectedProjection": "Proyección con el aporte esperado"
+        },
+        "chart": {
+            "title": "Progreso",
+            "total": "Global",
+            "own": "Tuya",
+            "shared": "Otros",
+            "empty": "Registra un movimiento para ver el gráfico."
+        },
+        "movement": {
+            "add": "Agregar movimiento",
+            "title": "Movimiento de ahorro",
+            "kind": "Tipo de movimiento",
+            "deposit": "Aporte",
+            "withdrawal": "Retiro",
+            "interest": "Interés",
+            "adjustment": "Ajuste",
+            "amount": "Monto",
+            "date": "Fecha",
+            "person": "Persona",
+            "own": "Tu parte",
+            "note": "Nota",
+            "invalid": "Ingresa un monto válido.",
+            "insufficient": "El ahorro no tiene saldo suficiente.",
+            "suggested": "Aporte sugerido",
+            "useSuggested": "Usar sugerido",
+            "saved": "Movimiento guardado",
+            "kinds": {
+                "initial": "Saldo inicial",
+                "deposit": "Aporte",
+                "withdrawal": "Retiro",
+                "interest": "Interés",
+                "adjustment": "Ajuste"
+            }
+        },
+        "history": {
+            "title": "Movimientos",
+            "empty": "Todavía no hay movimientos.",
+            "delete": "Eliminar movimiento",
+            "deleteConfirm": "¿Eliminar este movimiento? El saldo se recalculará."
+        },
+        "form": {
+            "required": "Ingresa un nombre y un monto.",
+            "targetRequired": "Ingresa el monto de la meta.",
+            "percentRequired": "Ingresa un porcentaje mayor que cero.",
+            "amountRequired": "Ingresa un monto mensual mayor que cero.",
+            "currentAmount": "Monto actual",
+            "hasGoal": "Este ahorro tiene una meta",
+            "targetAmount": "Monto de la meta",
+            "targetDate": "Fecha de la meta",
+            "contributionRule": "Regla de aporte",
+            "ruleNone": "Sin regla",
+            "rulePercent": "Porcentaje de los ingresos del mes",
+            "ruleFixed": "Monto fijo mensual",
+            "percentOfIncome": "Porcentaje de los ingresos del mes",
+            "fixedContribution": "Monto mensual",
+            "recordsMode": "Integración con Registros",
+            "recordsSeparate": "Separado de Registros",
+            "recordsLinked": "Permitir crear un Registro",
+            "interestRate": "Tasa de interés anual (opcional)",
+            "interestHint": "Solo informativa. Los intereses se registran manualmente como movimiento.",
+            "participants": "Personas que comparten este ahorro"
+        },
+        "records": {
+            "title": "Vincular un registro",
+            "search": "Buscar por nombre",
+            "empty": "No se encontraron registros.",
+            "mode": "Registro",
+            "source": "Origen del dinero",
+            "sourceMonthly": "Dinero del mes",
+            "available": "Disponible en el ahorro",
+            "create": "Crear un registro nuevo",
+            "link": "Vincular un registro existente",
+            "none": "No crear ni vincular registro",
+            "linkedTo": "Vinculado a {name}",
+            "choose": "Elegir un registro",
+            "recordType": "Tipo de registro",
+            "category": "Categoría",
+            "paymentMethod": "Método de pago",
+            "group": "Grupo del mes",
+            "groupRequired": "No hay un grupo para este mes.",
+            "categoryRequired": "Selecciona una categoría para el registro.",
+            "paymentRequired": "Selecciona un método de pago para el registro.",
+            "amountMismatch": "El monto debe coincidir con el registro vinculado.",
+            "dateMismatch": "La fecha debe coincidir con el registro vinculado.",
+            "alreadyLinked": "Ese registro ya está vinculado a otra operación.",
+            "required": "Elige un registro o cambia a crear/ninguno."
+        },
+        "settings": {
+            "title": "Datos por defecto de ahorros",
+            "subtitle": "Datos por defecto para los registros creados desde ahorros. Puedes editarlos al confirmar un movimiento.",
+            "recordType": "Tipo de registro por defecto",
+            "category": "Categoría por defecto",
+            "paymentMethod": "Método de pago por defecto",
+            "trophyColor": "Color del trofeo de meta",
+            "saved": "Datos de ahorros guardados"
+        },
+        "toast": {
+            "updated": "Ahorro actualizado"
+        }
     },
     "budget": {
         "budget": "Prespuesto",

@@ -41,6 +41,7 @@ import type {
   Saving,
   SavingsHistoryEntry,
   SavingsHistoryWithRelations,
+  SavingsSetting,
   Migration,
   Vehicle,
   VehicleExpenseLink,
@@ -80,6 +81,7 @@ export type BaseSchemaMap = {
   BudgetLines: BudgetLine;
   Savings: Saving;
   SavingsHistory: SavingsHistoryEntry;
+  SavingsSettings: SavingsSetting;
   Vehicles: Vehicle;
   VehicleFuelEntries: VehicleFuelEntry;
   VehicleMaintenance: VehicleMaintenanceEntry;
@@ -113,6 +115,7 @@ export type RelationsSchemaMap = {
   BudgetLines: BudgetLineWithRelations;
   Savings: Saving;
   SavingsHistory: SavingsHistoryWithRelations;
+  SavingsSettings: SavingsSetting;
   Vehicles: Vehicle;
   VehicleFuelEntries: VehicleFuelEntryWithRelations;
   VehicleMaintenance: VehicleMaintenanceEntryWithRelations;

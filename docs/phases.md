@@ -17,7 +17,7 @@
 | Fase 8 — Vehículo | ✅ Finalizada | 2026-10-31 |
 | Fase 9 — Gastos fijos y Créditos | ✅ Finalizada | 2026-11-03 |
 | Fase 10 - Errores y ajustes de siguiente versión | ✅ Finalizada | 2026-11-03 |
-| Fase 11 — Ahorros compartidos y metas | 🚧 Planificación | 2026-11-04 |
+| Fase 11 — Ahorros compartidos y metas | 🚧 En implementación | 2026-11-04 |
 
 El detalle histórico de las fases 0–3 vive en
 [`legacy/phase-history.md`](legacy/phase-history.md). El detalle de la Fase 4
@@ -44,7 +44,8 @@ Gastos fijos/Créditos y de la siguiente versión están archivados en
   `0010_vehicle_type_models`, `0011_credit_cards_and_financings`,
   `0012_financing_payment_cents`, `0013_vehicle_settings_record_type`,
   `0014_people_and_shared_participants`, `0015_records_shared_amounts`,
-  `0016_shared_payment_allocations`; `SCHEMA_VERSION = 16`.
+  `0016_shared_payment_allocations`, `0017_savings_goals_and_sharing`,
+  `0018_savings_movements`; `SCHEMA_VERSION = 18`.
 - **Presupuestos:** `BudgetPlans` (un plan por grupo), `BudgetLines` (categoría
   o fijo) y plantillas reutilizables. El real se deriva de `Records`; no se
   guarda. `budgets_legacy` se elimina en `0005`.
@@ -365,11 +366,12 @@ Cierre:
 - Commits principales: `1f77b6a`, `3cc8dc8`, `6de9ff7`, `745f052`, `cf50c0b`,
   `4a3afaf`, `d454e75`, `f651333`, `7e03428`, `892875d`.
 
-## Fase 11 — Ahorros compartidos y metas (🚧 Planificación, 2026-11-04)
+## Fase 11 — Ahorros compartidos y metas (🚧 En implementación, 2026-11-04)
 
 **Plan completo:** [`savings-plan.md`](savings-plan.md)
 
-Estado: **planificación**. No hay cambios de esquema ni de UI todavía.
+Estado: **en implementación**. Ya están aplicados el esquema, las migraciones,
+el dominio, los repositorios y la primera versión de la UI.
 
 Objetivo: convertir Ahorros en un módulo de cuentas y metas compartidas, con
 progreso global/propio/otras partes, intereses manuales, archivo histórico y una
@@ -402,6 +404,31 @@ Subfases: SAV-0 a SAV-5, detalladas en el plan.
 Decisiones confirmadas: intereses por porcentaje, meta global opcional,
 aportaciones libres con regla persistente, estado propio/global seleccionable,
 archivo manual con alerta y trofeo metálico configurable.
+
+Implementado hasta ahora:
+
+- Migraciones `0017_savings_goals_and_sharing` y `0018_savings_movements`;
+  `SCHEMA_VERSION = 18`.
+- `Savings` con meta, estado, archivo, regla de aporte, interés y cachés
+  propio/compartido; `SavingsSettings`.
+- Historial de movimientos tipados con persona, período, notas y vínculo a
+  `Records`.
+- Dominio `src/domain/savings/`: balances, metas, aportes, proyección y gráficos
+  con pruebas.
+- Repositorio transaccional de ahorros, movimientos, participantes y settings.
+- UI de Ahorros: resumen global/propio/compartido, meta, proyección, estado
+  mensual, gráfico de tres series, trofeo, historial y formularios.
+- Selector de origen del dinero en `Records` cuando el ahorro está vinculado.
+- Configuración de tipo de registro, categoría, método de pago y color del
+  trofeo en Ajustes.
+- Sección Personas con aportes y saldo en ahorros.
+
+Pendiente:
+
+- QA Android/iOS y checklist visual.
+- Pruebas de integración de `Records` con ahorros (crear/vincular/no vincular).
+- Ayuda de Ahorros ya actualizada; falta validar la de Personas con aportes.
+- Cierre documental de la fase.
 
 ## Documentación
 

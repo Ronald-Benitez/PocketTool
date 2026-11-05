@@ -1,6 +1,6 @@
 import type { TableDefinition, TableSchema } from '../types';
 
-export const SCHEMA_VERSION = 16;
+export const SCHEMA_VERSION = 18;
 
 export type TableName =
   | 'Groups'
@@ -23,6 +23,7 @@ export type TableName =
   | 'BudgetLines'
   | 'Savings'
   | 'SavingsHistory'
+  | 'SavingsSettings'
   | 'Vehicles'
   | 'VehicleFuelEntries'
   | 'VehicleMaintenance'
@@ -630,8 +631,26 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
       { name: 'saving_name', type: 'TEXT', notNull: true },
       { name: 'amount', type: 'INTEGER', kind: 'money', notNull: true },
+      { name: 'target_amount_cents', type: 'INTEGER', kind: 'money' },
+      { name: 'target_date', type: 'INTEGER', kind: 'timestamp' },
+      { name: 'status', type: 'TEXT', notNull: true, defaultValue: 'active' },
+      { name: 'goal_reached_at', type: 'INTEGER', kind: 'timestamp' },
+      { name: 'goal_alerted_at', type: 'INTEGER', kind: 'timestamp' },
+      { name: 'archived_at', type: 'INTEGER', kind: 'timestamp' },
+      { name: 'records_mode', type: 'TEXT', notNull: true, defaultValue: 'separate' },
+      { name: 'contribution_rule', type: 'TEXT', notNull: true, defaultValue: 'none' },
+      { name: 'contribution_percent_bps', type: 'INTEGER' },
+      { name: 'contribution_amount_cents', type: 'INTEGER', kind: 'money' },
+      { name: 'interest_rate_bps', type: 'INTEGER' },
+      { name: 'icon', type: 'TEXT' },
+      { name: 'color', type: 'TEXT' },
+      { name: 'own_amount_cents', type: 'INTEGER', kind: 'money' },
+      { name: 'shared_amount_cents', type: 'INTEGER', kind: 'money' },
       ...timestamps,
       softDelete,
+    ],
+    indexes: [
+      { name: 'idx_savings_status', columns: ['status'], where: 'deleted_at IS NULL' },
     ],
   },
   SavingsHistory: {
@@ -645,14 +664,69 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
         type: 'INTEGER',
         references: { table: 'Savings', column: 'id', onDelete: 'CASCADE' },
       },
+      {
+        name: 'person_id',
+        type: 'INTEGER',
+        references: { table: 'People', column: 'id', onDelete: 'SET NULL' },
+      },
+      { name: 'kind', type: 'TEXT', notNull: true, defaultValue: 'adjustment' },
+      { name: 'amount_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
       { name: 'previous_amount', type: 'INTEGER', kind: 'money', notNull: true },
       { name: 'new_amount', type: 'INTEGER', kind: 'money', notNull: true },
       { name: 'change_date', type: 'INTEGER', kind: 'timestamp', notNull: true },
+      { name: 'period_year', type: 'INTEGER', notNull: true, defaultValue: 0 },
+      { name: 'period_month', type: 'INTEGER', notNull: true, defaultValue: 0 },
+      { name: 'note', type: 'TEXT' },
+      {
+        name: 'record_id',
+        type: 'INTEGER',
+        references: { table: 'Records', column: 'id', onDelete: 'SET NULL' },
+      },
+      {
+        name: 'group_id',
+        type: 'INTEGER',
+        references: { table: 'Groups', column: 'id', onDelete: 'SET NULL' },
+      },
+      {
+        name: 'record_type_id',
+        type: 'INTEGER',
+        references: { table: 'RecordTypes', column: 'id', onDelete: 'SET NULL' },
+      },
       ...timestamps,
       softDelete,
     ],
     indexes: [
       { name: 'idx_savings_history_saving', columns: ['savings_id'], where: 'deleted_at IS NULL' },
+      { name: 'idx_savings_history_person', columns: ['person_id'], where: 'deleted_at IS NULL' },
+      { name: 'idx_savings_history_period', columns: ['period_year', 'period_month'], where: 'deleted_at IS NULL' },
+      { name: 'idx_savings_history_record', columns: ['record_id'], where: 'deleted_at IS NULL' },
+    ],
+  },
+  SavingsSettings: {
+    name: 'SavingsSettings',
+    sqlName: 'savings_settings',
+    entity: 'SavingsSetting',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      { name: 'setting_key', type: 'TEXT', notNull: true, unique: true },
+      {
+        name: 'record_type_id',
+        type: 'INTEGER',
+        references: { table: 'RecordTypes', column: 'id', onDelete: 'SET NULL' },
+      },
+      {
+        name: 'payment_method_id',
+        type: 'INTEGER',
+        references: { table: 'PaymentMethods', column: 'id', onDelete: 'SET NULL' },
+      },
+      {
+        name: 'category_id',
+        type: 'INTEGER',
+        references: { table: 'Categories', column: 'id', onDelete: 'SET NULL' },
+      },
+      { name: 'trophy_color', type: 'TEXT', defaultValue: '#C9A227' },
+      ...timestamps,
+      softDelete,
     ],
   },
   Migrations: {

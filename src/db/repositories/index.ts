@@ -8,6 +8,10 @@ import {
   syncRecordAllocations,
 } from '@/src/db/shared-ledger';
 import {
+  insertSavingMovement,
+  syncSavingTotals,
+} from '@/src/db/repositories/savings';
+import {
   groupInputSchema,
   groupUpdateSchema,
   paidCreditInputSchema,
@@ -15,13 +19,10 @@ import {
   paymentMethodInputSchema,
   paymentMethodUpdateSchema,
   recordInputSchema,
-  savingInputSchema,
-  savingUpdateSchema,
 } from '@/src/validation/entities';
 import type { TableName } from '@/src/db/schema';
 import type {
   Category,
-  Cents,
   FixedRecordWithRelations,
   FixedView,
   Group,
@@ -203,6 +204,7 @@ export const useRecordsRepository = () => {
     recordId?: number;
     paidCredit?: Insertable<PaidCredit> | null;
     paidCreditId?: number | null;
+    savingId?: number | null;
   };
 
   const saveRecord = async ({
@@ -210,6 +212,7 @@ export const useRecordsRepository = () => {
     recordId,
     paidCredit,
     paidCreditId,
+    savingId,
   }: SaveRecordInput): Promise<number> => {
     const creditRecord = recordInputSchema.parse(record);
     const creditPayment = paidCredit ? paidCreditInputSchema.parse(paidCredit) : null;
@@ -255,6 +258,27 @@ export const useRecordsRepository = () => {
         });
       } else {
         await clearRecordAllocations(txn, savedId, 'fixed');
+      }
+
+      if (savingId) {
+        const saving = (await new ORM(txn, 'Savings').getById(
+          savingId
+        )) as Saving | null;
+        if (!saving) throw new Error('SAVING_NOT_FOUND');
+        await insertSavingMovement(
+          txn,
+          {
+            savings_id: savingId,
+            kind: 'withdrawal',
+            amount_cents: payload.amount,
+            change_date: payload.date,
+            group_id: payload.group_id,
+            record_type_id: payload.record_type_id,
+          },
+          saving,
+          savedId
+        );
+        await syncSavingTotals(txn, savingId);
       }
 
       return savedId;
@@ -544,37 +568,6 @@ export const useCategoriesRepository = () => {
   };
 };
 
-export const useSavingsRepository = () => {
-  const savingsOrm = useORM('Savings');
-  const historyOrm = useORM('SavingsHistory');
-
-  const fetchSavings = async (): Promise<Saving[]> => savingsOrm.getAll();
-
-  const addSavings = async (savingName: string, amount: Cents) => {
-    return savingsOrm.insert(savingInputSchema.parse({ saving_name: savingName, amount }));
-  };
-
-  const updateSavings = async (id: number, savingName: string, amount: Cents) => {
-    await savingsOrm.update(id, savingUpdateSchema.parse({ saving_name: savingName, amount }));
-  };
-
-  const deleteSavings = async (id: number) => {
-    await historyOrm.deleteWhere('savings_id', id);
-    await savingsOrm.delete(id);
-  };
-
-  const fetchSavingsById = async (id: number): Promise<Saving | null> =>
-    savingsOrm.where('id', id).first();
-
-  return {
-    fetchSavings,
-    addSavings,
-    updateSavings,
-    deleteSavings,
-    fetchSavingsById,
-  };
-};
-
 export const useSavingsHistoryRepository = () => {
   const historyOrm = useORM('SavingsHistory');
   const handler = useTableRepository('SavingsHistory');
@@ -649,6 +642,16 @@ export const usePaymentMethodsRepository = () => {
 };
 
 export { useFinancingsRepository } from './financings';
+export { useSavingsRepository } from './savings';
+export type {
+  SavingInput,
+  SavingMovementInput,
+  SavingParticipantDraft,
+  SavingParticipantTotal,
+  SavingRecordInput,
+  SavingRecordMode,
+  SavingView,
+} from './savings';
 
 export type { SavingsHistoryEntry };
 

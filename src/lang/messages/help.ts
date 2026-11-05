@@ -471,32 +471,32 @@ export const helpEn = {
         },
         "savings": {
             "title": "Savings",
-            "summary": "Track savings accounts, amounts, and changes over time.",
+            "summary": "Track shared accounts, goals, contributions and interest over time.",
             "what": {
                 "title": "What it is",
-                "body": "A saving represents an account or goal with an amount and a history of changes."
+                "body": "A saving is an account or goal with a global balance, an optional target amount, a monthly contribution rule and a history of movements. It can be shared with people from the global People registry. The global balance is split into your share and the other participants' share."
             },
             "how": {
                 "title": "How it works",
-                "body": "Each edit stores the previous amount, the new amount, and the date, so you can see increases and decreases over time."
+                "body": "Every movement is typed: initial balance, deposit, withdrawal, interest or adjustment. You can assign a movement to a person or to your own share. Interest is distributed by participant percentage and the remainder stays in your share. When the saving has a goal, the app shows progress and projects the date with your actual contributions or with the expected contribution. The goal-reached alert appears inside the saving; the general list uses a metallic trophy. Archiving is manual and keeps the history."
             },
             "steps": {
                 "title": "Step by step",
-                "step1": "Create a saving with its name and amount.",
-                "step2": "Edit the amount when it changes.",
-                "step3": "Review the history and chart."
+                "step1": "Create a saving with its name, initial amount and optional goal, participants and contribution rule.",
+                "step2": "Register deposits, withdrawals, interest or adjustments. Choose a person when the movement belongs to a shared part.",
+                "step3": "Review the global, own and shared progress, the goal projection and the movement history. Archive it when you no longer need it active."
             },
             "example": {
                 "title": "Example",
-                "body": "A saving grows from 1,000 to 1,500. The history shows a +500 change for that date."
+                "body": "A 1,000 saving shared 50% with Ana shows 500 as your share and 500 as shared. If you register 100 of interest, 50 goes to Ana and 50 to your share. A goal of 2,000 with 200 monthly contributions projects ten months."
             },
             "tips": {
                 "title": "Tips",
-                "body": "Pin the saving you check most often for faster access."
+                "body": "Use a percentage of monthly income or a fixed amount as a suggested contribution; you can always edit the real amount. Keep the saving separate from Records if you only want to track the balance, or link a movement when you need the record to affect your monthly accounts."
             },
             "warning": {
                 "title": "Common mistake",
-                "body": "Editing a saving creates a history entry; it does not create an income or expense record."
+                "body": "Interest is not a new deposit. Register it as interest so it is distributed correctly. Deleting a saving removes its movements and history; archive it instead when you want to keep the data."
             }
         },
         "filters": {
@@ -1033,32 +1033,32 @@ export const helpEs: MessageShape<typeof helpEn> = {
         },
         "savings": {
             "title": "Ahorros",
-            "summary": "Sigue cuentas de ahorro, montos y cambios a lo largo del tiempo.",
+            "summary": "Sigue cuentas compartidas, metas, aportes e intereses a lo largo del tiempo.",
             "what": {
                 "title": "Qué es",
-                "body": "Un ahorro representa una cuenta o meta con un monto y un historial de cambios."
+                "body": "Un ahorro es una cuenta o meta con un saldo global, una meta opcional, una regla de aporte mensual y un historial de movimientos. Puede compartirse con personas del registro global de Personas. El saldo global se separa en tu parte y la de las otras personas."
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "Cada edición guarda el monto anterior, el nuevo monto y la fecha, para ver aumentos y disminuciones con el tiempo."
+                "body": "Cada movimiento tiene tipo: saldo inicial, aporte, retiro, interés o ajuste. Puedes asignar un movimiento a una persona o a tu propia parte. Los intereses se reparten por porcentaje de participantes y el remanente queda en tu parte. Cuando el ahorro tiene meta, la app muestra el progreso y proyecta la fecha con tus aportes reales o con el aporte esperado. La alerta de meta alcanzada aparece dentro del ahorro; la lista general usa un trofeo metálico. El archivo es manual y conserva el historial."
             },
             "steps": {
                 "title": "Paso a paso",
-                "step1": "Crea un ahorro con su nombre y monto.",
-                "step2": "Edita el monto cuando cambie.",
-                "step3": "Revisa el historial y el gráfico."
+                "step1": "Crea un ahorro con nombre, monto inicial y, si quieres, meta, participantes y regla de aporte.",
+                "step2": "Registra aportes, retiros, intereses o ajustes. Elige una persona cuando el movimiento corresponda a una parte compartida.",
+                "step3": "Revisa el progreso global, propio y compartido, la proyección de la meta y el historial. Archívalo cuando ya no necesites mantenerlo activo."
             },
             "example": {
                 "title": "Ejemplo",
-                "body": "Un ahorro pasa de 1,000 a 1,500. El historial muestra un cambio de +500 en esa fecha."
+                "body": "Un ahorro de 1,000 compartido al 50% con Ana muestra 500 como tu parte y 500 como compartido. Si registras 100 de interés, 50 van a Ana y 50 a tu parte. Una meta de 2,000 con aportes de 200 al mes proyecta diez meses."
             },
             "tips": {
                 "title": "Consejos",
-                "body": "Fija el ahorro que consultas más seguido para acceder rápido."
+                "body": "Usa un porcentaje de los ingresos del mes o un monto fijo como aporte sugerido; siempre puedes editar el monto real. Mantén el ahorro separado de Registros si solo quieres seguir el saldo, o vincula un movimiento cuando necesites que el registro afecte tus cuentas del mes."
             },
             "warning": {
                 "title": "Error común",
-                "body": "Editar un ahorro crea una entrada de historial; no crea un registro de ingreso o gasto."
+                "body": "El interés no es un aporte nuevo. Regístralo como interés para que se reparta correctamente. Eliminar un ahorro borra sus movimientos e historial; archívalo si quieres conservar los datos."
             }
         },
         "filters": {

@@ -33,6 +33,8 @@ export const sharedEn = {
     ledger: 'Payment history',
     ledgerTotal: 'Shared payments',
     ledgerEmpty: 'No shared payments yet.',
+    savingsContributed: 'Contributed to savings',
+    savingsBalance: 'Savings balance',
   },
 };
 
@@ -69,5 +71,7 @@ export const sharedEs: MessageShape<typeof sharedEn> = {
     ledger: 'Historial de pagos',
     ledgerTotal: 'Pagos compartidos',
     ledgerEmpty: 'Todavía no hay pagos compartidos.',
+    savingsContributed: 'Aportado a ahorros',
+    savingsBalance: 'Saldo en ahorros',
   },
 };

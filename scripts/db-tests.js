@@ -410,7 +410,7 @@ async function testEmptyDatabase() {
   assert.strictEqual(q(raw, 'SELECT goal FROM groups')[0].goal, 500000);
   assert.strictEqual(q(raw, 'SELECT amount FROM records ORDER BY id')[0].amount, 100000);
   assert.strictEqual(q(raw, 'SELECT migration_name FROM migrations')[0].migration_name, '0001_baseline');
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 16);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 18);
   const recordColumns = q(raw, 'PRAGMA table_info(records)').map(c => c.name);
   assert.ok(recordColumns.includes('created_at'));
   assert.ok(recordColumns.includes('updated_at'));
@@ -447,7 +447,7 @@ async function testExportImport() {
   assert.ok(metadata);
   assert.strictEqual(metadata.formatVersion, BACKUP_FORMAT_VERSION);
   assert.strictEqual(metadata.appVersion, 'test-version');
-  assert.strictEqual(metadata.schemaVersion, 16);
+  assert.strictEqual(metadata.schemaVersion, 18);
   assert.ok(metadata.tables.includes('records'));
   assert.doesNotThrow(() => validateSqlDump(backupSql));
   assert.strictEqual(parseBackupMetadata(dump), null);
@@ -500,7 +500,7 @@ async function testAuditTimestampMigration() {
   const backfilled = q(raw, 'SELECT created_at, updated_at FROM records LIMIT 1')[0];
   assert.ok(backfilled.created_at > 0);
   assert.ok(backfilled.updated_at > 0);
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 16);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 18);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,
     1
@@ -981,6 +981,80 @@ async function testPeopleInsert() {
   console.log('people insert: OK');
 }
 
+async function testSavingsGoalsAndMovements() {
+  const raw = new DatabaseSync(':memory:');
+  const db = shim(raw);
+  await migrateDb(db);
+
+  const savingColumns = q(raw, 'PRAGMA table_info(savings)').map((c) => c.name);
+  for (const column of [
+    'target_amount_cents',
+    'target_date',
+    'status',
+    'goal_reached_at',
+    'records_mode',
+    'contribution_rule',
+    'contribution_percent_bps',
+    'contribution_amount_cents',
+    'own_amount_cents',
+    'shared_amount_cents',
+  ]) {
+    assert.ok(savingColumns.includes(column), `missing savings.${column}`);
+  }
+
+  const movementColumns = q(raw, 'PRAGMA table_info(savings_history)').map(
+    (c) => c.name
+  );
+  for (const column of [
+    'person_id',
+    'kind',
+    'amount_cents',
+    'period_year',
+    'period_month',
+    'record_id',
+    'record_type_id',
+  ]) {
+    assert.ok(
+      movementColumns.includes(column),
+      `missing savings_history.${column}`
+    );
+  }
+
+  const savings = new ORM(db, 'Savings');
+  const savingId = await savings.insert({
+    saving_name: 'Trip',
+    amount: 10000,
+    status: 'active',
+    records_mode: 'separate',
+    contribution_rule: 'none',
+    own_amount_cents: 10000,
+    shared_amount_cents: 0,
+  });
+  assert.ok(savingId > 0);
+
+  const history = new ORM(db, 'SavingsHistory');
+  const movementId = await history.insert({
+    savings_id: savingId,
+    kind: 'initial',
+    amount_cents: 10000,
+    previous_amount: 0,
+    new_amount: 10000,
+    change_date: 1700000000000,
+    period_year: 2023,
+    period_month: 11,
+  });
+  assert.ok(movementId > 0);
+
+  assert.strictEqual(
+    q(raw, "SELECT trophy_color FROM savings_settings WHERE setting_key = 'savings'")[0]
+      .trophy_color,
+    '#C9A227'
+  );
+
+  raw.close();
+  console.log('savings goals and movements: OK');
+}
+
 async function testMoneyRebuildKeepsCents() {
   const raw = new DatabaseSync(':memory:');
   raw.exec(`
@@ -1238,6 +1312,7 @@ async function testInterruptedRebuild() {
   await testPeopleAndSharedParticipantsMigration();
   await testPeopleInsert();
   await testMoneyRebuildKeepsCents();
+  await testSavingsGoalsAndMovements();
   await testSharedPaymentAllocations();
   await testVehicleSettingsRecordTypeMigration();
   await testVehicleInsert();

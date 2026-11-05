@@ -1,7 +1,7 @@
 # Plan de mejora — Ahorros compartidos, metas e integración con Registros
 
 **Fase:** 11 (SAV)
-**Estado:** 🚧 Planificación
+**Estado:** 🚧 En implementación (SAV-1 a SAV-4 parciales)
 **Fecha:** 2026-11-04
 **Objetivo:** convertir Ahorros de un saldo editable con historial básico en un
 módulo de metas y cuentas compartidas, con progreso global/propio/otras partes,
@@ -431,6 +431,32 @@ Decisiones confirmadas:
 - Actualizar tema de ayuda de Ahorros.
 - Actualizar AGENTS, docs y notas de versión.
 - Typecheck, test:db, Jest, lint, doctor y export Android.
+
+---
+
+## 7.1. Implementado hasta ahora
+
+- `0017_savings_goals_and_sharing` y `0018_savings_movements`;
+  `SCHEMA_VERSION = 18`.
+- `SavingsSettings` y campos nuevos de `Savings`/`SavingsHistory`.
+- Dominio `src/domain/savings/`: balances, metas, aportes, proyección, gráficos y
+  pruebas.
+- Repositorio transaccional: alta/edición/archivo/eliminación, movimientos,
+  participantes, settings, búsqueda de registros y totales por persona.
+- UI de Ahorros: selector, resumen global/propio/compartido, meta, proyección,
+  estado mensual, gráfico de tres series, trofeo, historial, formularios de
+  ahorro y movimiento.
+- Integración inicial con `Records`: origen del dinero en gastos y creación de
+  movimiento de retiro dentro de la misma transacción.
+- Configuración de defaults de registros y color del trofeo en Ajustes.
+- Personas muestra aportes y saldo en ahorros.
+
+Pendiente:
+
+- Pruebas de integración de `Records` (vincular existente, no vincular, doble
+  conteo y registros ya vinculados).
+- QA Android/iOS y checklist visual.
+- Cierre documental y de fase.
 
 ---
 

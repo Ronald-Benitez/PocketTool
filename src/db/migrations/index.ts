@@ -16,6 +16,8 @@ import vehicleSettingsRecordType from './0013_vehicle_settings_record_type';
 import peopleAndSharedParticipants from './0014_people_and_shared_participants';
 import recordsSharedAmounts from './0015_records_shared_amounts';
 import sharedPaymentAllocations from './0016_shared_payment_allocations';
+import savingsGoalsAndSharing from './0017_savings_goals_and_sharing';
+import savingsMovements from './0018_savings_movements';
 
 export interface Migration {
   version: number;
@@ -44,4 +46,6 @@ export const migrations: Migration[] = [
   peopleAndSharedParticipants,
   recordsSharedAmounts,
   sharedPaymentAllocations,
+  savingsGoalsAndSharing,
+  savingsMovements,
 ];

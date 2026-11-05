@@ -3,7 +3,7 @@
 > Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.
 > Fuente de verdad: `src/db/schema/tables.ts`.
 
-Versión de esquema: **16**
+Versión de esquema: **18**
 
 ## Convenciones
 
@@ -34,8 +34,9 @@ Versión de esquema: **16**
 | `BudgetTemplateItems` | `budget_template_items` | `BudgetTemplateItem` | 13 | 4 |
 | `BudgetPlans` | `budget_plans` | `BudgetPlan` | 10 | 2 |
 | `BudgetLines` | `budget_lines` | `BudgetLine` | 15 | 6 |
-| `Savings` | `savings` | `Saving` | 6 | 0 |
-| `SavingsHistory` | `savings_history` | `SavingsHistoryEntry` | 8 | 1 |
+| `Savings` | `savings` | `Saving` | 21 | 1 |
+| `SavingsHistory` | `savings_history` | `SavingsHistoryEntry` | 17 | 4 |
+| `SavingsSettings` | `savings_settings` | `SavingsSetting` | 9 | 0 |
 | `Migrations` | `migrations` | `Migration` | 3 | 0 |
 | `Vehicles` | `vehicles` | `Vehicle` | 19 | 1 |
 | `VehicleFuelEntries` | `vehicle_fuel_entries` | `VehicleFuelEntry` | 19 | 2 |
@@ -516,9 +517,27 @@ Entidad TypeScript: `Saving`
 | `id` | `INTEGER` | `number` | PK, autoincrement |
 | `saving_name` | `TEXT` | `string` | NOT NULL |
 | `amount` | `INTEGER` | `Cents` | NOT NULL, kind=money |
+| `target_amount_cents` | `INTEGER` | `Cents` | kind=money |
+| `target_date` | `INTEGER` | `TimestampMs` | kind=timestamp |
+| `status` | `TEXT` | `string` | NOT NULL, default="active" |
+| `goal_reached_at` | `INTEGER` | `TimestampMs` | kind=timestamp |
+| `goal_alerted_at` | `INTEGER` | `TimestampMs` | kind=timestamp |
+| `archived_at` | `INTEGER` | `TimestampMs` | kind=timestamp |
+| `records_mode` | `TEXT` | `string` | NOT NULL, default="separate" |
+| `contribution_rule` | `TEXT` | `string` | NOT NULL, default="none" |
+| `contribution_percent_bps` | `INTEGER` | `number` |  |
+| `contribution_amount_cents` | `INTEGER` | `Cents` | kind=money |
+| `interest_rate_bps` | `INTEGER` | `number` |  |
+| `icon` | `TEXT` | `string` |  |
+| `color` | `TEXT` | `string` |  |
+| `own_amount_cents` | `INTEGER` | `Cents` | kind=money |
+| `shared_amount_cents` | `INTEGER` | `Cents` | kind=money |
 | `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Índices:
+- `idx_savings_status` (status) WHERE deleted_at IS NULL
 
 Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
 
@@ -530,17 +549,49 @@ Entidad TypeScript: `SavingsHistoryEntry`
 | --- | --- | --- | --- |
 | `id` | `INTEGER` | `number` | PK, autoincrement |
 | `savings_id` | `INTEGER` | `number` | FK → Savings.id ON DELETE CASCADE |
+| `person_id` | `INTEGER` | `number` | FK → People.id ON DELETE SET NULL |
+| `kind` | `TEXT` | `string` | NOT NULL, default="adjustment" |
+| `amount_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
 | `previous_amount` | `INTEGER` | `Cents` | NOT NULL, kind=money |
 | `new_amount` | `INTEGER` | `Cents` | NOT NULL, kind=money |
 | `change_date` | `INTEGER` | `TimestampMs` | NOT NULL, kind=timestamp |
+| `period_year` | `INTEGER` | `number` | NOT NULL, default=0 |
+| `period_month` | `INTEGER` | `number` | NOT NULL, default=0 |
+| `note` | `TEXT` | `string` |  |
+| `record_id` | `INTEGER` | `number` | FK → Records.id ON DELETE SET NULL |
+| `group_id` | `INTEGER` | `number` | FK → Groups.id ON DELETE SET NULL |
+| `record_type_id` | `INTEGER` | `number` | FK → RecordTypes.id ON DELETE SET NULL |
 | `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 
-Relaciones navegables: `Savings`
+Relaciones navegables: `Savings`, `People`, `Records`, `Records.RecordTypes`, `Records.Groups`, `Records.Categories`, `Records.PaymentMethods`, `Records.PaymentMethods.PaymentTypes`, `Records.Fixed`, `Records.Fixed.RecordTypes`, `Records.Fixed.Categories`, `Records.Fixed.PaymentMethods`, `Records.Fixed.PaymentMethods.PaymentTypes`, `Records.PaidCredits`, `Records.PaidCredits.Groups`, `Records.PaidCredits.PaymentMethods`, `Records.PaidCredits.PaymentMethods.PaymentTypes`, `Groups`, `RecordTypes`
 
 Índices:
 - `idx_savings_history_saving` (savings_id) WHERE deleted_at IS NULL
+- `idx_savings_history_person` (person_id) WHERE deleted_at IS NULL
+- `idx_savings_history_period` (period_year, period_month) WHERE deleted_at IS NULL
+- `idx_savings_history_record` (record_id) WHERE deleted_at IS NULL
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
+## SavingsSettings (`savings_settings`)
+
+Entidad TypeScript: `SavingsSetting`
+
+| Columna | SQL | TS | Notas |
+| --- | --- | --- | --- |
+| `id` | `INTEGER` | `number` | PK, autoincrement |
+| `setting_key` | `TEXT` | `string` | NOT NULL, UNIQUE |
+| `record_type_id` | `INTEGER` | `number` | FK → RecordTypes.id ON DELETE SET NULL |
+| `payment_method_id` | `INTEGER` | `number` | FK → PaymentMethods.id ON DELETE SET NULL |
+| `category_id` | `INTEGER` | `number` | FK → Categories.id ON DELETE SET NULL |
+| `trophy_color` | `TEXT` | `string` | default="#C9A227" |
+| `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Relaciones navegables: `RecordTypes`, `PaymentMethods`, `PaymentMethods.PaymentTypes`, `Categories`
 
 Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
 

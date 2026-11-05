@@ -56,8 +56,9 @@ No editar esos archivos a mano.
 | `BudgetTemplateItems` | `budget_template_items` | Líneas de plantilla (categoría o fijo). |
 | `BudgetPlans` | `budget_plans` | Plan mensual por grupo. |
 | `BudgetLines` | `budget_lines` | Líneas planificadas por categoría o fijo. |
-| `Savings` | `savings` | Cuentas/metas de ahorro. |
-| `SavingsHistory` | `savings_history` | Historial de ahorros. |
+| `Savings` | `savings` | Cuentas/metas de ahorro con meta global opcional, regla de aporte, estado y modo de `Records`. |
+| `SavingsHistory` | `savings_history` | Movimientos de ahorro: saldo inicial, aporte, retiro, interés y ajuste; incluye persona, período y registro vinculado. |
+| `SavingsSettings` | `savings_settings` | Datos por defecto para registros de ahorro y color del trofeo de meta. |
 | `Vehicles` | `vehicles` | Vehículos con tipo, color, unidades y consumo por defecto. |
 | `VehicleFuelEntries` | `vehicle_fuel_entries` | Cargas de combustible con odómetro y unidades; `is_baseline` marca el registro inicial solo con odómetro. |
 | `VehicleMaintenance` | `vehicle_maintenance` | Servicios, reparaciones y costos. |
@@ -108,6 +109,8 @@ Las rutas navegables se generan en `relations.json` a partir de las FKs.
 | 14 | `0014_people_and_shared_participants` | Crea `people` y `shared_expense_participants`, y migra los compartidos existentes de financiamientos. |
 | 15 | `0015_records_shared_amounts` | Agrega `own_amount_cents` y `shared_amount_cents` a `records`; backfill propio = monto y compartido = 0. |
 | 16 | `0016_shared_payment_allocations` | Crea `shared_payment_allocations` para el historial de pagos compartidos por persona. |
+| 17 | `0017_savings_goals_and_sharing` | Agrega metas, estado, archivo, regla de aporte, intereses y cachés a `savings`; crea `savings_settings`. |
+| 18 | `0018_savings_movements` | Agrega tipo, persona, período, notas y vínculo a `Records` en `savings_history`; conserva el saldo inicial. |
 
 Reglas:
 

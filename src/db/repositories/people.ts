@@ -16,7 +16,7 @@ import {
   sharedParticipantInputSchema,
 } from '@/src/validation/entities';
 
-export type SharedOwnerType = 'fixed' | 'financing';
+export type SharedOwnerType = 'fixed' | 'financing' | 'saving';
 
 export type ParticipantDraft = {
   personId: number;
