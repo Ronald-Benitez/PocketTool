@@ -218,6 +218,9 @@ commits relevantes, archivos tocados y verificaciones realizadas.
   `own_amount_cents` lo replica y `shared_amount_cents` es el snapshot de la
   parte compartida. El total es `own + shared`. Los resúmenes personales usan el
   monto propio.
+- Regla de ahorros: un `Record` con `saving_id` se conserva en Registros pero no
+  cuenta como gasto del mes en resúmenes, presupuestos ni créditos; el monto se
+  descuenta del ahorro mediante `SavingsHistory`.
 - `src/components/shared/SharedParticipantsField.tsx`: selector reutilizable de
   personas y porcentajes con total/propio/compartido.
 - `src/stores/CreditsStore.ts`: totales por ciclo y uso de tarjeta con compras a

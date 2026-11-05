@@ -422,7 +422,8 @@ Implementado hasta ahora:
   mensual, gráfico de tres series con leyenda, trofeo, historial y formularios.
 - Aporte sugerido proporcional a la parte propia o a la persona seleccionada.
 - Selector de origen del dinero en `Records` para cualquier ahorro activo,
-  `records.saving_id` y resumen de "Pagado con ahorros".
+  `records.saving_id` y resumen de "Pagado con ahorros". Los gastos pagados con
+  ahorro se excluyen del gasto del mes en resúmenes, presupuestos y créditos.
 - Configuración de tipo de registro, categoría, método de pago y color del
   trofeo en Ajustes, con secciones colapsables y buscador.
 - Sección Personas con aportes y saldo en ahorros.

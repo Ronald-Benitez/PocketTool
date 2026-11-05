@@ -28,6 +28,7 @@ import {
   budgetTemplateUpdateSchema,
 } from '@/src/validation/entities';
 import { averageBudgetTotals } from '@/src/domain/budgets/average';
+import { isMonthlyCashRecord } from '@/src/domain/summaries/monthly';
 import { calculateBudgetPlanView } from '@/src/domain/budgets/comparison';
 import type {
   BudgetApplyMode,
@@ -166,7 +167,7 @@ export const useBudgetPlansRepository = () => {
       year: group.year,
       templateName: template?.template_name ?? null,
       lines: lines as BudgetLine[],
-      records: records.map((record) => {
+      records: records.filter(isMonthlyCashRecord).map((record) => {
         const own = record.own_amount_cents ?? record.amount;
         const shared = record.shared_amount_cents ?? 0;
         return {
@@ -476,6 +477,7 @@ export const useBudgetPlansRepository = () => {
 
     for (const record of records) {
       if (
+        !isMonthlyCashRecord(record) ||
         record.category_id == null ||
         record.record_type_id == null ||
         !typeIds.has(record.record_type_id) ||
@@ -534,7 +536,11 @@ export const useBudgetPlansRepository = () => {
         .filter((line) => saleOf(line.scope) === 'category')
         .map((line) => `${line.category_id}:${line.record_type_id}`)
     );
-    const averages = averageBudgetTotals(records, typeIds, selected.length);
+    const averages = averageBudgetTotals(
+      records.filter(isMonthlyCashRecord),
+      typeIds,
+      selected.length
+    );
 
     let created = 0;
     for (const entry of averages) {

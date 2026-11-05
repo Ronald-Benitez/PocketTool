@@ -452,7 +452,9 @@ Decisiones confirmadas:
   un ahorro compartido.
 - Integración con `Records`: origen del dinero en gastos, creación de movimiento
   de retiro dentro de la misma transacción, `records.saving_id` para identificar
-  la fuente y resumen de "Pagado con ahorros".
+  la fuente y resumen de "Pagado con ahorros". Los registros con `saving_id` se
+  excluyen del gasto del mes en resúmenes, presupuestos y créditos; solo
+  descuentan el saldo del ahorro.
 - Configuración de defaults de registros y color del trofeo en Ajustes, con
   secciones colapsables y buscador.
 - Personas muestra aportes y saldo en ahorros.

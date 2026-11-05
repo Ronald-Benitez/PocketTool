@@ -2,6 +2,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { z } from 'zod';
 
 import { ORM, useORM } from '@/src/orm';
+import { isMonthlyCashRecord } from '@/src/domain/summaries/monthly';
 import { withExclusiveTransaction } from '@/src/db/transaction';
 import {
   clearRecordAllocations,
@@ -405,17 +406,18 @@ export const useRecordsRepository = () => {
         .getAll(),
     ]);
 
-    const recordsOwnTotal = records.reduce(
+    const cashRecords = records.filter(isMonthlyCashRecord);
+    const recordsOwnTotal = cashRecords.reduce(
       (total, record) => total + (record.own_amount_cents ?? record.amount ?? 0),
       0
     );
-    const recordsSharedTotal = records.reduce(
+    const recordsSharedTotal = cashRecords.reduce(
       (total, record) => total + (record.shared_amount_cents ?? 0),
       0
     );
 
     return {
-      recordsTotal: records.reduce((total, record) => total + (record.amount || 0), 0),
+      recordsTotal: cashRecords.reduce((total, record) => total + (record.amount || 0), 0),
       recordsOwnTotal,
       recordsSharedTotal,
       recordsCombinedTotal: recordsOwnTotal + recordsSharedTotal,
@@ -429,7 +431,11 @@ export const useRecordsRepository = () => {
       .where('group_id', group_id)
       .where('RecordTypes.effect', effect)
       .getAll();
-    return rows.reduce((total, record) => total + (record.amount || 0), 0);
+    return rows.reduce(
+      (total, record) =>
+        isMonthlyCashRecord(record) ? total + (record.amount || 0) : total,
+      0
+    );
   };
 
   const fetchTotalIncomes = async (group_id: number | undefined): Promise<number | null> => {

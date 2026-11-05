@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 import { getEffectMap } from "@/src/domain/summaries/aggregate";
+import { isMonthlyCashRecord } from "@/src/domain/summaries/monthly";
 import { useConfigs } from "../hooks/useConfigs";
 import useRecordsStore from "./RecordsStore";
 import type {
@@ -86,13 +87,14 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
             const sign = effect === '+' ? 1 : effect === '-' ? -1 : 0;
             if (sign === 0) return;
             const own = record.own_amount_cents ?? record.amount;
+            if (!isMonthlyCashRecord(record)) {
+                if (effect === '-') balances.savingsPaid += own;
+                return;
+            }
             const shared = record.shared_amount_cents ?? 0;
             balances.total += sign * (own + shared);
             balances.own += sign * own;
             balances.shared += sign * shared;
-            if (record.saving_id != null && effect === '-') {
-                balances.savingsPaid += own;
-            }
         });
         return balances;
     };
@@ -131,6 +133,7 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
         const startOfToday = now.getTime();
 
         records.forEach(record => {
+            if (!isMonthlyCashRecord(record)) return;
             const ownAmount = record.own_amount_cents ?? record.amount;
             const sharedAmount = record.shared_amount_cents ?? 0;
             const recordType = balanceByRecordType.find(item => item.id === record.record_type_id);
