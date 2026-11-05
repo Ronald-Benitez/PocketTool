@@ -5,6 +5,7 @@ import {
 } from '../contributions';
 import { buildSavingChart } from '../charts';
 import { averageMonthlyContributions, computeGoalProgress } from '../goals';
+import { validateSavingRecordMatch } from '../movements';
 import type { SavingLike, SavingMovementLike } from '../types';
 
 const movement = (
@@ -117,6 +118,34 @@ describe('savings domain', () => {
       movement({ kind: 'deposit', amount_cents: 2000, period_month: 11 }),
     ];
     expect(averageMonthlyContributions(movements, 'own', 3)).toBe(2000);
+  });
+
+  it('validates amount and date before linking a record', () => {
+    const date = new Date(2026, 10, 4).getTime();
+    expect(
+      validateSavingRecordMatch({
+        recordAmount: 500,
+        recordDate: date,
+        amount: 500,
+        date,
+      })
+    ).toBeNull();
+    expect(
+      validateSavingRecordMatch({
+        recordAmount: 400,
+        recordDate: date,
+        amount: 500,
+        date,
+      })
+    ).toBe('RECORD_AMOUNT_MISMATCH');
+    expect(
+      validateSavingRecordMatch({
+        recordAmount: 500,
+        recordDate: date,
+        amount: 500,
+        date: new Date(2026, 10, 5).getTime(),
+      })
+    ).toBe('RECORD_DATE_MISMATCH');
   });
 
   it('builds chart series for total, own and shared', () => {

@@ -423,12 +423,13 @@ Implementado hasta ahora:
 - Configuración de tipo de registro, categoría, método de pago y color del
   trofeo en Ajustes, con secciones colapsables y buscador.
 - Sección Personas con aportes y saldo en ahorros.
-- Pruebas de migración legacy de ahorros, movimientos y saldo insuficiente.
+- Pruebas de migración legacy de ahorros, movimientos, saldo insuficiente y
+  vínculo/desvínculo de `Records`.
 
 Pendiente:
 
 - QA Android/iOS y checklist visual.
-- Pruebas de integración de `Records` con ahorros (crear/vincular/no vincular).
+- Prueba de rechazo cuando un registro ya está vinculado a otra operación.
 - Ayuda de Ahorros ya actualizada; falta validar la de Personas con aportes.
 - Cierre documental de la fase.
 

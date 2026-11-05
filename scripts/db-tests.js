@@ -1178,6 +1178,102 @@ async function testSavingsLegacyMigrationAndMovement() {
   console.log('savings legacy migration and movement: OK');
 }
 
+async function testSavingsRecordLink() {
+  const raw = new DatabaseSync(':memory:');
+  const db = shim(raw);
+  await migrateDb(db);
+
+  const records = new ORM(db, 'Records');
+  const recordId = await records.insert({
+    amount: 2500,
+    own_amount_cents: 2500,
+    shared_amount_cents: 0,
+    record_name: 'Saving expense',
+    date: 1700000002000,
+  });
+
+  const savings = new ORM(db, 'Savings');
+  const savingId = await savings.insert({
+    saving_name: 'Linked',
+    amount: 10000,
+    status: 'active',
+    records_mode: 'linked',
+    contribution_rule: 'none',
+    own_amount_cents: 10000,
+    shared_amount_cents: 0,
+  });
+
+  const {
+    insertSavingMovement,
+    syncSavingTotals,
+  } = require(path.join(ROOT, 'src/db/repositories/savings.ts'));
+  const current = await savings.getById(savingId);
+
+  await insertSavingMovement(
+    db,
+    {
+      savings_id: savingId,
+      kind: 'initial',
+      amount_cents: 10000,
+      change_date: 1700000000000,
+    },
+    current,
+    null
+  );
+
+  const refreshed = await savings.getById(savingId);
+  const linkedMovement = await insertSavingMovement(
+    db,
+    {
+      savings_id: savingId,
+      kind: 'withdrawal',
+      amount_cents: 2500,
+      change_date: 1700000002000,
+    },
+    refreshed,
+    recordId
+  );
+  await syncSavingTotals(db, savingId);
+
+  const linkedRow = q(
+    raw,
+    'SELECT record_id FROM savings_history WHERE id = ?',
+    [linkedMovement]
+  )[0];
+  assert.strictEqual(linkedRow.record_id, recordId);
+  assert.strictEqual(
+    q(raw, 'SELECT amount FROM savings WHERE id = ?', [savingId])[0].amount,
+    7500
+  );
+
+  const beforeCount = q(raw, 'SELECT COUNT(*) AS c FROM records')[0].c;
+  const currentAfterLink = await savings.getById(savingId);
+  await insertSavingMovement(
+    db,
+    {
+      savings_id: savingId,
+      kind: 'withdrawal',
+      amount_cents: 1000,
+      change_date: 1700000003000,
+    },
+    currentAfterLink,
+    null
+  );
+  await syncSavingTotals(db, savingId);
+  assert.strictEqual(
+    q(raw, 'SELECT amount FROM savings WHERE id = ?', [savingId])[0].amount,
+    6500
+  );
+  assert.strictEqual(
+    q(raw, 'SELECT COUNT(*) AS c FROM records')[0].c,
+    beforeCount,
+    'an unlinked movement must not create a record'
+  );
+
+  raw.close();
+  console.log('savings record link and unlink: OK');
+}
+
 async function testMoneyRebuildKeepsCents() {
   const raw = new DatabaseSync(':memory:');
   raw.exec(`
@@ -1437,6 +1533,7 @@ async function testInterruptedRebuild() {
   await testMoneyRebuildKeepsCents();
   await testSavingsGoalsAndMovements();
   await testSavingsLegacyMigrationAndMovement();
+  await testSavingsRecordLink();
   await testSharedPaymentAllocations();
   await testVehicleSettingsRecordTypeMigration();
   await testVehicleInsert();

@@ -455,12 +455,13 @@ Decisiones confirmadas:
 - Configuración de defaults de registros y color del trofeo en Ajustes, con
   secciones colapsables y buscador.
 - Personas muestra aportes y saldo en ahorros.
-- Pruebas de migración legacy, movimientos, retiros y saldo insuficiente.
+- Pruebas de migración legacy, movimientos, retiros, saldo insuficiente y
+  vínculo/desvínculo de `Records` sin crear registros duplicados.
 
 Pendiente:
 
-- Pruebas de integración de `Records` (vincular existente, no vincular, doble
-  conteo y registros ya vinculados).
+- Prueba explícita de rechazo cuando un registro ya está vinculado a otra
+  operación.
 - QA Android/iOS y checklist visual.
 - Cierre documental y de fase.
 

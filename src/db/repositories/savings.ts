@@ -17,6 +17,7 @@ import {
   averageMonthlyContributions,
   computeGoalProgress,
 } from '@/src/domain/savings/goals';
+import { validateSavingRecordMatch } from '@/src/domain/savings/movements';
 import type {
   SavingChartPoint,
   SavingContributionSummary,
@@ -103,16 +104,6 @@ export type SavingView = Saving & {
   ownSharePercent: number;
   periodYear: number;
   periodMonth: number;
-};
-
-const isSameDay = (left: number, right: number) => {
-  const a = new Date(left);
-  const b = new Date(right);
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
 };
 
 const periodOf = (date: number) => {
@@ -561,10 +552,13 @@ export const useSavingsRepository = () => {
           )) as RecordEntry | null;
           if (!linked) throw new Error('RECORD_NOT_FOUND');
           await assertRecordAvailable(txn, record.recordId);
-          if (linked.amount !== amount) throw new Error('RECORD_AMOUNT_MISMATCH');
-          if (!isSameDay(linked.date, values.change_date)) {
-            throw new Error('RECORD_DATE_MISMATCH');
-          }
+          const mismatch = validateSavingRecordMatch({
+            recordAmount: linked.amount,
+            recordDate: linked.date,
+            amount,
+            date: values.change_date,
+          });
+          if (mismatch) throw new Error(mismatch);
           recordId = record.recordId;
         }
 
