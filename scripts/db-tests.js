@@ -410,7 +410,7 @@ async function testEmptyDatabase() {
   assert.strictEqual(q(raw, 'SELECT goal FROM groups')[0].goal, 500000);
   assert.strictEqual(q(raw, 'SELECT amount FROM records ORDER BY id')[0].amount, 100000);
   assert.strictEqual(q(raw, 'SELECT migration_name FROM migrations')[0].migration_name, '0001_baseline');
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 19);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 20);
   const recordColumns = q(raw, 'PRAGMA table_info(records)').map(c => c.name);
   assert.ok(recordColumns.includes('created_at'));
   assert.ok(recordColumns.includes('updated_at'));
@@ -447,7 +447,7 @@ async function testExportImport() {
   assert.ok(metadata);
   assert.strictEqual(metadata.formatVersion, BACKUP_FORMAT_VERSION);
   assert.strictEqual(metadata.appVersion, 'test-version');
-  assert.strictEqual(metadata.schemaVersion, 19);
+  assert.strictEqual(metadata.schemaVersion, 20);
   assert.ok(metadata.tables.includes('records'));
   assert.doesNotThrow(() => validateSqlDump(backupSql));
   assert.strictEqual(parseBackupMetadata(dump), null);
@@ -500,7 +500,7 @@ async function testAuditTimestampMigration() {
   const backfilled = q(raw, 'SELECT created_at, updated_at FROM records LIMIT 1')[0];
   assert.ok(backfilled.created_at > 0);
   assert.ok(backfilled.updated_at > 0);
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 19);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 20);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,
     1
@@ -1194,7 +1194,9 @@ async function testRecordsSavingSourceMigration() {
       deleted_at INTEGER
     );
     INSERT INTO records (amount, record_name, date) VALUES (1000, 'Expense', 1);
+    INSERT INTO records (amount, record_name, date) VALUES (2000, 'Saving · Trip', 2);
     INSERT INTO savings_history (savings_id, record_id) VALUES (7, 1);
+    INSERT INTO savings_history (savings_id, record_id) VALUES (8, 2);
   `);
   const migration = require(path.join(
     ROOT,
@@ -1204,6 +1206,27 @@ async function testRecordsSavingSourceMigration() {
   assert.strictEqual(
     q(raw, 'SELECT saving_id FROM records WHERE id = 1')[0].saving_id,
     7
+  );
+  // Records created from a movement must stay regular records.
+  assert.strictEqual(
+    q(raw, 'SELECT saving_id FROM records WHERE id = 2')[0].saving_id,
+    null
+  );
+
+  // Simulate a database that ran the first version of 0019 and got the marker.
+  raw.exec('UPDATE records SET saving_id = 8 WHERE id = 2');
+  const cleanup = require(path.join(
+    ROOT,
+    'src/db/migrations/0020_clear_movement_saving_source.ts'
+  )).default;
+  await cleanup.up(shim(raw));
+  assert.strictEqual(
+    q(raw, 'SELECT saving_id FROM records WHERE id = 1')[0].saving_id,
+    7
+  );
+  assert.strictEqual(
+    q(raw, 'SELECT saving_id FROM records WHERE id = 2')[0].saving_id,
+    null
   );
   raw.close();
   console.log('records saving source migration: OK');

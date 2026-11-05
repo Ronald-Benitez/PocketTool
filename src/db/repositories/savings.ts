@@ -541,6 +541,9 @@ export const useSavingsRepository = () => {
             group_id: fields.groupId,
             category_id: fields.categoryId,
             payment_method_id: fields.paymentMethodId,
+            // A movement-created record is a regular record: it is linked to
+            // the movement, not paid with the saving.
+            saving_id: null,
           });
           recordId = await new ORM(txn, 'Records').insert(
             payload as Insertable<RecordEntry>

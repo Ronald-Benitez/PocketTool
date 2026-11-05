@@ -1,6 +1,6 @@
 import type { TableDefinition, TableSchema } from '../types';
 
-export const SCHEMA_VERSION = 19;
+export const SCHEMA_VERSION = 20;
 
 export type TableName =
   | 'Groups'

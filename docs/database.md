@@ -111,7 +111,8 @@ Las rutas navegables se generan en `relations.json` a partir de las FKs.
 | 16 | `0016_shared_payment_allocations` | Crea `shared_payment_allocations` para el historial de pagos compartidos por persona. |
 | 17 | `0017_savings_goals_and_sharing` | Agrega metas, estado, archivo, regla de aporte, intereses y cachés a `savings`; crea `savings_settings`. |
 | 18 | `0018_savings_movements` | Agrega tipo, persona, período, notas y vínculo a `Records` en `savings_history`; conserva el saldo inicial. |
-| 19 | `0019_records_saving_source` | Agrega `records.saving_id` y migra el vínculo existente desde `savings_history.record_id`. |
+| 19 | `0019_records_saving_source` | Agrega `records.saving_id` y migra el vínculo existente desde `savings_history.record_id`, excepto los registros creados desde un movimiento (`Saving · `). |
+| 20 | `0020_clear_movement_saving_source` | Limpia `records.saving_id` de los registros creados desde un movimiento de ahorro que quedaron marcados por error. |
 
 Reglas:
 

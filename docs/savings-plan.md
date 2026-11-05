@@ -437,7 +437,8 @@ Decisiones confirmadas:
 ## 7.1. Implementado hasta ahora
 
 - `0017_savings_goals_and_sharing`, `0018_savings_movements` y
-  `0019_records_saving_source`; `SCHEMA_VERSION = 19`.
+  `0019_records_saving_source` y `0020_clear_movement_saving_source`;
+  `SCHEMA_VERSION = 20`.
 - `SavingsSettings` y campos nuevos de `Savings`/`SavingsHistory`.
 - Dominio `src/domain/savings/`: balances, metas, aportes, proyección, gráficos y
   pruebas.
@@ -454,7 +455,9 @@ Decisiones confirmadas:
   de retiro dentro de la misma transacción, `records.saving_id` para identificar
   la fuente y resumen de "Pagado con ahorros". Los registros con `saving_id` se
   excluyen del gasto del mes en resúmenes, presupuestos y créditos; solo
-  descuentan el saldo del ahorro.
+  descuentan el saldo del ahorro. Un registro creado desde un movimiento es un
+  registro normal sin `saving_id`; `SavingsHistory.record_id` solo guarda el
+  vínculo.
 - Configuración de defaults de registros y color del trofeo en Ajustes, con
   secciones colapsables y buscador.
 - Personas muestra aportes y saldo en ahorros.

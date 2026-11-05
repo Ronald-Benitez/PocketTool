@@ -45,8 +45,8 @@ Gastos fijos/Créditos y de la siguiente versión están archivados en
   `0012_financing_payment_cents`, `0013_vehicle_settings_record_type`,
   `0014_people_and_shared_participants`, `0015_records_shared_amounts`,
   `0016_shared_payment_allocations`, `0017_savings_goals_and_sharing`,
-  `0018_savings_movements`, `0019_records_saving_source`;
-  `SCHEMA_VERSION = 19`.
+  `0018_savings_movements`, `0019_records_saving_source` y
+  `0020_clear_movement_saving_source`; `SCHEMA_VERSION = 20`.
 - **Presupuestos:** `BudgetPlans` (un plan por grupo), `BudgetLines` (categoría
   o fijo) y plantillas reutilizables. El real se deriva de `Records`; no se
   guarda. `budgets_legacy` se elimina en `0005`.
@@ -410,7 +410,8 @@ archivo manual con alerta y trofeo metálico configurable.
 Implementado hasta ahora:
 
 - Migraciones `0017_savings_goals_and_sharing`, `0018_savings_movements` y
-  `0019_records_saving_source`; `SCHEMA_VERSION = 19`.
+  `0019_records_saving_source` y `0020_clear_movement_saving_source`;
+  `SCHEMA_VERSION = 20`.
 - `Savings` con meta, estado, archivo, regla de aporte, interés y cachés
   propio/compartido; `SavingsSettings`.
 - Historial de movimientos tipados con persona, período, notas y vínculo a

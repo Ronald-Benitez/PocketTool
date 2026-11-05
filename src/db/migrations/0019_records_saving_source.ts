@@ -23,7 +23,8 @@ const up = async (db: SQLiteDatabase) => {
       WHERE h.record_id = ${quoteIdent(records)}.id AND h.deleted_at IS NULL
       LIMIT 1
     )
-    WHERE saving_id IS NULL;
+    WHERE saving_id IS NULL
+      AND record_name NOT LIKE 'Saving · %';
   `);
 };
 

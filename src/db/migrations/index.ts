@@ -19,6 +19,7 @@ import sharedPaymentAllocations from './0016_shared_payment_allocations';
 import savingsGoalsAndSharing from './0017_savings_goals_and_sharing';
 import savingsMovements from './0018_savings_movements';
 import recordsSavingSource from './0019_records_saving_source';
+import clearMovementSavingSource from './0020_clear_movement_saving_source';
 
 export interface Migration {
   version: number;
@@ -50,4 +51,5 @@ export const migrations: Migration[] = [
   savingsGoalsAndSharing,
   savingsMovements,
   recordsSavingSource,
+  clearMovementSavingSource,
 ];
