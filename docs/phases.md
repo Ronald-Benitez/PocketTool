@@ -383,17 +383,25 @@ Alcance:
 - Movimientos tipados: inicial, aporte, retiro, interés y ajuste.
 - Meta global opcional, progreso, restante y proyección.
 - Aporte mensual sugerido por porcentaje de ingresos o monto fijo, editable por
-  el usuario, con estado alcanzado/superado/no alcanzado.
+  el usuario, con estado alcanzado/superado/no alcanzado. La regla se mantiene
+  hasta que el usuario la cambie.
+- Estado mensual propio o global seleccionable en Ahorros; en `Records` y
+  `Budget` se usa solo el propio.
 - Modo de `Records` por ahorro: separado o vinculado.
 - Tipo de registro, método de pago y categoría editables al confirmar, con
-  valores por defecto en Configuraciones y efectos `-`, `+` o `=`.
-- Alerta al alcanzar la meta y archivo manual.
+  valores por defecto en Configuraciones; el efecto se toma del tipo.
+- Alerta al alcanzar la meta dentro del ahorro y trofeo metálico en la vista
+  general; archivo manual.
+- Proyección de meta con aportes reales y/o esperados.
+- Personas globales reutilizables, con sus aportes a ahorros en la sección
+  Personas.
 - Gráfico con series global, propia y de otras partes.
 
 Subfases: SAV-0 a SAV-5, detalladas en el plan.
 
 Decisiones confirmadas: intereses por porcentaje, meta global opcional,
-aportaciones libres con regla sugerida, y archivo manual con alerta.
+aportaciones libres con regla persistente, estado propio/global seleccionable,
+archivo manual con alerta y trofeo metálico configurable.
 
 ## Documentación
 

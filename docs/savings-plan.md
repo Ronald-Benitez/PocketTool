@@ -110,6 +110,11 @@ Reutilizar `SharedExpenseParticipants` con `owner_type = 'saving'`:
   qué persona aportó y cuánto.
 - La meta es global; el progreso por persona se deriva de sus aportes, sin crear
   metas individuales.
+- `People` es el registro global de personas: una persona ya usada en un
+  financiamiento o gasto fijo se puede seleccionar directamente para un ahorro.
+  No se crean contactos paralelos.
+- La sección Personas mostrará también los ahorros en los que participa cada
+  persona y el total aportado.
 
 ### 3.3 Movimientos
 
@@ -153,18 +158,36 @@ La regla es opcional y pertenece al ahorro:
 - `contribution_rule = 'none'`: no hay sugerencia ni estado de cumplimiento.
 
 El monto sugerido se muestra al registrar el aporte, pero el usuario puede
-cambiarlo por uno manual. Al confirmar se guarda el monto real. Para cada mes se
-compara la suma de aportes del ahorro contra el sugerido y se muestra:
+cambiarlo por uno manual. Al confirmar se guarda el monto real. La regla se
+mantiene hasta que el usuario la cambie; no se reinicia cada mes.
+
+Para cada mes se compara el aporte contra el sugerido. El usuario puede elegir
+en la sección Ahorros si el estado mensual se calcula sobre **la parte propia** o
+sobre **el global**. En `Records` y `Budget` siempre se usa la parte propia.
 
 - **Alcanzado**: aporte = objetivo.
 - **Superado**: aporte > objetivo.
 - **No alcanzado**: aporte < objetivo.
+- **Sin base**: no hay ingresos para calcular el porcentaje.
 
 La base de ingresos es la suma de registros del mes con tipo de efecto `+` en el
-grupo seleccionado. Si no hay ingresos, el estado se muestra como “sin base de
-cálculo” y el usuario puede usar un monto manual.
+grupo seleccionado. Si no hay ingresos, el usuario puede usar un monto manual.
 
-### 3.5 Datos por defecto para `Records`
+### 3.5 Proyección de meta
+
+Cuando el ahorro tiene meta, la sección Ahorros muestra una proyección de
+cuándo se alcanzará:
+
+- Si hay aportes reales, se usa el promedio de los aportes de los últimos meses.
+- Si no hay aportes reales suficientes, se usa el aporte esperado de la regla
+  (porcentaje de ingresos o monto fijo).
+- Si hay ambos, se muestran las dos lecturas: con aportes reales y con aportes
+  esperados.
+- Si no hay regla ni aportes, se indica que no hay datos suficientes.
+
+La proyección es informativa; no modifica saldos ni metas.
+
+### 3.6 Datos por defecto para `Records`
 
 Nueva configuración `SavingsSettings` (singleton, como `VehicleSettings`):
 
@@ -173,13 +196,14 @@ Nueva configuración `SavingsSettings` (singleton, como `VehicleSettings`):
 | `record_type_id` | Tipo de registro por defecto |
 | `payment_method_id` | Método de pago por defecto |
 | `category_id` | Categoría por defecto |
+| `trophy_color` | Color del trofeo de meta cumplida |
 
 Se editan en Configuraciones y se precargan al crear un movimiento. El usuario
-puede cambiarlos en la confirmación. El tipo puede tener efecto `-`, `+` o `=`;
-la app muestra una advertencia si el efecto contradice el tipo de movimiento,
-pero respeta la decisión del usuario.
+puede cambiarlos en la confirmación. El efecto (`-`, `+`, `=`) **no se elige por
+separado**: se toma del tipo de registro seleccionado y solo se usa al crear el
+registro en `Records`. La app no muestra una advertencia por el efecto.
 
-### 3.6 Migraciones propuestas
+### 3.7 Migraciones propuestas
 
 1. `0017_savings_goals_and_sharing`
    - columnas nuevas en `Savings`: meta, estado, archivo, regla de aporte,
@@ -228,7 +252,7 @@ Crear `src/domain/savings/`:
   - validación de retiros;
   - validación de participantes;
   - decisión de crear/vincular/no vincular `Records`;
-  - validación de tipo con efecto `-`, `+` o `=`.
+  - el efecto del registro se toma del tipo elegido, sin pedirlo por separado.
 
 La UI no calcula dinero; solo consume estos helpers.
 
@@ -296,8 +320,11 @@ Validaciones:
   - sugerido por porcentaje de ingresos o monto fijo;
   - aportado real;
   - estado **alcanzado**, **superado**, **no alcanzado** o **sin base**.
-- Alerta visible cuando se alcanza la meta; el archivo queda a decisión del
-  usuario.
+- La alerta de meta alcanzada aparece solo dentro de la información del propio
+  ahorro.
+- En la vista general, un ahorro con meta cumplida se identifica con un
+  **trofeo metálico** (`SavingsGoalTrophy`), no con un mensaje de texto.
+- El color del trofeo se elige en Configuraciones.
 - Gráfico de líneas con tres series y línea de meta.
 - Historial de movimientos con tipo, persona, monto, nota y vínculo a `Records`.
 - Acciones:
@@ -329,8 +356,8 @@ Validaciones:
   - crear, vincular o no vincular registro;
   - tipo de registro, método de pago y categoría precargados desde
     Configuraciones y editables;
-  - advertencia si el efecto del tipo (`-`, `+`, `=`) no coincide con el tipo de
-    movimiento.
+  - el efecto del registro (`-`, `+`, `=`) se toma del tipo seleccionado y no se
+    muestra como una elección aparte.
 
 ### Registros
 
@@ -344,8 +371,8 @@ Validaciones:
   - permitir crear/vincular/no vincular el registro del movimiento;
   - crear el gasto y el retiro vinculado en una sola transacción;
   - impedir doble conteo.
-- Si el usuario elige un tipo de efecto `-`, `+` o `=`, se respeta aunque no
-  coincida con el tipo de movimiento; solo se advierte.
+- El efecto del registro se deriva del tipo seleccionado; no se pregunta ni se
+  advierte por separado.
 
 ---
 
@@ -381,16 +408,21 @@ Decisiones confirmadas:
 
 - Resumen global/propio/compartido.
 - Meta y progreso.
+- Proyección de meta.
 - Gráfico de tres series.
 - Movimientos tipados.
 - Alta/edición/archivo.
+- Trofeo metálico `SavingsGoalTrophy` para metas cumplidas y color en
+  Configuraciones.
+- Estado mensual propio/global seleccionable.
+- Sección Personas con aportes a ahorros.
 
 ### SAV-4. Integración con Registros
 
 - Origen del dinero en gastos.
 - Crear/vincular/no vincular con tipo, método y categoría editables.
 - Valores por defecto en Configuraciones.
-- Efectos `-`, `+` y `=` con advertencia, no bloqueo.
+- El efecto del registro se toma del tipo elegido.
 - Validación de monto/fecha y exclusión de registros ya vinculados.
 - Pruebas de no duplicación.
 
@@ -418,8 +450,8 @@ Decisiones confirmadas:
 - El modo de `Records` se guarda por ahorro (`separate`/`linked`).
 - El usuario elige tipo de registro, método de pago y categoría al confirmar;
   los valores por defecto se configuran globalmente y son editables.
-- El tipo elegido puede tener efecto `-`, `+` o `=`; la app advierte pero no
-  bloquea.
+- El efecto del registro se toma del tipo seleccionado y solo aplica al
+  `Record` creado.
 - Un gasto pagado desde ahorro crea un solo registro y descuenta el saldo una
   sola vez.
 - Vincular un registro valida monto, fecha y que no esté ya vinculado.
@@ -435,16 +467,21 @@ Decisiones confirmadas:
 - **Aportaciones:** libres; la regla de porcentaje o monto fijo es una
   sugerencia editable.
 - **Registros:** tipo, método y categoría elegidos por el usuario; defaults
-  globales editables; efectos `-`, `+` o `=` permitidos.
-- **Archivo:** manual al alcanzar la meta, con alerta previa.
+  globales editables; el efecto se deriva del tipo y solo aplica al `Record`.
+- **Archivo:** manual al alcanzar la meta, con alerta dentro del ahorro y trofeo
+  metálico en la vista general.
+- **Regla de aporte:** se mantiene hasta que el usuario la cambie.
+- **Estado mensual:** el usuario elige propio o global en Ahorros; en `Records` y
+  `Budget` se usa solo el propio.
+- **Personas:** registro global reutilizable; la sección Personas muestra sus
+  aportes a ahorros.
 
 Decisiones menores pendientes de diseño:
 
 - texto exacto de la alerta de meta;
-- si la regla de aporte se reinicia cada mes o se mantiene hasta cambiarla;
-- si el estado mensual se calcula sobre aportes globales o solo sobre la parte
-  propia. Recomendación: parte propia, porque la regla describe lo que el
-  usuario aporta.
+- color inicial del trofeo en Configuraciones;
+- si la proyección muestra una sola fecha o dos escenarios (real y esperado).
+  Recomendación: mostrar ambos cuando existan datos.
 
 ---
 
