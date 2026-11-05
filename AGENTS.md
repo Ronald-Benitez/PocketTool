@@ -33,12 +33,12 @@ métodos de pago, créditos, ahorros y vehículo.
   Compromisos, cambio de grupo en Resumen, personas como sección propia con
   historial de pagos, compartidos ilimitados, snapshot propio/compartido y modos
   de importe propio/total/compartido.
-- **Fase 11 — Ahorros compartidos y metas: FUNCIONAL; PENDIENTE QA**
-  (2026-11-04). El plan vive en
-  [`docs/savings-plan.md`](docs/savings-plan.md). Incluye migraciones, dominio,
-  repositorios, UI de ahorros, movimientos, metas, intereses, trofeo, settings,
-  aportes a ahorros en Personas y pruebas de vínculo con `Records`. Queda QA en
-  dispositivo y cierre documental.
+- **Fase 11 — Ahorros compartidos y metas: FINALIZADA** (2026-11-04). El plan
+  archivado vive en
+  [`docs/legacy/savings-plan.md`](docs/legacy/savings-plan.md). Incluye
+  migraciones, dominio, repositorios, UI de ahorros, movimientos, detalle de
+  movimiento de solo lectura, metas, intereses, trofeo, settings, aportes a
+  ahorros en Personas y pruebas de vínculo con `Records`.
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
@@ -483,8 +483,8 @@ npm run doctor
 
 - [`docs/README.md`](docs/README.md): índice de documentación.
 - [`docs/phases.md`](docs/phases.md): estado actual y fases activas.
-- [`docs/savings-plan.md`](docs/savings-plan.md): plan de Ahorros compartidos y
-  metas (Fase 11).
+- [`docs/legacy/savings-plan.md`](docs/legacy/savings-plan.md): plan archivado de
+  Ahorros compartidos y metas (Fase 11).
 - [`docs/legacy/budget-plan.md`](docs/legacy/budget-plan.md): plan archivado de
   Presupuestos (Fase 7).
 - [`docs/legacy/vehicle-plan.md`](docs/legacy/vehicle-plan.md): plan archivado de

@@ -7,9 +7,6 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 
 - [`phases.md`](phases.md): estado actual y fases activas. El detalle histórico
   de fases completadas vive en `legacy/`.
-- [`savings-plan.md`](savings-plan.md): plan de Ahorros compartidos y metas
-  (Fase 11): participantes, movimientos, intereses, metas, archivo y vínculo
-  opcional con `Records`.
 - [`database.md`](database.md): documentación actual de la base de datos,
   migraciones, triggers y backups.
 - [`schema.md`](schema.md): esquema generado desde
@@ -31,6 +28,8 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
   fijos y Créditos (Fase 9) implementado, validado y archivado.
 - [`legacy/next-version-plan.md`](legacy/next-version-plan.md): plan de errores y
   ajustes de la siguiente versión (Fase 10) implementado, validado y archivado.
+- [`legacy/savings-plan.md`](legacy/savings-plan.md): plan de Ahorros compartidos
+  y metas (Fase 11) implementado, validado y archivado.
 - [`legacy/db-summary.md`](legacy/db-summary.md): resumen anterior de base de
   datos.
 - [`../AGENTS.md`](../AGENTS.md): contexto e instrucciones para agentes.
@@ -51,7 +50,7 @@ estado de ejecución, decisiones y enlaces a la documentación técnica.
 | Fase 8 — Vehículo | ✅ Finalizada (2026-10-31) |
 | Fase 9 — Gastos fijos y Créditos | ✅ Finalizada (2026-11-03) |
 | Fase 10 — Errores y ajustes de siguiente versión | ✅ Finalizada (2026-11-03) |
-| Fase 11 — Ahorros compartidos y metas | 🚧 Planificación (2026-11-04) |
+| Fase 11 — Ahorros compartidos y metas | ✅ Finalizada (2026-11-04) |
 
 ## Regla de mantenimiento
 

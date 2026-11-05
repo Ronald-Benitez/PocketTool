@@ -1,7 +1,7 @@
 # Plan de mejora — Ahorros compartidos, metas e integración con Registros
 
 **Fase:** 11 (SAV)
-**Estado:** ✅ Implementación funcional completa; pendiente QA y cierre
+**Estado:** ✅ Finalizada y validada (2026-11-04)
 **Fecha:** 2026-11-04
 **Objetivo:** convertir Ahorros de un saldo editable con historial básico en un
 módulo de metas y cuentas compartidas, con progreso global/propio/otras partes,
@@ -434,7 +434,7 @@ Decisiones confirmadas:
 
 ---
 
-## 7.1. Implementado hasta ahora
+## 7.1. Implementado
 
 - `0017_savings_goals_and_sharing`, `0018_savings_movements` y
   `0019_records_saving_source` y `0020_clear_movement_saving_source`;
@@ -465,10 +465,16 @@ Decisiones confirmadas:
 - Pruebas de migración legacy, movimientos, retiros, saldo insuficiente y
   vínculo/desvínculo de `Records` sin crear registros duplicados.
 
-Pendiente:
+Cierre:
 
-- QA Android/iOS y checklist visual.
-- Cierre documental y de fase.
+- QA Android/iOS y checklist visual completados.
+- `expo-doctor`, typecheck, pruebas de base de datos, Jest, lint y export Android
+  verificados.
+- Ayuda de Ahorros y de Personas revisada con aportes y detalle de movimientos.
+- Documentación de fase, esquema y convenciones actualizada; plan archivado en
+  `docs/legacy/savings-plan.md`.
+- Commits principales de la fase: `e3e6a7a`, `b7be5c4`, `2dc3bd8`, `17cdc4f`,
+  `cf21572`, `e1a281c`, `789a125`, `e5a1fc0`, `5cc9684`, `b33df55`, `7dc8c1b`.
 
 ---
 

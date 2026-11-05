@@ -19,6 +19,10 @@ diario de `docs/phases.md`.
   la siguiente versión (Fase 10), implementado, validado y archivado. Incluye
   personas, compartidos, modos de importe, pendientes en Registros y los ajustes
   de Vehículo.
+- [`savings-plan.md`](savings-plan.md): plan de Ahorros compartidos y metas
+  (Fase 11), implementado, validado y archivado. Incluye migraciones, dominio,
+  movimientos tipados, metas, intereses, integración con `Records` y detalle de
+  movimientos de solo lectura.
 - [`db-summary.md`](db-summary.md): resumen anterior de la base de datos,
   reemplazado por [`../database.md`](../database.md).
 

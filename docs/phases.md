@@ -1,6 +1,6 @@
 # Plan de fases
 
-**Última actualización:** 2026-11-03
+**Última actualización:** 2026-11-04
 
 ## Estado
 
@@ -17,7 +17,7 @@
 | Fase 8 — Vehículo | ✅ Finalizada | 2026-10-31 |
 | Fase 9 — Gastos fijos y Créditos | ✅ Finalizada | 2026-11-03 |
 | Fase 10 - Errores y ajustes de siguiente versión | ✅ Finalizada | 2026-11-03 |
-| Fase 11 — Ahorros compartidos y metas | ✅ Funcional; pendiente QA | 2026-11-04 |
+| Fase 11 — Ahorros compartidos y metas | ✅ Finalizada | 2026-11-04 |
 
 El detalle histórico de las fases 0–3 vive en
 [`legacy/phase-history.md`](legacy/phase-history.md). El detalle de la Fase 4
@@ -26,8 +26,9 @@ vive en [`legacy/ui-history.md`](legacy/ui-history.md) y su plan original en
 Gastos fijos/Créditos y de la siguiente versión están archivados en
 [`legacy/budget-plan.md`](legacy/budget-plan.md),
 [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md),
-[`legacy/credits-fixed-plan.md`](legacy/credits-fixed-plan.md) y
-[`legacy/next-version-plan.md`](legacy/next-version-plan.md).
+[`legacy/credits-fixed-plan.md`](legacy/credits-fixed-plan.md),
+[`legacy/next-version-plan.md`](legacy/next-version-plan.md) y
+[`legacy/savings-plan.md`](legacy/savings-plan.md).
 
 ## Arquitectura actual (resumen)
 
@@ -367,13 +368,13 @@ Cierre:
 - Commits principales: `1f77b6a`, `3cc8dc8`, `6de9ff7`, `745f052`, `cf50c0b`,
   `4a3afaf`, `d454e75`, `f651333`, `7e03428`, `892875d`.
 
-## Fase 11 — Ahorros compartidos y metas (✅ Funcional; pendiente QA, 2026-11-04)
+## Fase 11 — Ahorros compartidos y metas (✅ Finalizada, 2026-11-04)
 
-**Plan completo:** [`savings-plan.md`](savings-plan.md)
+**Plan completo:** [`legacy/savings-plan.md`](legacy/savings-plan.md)
 
-Estado: **implementación funcional completa; pendiente QA y cierre**. Ya están
-aplicados el esquema, las migraciones, el dominio, los repositorios, la UI y las
-pruebas de integración de movimientos y `Records`.
+Estado: **finalizada y validada**. Se completaron el esquema, las migraciones, el
+dominio, los repositorios, la UI y las pruebas de integración de movimientos y
+`Records`.
 
 Objetivo: convertir Ahorros en un módulo de cuentas y metas compartidas, con
 progreso global/propio/otras partes, intereses manuales, archivo histórico y una
@@ -407,7 +408,7 @@ Decisiones confirmadas: intereses por porcentaje, meta global opcional,
 aportaciones libres con regla persistente, estado propio/global seleccionable,
 archivo manual con alerta y trofeo metálico configurable.
 
-Implementado hasta ahora:
+Implementado:
 
 - Migraciones `0017_savings_goals_and_sharing`, `0018_savings_movements` y
   `0019_records_saving_source` y `0020_clear_movement_saving_source`;
@@ -433,11 +434,17 @@ Implementado hasta ahora:
 - Pruebas de migración legacy de ahorros, movimientos, saldo insuficiente y
   vínculo/desvínculo de `Records`.
 
-Pendiente:
+Cierre:
 
-- QA Android/iOS y checklist visual.
-- Ayuda de Ahorros ya actualizada; falta validar la de Personas con aportes.
-- Cierre documental de la fase.
+- QA Android/iOS y checklist visual completados, incluida la validación del
+  detalle de movimientos de solo lectura.
+- `expo-doctor`, typecheck, pruebas de base de datos, Jest, lint y export Android
+  verificados.
+- Ayuda de Ahorros y de Personas revisada con aportes y detalle de movimientos.
+- Documentación de fase, esquema y convenciones actualizada; plan archivado en
+  [`legacy/savings-plan.md`](legacy/savings-plan.md).
+- Commits principales de la fase: `e3e6a7a`, `b7be5c4`, `2dc3bd8`, `17cdc4f`,
+  `cf21572`, `e1a281c`, `789a125`, `e5a1fc0`, `5cc9684`, `b33df55`, `7dc8c1b`.
 
 ## Documentación
 
@@ -450,6 +457,8 @@ Pendiente:
   archivado.
 - [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md): plan de Vehículo (Fase 8)
   implementado y archivado.
+- [`legacy/savings-plan.md`](legacy/savings-plan.md): plan de Ahorros compartidos
+  y metas (Fase 11) implementado, validado y archivado.
 - [`database.md`](database.md): documentación actual de la base de datos.
 - [`schema.md`](schema.md): esquema generado.
 - [`legacy/i18n-help-plan.md`](legacy/i18n-help-plan.md): plan de traducciones y
