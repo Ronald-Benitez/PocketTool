@@ -67,6 +67,17 @@ describe('savings domain', () => {
     });
     expect(summary.status).toBe('exceeded');
     expect(summary.suggestedCents).toBe(10000);
+
+    const shared = computeContributionSummary({
+      rule: 'percent',
+      percentBps: 1000,
+      incomeCents: 100000,
+      actualCents: 5000,
+      scope: 'own',
+      sharePercent: 50,
+    });
+    expect(shared.suggestedCents).toBe(5000);
+    expect(shared.status).toBe('met');
   });
 
   it('counts only contributions of the selected scope for the period', () => {

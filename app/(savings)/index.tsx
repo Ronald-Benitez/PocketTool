@@ -457,9 +457,20 @@ const Index = () => {
                   <Row justify='space-between' align='center'>
                     <AppText weight='600'>{t('savings.chart.title')}</AppText>
                     <Row gap='sm' wrap>
-                      <AppText variant='caption' color='muted'>{t('savings.chart.total')}</AppText>
-                      <AppText variant='caption' color='muted'>{t('savings.chart.own')}</AppText>
-                      <AppText variant='caption' color='muted'>{t('savings.chart.shared')}</AppText>
+                      {[
+                        { label: t('savings.chart.total'), color: colors.chartPlanned },
+                        { label: t('savings.chart.own'), color: colors.primary },
+                        { label: t('savings.chart.shared'), color: colors.textMuted },
+                      ].map((series) => (
+                        <Row key={series.label} gap='xxs' align='center'>
+                          <View
+                            style={[styles.legendDot, { backgroundColor: series.color }]}
+                          />
+                          <AppText variant='caption' color='muted'>
+                            {series.label}
+                          </AppText>
+                        </Row>
+                      ))}
                     </Row>
                   </Row>
                   {view.chart.length > 0 ? (
@@ -591,6 +602,11 @@ const styles = StyleSheet.create({
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   progressTrack: {
     height: 10,

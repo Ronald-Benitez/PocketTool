@@ -205,7 +205,15 @@ export const SavingMovementForm = ({
     }
   };
 
-  const suggested = saving?.contribution.suggestedCents ?? 0;
+  const selectedSharePercent =
+    personId == null
+      ? saving?.ownSharePercent ?? 100
+      : saving?.participants.find(
+          (participant) => participant.person_id === personId
+        )?.share_percent ?? 0;
+  const suggested = Math.round(
+    ((saving?.baseSuggestedCents ?? 0) * selectedSharePercent) / 100
+  );
 
   return (
     <>

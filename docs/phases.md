@@ -417,10 +417,11 @@ Implementado hasta ahora:
   con pruebas.
 - Repositorio transaccional de ahorros, movimientos, participantes y settings.
 - UI de Ahorros: resumen global/propio/compartido, meta, proyección, estado
-  mensual, gráfico de tres series, trofeo, historial y formularios.
+  mensual, gráfico de tres series con leyenda, trofeo, historial y formularios.
+- Aporte sugerido proporcional a la parte propia o a la persona seleccionada.
 - Selector de origen del dinero en `Records` cuando el ahorro está vinculado.
 - Configuración de tipo de registro, categoría, método de pago y color del
-  trofeo en Ajustes.
+  trofeo en Ajustes, con secciones colapsables y buscador.
 - Sección Personas con aportes y saldo en ahorros.
 
 Pendiente:

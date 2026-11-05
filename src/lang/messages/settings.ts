@@ -3,6 +3,21 @@ import type { MessageShape } from './types';
 export const settingsEn = {
     "settings": {
         "header": "Settings",
+        "search": "Search settings",
+        "sections": {
+            "general": "General",
+            "generalDescription": "Language and general preferences",
+            "records": "Summaries and records",
+            "recordsDescription": "Record types used by summaries and credits",
+            "backup": "Backup",
+            "backupDescription": "Export or import the database",
+            "savings": "Savings defaults",
+            "savingsDescription": "Default record data and goal trophy color",
+            "vehicle": "Vehicle defaults",
+            "vehicleDescription": "Default categories, payments and record types",
+            "colors": "Colors and theme",
+            "colorsDescription": "Appearance, palettes and contrast"
+        },
         "selectLanguage": "Language",
         "selectRecordType": "Resume record types",
         "selectCreditExpenseType": "Credit expenses type",
@@ -90,6 +105,21 @@ export const settingsEn = {
 export const settingsEs: MessageShape<typeof settingsEn> = {
     "settings": {
         "header": "Configuraciones",
+        "search": "Buscar configuración",
+        "sections": {
+            "general": "General",
+            "generalDescription": "Idioma y preferencias generales",
+            "records": "Resúmenes y registros",
+            "recordsDescription": "Tipos de registro usados por resúmenes y créditos",
+            "backup": "Respaldo",
+            "backupDescription": "Exportar o importar la base de datos",
+            "savings": "Datos de ahorros",
+            "savingsDescription": "Datos por defecto de registros y color del trofeo",
+            "vehicle": "Datos de vehículo",
+            "vehicleDescription": "Categorías, pagos y tipos de registro por defecto",
+            "colors": "Colores y tema",
+            "colorsDescription": "Apariencia, paletas y contraste"
+        },
         "selectLanguage": "Idioma",
         "selectRecordType": "Tipos de registro del resumen",
         "selectCreditExpenseType": "Tipo de gastos a crédito",

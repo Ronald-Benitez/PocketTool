@@ -35,6 +35,7 @@ export const computeContributionSummary = ({
   incomeCents,
   actualCents,
   scope,
+  sharePercent = 100,
 }: {
   rule?: string | null;
   percentBps?: number | null;
@@ -42,13 +43,18 @@ export const computeContributionSummary = ({
   incomeCents: number;
   actualCents: number;
   scope: 'own' | 'global';
+  sharePercent?: number;
 }): SavingContributionSummary => {
-  const { suggestedCents, hasBase } = suggestedContributionCents({
-    rule,
-    percentBps,
-    fixedCents,
-    incomeCents,
-  });
+  const { suggestedCents: baseSuggestedCents, hasBase } =
+    suggestedContributionCents({
+      rule,
+      percentBps,
+      fixedCents,
+      incomeCents,
+    });
+  const suggestedCents = Math.round(
+    (baseSuggestedCents * Math.max(0, Math.min(100, sharePercent))) / 100
+  );
 
   if (rule !== 'percent' && rule !== 'fixed') {
     return {

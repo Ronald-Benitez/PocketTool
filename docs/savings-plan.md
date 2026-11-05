@@ -444,11 +444,14 @@ Decisiones confirmadas:
 - Repositorio transaccional: alta/edición/archivo/eliminación, movimientos,
   participantes, settings, búsqueda de registros y totales por persona.
 - UI de Ahorros: selector, resumen global/propio/compartido, meta, proyección,
-  estado mensual, gráfico de tres series, trofeo, historial, formularios de
-  ahorro y movimiento.
+  estado mensual, gráfico de tres series con leyenda de colores, trofeo,
+  historial, formularios de ahorro y movimiento.
+- Aporte sugerido proporcional a la parte propia o a la persona seleccionada en
+  un ahorro compartido.
 - Integración inicial con `Records`: origen del dinero en gastos y creación de
   movimiento de retiro dentro de la misma transacción.
-- Configuración de defaults de registros y color del trofeo en Ajustes.
+- Configuración de defaults de registros y color del trofeo en Ajustes, con
+  secciones colapsables y buscador.
 - Personas muestra aportes y saldo en ahorros.
 
 Pendiente:

@@ -99,6 +99,8 @@ export type SavingView = Saving & {
   goal: SavingGoalProgress;
   contribution: SavingContributionSummary;
   chart: SavingChartPoint[];
+  baseSuggestedCents: number;
+  ownSharePercent: number;
   periodYear: number;
   periodMonth: number;
 };
@@ -359,6 +361,17 @@ export const useSavingsRepository = () => {
         fixedCents: saving.contribution_amount_cents,
         incomeCents,
       });
+      const ownSharePercent = Math.max(
+        0,
+        Math.min(
+          100,
+          100 -
+            participants.reduce(
+              (total, participant) => total + Math.max(0, participant.share_percent),
+              0
+            )
+        )
+      );
       const actualCents = contributionActualCents(
         movements as SavingMovementLike[],
         periodYear,
@@ -372,6 +385,7 @@ export const useSavingsRepository = () => {
         incomeCents,
         actualCents,
         scope,
+        sharePercent: scope === 'own' ? ownSharePercent : 100,
       });
       const actualMonthly = averageMonthlyContributions(
         movements as SavingMovementLike[],
@@ -394,6 +408,8 @@ export const useSavingsRepository = () => {
           movements as SavingMovementLike[],
           participantLikes
         ),
+        baseSuggestedCents: expected.suggestedCents,
+        ownSharePercent,
         periodYear,
         periodMonth,
       };
