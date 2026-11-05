@@ -1055,6 +1055,129 @@ async function testSavingsGoalsAndMovements() {
   console.log('savings goals and movements: OK');
 }
 
+async function testSavingsLegacyMigrationAndMovement() {
+  const raw = new DatabaseSync(':memory:');
+  raw.exec(`
+    CREATE TABLE record_types (id INTEGER PRIMARY KEY AUTOINCREMENT);
+    CREATE TABLE payment_methods (id INTEGER PRIMARY KEY AUTOINCREMENT);
+    CREATE TABLE categories (id INTEGER PRIMARY KEY AUTOINCREMENT);
+    CREATE TABLE shared_expense_participants (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      owner_type TEXT,
+      owner_id INTEGER,
+      person_id INTEGER,
+      share_percent REAL,
+      notes TEXT,
+      deleted_at INTEGER
+    );
+    CREATE TABLE savings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      saving_name TEXT NOT NULL,
+      amount INTEGER NOT NULL,
+      created_at INTEGER,
+      updated_at INTEGER,
+      deleted_at INTEGER
+    );
+    CREATE TABLE savings_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      savings_id INTEGER,
+      previous_amount INTEGER NOT NULL,
+      new_amount INTEGER NOT NULL,
+      change_date INTEGER NOT NULL,
+      created_at INTEGER,
+      updated_at INTEGER,
+      deleted_at INTEGER
+    );
+    INSERT INTO savings (saving_name, amount, created_at)
+      VALUES ('Legacy', 12500, 1700000000000);
+    INSERT INTO savings_history
+      (savings_id, previous_amount, new_amount, change_date)
+      VALUES (1, 10000, 12500, 1700000001000);
+  `);
+
+  const goals = require(path.join(
+    ROOT,
+    'src/db/migrations/0017_savings_goals_and_sharing.ts'
+  )).default;
+  const movements = require(path.join(
+    ROOT,
+    'src/db/migrations/0018_savings_movements.ts'
+  )).default;
+  await goals.up(shim(raw));
+  await movements.up(shim(raw));
+
+  const saving = q(
+    raw,
+    'SELECT status, records_mode, contribution_rule, own_amount_cents, shared_amount_cents FROM savings'
+  )[0];
+  assert.strictEqual(saving.status, 'active');
+  assert.strictEqual(saving.records_mode, 'separate');
+  assert.strictEqual(saving.contribution_rule, 'none');
+  assert.strictEqual(saving.own_amount_cents, 12500);
+  assert.strictEqual(saving.shared_amount_cents, 0);
+
+  const initial = q(
+    raw,
+    "SELECT kind, amount_cents, previous_amount, new_amount FROM savings_history WHERE kind = 'initial'"
+  )[0];
+  assert.strictEqual(initial.amount_cents, 10000);
+  assert.strictEqual(initial.previous_amount, 0);
+  assert.strictEqual(initial.new_amount, 10000);
+
+  const deposit = q(
+    raw,
+    "SELECT kind, amount_cents, period_year, period_month FROM savings_history WHERE kind = 'deposit'"
+  )[0];
+  assert.strictEqual(deposit.amount_cents, 2500);
+  assert.strictEqual(deposit.period_year, 2023);
+  assert.strictEqual(deposit.period_month, 11);
+
+  const db = shim(raw);
+  const { insertSavingMovement, syncSavingTotals } = require(
+    path.join(ROOT, 'src/db/repositories/savings.ts')
+  );
+  const savings = new ORM(db, 'Savings');
+  const current = await savings.getById(1);
+  const movementId = await insertSavingMovement(
+    db,
+    {
+      savings_id: 1,
+      kind: 'withdrawal',
+      amount_cents: 2500,
+      change_date: 1700000002000,
+    },
+    current,
+    null
+  );
+  assert.ok(movementId > 0);
+  await syncSavingTotals(db, 1);
+
+  const updated = q(raw, 'SELECT amount, own_amount_cents, shared_amount_cents FROM savings')[0];
+  assert.strictEqual(updated.amount, 10000);
+  assert.strictEqual(updated.own_amount_cents, 10000);
+  assert.strictEqual(updated.shared_amount_cents, 0);
+
+  const refreshed = await savings.getById(1);
+  await assert.rejects(
+    () =>
+      insertSavingMovement(
+        db,
+        {
+          savings_id: 1,
+          kind: 'withdrawal',
+          amount_cents: 999999,
+          change_date: 1700000003000,
+        },
+        refreshed,
+        null
+      ),
+    /SAVING_INSUFFICIENT_FUNDS/
+  );
+
+  raw.close();
+  console.log('savings legacy migration and movement: OK');
+}
+
 async function testMoneyRebuildKeepsCents() {
   const raw = new DatabaseSync(':memory:');
   raw.exec(`
@@ -1313,6 +1436,7 @@ async function testInterruptedRebuild() {
   await testPeopleInsert();
   await testMoneyRebuildKeepsCents();
   await testSavingsGoalsAndMovements();
+  await testSavingsLegacyMigrationAndMovement();
   await testSharedPaymentAllocations();
   await testVehicleSettingsRecordTypeMigration();
   await testVehicleInsert();

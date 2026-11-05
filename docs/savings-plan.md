@@ -455,6 +455,7 @@ Decisiones confirmadas:
 - Configuración de defaults de registros y color del trofeo en Ajustes, con
   secciones colapsables y buscador.
 - Personas muestra aportes y saldo en ahorros.
+- Pruebas de migración legacy, movimientos, retiros y saldo insuficiente.
 
 Pendiente:
 

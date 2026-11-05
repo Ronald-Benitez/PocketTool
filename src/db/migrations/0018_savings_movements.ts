@@ -60,13 +60,7 @@ const up = async (db: SQLiteDatabase) => {
         ORDER BY h.change_date ASC
         LIMIT 1
       ), s.amount),
-      COALESCE((
-        SELECT h.previous_amount
-        FROM ${quoteIdent(table)} h
-        WHERE h.savings_id = s.id AND h.deleted_at IS NULL
-        ORDER BY h.change_date ASC
-        LIMIT 1
-      ), 0),
+      0,
       COALESCE((
         SELECT h.previous_amount
         FROM ${quoteIdent(table)} h
