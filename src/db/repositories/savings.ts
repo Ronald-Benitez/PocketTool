@@ -128,7 +128,7 @@ const requireRecordFields = async (
   return { groupId, categoryId, paymentMethodId, recordTypeId };
 };
 
-const assertRecordAvailable = async (
+export const assertRecordAvailable = async (
   txn: Parameters<typeof withExclusiveTransaction>[0],
   recordId: number
 ) => {

@@ -460,8 +460,6 @@ Decisiones confirmadas:
 
 Pendiente:
 
-- Prueba explícita de rechazo cuando un registro ya está vinculado a otra
-  operación.
 - QA Android/iOS y checklist visual.
 - Cierre documental y de fase.
 

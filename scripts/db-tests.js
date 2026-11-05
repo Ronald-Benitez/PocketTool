@@ -1204,6 +1204,7 @@ async function testSavingsRecordLink() {
   });
 
   const {
+    assertRecordAvailable,
     insertSavingMovement,
     syncSavingTotals,
   } = require(path.join(ROOT, 'src/db/repositories/savings.ts'));
@@ -1244,6 +1245,12 @@ async function testSavingsRecordLink() {
   assert.strictEqual(
     q(raw, 'SELECT amount FROM savings WHERE id = ?', [savingId])[0].amount,
     7500
+  );
+
+  await assert.rejects(
+    () => assertRecordAvailable(db, recordId),
+    /RECORD_ALREADY_LINKED/,
+    'a record already linked to a saving must be rejected'
   );
 
   const beforeCount = q(raw, 'SELECT COUNT(*) AS c FROM records')[0].c;

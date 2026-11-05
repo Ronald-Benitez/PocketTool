@@ -429,7 +429,6 @@ Implementado hasta ahora:
 Pendiente:
 
 - QA Android/iOS y checklist visual.
-- Prueba de rechazo cuando un registro ya está vinculado a otra operación.
 - Ayuda de Ahorros ya actualizada; falta validar la de Personas con aportes.
 - Cierre documental de la fase.
 
