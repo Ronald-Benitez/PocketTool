@@ -457,7 +457,8 @@ Decisiones confirmadas:
   excluyen del gasto del mes en resúmenes, presupuestos y créditos; solo
   descuentan el saldo del ahorro. Un registro creado desde un movimiento es un
   registro normal sin `saving_id`; `SavingsHistory.record_id` solo guarda el
-  vínculo.
+  vínculo. Cada movimiento abre un detalle de solo lectura con fecha, persona,
+  nota, saldo anterior/nuevo y registro vinculado.
 - Configuración de defaults de registros y color del trofeo en Ajustes, con
   secciones colapsables y buscador.
 - Personas muestra aportes y saldo en ahorros.

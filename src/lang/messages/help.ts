@@ -478,7 +478,7 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "Every movement is typed: initial balance, deposit, withdrawal, interest or adjustment. You can assign a movement to a person or to your own share. Interest is distributed by participant percentage and the remainder stays in your share. When the saving has a goal, the app shows progress and projects the date with your actual contributions or with the expected contribution. The goal-reached alert appears inside the saving; the general list uses a metallic trophy. Archiving is manual and keeps the history."
+                "body": "Every movement is typed: initial balance, deposit, withdrawal, interest or adjustment. You can assign a movement to a person or to your own share. Interest is distributed by participant percentage and the remainder stays in your share. When the saving has a goal, the app shows progress and projects the date with your actual contributions or with the expected contribution. The goal-reached alert appears inside the saving; the general list uses a metallic trophy. Archiving is manual and keeps the history. Tap a movement to open a read-only detail with its date, person, note, previous and new balance, and the linked record; movements cannot be edited."
             },
             "steps": {
                 "title": "Step by step",
@@ -1040,7 +1040,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "Cada movimiento tiene tipo: saldo inicial, aporte, retiro, interés o ajuste. Puedes asignar un movimiento a una persona o a tu propia parte. Los intereses se reparten por porcentaje de participantes y el remanente queda en tu parte. Cuando el ahorro tiene meta, la app muestra el progreso y proyecta la fecha con tus aportes reales o con el aporte esperado. La alerta de meta alcanzada aparece dentro del ahorro; la lista general usa un trofeo metálico. El archivo es manual y conserva el historial."
+                "body": "Cada movimiento tiene tipo: saldo inicial, aporte, retiro, interés o ajuste. Puedes asignar un movimiento a una persona o a tu propia parte. Los intereses se reparten por porcentaje de participantes y el remanente queda en tu parte. Cuando el ahorro tiene meta, la app muestra el progreso y proyecta la fecha con tus aportes reales o con el aporte esperado. La alerta de meta alcanzada aparece dentro del ahorro; la lista general usa un trofeo metálico. El archivo es manual y conserva el historial. Toca un movimiento para abrir un detalle de solo lectura con fecha, persona, nota, saldo anterior y nuevo, y el registro vinculado; los movimientos no se pueden editar."
             },
             "steps": {
                 "title": "Paso a paso",

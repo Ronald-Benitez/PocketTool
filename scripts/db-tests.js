@@ -1307,6 +1307,14 @@ async function testSavingsRecordLink() {
     'a record already linked to a saving must be rejected'
   );
 
+  // The movement detail view enriches movements with their linked record.
+  const enriched = await records
+    .where('id', [recordId], 'IN')
+    .joinMany(['Categories', 'PaymentMethods', 'RecordTypes'])
+    .getAll();
+  assert.strictEqual(enriched.length, 1);
+  assert.strictEqual(enriched[0].record_name, 'Saving expense');
+
   const beforeCount = q(raw, 'SELECT COUNT(*) AS c FROM records')[0].c;
   const currentAfterLink = await savings.getById(savingId);
   await insertSavingMovement(

@@ -5,11 +5,12 @@ import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-ic
 import { LineChart } from 'react-native-gifted-charts';
 
 import AddSaving from '@/src/components/savings/add-savings';
+import { SavingMovementDetails } from '@/src/components/savings/SavingMovementDetails';
 import { SavingMovementForm } from '@/src/components/savings/SavingMovementForm';
 import { SavingsGoalTrophy } from '@/src/components/savings/SavingsGoalTrophy';
 import { usePeopleRepository, useSavings } from '@/src/db';
 import { mapDatabaseError } from '@/src/db/errors';
-import type { SavingView } from '@/src/db/repositories/savings';
+import type { SavingMovementView, SavingView } from '@/src/db/repositories/savings';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import useRecordsStore from '@/src/stores/RecordsStore';
 import useSavingsStore from '@/src/stores/SavingsStore';
@@ -64,6 +65,7 @@ const Index = () => {
   const [trophyColor, setTrophyColor] = useState('#C9A227');
   const [refreshKey, setRefreshKey] = useState(0);
   const [movementVisible, setMovementVisible] = useState(false);
+  const [detailMovement, setDetailMovement] = useState<SavingMovementView | null>(null);
   const [deleteVisible, setDeleteVisible] = useState(false);
   const [deleteMovementId, setDeleteMovementId] = useState<number | null>(null);
 
@@ -186,6 +188,15 @@ const Index = () => {
     const rows = view?.movements ?? [];
     return movementOrder === 'asc' ? rows : [...rows].reverse();
   }, [view?.movements, movementOrder]);
+
+  const detailPersonName =
+    detailMovement?.person_id != null
+      ? peopleById.get(detailMovement.person_id) ?? ''
+      : t('savings.movement.own');
+
+  useEffect(() => {
+    setDetailMovement(null);
+  }, [saving?.id]);
 
   const togglePin = async () => {
     if (!saving?.id) return;
@@ -588,38 +599,52 @@ const Index = () => {
                     return (
                       <Surface key={movement.id} variant='muted' padding='sm'>
                         <Row justify='space-between' align='center' gap='sm'>
-                          <Row gap='sm' align='center' style={{ flex: 1 }}>
-                            <MaterialIcons
-                              name={kindIcon(movement.kind)}
-                              size={18}
-                              color={
-                                movement.kind === 'withdrawal'
-                                  ? colors.expense
-                                  : colors.income
-                              }
-                            />
-                            <Stack gap='xxs' style={{ flex: 1 }}>
-                              <AppText numberOfLines={1}>
-                                {t(`savings.movement.kinds.${movement.kind}` as never)}
-                              </AppText>
-                              <AppText variant='caption' color='muted'>
-                                {new Date(movement.change_date).toLocaleDateString()} · {personName}
-                                {movement.note ? ` · ${movement.note}` : ''}
-                              </AppText>
-                            </Stack>
-                          </Row>
-                          <Row gap='xs' align='center'>
-                            <AppText>
-                              {formatMoneyWithSymbol(movement.amount_cents)}
-                            </AppText>
-                            <IconButton
-                              label={t('savings.history.delete')}
-                              size='sm'
-                              variant='ghost'
-                              icon={<MaterialIcons name='delete-outline' size={18} color={colors.danger} />}
-                              onPress={() => setDeleteMovementId(movement.id ?? null)}
-                            />
-                          </Row>
+                          <Pressable
+                            onPress={() => setDetailMovement(movement)}
+                            accessibilityRole='button'
+                            accessibilityLabel={t('savings.movement.viewDetails')}
+                            style={styles.movementPressable}
+                          >
+                            <Row justify='space-between' align='center' gap='sm'>
+                              <Row gap='sm' align='center' style={{ flex: 1 }}>
+                                <MaterialIcons
+                                  name={kindIcon(movement.kind)}
+                                  size={18}
+                                  color={
+                                    movement.kind === 'withdrawal'
+                                      ? colors.expense
+                                      : colors.income
+                                  }
+                                />
+                                <Stack gap='xxs' style={{ flex: 1 }}>
+                                  <AppText numberOfLines={1}>
+                                    {t(`savings.movement.kinds.${movement.kind}` as never)}
+                                  </AppText>
+                                  <AppText variant='caption' color='muted'>
+                                    {new Date(movement.change_date).toLocaleDateString()} · {personName}
+                                    {movement.note ? ` · ${movement.note}` : ''}
+                                  </AppText>
+                                </Stack>
+                              </Row>
+                              <Row gap='xs' align='center'>
+                                <AppText>
+                                  {formatMoneyWithSymbol(movement.amount_cents)}
+                                </AppText>
+                                <MaterialIcons
+                                  name='chevron-right'
+                                  size={18}
+                                  color={colors.textMuted}
+                                />
+                              </Row>
+                            </Row>
+                          </Pressable>
+                          <IconButton
+                            label={t('savings.history.delete')}
+                            size='sm'
+                            variant='ghost'
+                            icon={<MaterialIcons name='delete-outline' size={18} color={colors.danger} />}
+                            onPress={() => setDeleteMovementId(movement.id ?? null)}
+                          />
                         </Row>
                       </Surface>
                     );
@@ -639,6 +664,12 @@ const Index = () => {
           onSaved={refresh}
         />
       ) : null}
+      <SavingMovementDetails
+        visible={detailMovement != null}
+        movement={detailMovement}
+        personName={detailPersonName}
+        onClose={() => setDetailMovement(null)}
+      />
       <ConfirmDialog
         visible={deleteVisible}
         title={t('savings.delete')}
@@ -674,6 +705,9 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
+  },
+  movementPressable: {
+    flex: 1,
   },
   savingChipRow: {
     height: 22,

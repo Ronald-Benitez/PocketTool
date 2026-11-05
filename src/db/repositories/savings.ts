@@ -31,6 +31,7 @@ import type {
   Insertable,
   RecordEntry,
   RecordType,
+  RecordWithRelations,
   Saving,
   SavingsHistoryEntry,
   SavingsSetting,
@@ -93,9 +94,23 @@ export type SavingRecordOption = {
   recordTypeName: string;
 };
 
+export type SavingMovementRecordSummary = {
+  id: number;
+  name: string;
+  amount: number;
+  date: number;
+  categoryName: string | null;
+  paymentMethodName: string | null;
+  recordTypeName: string | null;
+};
+
+export type SavingMovementView = SavingsHistoryEntry & {
+  record?: SavingMovementRecordSummary | null;
+};
+
 export type SavingView = Saving & {
   participants: SharedExpenseParticipant[];
-  movements: SavingsHistoryEntry[];
+  movements: SavingMovementView[];
   snapshot: SavingSnapshot;
   goal: SavingGoalProgress;
   contribution: SavingContributionSummary;
@@ -321,7 +336,7 @@ export const useSavingsRepository = () => {
     try {
       const saving = (await savingsOrm.getById(id)) as Saving | null;
       if (!saving) return null;
-      const [participants, movements] = await Promise.all([
+      const [participants, movementRows] = await Promise.all([
         participantsOrm
           .where('owner_type', 'saving')
           .where('owner_id', id)
@@ -331,6 +346,40 @@ export const useSavingsRepository = () => {
           .order('change_date', 'ASC')
           .getAll() as Promise<SavingsHistoryEntry[]>,
       ]);
+      const recordIds = movementRows.flatMap((movement) =>
+        movement.record_id != null ? [movement.record_id] : []
+      );
+      const linkedRecords =
+        recordIds.length > 0
+          ? ((await recordsOrm
+              .where('id', recordIds, 'IN')
+              .joinMany(['Categories', 'PaymentMethods', 'RecordTypes'])
+              .getAll()) as RecordWithRelations[])
+          : [];
+      const recordById = new Map(
+        linkedRecords.map((record) => [record.id, record] as const)
+      );
+      const movements: SavingMovementView[] = movementRows.map((movement) => {
+        const record =
+          movement.record_id != null
+            ? recordById.get(movement.record_id)
+            : undefined;
+        return {
+          ...movement,
+          record:
+            record && record.id != null
+              ? {
+                  id: record.id,
+                  name: record.record_name,
+                  amount: record.amount,
+                  date: record.date,
+                  categoryName: record.Categories?.category_name ?? null,
+                  paymentMethodName: record.PaymentMethods?.method_name ?? null,
+                  recordTypeName: record.RecordTypes?.type_name ?? null,
+                }
+              : null,
+        };
+      });
       const participantLikes: SavingParticipantLike[] = participants.map(
         (participant) => ({
           person_id: participant.person_id,
