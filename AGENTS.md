@@ -33,11 +33,12 @@ métodos de pago, créditos, ahorros y vehículo.
   Compromisos, cambio de grupo en Resumen, personas como sección propia con
   historial de pagos, compartidos ilimitados, snapshot propio/compartido y modos
   de importe propio/total/compartido.
-- **Fase 11 — Ahorros compartidos y metas: EN IMPLEMENTACIÓN** (2026-11-04). El
-  plan vive en [`docs/savings-plan.md`](docs/savings-plan.md). Ya incluye
-  migraciones, dominio, repositorios, UI de ahorros, movimientos, metas,
-  intereses, trofeo, settings y aportes a ahorros en Personas. Queda QA y el
-  cierre de la integración de `Records`.
+- **Fase 11 — Ahorros compartidos y metas: FUNCIONAL; PENDIENTE QA**
+  (2026-11-04). El plan vive en
+  [`docs/savings-plan.md`](docs/savings-plan.md). Incluye migraciones, dominio,
+  repositorios, UI de ahorros, movimientos, metas, intereses, trofeo, settings,
+  aportes a ahorros en Personas y pruebas de vínculo con `Records`. Queda QA en
+  dispositivo y cierre documental.
 
 El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
 en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay

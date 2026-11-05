@@ -1,7 +1,7 @@
 # Plan de mejora — Ahorros compartidos, metas e integración con Registros
 
 **Fase:** 11 (SAV)
-**Estado:** 🚧 En implementación (SAV-1 a SAV-4 parciales)
+**Estado:** ✅ Implementación funcional completa; pendiente QA y cierre
 **Fecha:** 2026-11-04
 **Objetivo:** convertir Ahorros de un saldo editable con historial básico en un
 módulo de metas y cuentas compartidas, con progreso global/propio/otras partes,

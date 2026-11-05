@@ -17,7 +17,7 @@
 | Fase 8 — Vehículo | ✅ Finalizada | 2026-10-31 |
 | Fase 9 — Gastos fijos y Créditos | ✅ Finalizada | 2026-11-03 |
 | Fase 10 - Errores y ajustes de siguiente versión | ✅ Finalizada | 2026-11-03 |
-| Fase 11 — Ahorros compartidos y metas | 🚧 En implementación | 2026-11-04 |
+| Fase 11 — Ahorros compartidos y metas | ✅ Funcional; pendiente QA | 2026-11-04 |
 
 El detalle histórico de las fases 0–3 vive en
 [`legacy/phase-history.md`](legacy/phase-history.md). El detalle de la Fase 4
@@ -366,12 +366,13 @@ Cierre:
 - Commits principales: `1f77b6a`, `3cc8dc8`, `6de9ff7`, `745f052`, `cf50c0b`,
   `4a3afaf`, `d454e75`, `f651333`, `7e03428`, `892875d`.
 
-## Fase 11 — Ahorros compartidos y metas (🚧 En implementación, 2026-11-04)
+## Fase 11 — Ahorros compartidos y metas (✅ Funcional; pendiente QA, 2026-11-04)
 
 **Plan completo:** [`savings-plan.md`](savings-plan.md)
 
-Estado: **en implementación**. Ya están aplicados el esquema, las migraciones,
-el dominio, los repositorios y la primera versión de la UI.
+Estado: **implementación funcional completa; pendiente QA y cierre**. Ya están
+aplicados el esquema, las migraciones, el dominio, los repositorios, la UI y las
+pruebas de integración de movimientos y `Records`.
 
 Objetivo: convertir Ahorros en un módulo de cuentas y metas compartidas, con
 progreso global/propio/otras partes, intereses manuales, archivo histórico y una
