@@ -76,6 +76,7 @@ const RECORD_JOINS = [
   'PaidCredits',
   'PaidCredits.PaymentMethods',
   'PaidCredits.PaymentMethods.PaymentTypes',
+  'Savings',
 ] as const;
 
 const FIXED_JOINS = [
@@ -100,6 +101,7 @@ const flattenRecord = (record: RecordWithRelations): RecordView => ({
   record_color: record.RecordTypes?.record_color,
   paid_method_id: record.PaidCredits?.payment_method_id,
   paid_method_amount: record.PaidCredits?.amount,
+  saving_name: record.Savings?.saving_name,
 });
 
 const flattenFixed = (fixed: FixedRecordWithRelations): FixedView => ({
@@ -231,7 +233,11 @@ export const useRecordsRepository = () => {
         currentPaidCreditId = null;
       }
 
-      const payload = { ...creditRecord, paid_credit_id: currentPaidCreditId };
+      const payload = {
+        ...creditRecord,
+        paid_credit_id: currentPaidCreditId,
+        saving_id: savingId ?? creditRecord.saving_id ?? null,
+      };
       let savedId: number;
 
       if (recordId !== undefined) {
@@ -292,6 +298,18 @@ export const useRecordsRepository = () => {
     await withExclusiveTransaction(db, async (txn) => {
       const records = new ORM<'Records'>(txn, 'Records');
       const credits = new ORM<'PaidCredits'>(txn, 'PaidCredits');
+      const savingsHistory = new ORM<'SavingsHistory'>(txn, 'SavingsHistory');
+      const movements = (await savingsHistory
+        .where('record_id', recordId)
+        .getAll()) as { id?: number; savings_id?: number | null }[];
+      for (const movement of movements) {
+        if (movement.id !== undefined) {
+          await savingsHistory.delete(movement.id);
+        }
+        if (movement.savings_id != null) {
+          await syncSavingTotals(txn, movement.savings_id);
+        }
+      }
       await clearRecordAllocations(txn, recordId);
       await records.delete(recordId);
       if (paidCreditId) {

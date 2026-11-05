@@ -1,6 +1,6 @@
 import type { TableDefinition, TableSchema } from '../types';
 
-export const SCHEMA_VERSION = 18;
+export const SCHEMA_VERSION = 19;
 
 export type TableName =
   | 'Groups'
@@ -196,6 +196,11 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
         name: 'paid_credit_id',
         type: 'INTEGER',
         references: { table: 'PaidCredits', column: 'id', onDelete: 'SET NULL' },
+      },
+      {
+        name: 'saving_id',
+        type: 'INTEGER',
+        references: { table: 'Savings', column: 'id', onDelete: 'SET NULL' },
       },
       ...timestamps,
       softDelete,

@@ -19,7 +19,7 @@ import { useTheme } from '@/src/ui/theme/ThemeProvider';
 const Index = () => {
     const { t } = useLanguage();
     const { colors } = useTheme();
-    const { balance, totalBalance, sharedBalance, balanceByRecordType } = useResumesStore()
+    const { balance, totalBalance, sharedBalance, savingsPaidCents, balanceByRecordType } = useResumesStore()
     const { mode } = useSummaryMode()
     const selectedBalance =
         mode === 'total' ? totalBalance : mode === 'shared' ? sharedBalance : balance
@@ -62,6 +62,15 @@ const Index = () => {
                         style={{ flex: 1 }}
                     />
                 </Row>
+
+                <Surface variant='outlined' padding='md'>
+                    <SummaryBlock
+                        label={t('resume.savingsPaid')}
+                        cents={savingsPaidCents}
+                        size='md'
+                        accentColor={colors.chartPlanned}
+                    />
+                </Surface>
 
                 <BudgetSummaryBlock />
 

@@ -34,6 +34,8 @@ export interface Resumes {
     totalBalance: number;
     ownBalance: number;
     sharedBalance: number;
+    /** Personal expenses covered by a saving instead of the month's cash. */
+    savingsPaidCents: number;
     todayBalanceByRecordType: RecordTypeResume[];
     balanceByRecordType: RecordTypeResume[];
     balanceByPaymentType: PaymentResume<PaymentType>[];
@@ -72,7 +74,7 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
     const calculateBalances = () => {
         const effectMap = getEffectMap(RecordTypes);
         const allowed = new Set(configuredRecordTypes);
-        const balances = { total: 0, own: 0, shared: 0 };
+        const balances = { total: 0, own: 0, shared: 0, savingsPaid: 0 };
         records.forEach((record) => {
             if (
                 record.record_type_id == null ||
@@ -88,6 +90,9 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
             balances.total += sign * (own + shared);
             balances.own += sign * own;
             balances.shared += sign * shared;
+            if (record.saving_id != null && effect === '-') {
+                balances.savingsPaid += own;
+            }
         });
         return balances;
     };
@@ -97,7 +102,7 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
 
     const calculateResumes = (): Omit<
         Resumes,
-        "balance" | "totalBalance" | "ownBalance" | "sharedBalance"
+        "balance" | "totalBalance" | "ownBalance" | "sharedBalance" | "savingsPaidCents"
     > => {
         const todayBalanceByRecordType = createRecordTypeTotals();
         const balanceByRecordType = createRecordTypeTotals();
@@ -176,6 +181,7 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
         totalBalance: balances.total,
         ownBalance: balances.own,
         sharedBalance: balances.shared,
+        savingsPaidCents: balances.savingsPaid,
         ...calculateResumes()
     }))();
 };

@@ -3,7 +3,7 @@
 > Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.
 > Fuente de verdad: `src/db/schema/tables.ts`.
 
-Versión de esquema: **18**
+Versión de esquema: **19**
 
 ## Convenciones
 
@@ -22,7 +22,7 @@ Versión de esquema: **18**
 | `Categories` | `categories` | `Category` | 5 | 0 |
 | `RecordTypes` | `record_types` | `RecordType` | 7 | 0 |
 | `Fixed` | `fixed_records` | `FixedRecord` | 10 | 4 |
-| `Records` | `records` | `RecordEntry` | 15 | 6 |
+| `Records` | `records` | `RecordEntry` | 16 | 6 |
 | `PaidCredits` | `paid_credits` | `PaidCredit` | 8 | 3 |
 | `Financings` | `financings` | `Financing` | 27 | 2 |
 | `FinancingPayments` | `financing_payments` | `FinancingPayment` | 19 | 2 |
@@ -187,11 +187,12 @@ Entidad TypeScript: `RecordEntry`
 | `payment_method_id` | `INTEGER` | `number` | FK → PaymentMethods.id ON DELETE SET NULL |
 | `fixed_id` | `INTEGER` | `number` | FK → Fixed.id ON DELETE SET NULL |
 | `paid_credit_id` | `INTEGER` | `number` | FK → PaidCredits.id ON DELETE SET NULL |
+| `saving_id` | `INTEGER` | `number` | FK → Savings.id ON DELETE SET NULL |
 | `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 
-Relaciones navegables: `RecordTypes`, `Groups`, `Categories`, `PaymentMethods`, `PaymentMethods.PaymentTypes`, `Fixed`, `Fixed.RecordTypes`, `Fixed.Categories`, `Fixed.PaymentMethods`, `Fixed.PaymentMethods.PaymentTypes`, `PaidCredits`, `PaidCredits.Groups`, `PaidCredits.PaymentMethods`, `PaidCredits.PaymentMethods.PaymentTypes`
+Relaciones navegables: `RecordTypes`, `Groups`, `Categories`, `PaymentMethods`, `PaymentMethods.PaymentTypes`, `Fixed`, `Fixed.RecordTypes`, `Fixed.Categories`, `Fixed.PaymentMethods`, `Fixed.PaymentMethods.PaymentTypes`, `PaidCredits`, `PaidCredits.Groups`, `PaidCredits.PaymentMethods`, `PaidCredits.PaymentMethods.PaymentTypes`, `Savings`
 
 Índices:
 - `idx_records_group_date` (group_id, date) WHERE deleted_at IS NULL
@@ -393,7 +394,7 @@ Entidad TypeScript: `SharedPaymentAllocation`
 | `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 
-Relaciones navegables: `People`, `Records`, `Records.RecordTypes`, `Records.Groups`, `Records.Categories`, `Records.PaymentMethods`, `Records.PaymentMethods.PaymentTypes`, `Records.Fixed`, `Records.Fixed.RecordTypes`, `Records.Fixed.Categories`, `Records.Fixed.PaymentMethods`, `Records.Fixed.PaymentMethods.PaymentTypes`, `Records.PaidCredits`, `Records.PaidCredits.Groups`, `Records.PaidCredits.PaymentMethods`, `Records.PaidCredits.PaymentMethods.PaymentTypes`, `FinancingPayments`, `FinancingPayments.Financings`, `FinancingPayments.Financings.PaymentMethods`, `FinancingPayments.Financings.PaymentMethods.PaymentTypes`, `FinancingPayments.Financings.Categories`, `FinancingPayments.Financings.RecordTypes`, `FinancingPayments.Groups`, `FinancingPayments.PaymentMethods`, `FinancingPayments.PaymentMethods.PaymentTypes`
+Relaciones navegables: `People`, `Records`, `Records.RecordTypes`, `Records.Groups`, `Records.Categories`, `Records.PaymentMethods`, `Records.PaymentMethods.PaymentTypes`, `Records.Fixed`, `Records.Fixed.RecordTypes`, `Records.Fixed.Categories`, `Records.Fixed.PaymentMethods`, `Records.Fixed.PaymentMethods.PaymentTypes`, `Records.PaidCredits`, `Records.PaidCredits.Groups`, `Records.PaidCredits.PaymentMethods`, `Records.PaidCredits.PaymentMethods.PaymentTypes`, `Records.Savings`, `FinancingPayments`, `FinancingPayments.Financings`, `FinancingPayments.Financings.PaymentMethods`, `FinancingPayments.Financings.PaymentMethods.PaymentTypes`, `FinancingPayments.Financings.Categories`, `FinancingPayments.Financings.RecordTypes`, `FinancingPayments.Groups`, `FinancingPayments.PaymentMethods`, `FinancingPayments.PaymentMethods.PaymentTypes`
 
 Índices:
 - `idx_shared_allocations_person_date` (person_id, date) WHERE deleted_at IS NULL
@@ -565,7 +566,7 @@ Entidad TypeScript: `SavingsHistoryEntry`
 | `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 
-Relaciones navegables: `Savings`, `People`, `Records`, `Records.RecordTypes`, `Records.Groups`, `Records.Categories`, `Records.PaymentMethods`, `Records.PaymentMethods.PaymentTypes`, `Records.Fixed`, `Records.Fixed.RecordTypes`, `Records.Fixed.Categories`, `Records.Fixed.PaymentMethods`, `Records.Fixed.PaymentMethods.PaymentTypes`, `Records.PaidCredits`, `Records.PaidCredits.Groups`, `Records.PaidCredits.PaymentMethods`, `Records.PaidCredits.PaymentMethods.PaymentTypes`, `Groups`, `RecordTypes`
+Relaciones navegables: `Savings`, `People`, `Records`, `Records.RecordTypes`, `Records.Groups`, `Records.Categories`, `Records.PaymentMethods`, `Records.PaymentMethods.PaymentTypes`, `Records.Fixed`, `Records.Fixed.RecordTypes`, `Records.Fixed.Categories`, `Records.Fixed.PaymentMethods`, `Records.Fixed.PaymentMethods.PaymentTypes`, `Records.PaidCredits`, `Records.PaidCredits.Groups`, `Records.PaidCredits.PaymentMethods`, `Records.PaidCredits.PaymentMethods.PaymentTypes`, `Records.Savings`, `Groups`, `RecordTypes`
 
 Índices:
 - `idx_savings_history_saving` (savings_id) WHERE deleted_at IS NULL
@@ -784,7 +785,7 @@ Entidad TypeScript: `VehicleExpenseLink`
 | `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 
-Relaciones navegables: `Records`, `Records.RecordTypes`, `Records.Groups`, `Records.Categories`, `Records.PaymentMethods`, `Records.PaymentMethods.PaymentTypes`, `Records.Fixed`, `Records.Fixed.RecordTypes`, `Records.Fixed.Categories`, `Records.Fixed.PaymentMethods`, `Records.Fixed.PaymentMethods.PaymentTypes`, `Records.PaidCredits`, `Records.PaidCredits.Groups`, `Records.PaidCredits.PaymentMethods`, `Records.PaidCredits.PaymentMethods.PaymentTypes`, `VehicleFuelEntries`, `VehicleFuelEntries.Vehicles`, `VehicleMaintenance`, `VehicleMaintenance.Vehicles`
+Relaciones navegables: `Records`, `Records.RecordTypes`, `Records.Groups`, `Records.Categories`, `Records.PaymentMethods`, `Records.PaymentMethods.PaymentTypes`, `Records.Fixed`, `Records.Fixed.RecordTypes`, `Records.Fixed.Categories`, `Records.Fixed.PaymentMethods`, `Records.Fixed.PaymentMethods.PaymentTypes`, `Records.PaidCredits`, `Records.PaidCredits.Groups`, `Records.PaidCredits.PaymentMethods`, `Records.PaidCredits.PaymentMethods.PaymentTypes`, `Records.Savings`, `VehicleFuelEntries`, `VehicleFuelEntries.Vehicles`, `VehicleMaintenance`, `VehicleMaintenance.Vehicles`
 
 Índices:
 - `idx_vehicle_expense_links_record` (record_id) UNIQUE

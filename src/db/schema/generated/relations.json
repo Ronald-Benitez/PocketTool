@@ -26,7 +26,8 @@
     "PaidCredits": "PaidCredits",
     "PaidCredits.Groups": "PaidCredits.Groups",
     "PaidCredits.PaymentMethods": "PaidCredits.PaymentMethods",
-    "PaidCredits.PaymentMethods.PaymentTypes": "PaidCredits.PaymentMethods.PaymentTypes"
+    "PaidCredits.PaymentMethods.PaymentTypes": "PaidCredits.PaymentMethods.PaymentTypes",
+    "Savings": "Savings"
   },
   "PaidCredits": {
     "Groups": "Groups",
@@ -77,6 +78,7 @@
     "Records.PaidCredits.Groups": "Records.PaidCredits.Groups",
     "Records.PaidCredits.PaymentMethods": "Records.PaidCredits.PaymentMethods",
     "Records.PaidCredits.PaymentMethods.PaymentTypes": "Records.PaidCredits.PaymentMethods.PaymentTypes",
+    "Records.Savings": "Records.Savings",
     "FinancingPayments": "FinancingPayments",
     "FinancingPayments.Financings": "FinancingPayments.Financings",
     "FinancingPayments.Financings.PaymentMethods": "FinancingPayments.Financings.PaymentMethods",
@@ -142,6 +144,7 @@
     "Records.PaidCredits.Groups": "Records.PaidCredits.Groups",
     "Records.PaidCredits.PaymentMethods": "Records.PaidCredits.PaymentMethods",
     "Records.PaidCredits.PaymentMethods.PaymentTypes": "Records.PaidCredits.PaymentMethods.PaymentTypes",
+    "Records.Savings": "Records.Savings",
     "Groups": "Groups",
     "RecordTypes": "RecordTypes"
   },
@@ -188,6 +191,7 @@
     "Records.PaidCredits.Groups": "Records.PaidCredits.Groups",
     "Records.PaidCredits.PaymentMethods": "Records.PaidCredits.PaymentMethods",
     "Records.PaidCredits.PaymentMethods.PaymentTypes": "Records.PaidCredits.PaymentMethods.PaymentTypes",
+    "Records.Savings": "Records.Savings",
     "VehicleFuelEntries": "VehicleFuelEntries",
     "VehicleFuelEntries.Vehicles": "VehicleFuelEntries.Vehicles",
     "VehicleMaintenance": "VehicleMaintenance",

@@ -90,7 +90,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
             setRecordTypes(loadedRecordTypes)
             setPaymentMethods(loadedPaymentMethods)
             setCategories(loadedCategories)
-            setSavings(loadedSavings.filter((saving) => saving.records_mode === 'linked'))
+            setSavings(loadedSavings)
         }
 
         loadOptions().catch((error) => {
@@ -188,6 +188,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                 category_id: category.id,
                 payment_method_id: payment_method.id,
                 fixed_id,
+                saving_id: savingId ?? item?.saving_id ?? null,
             }
 
             await saveRecord({
@@ -351,6 +352,11 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                                 {formatMoneyWithSymbol(sharedCents)}
                             </AppText>
                         </Surface>
+                    ) : null}
+                    {item?.saving_id ? (
+                        <AppText variant='caption' color='muted'>
+                            {t('savings.records.paidWith')}: {item.saving_name ?? ''}
+                        </AppText>
                     ) : null}
                     {!item?.id &&
                     type?.effect === '-' &&

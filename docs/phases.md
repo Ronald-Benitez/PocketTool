@@ -45,7 +45,8 @@ Gastos fijos/Créditos y de la siguiente versión están archivados en
   `0012_financing_payment_cents`, `0013_vehicle_settings_record_type`,
   `0014_people_and_shared_participants`, `0015_records_shared_amounts`,
   `0016_shared_payment_allocations`, `0017_savings_goals_and_sharing`,
-  `0018_savings_movements`; `SCHEMA_VERSION = 18`.
+  `0018_savings_movements`, `0019_records_saving_source`;
+  `SCHEMA_VERSION = 19`.
 - **Presupuestos:** `BudgetPlans` (un plan por grupo), `BudgetLines` (categoría
   o fijo) y plantillas reutilizables. El real se deriva de `Records`; no se
   guarda. `budgets_legacy` se elimina en `0005`.
@@ -408,8 +409,8 @@ archivo manual con alerta y trofeo metálico configurable.
 
 Implementado hasta ahora:
 
-- Migraciones `0017_savings_goals_and_sharing` y `0018_savings_movements`;
-  `SCHEMA_VERSION = 18`.
+- Migraciones `0017_savings_goals_and_sharing`, `0018_savings_movements` y
+  `0019_records_saving_source`; `SCHEMA_VERSION = 19`.
 - `Savings` con meta, estado, archivo, regla de aporte, interés y cachés
   propio/compartido; `SavingsSettings`.
 - Historial de movimientos tipados con persona, período, notas y vínculo a
@@ -420,7 +421,8 @@ Implementado hasta ahora:
 - UI de Ahorros: resumen global/propio/compartido, meta, proyección, estado
   mensual, gráfico de tres series con leyenda, trofeo, historial y formularios.
 - Aporte sugerido proporcional a la parte propia o a la persona seleccionada.
-- Selector de origen del dinero en `Records` cuando el ahorro está vinculado.
+- Selector de origen del dinero en `Records` para cualquier ahorro activo,
+  `records.saving_id` y resumen de "Pagado con ahorros".
 - Configuración de tipo de registro, categoría, método de pago y color del
   trofeo en Ajustes, con secciones colapsables y buscador.
 - Sección Personas con aportes y saldo en ahorros.

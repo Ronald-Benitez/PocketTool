@@ -86,6 +86,7 @@ export interface RecordEntry extends Entity, SoftDeletable {
   payment_method_id?: number | null;
   fixed_id?: number | null;
   paid_credit_id?: number | null;
+  saving_id?: number | null;
   created_at?: TimestampMs | null;
   updated_at?: TimestampMs | null;
 }

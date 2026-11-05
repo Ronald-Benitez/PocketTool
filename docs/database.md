@@ -44,7 +44,7 @@ No editar esos archivos a mano.
 | `Categories` | `categories` | Categorías de movimientos. |
 | `RecordTypes` | `record_types` | Tipos de movimiento y efecto. |
 | `Fixed` | `fixed_records` | Movimientos recurrentes. |
-| `Records` | `records` | Movimientos principales. `amount` guarda el monto propio; `shared_amount_cents` guarda la parte compartida como snapshot. |
+| `Records` | `records` | Movimientos principales. `amount` guarda el monto propio; `shared_amount_cents` guarda la parte compartida como snapshot. `saving_id` indica si el gasto se pagó con un ahorro. |
 | `SharedPaymentAllocations` | `shared_payment_allocations` | Historial por persona de la parte compartida de cada pago (fijos y financiamientos). |
 | `PaidCredits` | `paid_credits` | Pagos de créditos. |
 | `Financings` | `financings` | Compras a plazo y préstamos con tasa, plazo y estado inicial. |
@@ -111,6 +111,7 @@ Las rutas navegables se generan en `relations.json` a partir de las FKs.
 | 16 | `0016_shared_payment_allocations` | Crea `shared_payment_allocations` para el historial de pagos compartidos por persona. |
 | 17 | `0017_savings_goals_and_sharing` | Agrega metas, estado, archivo, regla de aporte, intereses y cachés a `savings`; crea `savings_settings`. |
 | 18 | `0018_savings_movements` | Agrega tipo, persona, período, notas y vínculo a `Records` en `savings_history`; conserva el saldo inicial. |
+| 19 | `0019_records_saving_source` | Agrega `records.saving_id` y migra el vínculo existente desde `savings_history.record_id`. |
 
 Reglas:
 

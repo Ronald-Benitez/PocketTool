@@ -79,6 +79,7 @@ export type {
 
 export type RecordFormEntry = Partial<RecordWithRelations> & {
   paid_method_id?: number | null;
+  saving_name?: string | null;
 };
 
 export type NewEntity<T> = Omit<T, 'id' | 'deleted_at'>;
@@ -133,6 +134,7 @@ export interface RecordWithRelations extends RecordEntry {
   PaymentMethods?: PaymentMethodWithRelations | null;
   Fixed?: FixedRecordWithRelations | null;
   PaidCredits?: PaidCreditWithRelations | null;
+  Savings?: Saving | null;
 }
 
 export interface BudgetTemplateItemWithRelations extends BudgetTemplateItem {
@@ -209,6 +211,7 @@ export interface RecordView extends RecordWithRelations {
   record_color?: string | null;
   paid_method_id?: number | null;
   paid_method_amount?: Cents | null;
+  saving_name?: string | null;
 }
 
 export interface FixedView extends FixedRecordWithRelations {

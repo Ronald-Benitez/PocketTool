@@ -37,6 +37,7 @@ export const recordInputSchema = z
     payment_method_id: id,
     fixed_id: id,
     paid_credit_id: id,
+    saving_id: id,
     ...auditTimestamps,
   })
   .strict();

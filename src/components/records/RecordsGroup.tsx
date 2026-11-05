@@ -5,13 +5,13 @@ import useDate from '@/src/hooks/useDate'
 import { useLanguage } from '@/src/lang/LanguageContext'
 import { AccentRow } from '@/src/ui/data-display/AccentRow'
 import { useThemedStyles } from '@/src/styles/useThemedStyles'
-import type { RecordWithRelations } from '@/src/interfaces/schema'
+import type { RecordView } from '@/src/interfaces/schema'
 import { formatMoneyWithSymbol } from '@/src/utils'
 
 type RecordsGroupProps = {
-    records: RecordWithRelations[],
-    handleUpdate: (record: RecordWithRelations) => void,
-    handleDelete: (record: RecordWithRelations) => void,
+    records: RecordView[],
+    handleUpdate: (record: RecordView) => void,
+    handleDelete: (record: RecordView) => void,
 }
 
 const RecordsGroup = ({ records, handleDelete, handleUpdate }: RecordsGroupProps) => {
@@ -49,6 +49,11 @@ const RecordsGroup = ({ records, handleDelete, handleUpdate }: RecordsGroupProps
                                         {(item.shared_amount_cents ?? 0) > 0 ? (
                                             <Text style={[localStyles.captionText, styles.textMuted]}>
                                                 {t('shared.total')}: {formatMoneyWithSymbol((item.own_amount_cents ?? item.amount) + (item.shared_amount_cents ?? 0))} · {t('shared.totalShared')}: {formatMoneyWithSymbol(item.shared_amount_cents ?? 0)}
+                                            </Text>
+                                        ) : null}
+                                        {item.saving_name ? (
+                                            <Text style={[localStyles.captionText, styles.textMuted]}>
+                                                {t('savings.records.paidWith')}: {item.saving_name}
                                             </Text>
                                         ) : null}
                                     </View>

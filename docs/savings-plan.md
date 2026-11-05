@@ -436,8 +436,8 @@ Decisiones confirmadas:
 
 ## 7.1. Implementado hasta ahora
 
-- `0017_savings_goals_and_sharing` y `0018_savings_movements`;
-  `SCHEMA_VERSION = 18`.
+- `0017_savings_goals_and_sharing`, `0018_savings_movements` y
+  `0019_records_saving_source`; `SCHEMA_VERSION = 19`.
 - `SavingsSettings` y campos nuevos de `Savings`/`SavingsHistory`.
 - Dominio `src/domain/savings/`: balances, metas, aportes, proyección, gráficos y
   pruebas.
@@ -450,8 +450,9 @@ Decisiones confirmadas:
   movimientos ascendente/descendente recordado.
 - Aporte sugerido proporcional a la parte propia o a la persona seleccionada en
   un ahorro compartido.
-- Integración inicial con `Records`: origen del dinero en gastos y creación de
-  movimiento de retiro dentro de la misma transacción.
+- Integración con `Records`: origen del dinero en gastos, creación de movimiento
+  de retiro dentro de la misma transacción, `records.saving_id` para identificar
+  la fuente y resumen de "Pagado con ahorros".
 - Configuración de defaults de registros y color del trofeo en Ajustes, con
   secciones colapsables y buscador.
 - Personas muestra aportes y saldo en ahorros.
