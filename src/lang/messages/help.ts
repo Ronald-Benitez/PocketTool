@@ -414,21 +414,21 @@ export const helpEn = {
             "summary": "Manage the people you share expenses with and review their payment history.",
             "what": {
                 "title": "What it is",
-                "body": "People is the shared registry used by fixed expenses and financings. Each person has a name, optional notes and an active state."
+                "body": "People is the shared registry used by fixed expenses, financings and savings. Each person has a name, optional notes and an active state."
             },
             "how": {
                 "title": "How it works",
-                "body": "When you assign a person to a fixed expense or financing, you also set their share percentage. Each shared payment creates an allocation for every participant. The history shows the date, concept, percentage and amount of that person's share, including capital reductions and payments that reduce the installment."
+                "body": "When you assign a person to a fixed expense, financing or savings goal, you also set their share percentage. Each shared payment creates an allocation for every participant, and savings movements record who contributed or withdrew. The history shows the date, concept, percentage and amount of that person's share, including capital reductions, savings contributions and payments that reduce the installment."
             },
             "steps": {
                 "title": "Step by step",
                 "step1": "Open the People section and create the people you share expenses with.",
-                "step2": "Add them as participants in a fixed expense or financing and set their percentages.",
-                "step3": "Open a person's payment history to review their accumulated shared amount."
+                "step2": "Add them as participants in a fixed expense, financing or saving and set their percentages.",
+                "step3": "Open a person's payment history to review their accumulated shared amount and savings contributions."
             },
             "example": {
                 "title": "Example",
-                "body": "A 1,000 rent is shared 50% with Ana. The record keeps 500 as your own amount and 500 as shared. Ana's history shows a 500 entry with the date and the rent concept."
+                "body": "A 1,000 rent is shared 50% with Ana. The record keeps 500 as your own amount and 500 as shared. Ana's history shows a 500 entry with the date and the rent concept. In a saving shared 50%, Ana's deposits appear in her history and count toward her share of the balance."
             },
             "tips": {
                 "title": "Tips",
@@ -976,21 +976,21 @@ export const helpEs: MessageShape<typeof helpEn> = {
             "summary": "Gestiona las personas con las que compartes gastos y revisa su historial de pagos.",
             "what": {
                 "title": "Qué es",
-                "body": "Personas es el registro compartido que usan los gastos fijos y los financiamientos. Cada persona tiene nombre, notas opcionales y un estado activo o inactivo."
+                "body": "Personas es el registro compartido que usan los gastos fijos, los financiamientos y los ahorros. Cada persona tiene nombre, notas opcionales y un estado activo o inactivo."
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "Cuando asignas una persona a un gasto fijo o financiamiento también defines su porcentaje. Cada pago compartido genera una asignación por participante. El historial muestra la fecha, el concepto, el porcentaje y el monto de la parte de esa persona, incluidos los abonos a capital y los pagos que reducen la cuota."
+                "body": "Cuando asignas una persona a un gasto fijo, financiamiento o meta de ahorro también defines su porcentaje. Cada pago compartido genera una asignación por participante y los movimientos del ahorro registran quién aportó o retiró. El historial muestra la fecha, el concepto, el porcentaje y el monto de la parte de esa persona, incluidos los abonos a capital, los aportes a ahorros y los pagos que reducen la cuota."
             },
             "steps": {
                 "title": "Paso a paso",
                 "step1": "Abre la sección Personas y crea las personas con las que compartes gastos.",
-                "step2": "Agrégalas como participantes en un gasto fijo o financiamiento y define sus porcentajes.",
-                "step3": "Abre el historial de pagos de una persona para revisar su monto compartido acumulado."
+                "step2": "Agrégalas como participantes en un gasto fijo, financiamiento o ahorro y define sus porcentajes.",
+                "step3": "Abre el historial de pagos de una persona para revisar su monto compartido acumulado y sus aportes a ahorros."
             },
             "example": {
                 "title": "Ejemplo",
-                "body": "Una renta de 1,000 se comparte al 50% con Ana. El registro guarda 500 como tu parte y 500 como compartido. El historial de Ana muestra un movimiento de 500 con la fecha y el concepto de la renta."
+                "body": "Una renta de 1,000 se comparte al 50% con Ana. El registro guarda 500 como tu parte y 500 como compartido. El historial de Ana muestra un movimiento de 500 con la fecha y el concepto de la renta. En un ahorro compartido al 50%, los aportes de Ana aparecen en su historial y cuentan para su parte del saldo."
             },
             "tips": {
                 "title": "Consejos",
