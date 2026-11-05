@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { LineChart } from 'react-native-gifted-charts';
 
 import AddSaving from '@/src/components/savings/add-savings';
@@ -29,6 +29,8 @@ import { Surface } from '@/src/ui/primitives/Surface';
 import { useTheme } from '@/src/ui/theme/ThemeProvider';
 
 const SAVINGS_SCOPE_KEY = 'savingsStatusScope';
+const SAVINGS_PINNED_KEY = 'savings';
+const SAVINGS_MOVEMENT_ORDER_KEY = 'savingsMovementOrder';
 
 const kindIcon = (kind: string) => {
   if (kind === 'withdrawal') return 'arrow-downward';
@@ -56,6 +58,9 @@ const Index = () => {
   const [peopleById, setPeopleById] = useState<Map<number, string>>(new Map());
   const [statusFilter, setStatusFilter] = useState<'active' | 'archived' | 'all'>('active');
   const [scope, setScope] = useState<'own' | 'global'>('own');
+  const [pinnedId, setPinnedId] = useState<number | null>(null);
+  const [movementOrder, setMovementOrder] = useState<'asc' | 'desc'>('desc');
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const [trophyColor, setTrophyColor] = useState('#C9A227');
   const [refreshKey, setRefreshKey] = useState(0);
   const [movementVisible, setMovementVisible] = useState(false);
@@ -65,35 +70,38 @@ const Index = () => {
   const refresh = () => setRefreshKey((value) => value + 1);
 
   useEffect(() => {
-    AsyncStorage.getItem(SAVINGS_SCOPE_KEY)
-      .then((stored) => {
-        if (stored === 'global' || stored === 'own') setScope(stored);
-      })
-      .catch(() => {
-        // Keep the default scope.
-      });
-    repository
-      .fetchSettings()
-      .then((settings) => {
-        if (settings?.trophy_color) setTrophyColor(settings.trophy_color);
-      })
-      .catch(() => {
-        // Keep the default trophy color.
-      });
-    peopleRepository
-      .fetchPeople()
-      .then((rows) => {
-        setPeopleById(
-          new Map(
-            rows.flatMap((person) =>
-              person.id == null ? [] : [[person.id, person.name] as const]
-            )
+    let active = true;
+    Promise.all([
+      AsyncStorage.getItem(SAVINGS_SCOPE_KEY).catch(() => null),
+      AsyncStorage.getItem(SAVINGS_PINNED_KEY).catch(() => null),
+      AsyncStorage.getItem(SAVINGS_MOVEMENT_ORDER_KEY).catch(() => null),
+      repository.fetchSettings().catch(() => null),
+      peopleRepository.fetchPeople().catch(() => []),
+    ]).then(([scopeStored, pinnedStored, orderStored, settings, people]) => {
+      if (!active) return;
+      if (scopeStored === 'global' || scopeStored === 'own') {
+        setScope(scopeStored);
+      }
+      const parsedPinned = Number(pinnedStored);
+      if (pinnedStored && Number.isFinite(parsedPinned)) {
+        setPinnedId(parsedPinned);
+      }
+      if (orderStored === 'asc' || orderStored === 'desc') {
+        setMovementOrder(orderStored);
+      }
+      if (settings?.trophy_color) setTrophyColor(settings.trophy_color);
+      setPeopleById(
+        new Map(
+          people.flatMap((person) =>
+            person.id == null ? [] : [[person.id, person.name] as const]
           )
-        );
-      })
-      .catch(() => {
-        setPeopleById(new Map());
-      });
+        )
+      );
+      setPreferencesLoaded(true);
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -103,6 +111,13 @@ const Index = () => {
   }, [scope]);
 
   useEffect(() => {
+    AsyncStorage.setItem(SAVINGS_MOVEMENT_ORDER_KEY, movementOrder).catch(() => {
+      // Preferences are optional.
+    });
+  }, [movementOrder]);
+
+  useEffect(() => {
+    if (!preferencesLoaded) return;
     let active = true;
     repository
       .fetchSavings({ status: statusFilter })
@@ -110,10 +125,12 @@ const Index = () => {
         if (!active) return;
         setSavings(rows);
         const current = useSavingsStore.getState().saving;
+        const pinned =
+          pinnedId != null ? rows.find((row) => row.id === pinnedId) : null;
         const next =
           current?.id && rows.some((row) => row.id === current.id)
             ? rows.find((row) => row.id === current.id) ?? null
-            : rows[0] ?? null;
+            : pinned ?? rows[0] ?? null;
         setSaving(next);
       })
       .catch((cause) => {
@@ -128,7 +145,7 @@ const Index = () => {
     return () => {
       active = false;
     };
-  }, [refreshKey, statusFilter]);
+  }, [refreshKey, statusFilter, pinnedId, preferencesLoaded]);
 
   useEffect(() => {
     if (!saving?.id) {
@@ -164,6 +181,22 @@ const Index = () => {
       data3: view.chart.map((point) => toItem(point.sharedCents)),
     };
   }, [view]);
+
+  const orderedMovements = useMemo(() => {
+    const rows = view?.movements ?? [];
+    return movementOrder === 'asc' ? rows : [...rows].reverse();
+  }, [view?.movements, movementOrder]);
+
+  const togglePin = async () => {
+    if (!saving?.id) return;
+    if (pinnedId === saving.id) {
+      await AsyncStorage.removeItem(SAVINGS_PINNED_KEY);
+      setPinnedId(null);
+    } else {
+      await AsyncStorage.setItem(SAVINGS_PINNED_KEY, String(saving.id));
+      setPinnedId(saving.id);
+    }
+  };
 
   const archive = async () => {
     if (!saving?.id) return;
@@ -282,11 +315,16 @@ const Index = () => {
                     variant={saving?.id === item.id ? 'raised' : 'outlined'}
                     padding='sm'
                   >
-                    <Row gap='xs' align='center'>
+                    <Row gap='xs' align='center' style={styles.savingChipRow}>
                       {reached ? (
-                        <SavingsGoalTrophy color={trophyColor} size={22} />
+                        <SavingsGoalTrophy color={trophyColor} size={20} />
                       ) : null}
-                      <AppText variant='caption'>{item.saving_name}</AppText>
+                      {pinnedId === item.id ? (
+                        <Ionicons name='pin' size={12} color={colors.primary} />
+                      ) : null}
+                      <AppText variant='caption' numberOfLines={1}>
+                        {item.saving_name}
+                      </AppText>
                     </Row>
                   </Surface>
                 </Pressable>
@@ -316,6 +354,19 @@ const Index = () => {
                       <AppText color='muted'>{formatMoneyWithSymbol(view.amount)}</AppText>
                     </Stack>
                     <Row gap='xs'>
+                      <IconButton
+                        label={pinnedId === view.id ? t('savings.unpin') : t('savings.pin')}
+                        variant='surface'
+                        selected={pinnedId === view.id}
+                        icon={
+                          <Ionicons
+                            name={pinnedId === view.id ? 'pin' : 'pin-outline'}
+                            size={20}
+                            color={colors.text}
+                          />
+                        }
+                        onPress={togglePin}
+                      />
                       <IconButton
                         label={view.status === 'archived' ? t('savings.restore') : t('savings.archive')}
                         variant='surface'
@@ -509,11 +560,27 @@ const Index = () => {
               />
 
               <Stack gap='sm'>
-                <AppText variant='subtitle'>{t('savings.history.title')}</AppText>
-                {view.movements.length === 0 ? (
+                <Row justify='space-between' align='center' gap='sm'>
+                  <AppText variant='subtitle'>{t('savings.history.title')}</AppText>
+                  <Row gap='xs'>
+                    <Button
+                      label={t('savings.history.newest')}
+                      size='sm'
+                      variant={movementOrder === 'desc' ? 'primary' : 'outline'}
+                      onPress={() => setMovementOrder('desc')}
+                    />
+                    <Button
+                      label={t('savings.history.oldest')}
+                      size='sm'
+                      variant={movementOrder === 'asc' ? 'primary' : 'outline'}
+                      onPress={() => setMovementOrder('asc')}
+                    />
+                  </Row>
+                </Row>
+                {orderedMovements.length === 0 ? (
                   <AppText color='muted'>{t('savings.history.empty')}</AppText>
                 ) : (
-                  [...view.movements].reverse().map((movement) => {
+                  orderedMovements.map((movement) => {
                     const personName =
                       movement.person_id != null
                         ? peopleById.get(movement.person_id) ?? ''
@@ -607,6 +674,9 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
+  },
+  savingChipRow: {
+    height: 22,
   },
   progressTrack: {
     height: 10,

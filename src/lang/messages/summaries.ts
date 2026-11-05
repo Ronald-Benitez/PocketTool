@@ -123,6 +123,8 @@ export const summariesEn = {
         "history": {
             "title": "Movements",
             "empty": "No movements yet.",
+            "newest": "Newest",
+            "oldest": "Oldest",
             "delete": "Delete movement",
             "deleteConfirm": "Delete this movement? The balance will be recalculated."
         },
@@ -315,6 +317,8 @@ export const summariesEs: MessageShape<typeof summariesEn> = {
         "history": {
             "title": "Movimientos",
             "empty": "Todavía no hay movimientos.",
+            "newest": "Recientes",
+            "oldest": "Antiguos",
             "delete": "Eliminar movimiento",
             "deleteConfirm": "¿Eliminar este movimiento? El saldo se recalculará."
         },

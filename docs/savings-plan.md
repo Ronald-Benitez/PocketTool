@@ -446,6 +446,8 @@ Decisiones confirmadas:
 - UI de Ahorros: selector, resumen global/propio/compartido, meta, proyección,
   estado mensual, gráfico de tres series con leyenda de colores, trofeo,
   historial, formularios de ahorro y movimiento.
+- Lista de ahorros con altura uniforme, ahorro fijado persistente y orden de
+  movimientos ascendente/descendente recordado.
 - Aporte sugerido proporcional a la parte propia o a la persona seleccionada en
   un ahorro compartido.
 - Integración inicial con `Records`: origen del dinero en gastos y creación de
