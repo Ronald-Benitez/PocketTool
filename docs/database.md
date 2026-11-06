@@ -34,6 +34,18 @@ Salidas:
 
 No editar esos archivos a mano.
 
+### Lectura eficiente del esquema
+
+`docs/schema.md` es grande y generado. **No lo leas completo.**
+
+1. Abre el índice “Tablas” del inicio: cada fila incluye la línea donde empieza
+   la sección de esa tabla.
+2. Busca la tabla con `rg -n "^## Records" docs/schema.md` si necesitas
+   confirmar la línea.
+3. Lee solo el rango de esa sección (columnas, relaciones e índices).
+4. Para cambios de código, prefiere `src/db/schema/metadata.ts` o
+   `src/db/schema/generated/columns.json` antes que el documento completo.
+
 ## Tablas
 
 | Tabla lógica | Tabla física | Propósito |

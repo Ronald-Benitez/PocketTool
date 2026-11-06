@@ -167,7 +167,7 @@ const generateSql = () => {
 };
 
 const generateDocs = (relations) => {
-  const lines = [
+  const header = [
     '# Esquema de base de datos',
     '',
     '> Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.',
@@ -184,27 +184,24 @@ const generateDocs = (relations) => {
     '',
     '## Tablas',
     '',
-    '| Tabla | Física | Entidad | Columnas | Índices |',
-    '| --- | --- | --- | ---: | ---: |',
+    'La columna **Línea** indica dónde empieza la sección de esa tabla. Para leer',
+    'solo una tabla, usa ese número como `offset` en lugar de abrir el documento',
+    'completo.',
+    '',
+    '| Tabla | Física | Entidad | Columnas | Índices | Línea |',
+    '| --- | --- | --- | ---: | ---: | ---: |',
   ];
 
-  for (const tableName of TABLE_NAMES) {
+  const sectionChunks = TABLE_NAMES.map((tableName) => {
     const table = APP_SCHEMA[tableName];
-    lines.push(
-      `| \`${table.name}\` | \`${table.sqlName}\` | \`${table.entity}\` | ${table.columns.length} | ${table.indexes?.length ?? 0} |`
-    );
-  }
+    const chunk = [];
 
-  lines.push('');
-
-  for (const tableName of TABLE_NAMES) {
-    const table = APP_SCHEMA[tableName];
-    lines.push(`## ${table.name} (\`${table.sqlName}\`)`);
-    lines.push('');
-    lines.push(`Entidad TypeScript: \`${table.entity}\``);
-    lines.push('');
-    lines.push('| Columna | SQL | TS | Notas |');
-    lines.push('| --- | --- | --- | --- |');
+    chunk.push(`## ${table.name} (\`${table.sqlName}\`)`);
+    chunk.push('');
+    chunk.push(`Entidad TypeScript: \`${table.entity}\``);
+    chunk.push('');
+    chunk.push('| Columna | SQL | TS | Notas |');
+    chunk.push('| --- | --- | --- | --- |');
 
     for (const column of table.columns) {
       const notes = [];
@@ -223,22 +220,22 @@ const generateDocs = (relations) => {
         );
       }
 
-      lines.push(
+      chunk.push(
         `| \`${column.name}\` | \`${column.type}\` | \`${tsType(column)}\` | ${notes.join(', ')} |`
       );
     }
 
     const relationsForTable = Object.keys(relations[tableName]);
     if (relationsForTable.length > 0) {
-      lines.push('');
-      lines.push(`Relaciones navegables: ${relationsForTable.map((rel) => `\`${rel}\``).join(', ')}`);
+      chunk.push('');
+      chunk.push(`Relaciones navegables: ${relationsForTable.map((rel) => `\`${rel}\``).join(', ')}`);
     }
 
     if (table.indexes?.length) {
-      lines.push('');
-      lines.push('Índices:');
+      chunk.push('');
+      chunk.push('Índices:');
       for (const index of table.indexes) {
-        lines.push(
+        chunk.push(
           `- \`${index.name}\` (${index.columns.join(', ')})${index.unique ? ' UNIQUE' : ''}${index.where ? ` WHERE ${index.where}` : ''}`
         );
       }
@@ -246,12 +243,29 @@ const generateDocs = (relations) => {
 
     const triggerSql = createTimestampTriggerSql(table);
     if (triggerSql.length > 0) {
-      lines.push('');
-      lines.push('Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.');
+      chunk.push('');
+      chunk.push('Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.');
     }
 
-    lines.push('');
-  }
+    chunk.push('');
+
+    return chunk;
+  });
+
+  // La primera sección empieza después del encabezado, las filas de la tabla
+  // de índice y una línea en blanco. Las líneas son 1-based.
+  let nextLine = header.length + TABLE_NAMES.length + 2;
+
+  const indexRows = TABLE_NAMES.map((tableName, index) => {
+    const table = APP_SCHEMA[tableName];
+    const row =
+      `| \`${table.name}\` | \`${table.sqlName}\` | \`${table.entity}\` | ` +
+      `${table.columns.length} | ${table.indexes?.length ?? 0} | ${nextLine} |`;
+    nextLine += sectionChunks[index].length;
+    return row;
+  });
+
+  const lines = [...header, ...indexRows, '', ...sectionChunks.flat()];
 
   return `${lines.join('\n')}\n`;
 };

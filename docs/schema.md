@@ -14,37 +14,41 @@ Versión de esquema: **20**
 
 ## Tablas
 
-| Tabla | Física | Entidad | Columnas | Índices |
-| --- | --- | --- | ---: | ---: |
-| `Groups` | `groups` | `Group` | 8 | 1 |
-| `PaymentTypes` | `payment_types` | `PaymentType` | 6 | 0 |
-| `PaymentMethods` | `payment_methods` | `PaymentMethod` | 17 | 1 |
-| `Categories` | `categories` | `Category` | 5 | 0 |
-| `RecordTypes` | `record_types` | `RecordType` | 7 | 0 |
-| `Fixed` | `fixed_records` | `FixedRecord` | 10 | 4 |
-| `Records` | `records` | `RecordEntry` | 16 | 6 |
-| `PaidCredits` | `paid_credits` | `PaidCredit` | 8 | 3 |
-| `Financings` | `financings` | `Financing` | 27 | 2 |
-| `FinancingPayments` | `financing_payments` | `FinancingPayment` | 19 | 2 |
-| `FinancingAdjustments` | `financing_adjustments` | `FinancingAdjustment` | 13 | 1 |
-| `People` | `people` | `Person` | 7 | 1 |
-| `SharedExpenseParticipants` | `shared_expense_participants` | `SharedExpenseParticipant` | 9 | 2 |
-| `SharedPaymentAllocations` | `shared_payment_allocations` | `SharedPaymentAllocation` | 13 | 3 |
-| `BudgetTemplates` | `budget_templates` | `BudgetTemplate` | 8 | 0 |
-| `BudgetTemplateItems` | `budget_template_items` | `BudgetTemplateItem` | 13 | 4 |
-| `BudgetPlans` | `budget_plans` | `BudgetPlan` | 10 | 2 |
-| `BudgetLines` | `budget_lines` | `BudgetLine` | 15 | 6 |
-| `Savings` | `savings` | `Saving` | 21 | 1 |
-| `SavingsHistory` | `savings_history` | `SavingsHistoryEntry` | 17 | 4 |
-| `SavingsSettings` | `savings_settings` | `SavingsSetting` | 9 | 0 |
-| `Migrations` | `migrations` | `Migration` | 3 | 0 |
-| `Vehicles` | `vehicles` | `Vehicle` | 19 | 1 |
-| `VehicleFuelEntries` | `vehicle_fuel_entries` | `VehicleFuelEntry` | 19 | 2 |
-| `VehicleMaintenance` | `vehicle_maintenance` | `VehicleMaintenanceEntry` | 13 | 2 |
-| `VehicleMaintenanceItems` | `vehicle_maintenance_items` | `VehicleMaintenanceItem` | 10 | 1 |
-| `VehicleReminders` | `vehicle_reminders` | `VehicleReminder` | 17 | 1 |
-| `VehicleSettings` | `vehicle_settings` | `VehicleSetting` | 7 | 0 |
-| `VehicleExpenseLinks` | `vehicle_expense_links` | `VehicleExpenseLink` | 6 | 3 |
+La columna **Línea** indica dónde empieza la sección de esa tabla. Para leer
+solo una tabla, usa ese número como `offset` en lugar de abrir el documento
+completo.
+
+| Tabla | Física | Entidad | Columnas | Índices | Línea |
+| --- | --- | --- | ---: | ---: | ---: |
+| `Groups` | `groups` | `Group` | 8 | 1 | 53 |
+| `PaymentTypes` | `payment_types` | `PaymentType` | 6 | 0 | 73 |
+| `PaymentMethods` | `payment_methods` | `PaymentMethod` | 17 | 1 | 88 |
+| `Categories` | `categories` | `Category` | 5 | 0 | 119 |
+| `RecordTypes` | `record_types` | `RecordType` | 7 | 0 | 133 |
+| `Fixed` | `fixed_records` | `FixedRecord` | 10 | 4 | 149 |
+| `Records` | `records` | `RecordEntry` | 16 | 6 | 176 |
+| `PaidCredits` | `paid_credits` | `PaidCredit` | 8 | 3 | 211 |
+| `Financings` | `financings` | `Financing` | 27 | 2 | 235 |
+| `FinancingPayments` | `financing_payments` | `FinancingPayment` | 19 | 2 | 277 |
+| `FinancingAdjustments` | `financing_adjustments` | `FinancingAdjustment` | 13 | 1 | 311 |
+| `People` | `people` | `Person` | 7 | 1 | 338 |
+| `SharedExpenseParticipants` | `shared_expense_participants` | `SharedExpenseParticipant` | 9 | 2 | 357 |
+| `SharedPaymentAllocations` | `shared_payment_allocations` | `SharedPaymentAllocation` | 13 | 3 | 381 |
+| `BudgetTemplates` | `budget_templates` | `BudgetTemplate` | 8 | 0 | 410 |
+| `BudgetTemplateItems` | `budget_template_items` | `BudgetTemplateItem` | 13 | 4 | 427 |
+| `BudgetPlans` | `budget_plans` | `BudgetPlan` | 10 | 2 | 457 |
+| `BudgetLines` | `budget_lines` | `BudgetLine` | 15 | 6 | 482 |
+| `Savings` | `savings` | `Saving` | 21 | 1 | 516 |
+| `SavingsHistory` | `savings_history` | `SavingsHistoryEntry` | 17 | 4 | 549 |
+| `SavingsSettings` | `savings_settings` | `SavingsSetting` | 9 | 0 | 583 |
+| `Migrations` | `migrations` | `Migration` | 3 | 0 | 603 |
+| `Vehicles` | `vehicles` | `Vehicle` | 19 | 1 | 613 |
+| `VehicleFuelEntries` | `vehicle_fuel_entries` | `VehicleFuelEntry` | 19 | 2 | 644 |
+| `VehicleMaintenance` | `vehicle_maintenance` | `VehicleMaintenanceEntry` | 13 | 2 | 678 |
+| `VehicleMaintenanceItems` | `vehicle_maintenance_items` | `VehicleMaintenanceItem` | 10 | 1 | 706 |
+| `VehicleReminders` | `vehicle_reminders` | `VehicleReminder` | 17 | 1 | 730 |
+| `VehicleSettings` | `vehicle_settings` | `VehicleSetting` | 7 | 0 | 761 |
+| `VehicleExpenseLinks` | `vehicle_expense_links` | `VehicleExpenseLink` | 6 | 3 | 779 |
 
 ## Groups (`groups`)
 
