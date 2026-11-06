@@ -14,22 +14,15 @@ PocketTool es una aplicación móvil multiplataforma (desarrollada con Expo) par
 - Código en **TypeScript** y estructura de rutas basada en el router de Expo (file-based routing).
 - Almacenamiento local y handlers propios para persistencia (SQLite/ORM según la configuración del proyecto).
 
-## Estructura rápida
-- Código de entrada y rutas: carpeta `app`
-- Componentes y utilidades: `components`, `src/components`, `src/utils`
-- Lógica de datos y stores: `src/db`, `src/stores`, `src/orm`
-- Plan de fases y contexto: [`docs/phases.md`](docs/phases.md) y [`AGENTS.md`](AGENTS.md)
-- Documentación de UI archivada: [`docs/legacy/ui-plan.md`](docs/legacy/ui-plan.md)
-- Plan de vehículo: [`docs/legacy/vehicle-plan.md`](docs/legacy/vehicle-plan.md)
-- Plan de gastos fijos y créditos archivado:
-  [`docs/legacy/credits-fixed-plan.md`](docs/legacy/credits-fixed-plan.md)
-- Plan de la siguiente versión archivado:
-  [`docs/legacy/next-version-plan.md`](docs/legacy/next-version-plan.md)
-- Plan de presupuestos archivado:
-  [`docs/legacy/budget-plan.md`](docs/legacy/budget-plan.md)
-- Plan de traducciones y ayuda archivado:
-  [`docs/legacy/i18n-help-plan.md`](docs/legacy/i18n-help-plan.md)
-- Documentación de base de datos: [`docs/database.md`](docs/database.md)
+## Plan de fases y contexto
+- Estado, fase activa y decisiones: [`docs/phases.md`](docs/phases.md)
+- Índice y contrato de documentación: [`docs/README.md`](docs/README.md)
+- Sistema de UI: [`docs/architecture/ui.md`](docs/architecture/ui.md)
+- Reglas de negocio: [`docs/architecture/domains.md`](docs/architecture/domains.md)
+- Base de datos: [`docs/database.md`](docs/database.md)
+- Instrucciones para agentes: [`AGENTS.md`](AGENTS.md)
+- Planes históricos: [`docs/legacy/`](docs/legacy/)
+
 
 ## Ejecutar localmente
 1. Instalar dependencias:
