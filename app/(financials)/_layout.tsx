@@ -14,55 +14,40 @@ export default function Layout() {
                 options={{
                     title: t("headers.records"),
                     tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="wallet-outline" size={size} color={color} />
-                    ),
-                    headerStyle: {
-                        backgroundColor: '#fff'
-                    }
+                        <Ionicons name="wallet-outline" size={size} color={color as string | undefined} />
+                    )
                 }} />
             <Tabs.Screen
                 name="PaymentMethodsScreen"
                 options={{
                     title: t("headers.payments"),
                     tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="cash-outline" size={size} color={color} />
-                    ),
-                    headerStyle: {
-                        backgroundColor: '#fff'
-                    }
+                        <Ionicons name="cash-outline" size={size} color={color as string | undefined} />
+                    )
                 }} />
             <Tabs.Screen
                 name="CategoriesScreen"
                 options={{
                     title: t("headers.categories"),
                     tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="options" size={size} color={color} />
-                    ),
-                    headerStyle: {
-                        backgroundColor: '#fff'
-                    }
+                        <Ionicons name="options" size={size} color={color as string | undefined} />
+                    )
                 }} />
             <Tabs.Screen
                 name="PaymentTypesScreen"
                 options={{
                     title: t("headers.paymentTypes"),
                     tabBarIcon: ({ color, size }) => (
-                        <MaterialCommunityIcons name="cash-multiple" size={size} color={color} />
-                    ),
-                    headerStyle: {
-                        backgroundColor: '#fff'
-                    }
+                        <MaterialCommunityIcons name="cash-multiple" size={size} color={color as string | undefined} />
+                    )
                 }} />
             <Tabs.Screen
                 name="RecordTypesScreen"
                 options={{
                     title: t("headers.recordTypes"),
                     tabBarIcon: ({ color, size }) => (
-                        <MaterialCommunityIcons name="format-list-bulleted" size={size} color={color} />
-                    ),
-                    headerStyle: {
-                        backgroundColor: '#fff'
-                    }
+                        <MaterialCommunityIcons name="format-list-bulleted" size={size} color={color as string | undefined} />
+                    )
                 }} />
 
         </StackBase>

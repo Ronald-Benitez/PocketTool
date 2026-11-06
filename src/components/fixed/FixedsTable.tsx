@@ -3,24 +3,44 @@ import React, { useEffect, useState } from 'react'
 import { AntDesign } from '@expo/vector-icons'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
-import SwipeItem from '../ui/swipe-item'
+import { SwipeAction } from '@/src/ui/actions/SwipeAction'
 import { ScrollView } from 'react-native-gesture-handler'
-import useToast from '@/src/hooks/useToast'
+import { useToast } from '@/src/ui/feedback/ToastProvider'
 import AddItem from './AddFixed'
-import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
-import IconButton from '../ui/icon-button'
-import { Fixed, FixedJoined } from '@/src/db/types/tables'
+import { AccentRow } from '@/src/ui/data-display/AccentRow'
+import type { FixedRecord, FixedView } from '@/src/interfaces/schema'
+import { formatMoneyWithSymbol } from '@/src/utils'
 import { useDataStore } from '@/src/stores'
-import { useFixeds } from '@/src/db/handlers/FixedsHandler'
+import { useFixeds } from '@/src/db'
+import { mapDatabaseError } from '@/src/db/errors'
+import { useTheme } from '@/src/ui/theme/ThemeProvider'
 
 const FixedsTable = () => {
-    const [selected, setSelected] = useState<FixedJoined | Fixed | undefined>()
+    const [selected, setSelected] = useState<FixedView | FixedRecord | undefined>()
     const [openUpdate, setOpenUpdate] = useState<boolean>(false)
-    const { ToastContainer, showToast } = useToast()
+    const { showToast } = useToast()
     const { t } = useLanguage()
+    const { colors } = useTheme()
     const { Fixeds, setFixeds } = useDataStore()
     const { fetchFixeds, handler: fixedsHandler } = useFixeds()
 
+    useEffect(() => {
+        let active = true
+        fetchFixeds()
+            .then((data) => {
+                if (active) setFixeds(data)
+            })
+            .catch((cause) => {
+                if (!active) return
+                if (__DEV__) console.warn('[fixeds] load failed', cause)
+                const mapped = mapDatabaseError(cause, t('toast.error'))
+                showToast({
+                    message: t(`dbErrors.${mapped.code}` as never),
+                    type: 'error',
+                })
+            })
+        return () => { active = false }
+    }, [])
 
     const handleDelete = async (index: number) => {
         const toDelete = Fixeds[index]
@@ -28,7 +48,7 @@ const FixedsTable = () => {
         await fixedsHandler.deleteById(toDelete.id)
         const data = await fetchFixeds()
         setFixeds(data)
-        showToast({ message: t("item.deleted"), type: "SUCCESS" })
+        showToast({ message: t("item.deleted"), type: "success" })
     }
 
     const handleUpdate = (index: number) => {
@@ -43,9 +63,9 @@ const FixedsTable = () => {
                 style={[localStyles.rowContainer, { justifyContent: "center" }]}
             >
                 <AddItem>
-                    <IconButton isButton={false}>
-                        <AntDesign size={20} name='plus' color={"#000"} />
-                    </IconButton>
+                    <View style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+                        <AntDesign size={20} name='plus' color={colors.text} />
+                    </View>
                 </AddItem >
             </View>
 
@@ -53,17 +73,17 @@ const FixedsTable = () => {
                 <View style={{ gap: 5, paddingHorizontal: 30, }}>
                     {Fixeds?.map((item, index) => {
                         return (
-                            <SwipeItem
+                            <SwipeAction
                                 handleDelete={() => handleDelete(index)}
                                 handleUpdate={() => handleUpdate(index)}
                                 key={item.id}
                             >
-                                <BorderLeftBottomBlock
-                                    bottomColor={item.record_color}
-                                    letfColor={item.payment_color}
+                                <AccentRow
+                                    bottomColor={item.RecordTypes?.record_color ?? undefined}
+                                    accentColor={item.PaymentMethods?.PaymentTypes?.payment_color ?? undefined}
                                 >
                                     <View style={localStyles.rowContainer}>
-                                        <Text style={[localStyles.dayText, item.fixed_day > 9 ? {
+                                        <Text style={[localStyles.dayText, { color: colors.text }, item.fixed_day > 9 ? {
                                             padding: 8,
                                             paddingHorizontal: 9
                                         } : {
@@ -72,15 +92,14 @@ const FixedsTable = () => {
                                         }]}>
                                             {String(item.fixed_day)}
                                         </Text>
-                                        <Text style={localStyles.nameText}>{item.fixed_name}</Text>
-                                        <Text style={localStyles.valueText}>${item.fixed_amount}</Text>
+                                        <Text style={[localStyles.nameText, { color: colors.text }]}>{item.fixed_name}</Text>
+                                        <Text style={[localStyles.valueText, { color: colors.text }]}>{formatMoneyWithSymbol(item.fixed_amount)}</Text>
                                     </View>
-                                </BorderLeftBottomBlock>
-                            </SwipeItem>
+                                </AccentRow>
+                            </SwipeAction>
                         )
                     })}
                 </View>
-                <ToastContainer />
                 <AddItem
                     openUpdate={openUpdate}
                     open={openUpdate}

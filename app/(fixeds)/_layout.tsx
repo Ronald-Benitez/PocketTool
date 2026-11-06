@@ -14,55 +14,48 @@ export default function Layout() {
                 options={{
                     title: t("headers.fixeds"),
                     tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="repeat" size={size} color={color} />
-                    ),
-                    headerStyle: {
-                        backgroundColor: '#fff'
-                    }
+                        <Ionicons name="repeat" size={size} color={color as string | undefined} />
+                    )
+                }} />
+            <Tabs.Screen
+                name="FinancingsScreen"
+                options={{
+                    title: t("headers.financings"),
+                    tabBarIcon: ({ color, size }) => (
+                        <MaterialCommunityIcons name="bank-outline" size={size} color={color as string | undefined} />
+                    )
                 }} />
             <Tabs.Screen
                 name="RecordTypeScreen"
                 options={{
                     title: t("headers.financialsIndex"),
                     tabBarIcon: ({ color, size }) => (
-                        <MaterialCommunityIcons name="format-list-bulleted" size={size} color={color} />
-                    ),
-                    headerStyle: {
-                        backgroundColor: '#fff'
-                    }
+                        <MaterialCommunityIcons name="format-list-bulleted" size={size} color={color as string | undefined} />
+                    )
                 }} />
             <Tabs.Screen
                 name="PaymentMethodsScreen"
                 options={{
                     title: t("headers.payments"),
                     tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="cash-outline" size={size} color={color} />
-                    ),
-                    headerStyle: {
-                        backgroundColor: '#fff'
-                    }
+                        <Ionicons name="cash-outline" size={size} color={color as string | undefined} />
+                    )
                 }} />
             <Tabs.Screen
                 name="CategoriesScreen"
                 options={{
                     title: t("headers.categories"),
                     tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="options" size={size} color={color} />
-                    ),
-                    headerStyle: {
-                        backgroundColor: '#fff'
-                    }
+                        <Ionicons name="options" size={size} color={color as string | undefined} />
+                    )
                 }} />
             <Tabs.Screen
                 name="PaymentTypesScreen"
                 options={{
                     title: t("headers.paymentTypes"),
                     tabBarIcon: ({ color, size }) => (
-                        <MaterialCommunityIcons name="cash-multiple" size={size} color={color} />
-                    ),
-                    headerStyle: {
-                        backgroundColor: '#fff'
-                    }
+                        <MaterialCommunityIcons name="cash-multiple" size={size} color={color as string | undefined} />
+                    )
                 }} />
         </StackBase>
     );

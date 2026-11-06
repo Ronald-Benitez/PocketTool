@@ -1,0 +1,572 @@
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MaterialIcons } from '@expo/vector-icons';
+
+import { useVehicleFuelRepository } from '@/src/db';
+import { FuelEntryForm } from '@/src/components/vehicle/FuelEntryForm';
+import {
+  buildFuelStats,
+  fuelOdometerPoints,
+  groupFuelSegments,
+} from '@/src/domain/vehicle/fuel';
+import {
+  buildConsumptionChart,
+  buildMobilityComparisonChart,
+  buildPriceChart,
+  buildTotalSpendChart,
+  buildVolumeChart,
+} from '@/src/domain/vehicle/charts';
+import {
+  consumptionUnits,
+  convertVolume,
+  selectConsumption,
+  volumeUnitOf,
+} from '@/src/domain/vehicle/units';
+import { MermaidChart } from '@/src/ui/charts/MermaidChart';
+import type { VehicleFuelEntryView } from '@/src/db/repositories/vehicle';
+import { useVehicle } from '@/src/hooks/useVehicle';
+import { useLanguage } from '@/src/lang/LanguageContext';
+import { formatMoneyWithSymbol } from '@/src/utils';
+import { Button } from '@/src/ui/actions/Button';
+import { Badge } from '@/src/ui/data-display/Badge';
+import { ListItem } from '@/src/ui/data-display/ListItem';
+import { EmptyState } from '@/src/ui/feedback/EmptyState';
+import { LoadingState } from '@/src/ui/feedback/LoadingState';
+import { SelectField } from '@/src/ui/forms/SelectField';
+import { AppText } from '@/src/ui/primitives/AppText';
+import { Screen } from '@/src/ui/primitives/Screen';
+import { Row, Stack } from '@/src/ui/primitives/Stack';
+import { Surface } from '@/src/ui/primitives/Surface';
+import { spacing } from '@/src/ui/theme/tokens';
+import { useTheme } from '@/src/ui/theme/ThemeProvider';
+
+const formats = [
+  'mi_gal',
+  'km_gal',
+  'mi_l',
+  'km_l',
+  'l_100km',
+  'gal_100km',
+  'l_60mi',
+  'gal_60mi',
+] as const;
+
+const FuelScreen = () => {
+  const { t } = useLanguage();
+  const { colors } = useTheme();
+  const { vehicle, loading } = useVehicle();
+  const repository = useVehicleFuelRepository();
+  const [entries, setEntries] = useState<VehicleFuelEntryView[]>([]);
+  const [formVisible, setFormVisible] = useState(false);
+  const [selected, setSelected] = useState<VehicleFuelEntryView | null>(null);
+  const [format, setFormat] = useState<(typeof formats)[number]>('mi_gal');
+  const [displayVolumeUnit, setDisplayVolumeUnit] = useState<'L' | 'gal'>('L');
+  useEffect(() => {
+    if (vehicle?.consumption_format) {
+      setFormat(vehicle.consumption_format as (typeof formats)[number]);
+    }
+  }, [vehicle?.consumption_format]);
+  useEffect(() => {
+    setDisplayVolumeUnit(vehicle?.volume_unit === 'gal' ? 'gal' : 'L');
+  }, [vehicle?.volume_unit]);
+  const selectorsKey = (id: number) => `vehicle_fuel_selectors_${id}`;
+  const restoredRef = useRef(false);
+  useEffect(() => {
+    if (!vehicle?.id) {
+      restoredRef.current = false;
+      return;
+    }
+    restoredRef.current = false;
+    let active = true;
+    AsyncStorage.getItem(selectorsKey(vehicle.id))
+      .then((raw) => {
+        if (!active) return;
+        restoredRef.current = true;
+        if (!raw) return;
+        try {
+          const parsed = JSON.parse(raw) as {
+            format?: string;
+            volumeUnit?: string;
+          };
+          if (formats.includes(parsed.format as (typeof formats)[number])) {
+            setFormat(parsed.format as (typeof formats)[number]);
+          }
+          if (parsed.volumeUnit === 'L' || parsed.volumeUnit === 'gal') {
+            setDisplayVolumeUnit(parsed.volumeUnit);
+          }
+        } catch {
+          // Ignore corrupted preferences and keep the vehicle defaults.
+        }
+      })
+      .catch(() => {
+        if (active) restoredRef.current = true;
+      });
+    return () => {
+      active = false;
+    };
+  }, [vehicle?.id]);
+  useEffect(() => {
+    if (!vehicle?.id || !restoredRef.current) return;
+    AsyncStorage.setItem(
+      selectorsKey(vehicle.id),
+      JSON.stringify({ format, volumeUnit: displayVolumeUnit })
+    ).catch(() => {
+      // Preferences are optional.
+    });
+  }, [vehicle?.id, format, displayVolumeUnit]);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    if (!vehicle?.id) {
+      setEntries([]);
+      return;
+    }
+    let active = true;
+    repository.fetchFuelEntries(vehicle.id).then((rows) => {
+      if (active) setEntries(rows);
+    });
+    return () => {
+      active = false;
+    };
+  }, [vehicle?.id, refreshKey]);
+
+  const stats = useMemo(
+    () => buildFuelStats(entries, format),
+    [entries, format]
+  );
+  const segments = useMemo(() => groupFuelSegments(entries), [entries]);
+  const inferredOdometers = useMemo(
+    () =>
+      new Map(
+        fuelOdometerPoints(entries).flatMap((point) =>
+          point.id == null ? [] : [[point.id, point.odometer] as const]
+        )
+      ),
+    [entries]
+  );
+  const consumptionChart = useMemo(
+    () =>
+      buildConsumptionChart(
+        stats.entries,
+        format,
+        t('vehicle.chart.consumption')
+      ),
+    [stats.entries, format, t]
+  );
+  const volumeChart = useMemo(
+    () => buildVolumeChart(stats.entries, displayVolumeUnit, t('vehicle.chart.volume')),
+    [stats.entries, displayVolumeUnit, t]
+  );
+  const priceChart = useMemo(
+    () => buildPriceChart(stats.entries, displayVolumeUnit, t('vehicle.chart.price')),
+    [stats.entries, displayVolumeUnit, t]
+  );
+  const totalSpendChart = useMemo(
+    () =>
+      buildTotalSpendChart(
+        stats.entries,
+        displayVolumeUnit,
+        t('vehicle.chart.totalSpent')
+      ),
+    [stats.entries, displayVolumeUnit, t]
+  );
+  const displayDistanceUnit = vehicle?.distance_unit === 'km' ? 'km' : 'mi';
+  const comparisonChart = useMemo(
+    () =>
+      buildMobilityComparisonChart(
+        stats.entries,
+        displayVolumeUnit,
+        displayDistanceUnit,
+        t('vehicle.chart.comparison')
+      ),
+    [stats.entries, displayVolumeUnit, displayDistanceUnit, t]
+  );
+  const displayVolumeLabel =
+    displayVolumeUnit === 'L'
+      ? t('vehicle.vehicle.liters')
+      : t('vehicle.vehicle.gallons');
+  const displayDistanceLabel =
+    displayDistanceUnit === 'km'
+      ? t('vehicle.vehicle.kilometers')
+      : t('vehicle.vehicle.miles');
+
+  if (!vehicle) {
+    return (
+      <Screen scroll>
+        <EmptyState
+          title={t('vehicle.empty.noVehiclesTitle')}
+          description={t('vehicle.empty.noVehiclesBody')}
+          icon={<MaterialIcons name='directions-car' size={28} color={colors.textMuted} />}
+        />
+      </Screen>
+    );
+  }
+
+  return (
+    <Screen scroll edges={['left', 'right']}>
+      <Stack gap='lg'>
+        <Row justify='space-between' align='flex-start' gap='md'>
+          <Stack gap='xxs' style={{ flex: 1 }}>
+            <AppText variant='title'>{t('vehicle.fuel.title')}</AppText>
+            <AppText color='muted'>{t('vehicle.fuel.subtitle')}</AppText>
+          </Stack>
+          <Button
+            label={t('vehicle.actions.addFuel')}
+            size='sm'
+            onPress={() => {
+              setSelected(null);
+              setFormVisible(true);
+            }}
+          />
+        </Row>
+
+        <SelectField
+          label={t('vehicle.fuel.consumption')}
+          value={format}
+          options={formats.map((item) => ({
+            label: t(`vehicle.formats.${item}`),
+            value: item,
+          }))}
+          onChange={setFormat}
+        />
+        <SelectField
+          label={t('vehicle.fuel.displayUnit')}
+          value={displayVolumeUnit}
+          options={[
+            { label: t('vehicle.vehicle.liters'), value: 'L' },
+            { label: t('vehicle.vehicle.gallons'), value: 'gal' },
+          ]}
+          onChange={setDisplayVolumeUnit}
+        />
+
+        <Surface variant='muted' padding='md'>
+          <Stack gap='xxs'>
+            <AppText>
+              {t('vehicle.stats.totalSpent')}: {formatMoneyWithSymbol(stats.totalSpentCents)}
+            </AppText>
+            <AppText>
+              {t('vehicle.stats.averageConsumption')}:{' '}
+              {selectConsumption(stats.averageMetrics, format)?.toFixed(2) ?? '—'}{' '}
+              {consumptionUnits(format)}
+            </AppText>
+          </Stack>
+        </Surface>
+
+        {consumptionChart ? (
+          <MermaidChart
+            definition={consumptionChart}
+            height={260}
+            accessibilityLabel={t('vehicle.chart.consumption')}
+            palette={[colors.chartConsumption]}
+            legend={[
+              {
+                label: `${t('vehicle.chart.consumption')} (${consumptionUnits(format)})`,
+                color: colors.chartConsumption,
+              },
+            ]}
+            fallback={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
+          />
+        ) : null}
+
+        {volumeChart ? (
+          <MermaidChart
+            definition={volumeChart}
+            height={240}
+            accessibilityLabel={t('vehicle.chart.volume')}
+            palette={[colors.chartDistance]}
+            legend={[
+              {
+                label: `${t('vehicle.chart.volume')} (${displayVolumeLabel})`,
+                color: colors.chartDistance,
+              },
+            ]}
+            fallback={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
+          />
+        ) : null}
+
+        {priceChart ? (
+          <MermaidChart
+            definition={priceChart}
+            height={240}
+            accessibilityLabel={t('vehicle.chart.price')}
+            palette={[colors.chartFuelCost]}
+            legend={[
+              {
+                label: `${t('vehicle.chart.price')} ($/${displayVolumeUnit})`,
+                color: colors.chartFuelCost,
+              },
+            ]}
+            fallback={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
+          />
+        ) : null}
+
+        {totalSpendChart ? (
+          <MermaidChart
+            definition={totalSpendChart}
+            height={240}
+            accessibilityLabel={t('vehicle.chart.totalSpent')}
+            palette={[colors.chartFuelCost]}
+            legend={[
+              {
+                label: t('vehicle.chart.totalSpent'),
+                color: colors.chartFuelCost,
+              },
+            ]}
+            fallback={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
+          />
+        ) : null}
+
+        {comparisonChart ? (
+          <MermaidChart
+            definition={comparisonChart}
+            height={260}
+            accessibilityLabel={t('vehicle.chart.comparison')}
+            palette={[
+              colors.chartConsumption,
+              colors.chartDistance,
+              colors.chartFuelCost,
+            ]}
+            legend={[
+              {
+                label: `${t('vehicle.chart.volume')} (${displayVolumeLabel})`,
+                color: colors.chartConsumption,
+              },
+              {
+                label: `${t('vehicle.chart.distance')} (${displayDistanceLabel})`,
+                color: colors.chartDistance,
+              },
+              {
+                label: t('vehicle.chart.totalSpent'),
+                color: colors.chartFuelCost,
+              },
+            ]}
+            fallback={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
+          />
+        ) : null}
+
+        {loading && entries.length === 0 ? (
+          <LoadingState message={t('vehicle.fuel.title')} />
+        ) : entries.length === 0 ? (
+          <EmptyState
+            title={t('vehicle.fuel.empty')}
+            icon={<MaterialIcons name='local-gas-station' size={28} color={colors.textMuted} />}
+          />
+        ) : (
+          <Stack gap='md'>
+            {segments
+              .slice()
+              .reverse()
+              .map((segment) => {
+                const value = selectConsumption(segment.metrics, format);
+                const startDate = new Date(
+                  segment.startEntry.date
+                ).toLocaleDateString();
+                const endDate = new Date(
+                  segment.endEntry.date
+                ).toLocaleDateString();
+                const title =
+                  segment.status === 'complete'
+                    ? `${startDate} → ${endDate}`
+                    : segment.status === 'in_progress'
+                      ? t('vehicle.fuel.segmentSince', { date: startDate })
+                      : t('vehicle.fuel.segmentNoBaseline');
+                const badgeLabel =
+                  segment.status === 'complete'
+                    ? t('vehicle.fuel.segmentComplete')
+                    : segment.status === 'in_progress'
+                      ? t('vehicle.fuel.segmentInProgress')
+                      : t('vehicle.fuel.segmentNoBaseline');
+                const badgeTone =
+                  segment.status === 'complete'
+                    ? 'success'
+                    : segment.status === 'in_progress'
+                      ? 'warning'
+                      : 'neutral';
+                const fillCount =
+                  segment.status === 'complete'
+                    ? segment.entries.filter(
+                        (item) => item.entry.id !== segment.startEntry.id
+                      ).length
+                    : segment.entries.length;
+                const detail =
+                  segment.status === 'complete'
+                    ? t('vehicle.fuel.fillUps', { count: fillCount })
+                    : segment.status === 'in_progress'
+                      ? t('vehicle.fuel.accumulating')
+                      : t('vehicle.fuel.segmentNoBaselineHint');
+                const distanceLabel =
+                  vehicle.distance_unit === 'km'
+                    ? t('vehicle.vehicle.kilometers')
+                    : t('vehicle.vehicle.miles');
+                const costPerDistance =
+                  segment.metrics != null
+                    ? vehicle.distance_unit === 'km'
+                      ? segment.metrics.costPerKm
+                      : segment.metrics.costPerMi
+                    : null;
+                const averagePrice =
+                  segment.metrics != null
+                    ? displayVolumeUnit === 'L'
+                      ? segment.metrics.pricePerL
+                      : segment.metrics.pricePerGal
+                    : null;
+
+                return (
+                  <Surface key={segment.id} variant='outlined' padding='none'>
+                    <View style={styles.segmentHeader}>
+                      <Row justify='space-between' align='flex-start' gap='sm'>
+                        <Stack gap='xxs' style={{ flex: 1 }}>
+                          <AppText variant='subtitle'>{title}</AppText>
+                          <AppText variant='caption' color='muted'>
+                            {detail}
+                          </AppText>
+                          {costPerDistance != null ? (
+                            <AppText variant='caption' color='muted'>
+                              {t('vehicle.fuel.costPerDistance')}:{' '}
+                              {formatMoneyWithSymbol(
+                                Math.round(costPerDistance * 100)
+                              )}{' '}
+                              / {distanceLabel}
+                            </AppText>
+                          ) : null}
+                          {averagePrice != null ? (
+                            <AppText variant='caption' color='muted'>
+                              {t('vehicle.fuel.averagePrice')}:{' '}
+                              {formatMoneyWithSymbol(
+                                Math.round(averagePrice * 100)
+                              )}{' '}
+                              / {displayVolumeUnit}
+                            </AppText>
+                          ) : null}
+                        </Stack>
+                        <Badge
+                          label={badgeLabel}
+                          tone={badgeTone}
+                          size='sm'
+                        />
+                      </Row>
+                    </View>
+                    {[...segment.entries].reverse().map((analysis, index) => {
+                      const entry = analysis.entry as VehicleFuelEntryView;
+                      const effectiveOdometer =
+                        entry.id != null
+                          ? inferredOdometers.get(entry.id)
+                          : undefined;
+                      const isBaseline = Boolean(entry.is_baseline);
+                      const isFull = Boolean(entry.is_full_tank ?? 1);
+                      const distanceLabel =
+                        entry.distance_unit === 'km'
+                          ? t('vehicle.vehicle.kilometers')
+                          : t('vehicle.vehicle.miles');
+                      const entryVolume =
+                        entry.volume != null
+                          ? convertVolume(
+                              entry.volume,
+                              volumeUnitOf(entry.volume_unit),
+                              displayVolumeUnit
+                            )
+                          : null;
+                      return (
+                        <ListItem
+                          key={entry.id ?? `${segment.id}-${index}`}
+                          title={new Date(entry.date).toLocaleDateString()}
+                          subtitle={
+                            isBaseline
+                              ? `${t('vehicle.fuel.baselineBadge')} · ${
+                                  entry.odometer ?? 0
+                                } ${distanceLabel}`
+                              : `${entryVolume?.toFixed(3) ?? '—'} ${displayVolumeLabel} · ${formatMoneyWithSymbol(
+                                  entry.total_cost ?? 0
+                                )}${entry.station ? ` · ${entry.station}` : ''}${
+                                  effectiveOdometer != null &&
+                                  (entry.odometer_source === 'inferred' ||
+                                    entry.odometer == null)
+                                    ? ` · ≈ ${effectiveOdometer.toFixed(0)} ${distanceLabel}`
+                                    : ''
+                                }`
+                          }
+                          leading={
+                            <MaterialIcons
+                              name={
+                                isBaseline
+                                  ? 'speed'
+                                  : 'local-gas-station'
+                              }
+                              size={20}
+                              color={colors.chartPlanned}
+                            />
+                          }
+                          trailing={
+                            <Stack gap='xxs' align='flex-end'>
+                              {segment.status === 'complete' &&
+                              entry.id === segment.endEntry.id &&
+                              !isBaseline ? (
+                                <AppText variant='caption' color='muted'>
+                                  {value != null
+                                    ? `${value.toFixed(2)} ${consumptionUnits(format)}`
+                                    : t('vehicle.stats.noData')}
+                                </AppText>
+                              ) : null}
+                              <Badge
+                                label={
+                                  isBaseline
+                                    ? t('vehicle.fuel.baselineBadge')
+                                    : isFull
+                                      ? t('vehicle.fuel.fullTank')
+                                      : t('vehicle.fuel.partialTank')
+                                }
+                                tone={
+                                  isBaseline
+                                    ? 'info'
+                                    : isFull
+                                      ? 'success'
+                                      : 'warning'
+                                }
+                                size='sm'
+                              />
+                              {!isBaseline ? (
+                                <Badge
+                                  label={
+                                    entry.record_id
+                                      ? t('vehicle.records.linked')
+                                      : t('vehicle.fuel.recordUnlinked')
+                                  }
+                                  tone={entry.record_id ? 'success' : 'neutral'}
+                                  size='sm'
+                                />
+                              ) : null}
+                            </Stack>
+                          }
+                          onPress={() => {
+                            setSelected(entry);
+                            setFormVisible(true);
+                          }}
+                          showDivider={index < segment.entries.length - 1}
+                        />
+                      );
+                    })}
+                  </Surface>
+                );
+              })}
+          </Stack>
+        )}
+      </Stack>
+
+      <FuelEntryForm
+        visible={formVisible}
+        vehicle={vehicle}
+        entry={selected}
+        isFirstEntry={entries.length === 0}
+        onClose={() => setFormVisible(false)}
+        onSaved={() => setRefreshKey((value) => value + 1)}
+      />
+    </Screen>
+  );
+};
+
+const styles = StyleSheet.create({
+  segmentHeader: { padding: spacing.md },
+});
+
+export default FuelScreen;

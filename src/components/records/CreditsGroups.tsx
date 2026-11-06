@@ -1,9 +1,10 @@
 import { View, Text, Pressable, StyleSheet } from "react-native"
-import BorderLeftBottomBlock from "../ui/BorderLeftButtonBlock"
+import { AccentRow } from '@/src/ui/data-display/AccentRow'
 import type { RecordFormEntry, RecordType } from "@/src/interfaces/schema"
-import styles from '@/src/styles/styles'
+import { useThemedStyles } from '@/src/styles/useThemedStyles'
 import useDate from "@/src/hooks/useDate"
 import { useLanguage } from "@/src/lang/LanguageContext"
+import { formatMoneyWithSymbol } from "@/src/utils"
 
 type CreditsGroupsProps = {
     credits: RecordFormEntry[],
@@ -12,6 +13,7 @@ type CreditsGroupsProps = {
 }
 
 export const CreditsGroups = ({ credits, selectedPaymentCreditType, onCreditPayment }: CreditsGroupsProps) => {
+    const styles = useThemedStyles()
     const dateh = useDate()
     const { t } = useLanguage()
 
@@ -30,26 +32,26 @@ export const CreditsGroups = ({ credits, selectedPaymentCreditType, onCreditPaym
                 {credits?.map((item, index) => {
                     return (
                         <Pressable key={index} onPress={() => onCreditPayment(item)}>
-                            <BorderLeftBottomBlock
+                            <AccentRow
                                 bottomColor={selectedPaymentCreditType?.record_color || "#000"}
-                                letfColor={selectedPaymentCreditType?.record_color || "#000"}
+                                accentColor={selectedPaymentCreditType?.record_color || "#000"}
                             >
                                 <View style={localStyles.rowContainer}>
                                     <View style={localStyles.dateContainer}>
-                                        <Text style={localStyles.dateText}>
+                                        <Text style={[localStyles.dateText, styles.textMuted]}>
                                             {dateh.getStringDay(String(item.date))}
                                         </Text>
-                                        <Text style={localStyles.dateText}>
+                                        <Text style={[localStyles.dateText, styles.textMuted]}>
                                             {dateh.getDay(String(item.date))}
                                         </Text>
-                                        <Text style={localStyles.dateText}>
+                                        <Text style={[localStyles.dateText, styles.textMuted]}>
                                             {dateh.getStringMonth(String(item.date))}
                                         </Text>
                                     </View>
-                                    <Text style={localStyles.nameText}>{item.record_name}</Text>
-                                    <Text style={localStyles.valueText}>${item.amount?.toFixed(2)}</Text>
+                                    <Text style={[localStyles.nameText, styles.textPrimary]}>{item.record_name}</Text>
+                                    <Text style={[localStyles.valueText, styles.textPrimary]}>{formatMoneyWithSymbol(item.amount)}</Text>
                                 </View>
-                            </BorderLeftBottomBlock>
+                            </AccentRow>
                         </Pressable>
                     )
                 })}
@@ -71,7 +73,7 @@ const localStyles = StyleSheet.create({
         width: 50
     },
     dateText: {
-        fontWeight: "100",
+        fontWeight: "500",
         fontSize: 8,
         textAlign: "center"
     },

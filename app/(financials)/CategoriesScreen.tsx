@@ -1,124 +1,159 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Alert, StyleSheet, ScrollView } from 'react-native';
-
-import styles from '@/src/styles/styles';
-import { useLanguage } from '@/src/lang/LanguageContext';
-import SwipeItem from '@/src/components/ui/swipe-item';
-import BGSimpleBlock from '@/src/components/ui/BGSimpleBlock';
-import IconButton from '@/src/components/ui/icon-button';
+import { View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import InputLabel from '@/src/components/ui/InputLabel';
-import useAndroidToast from '@/src/hooks/useAndroidToast';
-import { useHandler } from '@/src/db/handlers/handler';
-import { Categories } from '@/src/db/types/tables';
-import { useDataStore } from '@/src/stores';
-import { useORM } from '@/src/orm';
 
-const PaymentTypesScreen = () => {
+import { useLanguage } from '@/src/lang/LanguageContext';
+import { SwipeAction } from '@/src/ui/actions/SwipeAction';
+import { useToast } from '@/src/ui/feedback/ToastProvider';
+import { Category } from '@/src/interfaces/schema';
+import { useDataStore } from '@/src/stores';
+import { useTableRepository } from '@/src/db';
+import { Button } from '@/src/ui/actions/Button';
+import { ListItem } from '@/src/ui/data-display/ListItem';
+import { TextField } from '@/src/ui/forms/TextField';
+import { Modal } from '@/src/ui/overlays/Modal';
+import { Row, Stack } from '@/src/ui/primitives/Stack';
+import { Screen } from '@/src/ui/primitives/Screen';
+import { useTheme } from '@/src/ui/theme/ThemeProvider';
+
+const CategoriesScreen = () => {
     const { t } = useLanguage();
-    const [category_name, setCategoryName ] = useState('');
+    const { colors } = useTheme();
+    const [visible, setVisible] = useState(false);
+    const [category_name, setCategoryName] = useState('');
     const [editingId, setEditingId] = useState<number | undefined>(undefined);
-    const {Categories, setCategories} = useDataStore()
-    const toast = useAndroidToast()
-    const orm = useORM("Categories");
+    const { Categories, setCategories } = useDataStore()
+    const { showToast } = useToast()
+    const repository = useTableRepository("Categories");
 
     useEffect(() => {
         const loadData = async () => {
-            const result = await orm.getAll();
+            const result = await repository.fetchAll();
             setCategories(result);
         };
         loadData();
     }, []);
 
+    const resetForm = () => {
+        setCategoryName('');
+        setEditingId(undefined);
+    }
+
+    const openCreate = () => {
+        resetForm();
+        setVisible(true);
+    }
+
     const handleAddOrUpdate = async () => {
-        if (!category_name) {
-            toast.emptyMessage()
+        if (!category_name.trim()) {
+            showToast({ message: t('toast.empty'), type: 'warning' })
             return;
         }
-        const newData: Categories = { category_name }; 
+        const newData: Category = { category_name: category_name.trim() };
 
         try {
             if (editingId) {
-                newData.id = editingId
-                await orm.update(editingId, newData);
-                toast.editedMessage()
+                await repository.edit({ ...newData, id: editingId });
+                showToast({ message: t('toast.edited'), type: 'success' })
             } else {
-                await orm.insert(newData);
-                toast.addedMessage()
+                await repository.add(newData);
+                showToast({ message: t('toast.added'), type: 'success' })
             }
 
-            const result = await orm.getAll();
+            const result = await repository.fetchAll();
             setCategories(result);
-            setCategoryName('');
-            setEditingId(undefined);
+            resetForm();
+            setVisible(false);
         } catch (error) {
             console.error(error);
-            toast.errorMessage()
+            showToast({ message: t('toast.error'), type: 'error' })
         }
     };
 
-    const handleEdit = (data: Categories) => {
+    const handleEdit = (data: Category) => {
         setCategoryName(data.category_name);
         setEditingId(data.id);
+        setVisible(true);
     };
 
     const handleDelete = async (id: number | undefined) => {
-        if(!id) return;
+        if (!id) return;
         try {
-            await orm.delete(id);
-            const result = await orm.getAll();
+            await repository.deleteById(id);
+            const result = await repository.fetchAll();
             setCategories(result);
-            toast.deletedMessage();
+            showToast({ message: t('toast.deleted'), type: 'success' });
         } catch (error) {
             console.error(error);
         }
     };
+
     return (
-        <View style={styles.container}>
-            <View style={localStyles.rowContainer}>
-                <InputLabel
-                    placeholder={t('categories.categoryName') + '*'}
+        <Screen scroll edges={['left', 'right']}>
+            <Stack gap='lg'>
+                <Row justify='flex-start'>
+                    <Button
+                        label={t('add.category')}
+                        size='sm'
+                        onPress={openCreate}
+                        leftIcon={
+                            <MaterialIcons
+                                name='add'
+                                size={18}
+                                color={colors.onPrimary}
+                            />
+                        }
+                    />
+                </Row>
+
+                <View style={{ gap: 8 }}>
+                    {Categories?.map((item, index) => (
+                        <SwipeAction
+                            key={item.id ?? index}
+                            handleDelete={() => handleDelete(item.id)}
+                            handleUpdate={() => handleEdit(item)}
+                        >
+                            <ListItem
+                                title={item.category_name}
+                                showDivider
+                            />
+                        </SwipeAction>
+                    ))}
+                </View>
+            </Stack>
+
+            <Modal
+                visible={visible}
+                onClose={() => setVisible(false)}
+                title={editingId ? t('edit.category') : t('add.category')}
+                closeLabel={t('cancel')}
+                scrollable
+                footer={
+                    <Row gap='sm' style={{ flex: 1 }}>
+                        <Button
+                            label={t('cancel')}
+                            variant='outline'
+                            onPress={() => setVisible(false)}
+                            style={{ flex: 1 }}
+                        />
+                        <Button
+                            label={t('confirm')}
+                            onPress={handleAddOrUpdate}
+                            style={{ flex: 1 }}
+                        />
+                    </Row>
+                }
+            >
+                <TextField
+                    label={t('categories.categoryName')}
+                    required
+                    placeholder={t('categories.categoryName')}
                     value={category_name}
                     onChangeText={setCategoryName}
                 />
-                <IconButton onClick={handleAddOrUpdate}>
-                    <MaterialIcons name={editingId ? 'edit' : 'add'} size={20}></MaterialIcons>
-                </IconButton>
-            </View>
-            <ScrollView style={{ flex: 1, paddingRight: 40 }}>
-                {Categories?.map((item, index) => (
-                    <View key={index} style={{ marginVertical: 5 }}>
-                        <SwipeItem
-                            handleDelete={() => handleDelete(item.id)}
-                            handleUpdate={() => handleEdit(item)}
-                            style={[styles.horizontalBlock]}
-                        >
-                            <BGSimpleBlock>
-                                <Text>{item.category_name}</Text>
-                            </BGSimpleBlock>
-                        </SwipeItem>
-                    </View>
-                ))}
-            </ScrollView>
-        </View>
+            </Modal>
+        </Screen>
     );
 };
 
-const localStyles = StyleSheet.create({
-    label: {
-        fontSize: 12,
-        fontWeight: "200"
-    },
-    rowContainer: {
-        flexDirection: "row",
-        justifyContent: "center",
-        alignItems: "flex-end",
-        gap: 10
-    },
-    colContainer: {
-        flex: 1,
-        flexDirection: "column"
-    },
-})
-
-export default PaymentTypesScreen;
+export default CategoriesScreen;

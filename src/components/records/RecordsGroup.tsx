@@ -1,49 +1,71 @@
 import { View, Text, StyleSheet } from 'react-native'
 
-import SwipeItem from '../ui/swipe-item'
+import { SwipeAction } from '@/src/ui/actions/SwipeAction'
 import useDate from '@/src/hooks/useDate'
-import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
-import type { RecordWithRelations } from '@/src/interfaces/schema'
+import { useLanguage } from '@/src/lang/LanguageContext'
+import { AccentRow } from '@/src/ui/data-display/AccentRow'
+import { useThemedStyles } from '@/src/styles/useThemedStyles'
+import type { RecordView } from '@/src/interfaces/schema'
+import { formatMoneyWithSymbol } from '@/src/utils'
 
 type RecordsGroupProps = {
-    records: RecordWithRelations[],
-    handleUpdate: (record: RecordWithRelations) => void,
-    handleDelete: (record: RecordWithRelations) => void,
+    records: RecordView[],
+    handleUpdate: (record: RecordView) => void,
+    handleDelete: (record: RecordView) => void,
 }
 
 const RecordsGroup = ({ records, handleDelete, handleUpdate }: RecordsGroupProps) => {
+    const styles = useThemedStyles()
     const dateh = useDate()
+    const { t } = useLanguage()
     return (
         <>
             <View style={{ gap: 5, paddingHorizontal: 30, }}>
                 {records?.map(item => {
                     return (
-                        <SwipeItem
+                        <SwipeAction
                             handleDelete={() => handleDelete(item)}
                             handleUpdate={() => handleUpdate(item)}
                             key={item.id}
                         >
-                            <BorderLeftBottomBlock
+                            <AccentRow
                                 bottomColor={item.PaymentMethods?.PaymentTypes?.payment_color ?? "#000"}
-                                letfColor={item.RecordTypes?.record_color ?? "#000"}
+                                accentColor={item.RecordTypes?.record_color ?? "#000"}
                             >
                                 <View style={localStyles.rowContainer}>
                                     <View style={localStyles.dateContainer}>
-                                        <Text style={localStyles.dateText}>
+                                        <Text style={[localStyles.dateText, styles.textMuted]}>
                                             {dateh.getStringDay(String(item.date))}
                                         </Text>
-                                        <Text style={localStyles.dateText}>
+                                        <Text style={[localStyles.dateText, styles.textMuted]}>
                                             {dateh.getDay(String(item.date))}
                                         </Text>
-                                        <Text style={localStyles.dateText}>
+                                        <Text style={[localStyles.dateText, styles.textMuted]}>
                                             {dateh.getStringMonth(String(item.date))}
                                         </Text>
                                     </View>
-                                    <Text style={localStyles.nameText}>{item.record_name}</Text>
-                                    <Text style={localStyles.valueText}>${item.amount}</Text>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={[localStyles.nameText, styles.textPrimary]}>{item.record_name}</Text>
+                                        {(item.shared_amount_cents ?? 0) > 0 ? (
+                                            <Text style={[localStyles.captionText, styles.textMuted]}>
+                                                {t('shared.total')}: {formatMoneyWithSymbol((item.own_amount_cents ?? item.amount) + (item.shared_amount_cents ?? 0))} · {t('shared.totalShared')}: {formatMoneyWithSymbol(item.shared_amount_cents ?? 0)}
+                                            </Text>
+                                        ) : null}
+                                        {item.saving_name ? (
+                                            <Text style={[localStyles.captionText, styles.textMuted]}>
+                                                {t('savings.records.paidWith')}: {item.saving_name}
+                                            </Text>
+                                        ) : null}
+                                    </View>
+                                    <View style={{ alignItems: 'flex-end' }}>
+                                        <Text style={[localStyles.valueText, styles.textPrimary]}>{formatMoneyWithSymbol(item.own_amount_cents ?? item.amount)}</Text>
+                                        {(item.shared_amount_cents ?? 0) > 0 ? (
+                                            <Text style={[localStyles.captionText, styles.textMuted]}>{t('shared.own')}</Text>
+                                        ) : null}
+                                    </View>
                                 </View>
-                            </BorderLeftBottomBlock>
-                        </SwipeItem>
+                            </AccentRow>
+                        </SwipeAction>
                     )
                 })}
             </View>
@@ -62,7 +84,7 @@ const localStyles = StyleSheet.create({
         width: 50
     },
     dateText: {
-        fontWeight: "100",
+        fontWeight: "500",
         fontSize: 8,
         textAlign: "center"
     },
@@ -70,6 +92,10 @@ const localStyles = StyleSheet.create({
         fontSize: 12,
         textAlign: "left",
         maxWidth: 200
+    },
+    captionText: {
+        fontSize: 9,
+        textAlign: 'left',
     },
     valueText: {
         fontSize: 12,

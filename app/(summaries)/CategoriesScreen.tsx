@@ -1,13 +1,14 @@
 import { View, ScrollView, StyleSheet } from 'react-native';
 import GroupSelector from '@/src/components/groups/group-selector';
-import styles from '@/src/styles/styles';
-import FinnanceTableBlock from '@/src/components/ui/FinanceTableBlock';
+import { useThemedStyles } from '@/src/styles/useThemedStyles';
+import FinnanceTableBlock from '@/src/components/summaries/FinanceTableBlock';
 import RecordsModal, { RecordsModalRef } from '@/src/components/records/RecordsModal';
 import { useRef } from 'react';
-import { useRecords } from '@/src/db/handlers/RecordsHandler';
+import { useRecords } from '@/src/db';
 import useRecordsStore from '@/src/stores/RecordsStore';
 
 const CategoriesScreen = () => {
+    const styles = useThemedStyles()
     const { group } = useRecordsStore()
     const { fetchRecordsWithMultipleWhere } = useRecords()
     const recordsModalRef = useRef<RecordsModalRef | null>(null);
@@ -15,7 +16,10 @@ const CategoriesScreen = () => {
     const onSummarySelected = async (id: number | undefined, idRecordType: number | undefined) => {
         if (!id) return;
         try {
-            const filters = [{ column: "Records.category_id", value: id }, { column: "Records.group_id", value: group?.id }]
+            const filters: { column: string; value: string | number | null }[] = [
+                { column: "Records.category_id", value: id },
+                { column: "Records.group_id", value: group?.id ?? null }
+            ]
             if (idRecordType) {
                 filters.push({ column: "Records.record_type_id", value: idRecordType })
             }

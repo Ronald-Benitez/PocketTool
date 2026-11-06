@@ -5,14 +5,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import AddGroup from '@/src/components/groups/add-group'
 import Table from '@/src/components/records/records-table'
-import { RecordI } from '@/src/interfaces'
 import GroupSelector from '@/src/components/groups/group-selector'
 
-import styles from '@/src/styles/styles'
+import { useThemedStyles } from '@/src/styles/useThemedStyles'
+import { useTheme } from '@/src/ui/theme/ThemeProvider'
 import useRecordsStore from '@/src/stores/RecordsStore';
-import { RecordJoined, Records } from '@/src/db/types/tables';
 
 const Index = () => {
+    const styles = useThemedStyles()
+    const { colors } = useTheme()
     const [pinned, setPinned] = useState<number>(0)
     const setRecordsState = useRecordsStore((state) => state.setRecords)
     const { group, setRecords } = useRecordsStore()
@@ -47,7 +48,7 @@ const Index = () => {
 
         return (
             <TouchableOpacity style={styles.button} onPress={pinUp}>
-                <Ionicons name={isPinned ? "pin" : "pin-outline"} size={24} color="#000" />
+                <Ionicons name={isPinned ? "pin" : "pin-outline"} size={24} color={colors.text} />
             </TouchableOpacity>
         )
     }
@@ -60,7 +61,7 @@ const Index = () => {
                 </View>
                 <AddGroup>
                     <View style={styles.button}>
-                        <AntDesign name="folder-add" size={20} color={"black"} />
+                        <AntDesign name="folder-add" size={20} color={colors.text} />
                     </View>
                 </AddGroup>
                 <Pin />

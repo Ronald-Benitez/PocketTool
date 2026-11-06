@@ -1,0 +1,654 @@
+import { z } from 'zod';
+
+const id = z.number().int().nonnegative().nullable().optional();
+const cents = z.number().int().finite();
+const timestamp = z.number().int().finite();
+const auditTimestamps = {
+  created_at: timestamp.nullable().optional(),
+  updated_at: timestamp.nullable().optional(),
+};
+const updateMeta = {
+  id: z.number().int().positive().optional(),
+  deleted_at: timestamp.nullable().optional(),
+};
+
+export const groupInputSchema = z
+  .object({
+    group_name: z.string().min(1),
+    goal: cents,
+    year: z.number().int().min(1970).max(9999),
+    month: z.number().int(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const groupUpdateSchema = groupInputSchema.partial().extend(updateMeta);
+
+export const recordInputSchema = z
+  .object({
+    amount: cents,
+    own_amount_cents: cents.nonnegative().nullable().optional(),
+    shared_amount_cents: cents.nonnegative().nullable().optional(),
+    record_name: z.string().min(1),
+    date: timestamp,
+    record_type_id: id,
+    group_id: id,
+    category_id: id,
+    payment_method_id: id,
+    fixed_id: id,
+    paid_credit_id: id,
+    saving_id: id,
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const recordUpdateSchema = recordInputSchema.partial().extend(updateMeta);
+
+export const paidCreditInputSchema = z
+  .object({
+    amount: cents,
+    date: timestamp,
+    group_id: id,
+    payment_method_id: id,
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const paidCreditUpdateSchema = paidCreditInputSchema.partial().extend(updateMeta);
+
+const budgetScope = z.enum(['category', 'fixed']);
+const budgetSource = z.enum([
+  'manual',
+  'template',
+  'fixed',
+  'previous_month',
+  'actuals',
+  'group_average',
+]);
+const priority = z.number().int().min(1).max(3);
+
+export const budgetPlanInputSchema = z
+  .object({
+    group_id: z.number().int().positive(),
+    template_id: id,
+    plan_name: z.string().max(120).nullable().optional(),
+    alert_threshold_percent: z.number().int().min(1).max(100).optional(),
+    notes: z.string().nullable().optional(),
+    applied_template_at: timestamp.nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const budgetPlanUpdateSchema = budgetPlanInputSchema.partial().extend(updateMeta);
+
+export const budgetLineInputSchema = z
+  .object({
+    budget_plan_id: z.number().int().positive(),
+    category_id: id,
+    record_type_id: id,
+    fixed_id: id,
+    scope: budgetScope.optional(),
+    source: budgetSource.optional(),
+    template_item_id: id,
+    planned_amount: cents.positive(),
+    priority: priority.optional(),
+    notes: z.string().nullable().optional(),
+    sort_order: z.number().int().optional(),
+    ...auditTimestamps,
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if ((value.scope ?? 'category') === 'category') {
+      if (!value.category_id) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['category_id'], message: 'Required' });
+      }
+      if (!value.record_type_id) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['record_type_id'], message: 'Required' });
+      }
+      if (value.fixed_id) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['fixed_id'], message: 'Not allowed' });
+      }
+    } else if (!value.fixed_id) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['fixed_id'], message: 'Required' });
+    }
+  });
+
+export const budgetLineUpdateSchema = z
+  .object({
+    budget_plan_id: z.number().int().positive().optional(),
+    category_id: id,
+    record_type_id: id,
+    fixed_id: id,
+    scope: budgetScope.optional(),
+    source: budgetSource.optional(),
+    template_item_id: id,
+    planned_amount: cents.positive().optional(),
+    priority: priority.optional(),
+    notes: z.string().nullable().optional(),
+    sort_order: z.number().int().optional(),
+    ...auditTimestamps,
+    ...updateMeta,
+  })
+  .strict();
+
+export const budgetTemplateInputSchema = z
+  .object({
+    template_name: z.string().min(1).max(120),
+    description: z.string().nullable().optional(),
+    is_default: z.boolean().or(z.number().int().min(0).max(1)).optional(),
+    notes: z.string().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const budgetTemplateUpdateSchema =
+  budgetTemplateInputSchema.partial().extend(updateMeta);
+
+export const budgetTemplateItemInputSchema = z
+  .object({
+    budget_template_id: z.number().int().positive(),
+    amount: cents.positive(),
+    record_type_id: z.number().int().positive(),
+    category_id: z.number().int().positive(),
+    fixed_id: id,
+    scope: budgetScope.optional(),
+    priority: priority.optional(),
+    notes: z.string().nullable().optional(),
+    sort_order: z.number().int().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const budgetTemplateItemUpdateSchema =
+  budgetTemplateItemInputSchema.partial().extend(updateMeta);
+
+const distanceUnit = z.enum(['mi', 'km']);
+const volumeUnit = z.enum(['gal', 'L']);
+const consumptionFormat = z.enum([
+  'mi_gal',
+  'km_gal',
+  'mi_l',
+  'km_l',
+  'l_100km',
+  'gal_100km',
+  'l_60mi',
+  'gal_60mi',
+]);
+const odometerSource = z.enum(['manual', 'inferred']);
+const distanceSource = z.enum(['odometer', 'manual', 'inferred']);
+const fuelType = z.enum(['gasoline']);
+const vehicleType = z.enum([
+  'sedan',
+  'suv',
+  'pickup',
+  'camioneta',
+  'motorcycle',
+  'bus',
+  'microbus',
+  'camion',
+  'furgon',
+  'tractor',
+  'retroexcavadora',
+  'excavadora',
+  'cargador',
+  'grua',
+  'other',
+]);
+const paymentVisualKind = z.enum([
+  'credit_card',
+  'debit_card',
+  'cash',
+  'piggy_bank',
+  'transfer',
+  'wallet',
+  'gift_card',
+  'other',
+]);
+const cardBrand = z.enum([
+  'visa',
+  'mastercard',
+  'amex',
+  'discover',
+  'diners',
+  'jcb',
+  'unionpay',
+  'other',
+]);
+const cardStyle = z.enum(['matte', 'metallic', 'gradient', 'transparent']);
+const financingKind = z.enum([
+  'installment_purchase',
+  'bank_loan',
+  'mortgage',
+  'auto_loan',
+  'personal_loan',
+  'shared_loan',
+  'other',
+]);
+const financingStatus = z.enum(['active', 'paid', 'refinanced', 'cancelled']);
+const financingRateType = z.enum(['fixed', 'variable']);
+const financingAdjustmentKind = z.enum([
+  'refinance',
+  'rate_change',
+  'term_change',
+  'payment_change',
+]);
+const vehicleServiceType = z.enum([
+  'oil_change',
+  'tires',
+  'brakes',
+  'battery',
+  'filter',
+  'inspection',
+  'repair',
+  'other',
+]);
+const vehicleSettingKey = z.enum([
+  'fuel',
+  'maintenance',
+  'repair',
+  'tires',
+  'oil_change',
+  'insurance',
+  'inspection',
+  'other',
+]);
+const optionalPositiveReal = z.number().finite().positive().nullable().optional();
+const optionalNonNegativeReal = z.number().finite().nonnegative().nullable().optional();
+
+export const vehicleInputSchema = z
+  .object({
+    name: z.string().min(1).max(120),
+    make: z.string().max(120).nullable().optional(),
+    model: z.string().max(120).nullable().optional(),
+    year: z.number().int().min(1900).max(2200).nullable().optional(),
+    plate: z.string().max(40).nullable().optional(),
+    color: z.string().max(40).nullable().optional(),
+    vehicle_type: vehicleType.optional(),
+    fuel_type: fuelType.optional(),
+    distance_unit: distanceUnit.optional(),
+    volume_unit: volumeUnit.optional(),
+    consumption_format: consumptionFormat.optional(),
+    tank_capacity: optionalPositiveReal,
+    tank_capacity_unit: volumeUnit.nullable().optional(),
+    is_default: z.boolean().or(z.number().int().min(0).max(1)).optional(),
+    notes: z.string().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const vehicleUpdateSchema = vehicleInputSchema.partial().extend(updateMeta);
+
+export const vehicleFuelEntryInputSchema = z
+  .object({
+    vehicle_id: z.number().int().positive(),
+    date: timestamp,
+    odometer: optionalNonNegativeReal,
+    odometer_source: odometerSource.nullable().optional(),
+    distance_unit: distanceUnit.optional(),
+    distance_traveled: optionalNonNegativeReal,
+    distance_source: distanceSource.nullable().optional(),
+    volume: z.number().finite().positive().nullable().optional(),
+    volume_unit: volumeUnit.optional(),
+    price_per_unit: cents.nonnegative().nullable().optional(),
+    total_cost: cents.nonnegative().nullable().optional(),
+    is_full_tank: z.boolean().or(z.number().int().min(0).max(1)).optional(),
+    is_baseline: z.boolean().or(z.number().int().min(0).max(1)).optional(),
+    station: z.string().max(120).nullable().optional(),
+    notes: z.string().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    const baseline = value.is_baseline === true || value.is_baseline === 1;
+    if (baseline) {
+      if (value.odometer == null || value.odometer <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'A baseline entry requires an odometer',
+          path: ['odometer'],
+        });
+      }
+      return;
+    }
+
+    if (value.volume == null || value.volume <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Volume is required',
+        path: ['volume'],
+      });
+    }
+    if (value.price_per_unit == null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Price per unit is required',
+        path: ['price_per_unit'],
+      });
+    }
+    if (value.total_cost == null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Total cost is required',
+        path: ['total_cost'],
+      });
+    }
+
+    const full =
+      value.is_full_tank == null ||
+      value.is_full_tank === true ||
+      value.is_full_tank === 1;
+    const hasOdometer = value.odometer != null && value.odometer > 0;
+    const hasDistance =
+      value.distance_traveled != null && value.distance_traveled > 0;
+    if (full && !hasOdometer && !hasDistance) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A full tank requires an odometer or distance',
+        path: ['odometer'],
+      });
+    }
+  });
+
+export const vehicleFuelEntryUpdateSchema =
+  vehicleFuelEntryInputSchema.innerType().partial().extend(updateMeta);
+
+export const vehicleMaintenanceInputSchema = z
+  .object({
+    vehicle_id: z.number().int().positive(),
+    date: timestamp,
+    odometer: optionalPositiveReal,
+    distance_unit: distanceUnit.optional(),
+    service_type: vehicleServiceType,
+    title: z.string().min(1).max(160),
+    cost: cents.nonnegative().optional(),
+    vendor: z.string().max(120).nullable().optional(),
+    notes: z.string().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const vehicleMaintenanceUpdateSchema =
+  vehicleMaintenanceInputSchema.partial().extend(updateMeta);
+
+export const vehicleMaintenanceItemInputSchema = z
+  .object({
+    maintenance_id: z.number().int().positive(),
+    name: z.string().min(1).max(120),
+    notes: z.string().nullable().optional(),
+    quantity: z.number().finite().positive().nullable().optional(),
+    unit: z.string().max(40).nullable().optional(),
+    cost: cents.nonnegative().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const vehicleMaintenanceItemUpdateSchema =
+  vehicleMaintenanceItemInputSchema.partial().extend(updateMeta);
+
+export const vehicleReminderInputSchema = z
+  .object({
+    vehicle_id: z.number().int().positive(),
+    service_type: vehicleServiceType,
+    title: z.string().min(1).max(160),
+    interval_distance: optionalPositiveReal,
+    interval_distance_unit: distanceUnit.nullable().optional(),
+    interval_months: z.number().int().positive().nullable().optional(),
+    last_service_date: timestamp.nullable().optional(),
+    last_service_odometer: optionalPositiveReal,
+    odometer_unit: distanceUnit.nullable().optional(),
+    next_due_date: timestamp.nullable().optional(),
+    next_due_odometer: optionalPositiveReal,
+    is_active: z.boolean().or(z.number().int().min(0).max(1)).optional(),
+    notes: z.string().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict()
+  .refine(
+    (value) => value.interval_distance != null || value.interval_months != null,
+    { message: 'A distance or month interval is required', path: ['interval_distance'] }
+  );
+
+export const vehicleReminderUpdateSchema =
+  vehicleReminderInputSchema.innerType().partial().extend(updateMeta);
+
+export const vehicleSettingInputSchema = z
+  .object({
+    setting_key: vehicleSettingKey,
+    category_id: id,
+    payment_method_id: id,
+    record_type_id: id,
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const vehicleSettingUpdateSchema =
+  vehicleSettingInputSchema.partial().extend(updateMeta);
+
+export const vehicleExpenseLinkInputSchema = z
+  .object({
+    record_id: z.number().int().positive(),
+    fuel_entry_id: id,
+    maintenance_id: id,
+  })
+  .strict()
+  .refine(
+    (value) =>
+      (value.fuel_entry_id != null && value.maintenance_id == null) ||
+      (value.fuel_entry_id == null && value.maintenance_id != null),
+    { message: 'Exactly one vehicle entry is required', path: ['fuel_entry_id'] }
+  );
+
+export const savingStatus = z.enum(['active', 'archived']);
+export const savingRecordsMode = z.enum(['separate', 'linked']);
+export const savingContributionRule = z.enum(['none', 'percent', 'fixed']);
+export const savingMovementKind = z.enum([
+  'initial',
+  'deposit',
+  'withdrawal',
+  'interest',
+  'adjustment',
+]);
+
+export const savingInputSchema = z
+  .object({
+    saving_name: z.string().min(1),
+    amount: cents,
+    target_amount_cents: cents.nonnegative().nullable().optional(),
+    target_date: timestamp.nullable().optional(),
+    status: savingStatus.optional(),
+    goal_reached_at: timestamp.nullable().optional(),
+    goal_alerted_at: timestamp.nullable().optional(),
+    archived_at: timestamp.nullable().optional(),
+    records_mode: savingRecordsMode.optional(),
+    contribution_rule: savingContributionRule.optional(),
+    contribution_percent_bps: z.number().int().min(0).max(10000).nullable().optional(),
+    contribution_amount_cents: cents.nonnegative().nullable().optional(),
+    interest_rate_bps: z.number().int().min(0).nullable().optional(),
+    icon: z.string().nullable().optional(),
+    color: z.string().nullable().optional(),
+    own_amount_cents: cents.nonnegative().nullable().optional(),
+    shared_amount_cents: cents.nonnegative().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const savingUpdateSchema = savingInputSchema.partial().extend(updateMeta);
+
+export const savingMovementInputSchema = z
+  .object({
+    savings_id: id,
+    person_id: id,
+    kind: savingMovementKind,
+    amount_cents: cents.nonnegative(),
+    previous_amount: cents.optional(),
+    new_amount: cents.optional(),
+    change_date: timestamp,
+    period_year: z.number().int().min(0).max(9999).optional(),
+    period_month: z.number().int().min(0).max(12).optional(),
+    note: z.string().nullable().optional(),
+    record_id: id,
+    group_id: id,
+    record_type_id: id,
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const savingsSettingsInputSchema = z
+  .object({
+    setting_key: z.string().min(1).default('savings'),
+    record_type_id: id,
+    payment_method_id: id,
+    category_id: id,
+    trophy_color: z.string().min(1).nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const paymentMethodInputSchema = z
+  .object({
+    method_name: z.string().min(1),
+    closing_date: z.number().int().min(0).max(31).nullable().optional(),
+    payment_date: z.number().int().min(0).max(31).nullable().optional(),
+    payment_type_id: id,
+    is_credit_card: z.boolean().or(z.number().int().min(0).max(1)).optional(),
+    credit_limit: cents.nonnegative().nullable().optional(),
+    visual_kind: paymentVisualKind.optional(),
+    card_brand: cardBrand.nullable().optional(),
+    card_style: cardStyle.nullable().optional(),
+    card_color: z.string().max(40).nullable().optional(),
+    card_last4: z.string().max(4).nullable().optional(),
+    card_holder: z.string().max(120).nullable().optional(),
+    card_issuer: z.string().max(120).nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    const isCredit =
+      value.is_credit_card === true || value.is_credit_card === 1;
+    if (isCredit && (value.credit_limit == null || value.credit_limit <= 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A credit card requires a positive credit limit',
+        path: ['credit_limit'],
+      });
+    }
+  });
+
+export const paymentMethodUpdateSchema = paymentMethodInputSchema.innerType().partial().extend(updateMeta);
+
+export const financingInputSchema = z
+  .object({
+    name: z.string().min(1).max(160),
+    kind: financingKind,
+    lender: z.string().max(120).nullable().optional(),
+    principal_cents: cents.nonnegative(),
+    down_payment_cents: cents.nonnegative().optional(),
+    financed_cents: cents.nonnegative(),
+    payment_cents: cents.nonnegative().nullable().optional(),
+    annual_rate_bps: z.number().int().min(0).max(100000),
+    rate_type: financingRateType.optional(),
+    term_months: z.number().int().positive(),
+    start_date: timestamp,
+    first_payment_date: timestamp.nullable().optional(),
+    payment_day: z.number().int().min(1).max(31).nullable().optional(),
+    payment_method_id: id,
+    category_id: id,
+    record_type_id: id,
+    paid_installments_before_app: z.number().int().min(0).optional(),
+    capital_paid_before_app_cents: cents.nonnegative().optional(),
+    is_shared: z.boolean().or(z.number().int().min(0).max(1)).optional(),
+    shared_percent: z.number().finite().min(0).max(100).nullable().optional(),
+    shared_counterparty: z.string().max(120).nullable().optional(),
+    status: financingStatus.optional(),
+    notes: z.string().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const financingUpdateSchema = financingInputSchema.partial().extend(updateMeta);
+
+export const financingPaymentInputSchema = z
+  .object({
+    financing_id: z.number().int().positive(),
+    date: timestamp,
+    amount_cents: cents.nonnegative(),
+    principal_cents: cents.nonnegative().optional(),
+    interest_cents: cents.nonnegative().optional(),
+    insurance_cents: cents.nonnegative().optional(),
+    fees_cents: cents.nonnegative().optional(),
+    extra_principal_cents: cents.nonnegative().optional(),
+    extra_reduce_payment_cents: cents.nonnegative().optional(),
+    is_shared: z.boolean().or(z.number().int().min(0).max(1)).optional(),
+    shared_amount_cents: cents.nonnegative().nullable().optional(),
+    group_id: id,
+    payment_method_id: id,
+    record_id: id,
+    notes: z.string().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const financingPaymentUpdateSchema =
+  financingPaymentInputSchema.partial().extend(updateMeta);
+
+export const financingAdjustmentInputSchema = z
+  .object({
+    financing_id: z.number().int().positive(),
+    date: timestamp,
+    kind: financingAdjustmentKind,
+    new_annual_rate_bps: z.number().int().min(0).max(100000).nullable().optional(),
+    new_term_months: z.number().int().positive().nullable().optional(),
+    new_payment_cents: cents.nonnegative().nullable().optional(),
+    capitalized_interest_cents: cents.nonnegative().nullable().optional(),
+    fees_cents: cents.nonnegative().nullable().optional(),
+    notes: z.string().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const financingAdjustmentUpdateSchema =
+  financingAdjustmentInputSchema.partial().extend(updateMeta);
+
+const sharedOwnerType = z.enum(['fixed', 'financing', 'saving']);
+
+export const personInputSchema = z
+  .object({
+    name: z.string().min(1).max(120),
+    notes: z.string().nullable().optional(),
+    is_active: z.boolean().or(z.number().int().min(0).max(1)).optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const personUpdateSchema = personInputSchema
+  .partial()
+  .extend(updateMeta);
+
+export const sharedParticipantInputSchema = z
+  .object({
+    owner_type: sharedOwnerType,
+    owner_id: z.number().int().positive(),
+    person_id: z.number().int().positive(),
+    share_percent: z.number().finite().min(0).max(100),
+    notes: z.string().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const sharedParticipantUpdateSchema =
+  sharedParticipantInputSchema.partial().extend(updateMeta);
+
+export const sharedAllocationInputSchema = z
+  .object({
+    person_id: z.number().int().positive(),
+    owner_type: sharedOwnerType,
+    owner_id: z.number().int().positive(),
+    record_id: z.number().int().positive(),
+    financing_payment_id: z.number().int().positive().nullable().optional(),
+    label: z.string().min(1).max(160),
+    date: z.number().int().nonnegative(),
+    amount_cents: z.number().int().nonnegative(),
+    share_percent: z.number().finite().min(0).max(100),
+    ...auditTimestamps,
+  })
+  .strict();

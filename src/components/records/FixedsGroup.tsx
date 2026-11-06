@@ -2,9 +2,10 @@ import { View, Text, Pressable, StyleSheet } from 'react-native'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
 import useDate from '@/src/hooks/useDate'
-import BorderLeftBottomBlock from '../ui/BorderLeftButtonBlock'
+import { AccentRow } from '@/src/ui/data-display/AccentRow'
 import type { RecordFormEntry } from '@/src/interfaces/schema'
-import styles from '@/src/styles/styles'
+import { useThemedStyles } from '@/src/styles/useThemedStyles'
+import { formatMoneyWithSymbol } from '@/src/utils'
 
 type FixedsGroupProps = {
     fixeds: RecordFormEntry[],
@@ -12,6 +13,7 @@ type FixedsGroupProps = {
 }
 
 const FixedsGroup = ({ fixeds, onCreditPayment }: FixedsGroupProps) => {
+    const styles = useThemedStyles()
     const dateh = useDate()
     const { t } = useLanguage()
 
@@ -30,26 +32,38 @@ const FixedsGroup = ({ fixeds, onCreditPayment }: FixedsGroupProps) => {
                 {fixeds?.map((item, index) => {
                     return (
                         <Pressable key={index} onPress={() => onCreditPayment(item)}>
-                            <BorderLeftBottomBlock
+                            <AccentRow
                                 bottomColor={item.PaymentMethods?.PaymentTypes?.payment_color || "#000"}
-                                letfColor={item.RecordTypes?.record_color || "#000"}
+                                accentColor={item.RecordTypes?.record_color || "#000"}
                             >
                                 <View style={localStyles.rowContainer}>
                                     <View style={localStyles.dateContainer}>
-                                        <Text style={localStyles.dateText}>
+                                        <Text style={[localStyles.dateText, styles.textMuted]}>
                                             {dateh.getStringDay(String(item.date))}
                                         </Text>
-                                        <Text style={localStyles.dateText}>
+                                        <Text style={[localStyles.dateText, styles.textMuted]}>
                                             {dateh.getDay(String(item.date))}
                                         </Text>
-                                        <Text style={localStyles.dateText}>
+                                        <Text style={[localStyles.dateText, styles.textMuted]}>
                                             {dateh.getStringMonth(String(item.date))}
                                         </Text>
                                     </View>
-                                    <Text style={localStyles.nameText}>{item.record_name}</Text>
-                                    <Text style={localStyles.valueText}>${item.amount?.toFixed(2)}</Text>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={[localStyles.nameText, styles.textPrimary]}>{item.record_name}</Text>
+                                        {(item.shared_amount_cents ?? 0) > 0 ? (
+                                            <Text style={[localStyles.captionText, styles.textMuted]}>
+                                                {t('shared.total')}: {formatMoneyWithSymbol((item.own_amount_cents ?? item.amount ?? 0) + (item.shared_amount_cents ?? 0))} · {t('shared.totalShared')}: {formatMoneyWithSymbol(item.shared_amount_cents ?? 0)}
+                                            </Text>
+                                        ) : null}
+                                    </View>
+                                    <View style={{ alignItems: 'flex-end' }}>
+                                        <Text style={[localStyles.valueText, styles.textPrimary]}>{formatMoneyWithSymbol(item.own_amount_cents ?? item.amount ?? 0)}</Text>
+                                        {(item.shared_amount_cents ?? 0) > 0 ? (
+                                            <Text style={[localStyles.captionText, styles.textMuted]}>{t('shared.own')}</Text>
+                                        ) : null}
+                                    </View>
                                 </View>
-                            </BorderLeftBottomBlock>
+                            </AccentRow>
                         </Pressable>
                     )
                 })}
@@ -69,7 +83,7 @@ const localStyles = StyleSheet.create({
         width: 50
     },
     dateText: {
-        fontWeight: "100",
+        fontWeight: "500",
         fontSize: 8,
         textAlign: "center"
     },
@@ -77,6 +91,10 @@ const localStyles = StyleSheet.create({
         fontSize: 12,
         textAlign: "left",
         maxWidth: 200
+    },
+    captionText: {
+        fontSize: 9,
+        textAlign: 'left',
     },
     valueText: {
         fontSize: 12,

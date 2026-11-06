@@ -1,17 +1,16 @@
-import { View, StyleSheet } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { Pressable, StyleSheet, View } from 'react-native'
+import React, { useEffect, useRef, useState } from 'react'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
-import useToast from '@/src/hooks/useToast'
-import MonthSelector from '../ui/month-selector'
-import { ScrollView } from 'react-native-gesture-handler'
-import ModalContainer from '../ui/modal-container'
-import InputLabel from '../ui/InputLabel'
+import { useToast } from '@/src/ui/feedback/ToastProvider'
 import useRecordsStore from '@/src/stores/RecordsStore'
-import useAndroidToast from '@/src/hooks/useAndroidToast'
-import { Groups } from '@/src/db/types/tables';
-import { useORM } from '@/src/orm'
-import { Insertable } from '@/src/interfaces/schema'
+import { useGroups } from '@/src/db'
+import type { Group, Insertable } from '@/src/interfaces/schema'
+import { Button } from '@/src/ui/actions/Button'
+import { MoneyField } from '@/src/ui/forms/MoneyField'
+import { MonthField } from '@/src/ui/forms/MonthField'
+import { TextField } from '@/src/ui/forms/TextField'
+import { Modal } from '@/src/ui/overlays/Modal'
 
 interface AddGroupProps {
     children?: React.ReactNode
@@ -21,127 +20,153 @@ interface AddGroupProps {
 
 const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) => {
     const { t } = useLanguage()
-    const { ToastContainer, showToast } = useToast()
+    const [visible, setVisible] = useState(false)
     const [name, setName] = useState<string>('')
-    const [goal, setGoal] = useState<number>(0)
+    const [goalCents, setGoalCents] = useState<number>(0)
     const [month, setMonth] = useState<number>(new Date().getMonth())
     const [year, setYear] = useState<number>(new Date().getFullYear())
     const { group, setGroup, setGroups } = useRecordsStore()
-    const toast = useAndroidToast()
-    const orm = useORM("Groups")
+    const { showToast } = useToast()
+    const { addGroup, editGroup, fetchGroupsByYear } = useGroups()
+    const firstOpenEffect = useRef(true)
+
+    useEffect(() => {
+        if (firstOpenEffect.current) {
+            firstOpenEffect.current = false
+            return
+        }
+        setVisible(true)
+    }, [openUpdate])
 
     useEffect(() => {
         if (!group) return
         cleanData()
         if (isEditing) {
             setName(group.group_name)
-            setGoal(group.goal)
+            setGoalCents(group.goal)
             setMonth(group.month)
             setYear(group.year)
         }
     }, [openUpdate])
 
     const getGroups = async () => {
-        const groups = await orm.where("year", year, "=").getAll()
+        const groups = await fetchGroupsByYear(year)
         setGroups(groups)
     }
 
     const cleanData = () => {
         setName('')
-        setGoal(0)
+        setGoalCents(0)
         setMonth(new Date().getMonth())
         setYear(new Date().getFullYear())
     }
 
+    const closeModal = () => setVisible(false)
+
     const onSave = async () => {
-        if (!name || month == null || month == undefined  || !year || !goal) {
-            toast.emptyMessage()
+        if (!name.trim() || goalCents <= 0 || !year) {
+            showToast({ message: t('toast.empty'), type: 'warning' })
             return
         }
 
         if (String(year).length !== 4) {
-            toast.withMessage(t('year-error'))
+            showToast({ message: t('year-error'), type: 'info' })
             return
         }
 
-        const newGroup: Insertable<Groups> = {
-            group_name: name,
-            goal,
+        const newGroup: Insertable<Group> = {
+            group_name: name.trim(),
+            goal: goalCents,
             month,
             year
         }
         if (group?.id && isEditing) {
             const updateGroup = { ...group, ...newGroup }
-            await orm.update(group.id, updateGroup)
+            await editGroup(group.id, updateGroup)
             setGroup && setGroup(updateGroup)
-            toast.editedMessage()
+            showToast({ message: t('toast.edited'), type: 'success' })
         } else {
-            await orm.insert(newGroup)
-            toast.addedMessage()
+            await addGroup(newGroup)
+            showToast({ message: t('toast.added'), type: 'success' })
         }
-        getGroups()
+        await getGroups()
         cleanData()
+        closeModal()
     }
 
     return (
         <>
-            <ModalContainer
-                buttonOpen={children}
-                closeOnAccept={true}
-                type="complete"
-                onAccept={onSave}
+            {children ? (
+                <Pressable onPress={() => setVisible(true)}>{children}</Pressable>
+            ) : null}
+            <Modal
+                visible={visible}
+                onClose={closeModal}
                 title={group ? t('group.edit') : t('group.add')}
-                open={openUpdate}
-            >
-                <ScrollView >
-                    <View style={localStyles.colContainer}>
-                        <View style={localStyles.inputContainer}>
-                            <InputLabel
-                                value={name}
-                                onChangeText={setName}
-                                placeholder={t('group.name') + '*'}
-                            />
-                        </View>
-                        <View style={localStyles.inputContainer}>
-                            <InputLabel
-                                value={String(goal)}
-                                onChangeText={(e) => setGoal(Number(e))}
-                                keyboardType="numeric"
-                                placeholder={t('group.goal') + '*'}
-                            />
-                        </View>
-                        <View style={localStyles.inputContainer}>
-                            <MonthSelector month={String(month)} setMonth={(e) => setMonth(Number(e))} />
-                        </View>
-                        <View style={localStyles.inputContainer}>
-                            <InputLabel
-                                value={String(year)}
-                                onChangeText={(e) => setYear(Number(e))}
-                                keyboardType="numeric"
-                                placeholder={t('group.year') + '*'}
-                            />
-                        </View>
+                closeLabel={t('cancel')}
+                scrollable
+                footer={
+                    <View style={styles.footer}>
+                        <Button
+                            label={t('cancel')}
+                            variant='outline'
+                            onPress={closeModal}
+                            style={styles.footerButton}
+                        />
+                        <Button
+                            label={t('confirm')}
+                            onPress={onSave}
+                            style={styles.footerButton}
+                        />
                     </View>
-                </ScrollView>
-            </ModalContainer>
-            <ToastContainer />
+                }
+            >
+                <View style={styles.form}>
+                    <TextField
+                        label={t('group.name')}
+                        required
+                        value={name}
+                        onChangeText={setName}
+                        placeholder={t('group.name')}
+                    />
+                    <MoneyField
+                        label={t('group.goal')}
+                        required
+                        value={goalCents}
+                        onChangeCents={setGoalCents}
+                    />
+                    <MonthField
+                        label={t('group.month')}
+                        required
+                        value={month}
+                        onChange={setMonth}
+                    />
+                    <TextField
+                        label={t('group.year')}
+                        required
+                        value={String(year)}
+                        onChangeText={(value) => setYear(Number(value.replace(/[^0-9]/g, '')))}
+                        keyboardType='number-pad'
+                        maxLength={4}
+                        placeholder={t('group.year')}
+                    />
+                </View>
+            </Modal>
         </>
     )
 }
 
-const localStyles = StyleSheet.create({
-    colContainer: {
-        flexDirection: "column",
-        justifyContent: "center",
-        alignContent: "center",
-        paddingVertical: 20,
-        gap: 20
+const styles = StyleSheet.create({
+    form: {
+        gap: 16
     },
-
-    inputContainer: {
+    footer: {
         flex: 1,
-        flexDirection: "row",
-        justifyContent: "center"
+        flexDirection: 'row',
+        gap: 8
+    },
+    footerButton: {
+        flex: 1
     }
 })
 

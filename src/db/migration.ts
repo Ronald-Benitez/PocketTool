@@ -1,68 +1,78 @@
 import { type SQLiteDatabase } from 'expo-sqlite';
-import { APP_SCHEMA } from './schema';
-import { Migrations } from './types/tables';
+
+import { APP_SCHEMA, SCHEMA_VERSION } from './schema';
 import { migrations } from './migrations';
+import { withExclusiveTransaction } from './transaction';
+import { ensureIndexes, ensureSchema, ensureTimestampTriggers } from './schema/apply';
+import { seedDefaults } from './schema/seed';
+import { createTableSql, quoteIdent } from './schema/sql';
 
-async function migrateDb(db: SQLiteDatabase) {
-  const DATABASE_VERSION = 1;
-
-  const result = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
-
-  const currentDbVersion = result ? result.user_version : 0;
-  // await down(db);
-  await up(db)
-  await runMigrations(db)
-}
-
-export const up = async (db: SQLiteDatabase) => {
-  const tables = Object.keys(APP_SCHEMA)
-  for (const table of tables) {
-    const data = APP_SCHEMA[table]
-    const columnsSql = data.columns.map(col => {
-      let def = `${col.name} ${col.type}`;
-      if (col.primaryKey) def += ' PRIMARY KEY';
-      if (col.autoIncrement) def += ' AUTOINCREMENT'; // Only for INTEGER PRIMARY KEY
-      if (col.notNull) def += ' NOT NULL';
-      if (col.unique) def += ' UNIQUE';
-      if (col.defaultValue !== undefined) {
-        if (typeof col.defaultValue === 'string') def += ` DEFAULT '${col.defaultValue}'`;
-        else def += ` DEFAULT ${col.defaultValue}`;
-      }
-      if (col.references) {
-        def += ` REFERENCES ${col.references.table}(${col.references.column})`;
-      }
-      return def;
-    }).join(', ');
-    const createTableSql = `CREATE TABLE IF NOT EXISTS ${data.name} (${columnsSql});`;
-    await db.execAsync(createTableSql);
-    console.log(`Table '${data.name}' created or already exists.`);
-  }
-};
-
-export const down = async (db: SQLiteDatabase) => {
-  const tables = Object.keys(APP_SCHEMA)
-  for (const table of tables) {
-    await db.execAsync(`DROP TABLE IF EXISTS ${APP_SCHEMA[table].name};`);
-  }
+const getUserVersion = async (db: SQLiteDatabase) => {
+  const row = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
+  return row?.user_version ?? 0;
 };
 
 export const runMigrations = async (db: SQLiteDatabase) => {
-  const migrationsList = await db.getAllAsync<Migrations>('SELECT * FROM Migrations');
-  const names = Object.keys(migrations);
-  for (const name of names) {
-    if (!migrationsList.find(m => m.migration_name === name)) {
+  let version = await getUserVersion(db);
+
+  for (const migration of migrations) {
+    if (migration.version <= version) continue;
+
+    await withExclusiveTransaction(db, async (txn) => {
+      await txn.execAsync('PRAGMA legacy_alter_table = ON;');
       try {
-        await migrations[name as keyof typeof migrations](db);
-        await db.runAsync('INSERT INTO Migrations (migration_name, applied_at) VALUES (?, ?)', name, new Date().getTime());
-        console.log(`Migration '${name}' applied successfully.`);
-      } catch (error) {
-        console.error(`Error applying migration '${name}':`, error);
+        await migration.up(txn);
+      } finally {
+        await txn.execAsync('PRAGMA legacy_alter_table = OFF;');
       }
-    } else {
-      console.log(`Migration '${name}' already applied.`);
-    }
+    });
+
+    // Only record the migration after its transaction has committed.
+    await withExclusiveTransaction(db, async (txn) => {
+      await txn.runAsync(
+        `INSERT OR IGNORE INTO ${quoteIdent(APP_SCHEMA.Migrations.sqlName)} (migration_name, applied_at) VALUES (?, ?)`,
+        migration.name,
+        Date.now()
+      );
+      await txn.execAsync(`PRAGMA user_version = ${migration.version}`);
+    });
+
+    version = migration.version;
   }
-  
+};
+
+async function migrateDb(db: SQLiteDatabase) {
+  const latestMigration = migrations[migrations.length - 1]?.version ?? 0;
+  if (latestMigration < SCHEMA_VERSION) {
+    throw new Error('SCHEMA_VERSION_WITHOUT_MIGRATION');
+  }
+
+  try {
+    await db.execAsync('PRAGMA journal_mode = WAL;');
+  } catch (error) {
+    // WAL is not available on every platform (for example some web builds).
+    console.warn('No se pudo activar journal_mode=WAL:', error);
+  }
+
+  await db.execAsync('PRAGMA foreign_keys = OFF;');
+
+  try {
+    // The runner needs the history table before applying the baseline.
+    await db.execAsync(createTableSql(APP_SCHEMA.Migrations));
+
+    await runMigrations(db);
+    await ensureSchema(db);
+    await ensureIndexes(db);
+    await ensureTimestampTriggers(db);
+    await seedDefaults(db);
+  } finally {
+    await db.execAsync('PRAGMA foreign_keys = ON;');
+  }
+
+  const currentVersion = await getUserVersion(db);
+  if (currentVersion < SCHEMA_VERSION) {
+    await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION};`);
+  }
 }
 
 export default migrateDb;

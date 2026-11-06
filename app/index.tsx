@@ -1,59 +1,194 @@
-import { View, Text, ScrollView, TextStyle, StyleSheet, Pressable } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
+import { View, Pressable } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
-import styles from '@/src/styles/styles';
 import useColorStore from '@/src/stores/ColorsStore';
 import GroupSelector from '@/src/components/groups/group-selector';
-import IndexBlock from '@/src/components/ui/IndexBlock';
-import FinanceSimpleBlock from '@/src/components/ui/FinanceSimpleBlock';
 import useRecordsStore from '@/src/stores/RecordsStore';
 import AddItem from '@/src/components/records/add-record';
-import ColorText from '@/src/components/ui/color-text';
 import useResumesStore from '@/src/stores/ResumesStore';
 import { useDataStore } from '@/src/stores';
-import { Fixed, FixedJoined, RecordJoined } from '@/src/db/types/tables';
-import useConfigs from '@/src/hooks/useConfigs';
+import type {
+  FinancingWithRelations,
+  FixedView,
+  RecordFormEntry,
+  SharedExpenseParticipant,
+} from '@/src/interfaces/schema';
+import type { FinancingScheduleRow } from '@/src/domain/credits/types';
+import {
+  summarizeFinancing,
+  type FinancingSummary,
+} from '@/src/domain/credits/summary';
+import {
+    useFinancingsRepository,
+    useFixeds,
+    useRecords,
+    useSharedParticipantsRepository,
+} from '@/src/db';
+import { mapDatabaseError } from '@/src/db/errors';
+import { FinancingPaymentForm } from '@/src/components/credits/FinancingPaymentForm';
+import { useConfigs } from '@/src/hooks/useConfigs';
+import { formatMoneyWithSymbol } from '@/src/utils';
+import { useToast } from '@/src/ui/feedback/ToastProvider';
+import { AppText } from '@/src/ui/primitives/AppText';
+import { Row, Stack } from '@/src/ui/primitives/Stack';
+import { Screen } from '@/src/ui/primitives/Screen';
+import { Surface } from '@/src/ui/primitives/Surface';
+import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock';
+import { FinanceValue } from '@/src/ui/data-display/FinanceValue';
+import { useTheme } from '@/src/ui/theme/ThemeProvider';
+
+type Obligation = {
+    financing: FinancingWithRelations;
+    summary: FinancingSummary;
+    next: FinancingScheduleRow;
+};
+
+const isSameDay = (left: number, right: number) => {
+    const a = new Date(left);
+    const b = new Date(right);
+    return (
+        a.getFullYear() === b.getFullYear() &&
+        a.getMonth() === b.getMonth() &&
+        a.getDate() === b.getDate()
+    );
+};
 
 const Index = () => {
     const { t } = useLanguage();
-    const { initializeColors, colors } = useColorStore()
+    const { showToast } = useToast();
+    const { initializeColors } = useColorStore()
+    const { colors } = useTheme()
     const { group } = useRecordsStore()
-    const [today, setToday] = useState(new Date())
-    const [todayFixeds, setTodayFixeds] = useState<FixedJoined[]>()
+    const [pendingFixeds, setPendingFixeds] = useState<
+        { fixed: FixedView; date: number }[]
+    >([])
     const { balance, todayBalanceByRecordType } = useResumesStore()
-    const [fixedToSave, setFixedToSave] = useState<RecordJoined>()
+    const [fixedToSave, setFixedToSave] = useState<RecordFormEntry>()
     const { loadConfigs } = useConfigs()
     const [open, setOpen] = useState(false)
     const { records } = useRecordsStore()
-    const { Fixeds } = useDataStore()
+    const { Fixeds, setFixeds } = useDataStore()
+    const { fetchFixeds } = useFixeds();
+    const financingsRepository = useFinancingsRepository();
+    const participantsRepository = useSharedParticipantsRepository();
+    const { fetchRecords } = useRecords();
+    const [participants, setParticipants] = useState<SharedExpenseParticipant[]>([]);
+    const [financings, setFinancings] = useState<FinancingWithRelations[]>([]);
+    const [financingsRefreshKey, setFinancingsRefreshKey] = useState(0);
+    const [selectedFinancing, setSelectedFinancing] =
+        useState<FinancingWithRelations | null>(null);
+    const [selectedFinancingSummary, setSelectedFinancingSummary] =
+        useState<FinancingSummary | null>(null);
+    const [paymentVisible, setPaymentVisible] = useState(false);
+    const [paymentInitialDate, setPaymentInitialDate] = useState<number>();
 
     useEffect(() => {
         initializeColors()
-        let date = new Date();
-        let offset = date.getTimezoneOffset() * 60 * 1000;
-        let newDate = new Date(date.getTime() - offset);
-        setToday(newDate)
         loadConfigs()
-
     }, [])
 
-    const verifyFixedsForToday = () => {
+    useEffect(() => {
+        let active = true;
+        fetchFixeds()
+            .then((rows) => {
+                if (active) setFixeds(rows);
+            })
+            .catch((cause) => {
+                if (!active) return;
+                if (__DEV__) console.warn('[home] fixeds load failed', cause);
+                const mapped = mapDatabaseError(cause, t('toast.error'));
+                showToast({ message: t(`dbErrors.${mapped.code}` as never), type: 'error' });
+            });
+        return () => { active = false; };
+    }, []);
+
+    useEffect(() => {
+        let active = true;
+        participantsRepository.fetchAll().then((rows) => {
+            if (active) setParticipants(rows);
+        }).catch((cause) => {
+            if (!active) return;
+            if (__DEV__) console.warn('[home] participants load failed', cause);
+            const mapped = mapDatabaseError(cause, t('toast.error'));
+            showToast({ message: t(`dbErrors.${mapped.code}` as never), type: 'error' });
+        });
+        return () => { active = false; };
+    }, []);
+
+    useEffect(() => {
+        let active = true;
+        financingsRepository.fetchFinancings().then((rows) => {
+            if (active) setFinancings(rows);
+        }).catch((cause) => {
+            if (!active) return;
+            if (__DEV__) console.warn('[home] financings load failed', cause);
+            const mapped = mapDatabaseError(cause, t('toast.error'));
+            showToast({ message: t(`dbErrors.${mapped.code}` as never), type: 'error' });
+        });
+        return () => { active = false; };
+    }, [financingsRefreshKey]);
+
+    const splitFixed = (fixed: FixedView) => {
+        const percent = Math.min(
+            100,
+            participants
+                .filter(
+                    (participant) =>
+                        participant.owner_type === 'fixed' &&
+                        participant.owner_id === fixed.id
+                )
+                .reduce((sum, participant) => sum + participant.share_percent, 0)
+        );
+        const shared = Math.round((fixed.fixed_amount * percent) / 100);
+        return { own: fixed.fixed_amount - shared, shared };
+    };
+
+    const buildPendingFixeds = () => {
         const today = new Date()
         const day = today.getDate()
-        const list: FixedJoined[] = []
-        const todayFixeds = Fixeds.filter(fixed => fixed.fixed_day == day)
-        todayFixeds.map((fixed) => {
-            const record = records.find(record => record.fixed_id == fixed.id)
-            if (!record) {
-                list.push(fixed)
-            }
+        const list = Fixeds.flatMap((fixed) => {
+            if (fixed.fixed_day !== day) return []
+            const record = records.find(record => record.fixed_id === fixed.id)
+            if (record) return []
+            const date = new Date()
+            date.setHours(0, 0, 0, 0)
+            return [{ fixed, date: date.getTime() }]
         })
-        setTodayFixeds(list)
+        setPendingFixeds(list)
     }
 
-    useEffect(verifyFixedsForToday, [records, Fixeds])
+    useEffect(buildPendingFixeds, [records, Fixeds, participants])
+
+    const pendingFinancings = useMemo<Obligation[]>(() => {
+        const today = new Date()
+        return financings
+            .filter((financing) => financing.status === 'active')
+            .flatMap((financing) => {
+                const summary = summarizeFinancing(
+                    financing,
+                    financing.FinancingPayments ?? [],
+                    financing.FinancingAdjustments ?? []
+                );
+                const next = summary.schedule.rows[0];
+                if (!next || !isSameDay(next.date, today.getTime())) return [];
+                return [{ financing, summary, next }];
+            });
+    }, [financings]);
+
+    const openFinancingPayment = (obligation: Obligation) => {
+        setSelectedFinancing(obligation.financing);
+        setSelectedFinancingSummary(obligation.summary);
+        setPaymentInitialDate(obligation.next.date);
+        setPaymentVisible(true);
+    };
+
+    const refreshHomeRecords = async () => {
+        if (!group?.id) return;
+        const rows = await fetchRecords(group.id);
+        useRecordsStore.getState().setRecords(rows ?? []);
+    };
 
     const decideText = () => {
         const hour = new Date().getHours()
@@ -61,31 +196,31 @@ const Index = () => {
         let icon = <></>
         if (hour >= 5 && hour < 12) {
             message = t("greeting.morning")
-            icon = <MaterialCommunityIcons name="weather-partly-cloudy" size={24} color="#179BAE" />
+            icon = <MaterialCommunityIcons name="weather-partly-cloudy" size={28} color={colors.info} />
         } else if (hour >= 12 && hour < 18) {
-            icon = <MaterialCommunityIcons name="weather-sunny" size={24} color="#FFB200" />
+            icon = <MaterialCommunityIcons name="weather-sunny" size={28} color={colors.warning} />
             message = t("greeting.afternoon")
         } else {
             message = t("greeting.night")
-            icon = <MaterialCommunityIcons name="weather-night" size={24} color="blue" />
+            icon = <MaterialCommunityIcons name="weather-night" size={28} color={colors.transfer} />
         }
 
         return [message, icon]
     }
 
-    const onFixedPress = (item: FixedJoined) => {
-        const today = new Date()
-        today.setDate(item.fixed_day)
+    const onFixedPress = (obligation: { fixed: FixedView; date: number }) => {
+        const split = splitFixed(obligation.fixed)
         setFixedToSave({
-            ...item,
-            amount: item.fixed_amount,
-            date: today.getTime(),
-            goal: 0,
-            group_id: group?.id || 0,
-            group_name: "",
-            month: today.getMonth(),
-            year: today.getFullYear(),
-            record_name: item.fixed_name
+            amount: split.own,
+            own_amount_cents: split.own,
+            shared_amount_cents: split.shared,
+            date: obligation.date,
+            group_id: group?.id ?? null,
+            record_name: obligation.fixed.fixed_name,
+            record_type_id: obligation.fixed.record_type_id,
+            category_id: obligation.fixed.category_id,
+            payment_method_id: obligation.fixed.payment_method_id,
+            fixed_id: obligation.fixed.id,
         })
         setOpen(!open)
     }
@@ -93,152 +228,191 @@ const Index = () => {
     const [message, Icon] = decideText()
 
     return (
-        <ScrollView>
-            <View style={[styles.container, { paddingBottom: 20 }]}>
-                <View style={[{ justifyContent: "center", alignItems: "center", height: "100%", gap: 20 }]}>
+        <>
+        <Screen scroll edges={['left', 'right']}>
+            <Stack gap='lg'>
+                <Row justify='space-between' align='center'>
+                    <Row gap='sm' align='center'>
+                        <AppText variant='title'>{message}</AppText>
+                        {Icon}
+                    </Row>
+                </Row>
+
+                <Row justify='center'>
                     <GroupSelector />
-                    <View style={localStyles.blocksContainer}>
-                        <View style={[localStyles.rowContainer, { margin: 10 }]}>
-                            <ColorText fontWeight={"200"} fontSize={20}>
-                                {message}
-                            </ColorText>
-                            {Icon}
-                        </View>
-                        {
-                            todayFixeds && todayFixeds.length > 0 ? (
-                                <View style={[localStyles.rowContainer, { backgroundColor: colors?.BGSimple, paddingVertical: 10, paddingTop: 30 }]}>
-                                    <ScrollView>
-                                        <Text style={[styles.textCenter, styles.smallText]}>{t("index.fixedsMessage")}</Text>
-                                        <View style={[localStyles.colContainer, { padding: 10 }]}>
-                                            {
-                                                todayFixeds?.map((item) => (
-                                                    <Pressable key={item.id} onPress={() => onFixedPress(item)} >
-                                                        <View style={[localStyles.fixedContainer, {
-                                                            borderLeftColor: item.payment_color, borderBottomColor: item.record_color
-                                                        }]}>
-                                                            <Text style={localStyles.nameText}>{item.fixed_name}</Text>
-                                                            <Text style={localStyles.valueText}>${item.fixed_amount}</Text>
-                                                        </View>
-                                                    </Pressable>
-                                                ))
-                                            }
-                                        </View>
-                                    </ScrollView>
-                                </View>
-                            ) : null
-                        }
-                        <IndexBlock>
-                            <FinanceSimpleBlock
-                                text={t("resume.balance")}
-                                value={(balance || 0).toFixed(2)}
-                                color={balance < 0 ? colors?.ExpenseColor : colors?.IncomeColor}
-                            />
-                        </IndexBlock>
-                        <IndexBlock>
-                            <FinanceSimpleBlock
-                                text={t("resume.goal")}
-                                value={String(group?.goal || 0)}
-                                color={colors?.GoalColor}
-                            />
-                        </IndexBlock>
+                </Row>
 
-                        <View style={[localStyles.rowContainer, { position: "relative", backgroundColor: colors?.BGSimple, paddingVertical: 10, paddingTop: 30 }]}>
-                            <ScrollView>
-                                <Text style={localStyles.blockText}>{t("resume.today")}</Text>
-                                <View style={localStyles.colContainer}>
-                                    {
-                                        todayBalanceByRecordType?.map((item) => (
-                                            <FinanceSimpleBlock
-                                                key={item.id}
-                                                text={item.type_name}
-                                                value={item.total.toFixed(2)}
-                                                color={item.record_color}
-                                            />
-                                        ))
-                                    }
-                                </View>
-                            </ScrollView>
-                            <View style={[{ position: "absolute", right: 0, top: 0 }]}>
-                                {
-                                    group && (
-                                        <AddItem>
-                                            <View style={[localStyles.button]}>
-                                                <AntDesign size={20} name='plus' color={"#000"} />
+                {pendingFixeds.length > 0 || pendingFinancings.length > 0 ? (
+                    <Surface variant='outlined' padding='md'>
+                        <Stack gap='sm'>
+                            <AppText variant='label'>{t("index.obligations")}</AppText>
+                            {pendingFixeds.map((obligation) => {
+                                const item = obligation.fixed;
+                                const split = splitFixed(item);
+                                return (
+                                    <Pressable key={`fixed-${item.id}`} onPress={() => onFixedPress(obligation)}>
+                                        <Row justify='space-between' align='center' style={{ minHeight: 40, gap: 12 }}>
+                                            <Row gap='sm' align='center' style={{ flex: 1 }}>
+                                                <View
+                                                    style={{
+                                                        width: 8,
+                                                        height: 8,
+                                                        borderRadius: 4,
+                                                        backgroundColor: item.RecordTypes?.record_color ?? colors.primary,
+                                                    }}
+                                                />
+                                                <View style={{ flex: 1 }}>
+                                                    <AppText variant='body' numberOfLines={1}>
+                                                        {item.fixed_name}
+                                                    </AppText>
+                                                    <AppText variant='caption' color='muted'>
+                                                        {new Date(obligation.date).toLocaleDateString()}
+                                                    </AppText>
+                                                    {split.shared > 0 ? (
+                                                        <AppText variant='caption' color='muted'>
+                                                            {t('shared.total')}: {formatMoneyWithSymbol(split.own + split.shared)} · {t('shared.totalShared')}: {formatMoneyWithSymbol(split.shared)}
+                                                        </AppText>
+                                                    ) : null}
+                                                </View>
+                                            </Row>
+                                            <View style={{ alignItems: 'flex-end' }}>
+                                                <FinanceValue cents={split.own} size='md' color={colors.text} />
+                                                {split.shared > 0 ? (
+                                                    <AppText variant='caption' color='muted'>{t('shared.own')}</AppText>
+                                                ) : null}
                                             </View>
-                                        </AddItem >
-                                    )
-                                }
-                            </View>
-                        </View>
-                    </View>
-                </View>
-            </View>
-            {
-                group && <AddItem open={open} item={fixedToSave} />
+                                        </Row>
+                                    </Pressable>
+                                );
+                            })}
+                            {pendingFinancings.map((obligation) => {
+                                const own =
+                                    obligation.summary.monthlyPaymentCents -
+                                    obligation.summary.sharedPaymentCents;
+                                return (
+                                    <Pressable
+                                        key={`financing-${obligation.financing.id}-${obligation.next.number}`}
+                                        onPress={() => openFinancingPayment(obligation)}
+                                    >
+                                        <Row justify='space-between' align='center' style={{ minHeight: 40, gap: 12 }}>
+                                            <Row gap='sm' align='center' style={{ flex: 1 }}>
+                                                <View
+                                                    style={{
+                                                        width: 8,
+                                                        height: 8,
+                                                        borderRadius: 4,
+                                                        backgroundColor:
+                                                            obligation.financing.RecordTypes?.record_color ??
+                                                            colors.primary,
+                                                    }}
+                                                />
+                                                <View style={{ flex: 1 }}>
+                                                    <AppText variant='body' numberOfLines={1}>
+                                                        {obligation.financing.name}
+                                                    </AppText>
+                                                    <AppText variant='caption' color='muted'>
+                                                        {new Date(obligation.next.date).toLocaleDateString()} · {t('records.financingPayments')} #{obligation.next.number}
+                                                    </AppText>
+                                                </View>
+                                            </Row>
+                                            <View style={{ alignItems: 'flex-end' }}>
+                                                <FinanceValue cents={own} size='md' color={colors.text} />
+                                                {obligation.financing.is_shared ? (
+                                                    <AppText variant='caption' color='muted'>{t('shared.own')}</AppText>
+                                                ) : null}
+                                            </View>
+                                        </Row>
+                                    </Pressable>
+                                );
+                            })}
+                        </Stack>
+                    </Surface>
+                ) : null}
 
-            }
-            <View style={{ padding: 40 }}></View>
-        </ScrollView>
+                <Surface variant='raised' padding='lg'>
+                    <SummaryBlock
+                        label={t("resume.balance")}
+                        cents={balance}
+                        size='xl'
+                        labelVariant='subtitle'
+                        valueColorOverride={colors.text}
+                        accentColor={colors.primary}
+                    />
+                </Surface>
+
+                <Surface variant='outlined' padding='md'>
+                    <SummaryBlock
+                        label={t("resume.goal")}
+                        cents={group?.goal}
+                        size='lg'
+                        valueColorOverride={colors.text}
+                        accentColor={colors.goal}
+                    />
+                </Surface>
+
+                <Surface variant='muted' padding='md'>
+                    <Stack gap='md'>
+                        <Row justify='space-between' align='center'>
+                            <AppText variant='subtitle'>{t("resume.today")}</AppText>
+                            {group ? (
+                                <AddItem>
+                                    <View style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+                                        <MaterialCommunityIcons name='plus' size={26} color={colors.primary} />
+                                    </View>
+                                </AddItem>
+                            ) : null}
+                        </Row>
+
+                        {todayBalanceByRecordType && todayBalanceByRecordType.length > 0 ? (
+                            todayBalanceByRecordType.map((item) => (
+                                <Row key={item.id} justify='space-between' align='center' style={{ minHeight: 36, gap: 12 }}>
+                                    <Row gap='sm' align='center' style={{ flex: 1 }}>
+                                        <View
+                                            style={{
+                                                width: 8,
+                                                height: 8,
+                                                borderRadius: 4,
+                                                backgroundColor: item.record_color ?? colors.primary,
+                                            }}
+                                        />
+                                        <AppText variant='body' numberOfLines={1} style={{ flex: 1 }}>
+                                            {item.type_name}
+                                        </AppText>
+                                    </Row>
+                                    <FinanceValue cents={item.own} size='lg' color={colors.text} />
+                                </Row>
+                            ))
+                        ) : (
+                            <AppText color='muted'>{t("resume.noData")}</AppText>
+                        )}
+                    </Stack>
+                </Surface>
+            </Stack>
+        </Screen>
+
+            {group && <AddItem open={open} item={fixedToSave} />}
+            <FinancingPaymentForm
+                visible={paymentVisible}
+                financing={selectedFinancing}
+                summary={selectedFinancingSummary}
+                initialDate={paymentInitialDate}
+                defaultLinkMode='create'
+                onClose={() => {
+                    setPaymentVisible(false);
+                    setPaymentInitialDate(undefined);
+                }}
+                onSaved={() => {
+                    setPaymentInitialDate(undefined);
+                    setFinancingsRefreshKey((value) => value + 1);
+                    refreshHomeRecords().catch((cause) => {
+                        if (__DEV__) console.warn('[home] records refresh failed', cause);
+                        const mapped = mapDatabaseError(cause, t('toast.error'));
+                        showToast({ message: t(`dbErrors.${mapped.code}` as never), type: 'error' });
+                    });
+                }}
+            />
+        </>
     );
 };
 
-const localStyles = StyleSheet.create({
-    blocksContainer: {
-        flex: 1,
-        flexDirection: "column",
-        justifyContent: "center",
-        gap: 10
-    },
-    rowContainer: {
-        flex: 1,
-        flexDirection: "row",
-        gap: 5,
-        alignItems: "center",
-        justifyContent: "center"
-    },
-    colContainer: {
-        flexDirection: "column",
-        gap: 5,
-        alignItems: "center",
-        justifyContent: "center"
-    },
-    blockText: {
-        fontWeight: "200",
-        fontSize: 12,
-        marginBottom: 10,
-        textAlign: "center",
-    },
-    button: {
-        width: 50,
-        height: 50,
-        justifyContent: "center",
-        alignItems: "center"
-    },
-    nameText: {
-        fontSize: 12,
-        textAlign: "left",
-        maxWidth: 200
-    },
-    valueText: {
-        fontSize: 12,
-        textAlign: "center",
-        fontWeight: "300",
-    },
-    dayText: {
-        borderColor: "#acacac",
-        borderWidth: 1,
-        borderRadius: 100,
-    },
-    fixedContainer: {
-        justifyContent: "space-between",
-        width: "100%",
-        flexDirection: "row",
-        margin: 10,
-        padding: 10,
-        borderLeftWidth: 3,
-        borderBottomWidth: 1,
-        borderBottomLeftRadius: 5,
-        borderTopLeftRadius: 5
-    }
-})
 export default Index;

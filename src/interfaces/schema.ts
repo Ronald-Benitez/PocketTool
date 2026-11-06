@@ -1,228 +1,241 @@
-// Base para entidades que implementan Soft Delete
-export interface SoftDeletable {
-  deleted_at?: string | null; // Almacenado como DATETIME/ISO string o NULL
-}
+/**
+ * Canonical entity types.
+ *
+ * The entity interfaces are generated from `src/db/schema/tables.ts`.
+ * Money is stored as integer cents. Dates are Unix timestamps in milliseconds.
+ * `deleted_at` is also stored as a millisecond timestamp, or null when active.
+ */
+import type {
+  BudgetLine,
+  BudgetPlan,
+  BudgetTemplate,
+  BudgetTemplateItem,
+  Category,
+  Cents,
+  Entity,
+  Financing,
+  FinancingAdjustment,
+  FinancingPayment,
+  FixedRecord,
+  Group,
+  Migration,
+  PaidCredit,
+  PaymentMethod,
+  PaymentType,
+  Person,
+  RecordEntry,
+  RecordType,
+  Saving,
+  SavingsHistoryEntry,
+  SavingsSetting,
+  SharedExpenseParticipant,
+  SharedPaymentAllocation,
+  SoftDeletable,
+  TimestampMs,
+  Vehicle,
+  VehicleExpenseLink,
+  VehicleFuelEntry,
+  VehicleMaintenanceEntry,
+  VehicleMaintenanceItem,
+  VehicleReminder,
+  VehicleSetting,
+} from '../db/schema/generated/types';
 
-// 1. Groups
-export interface Group extends SoftDeletable {
-  id: number;
-  group_name: string;
-  goal: number;
-  year: number;
-  month: number;
-}
-
-// 2. PaymentTypes
-export interface PaymentType extends SoftDeletable {
-  id: number;
-  payment_type_name?: string | null;
-  payment_color?: string | null;
-}
-
-// 3. PaymentMethods
-export interface PaymentMethod extends SoftDeletable {
-  id: number;
-  method_name: string;
-  closing_date?: number | null;
-  payment_type_id?: number | null;
-  payment_date?: number | null; // Agregado en migración
-}
-
-// 4. Categories
-export interface Category extends SoftDeletable {
-  id: number;
-  category_name: string;
-}
-
-// 5. RecordTypes
-export interface RecordType extends SoftDeletable {
-  id: number;
-  type_name: string;
-  effect?: string | null;
-  record_color?: string | null;
-}
-
-// 6. Fixed
-export interface FixedRecord extends SoftDeletable {
-  id: number;
-  fixed_amount: number;
-  fixed_name: string;
-  fixed_day: number;
-  record_type_id?: number | null;
-  category_id?: number | null;
-  payment_method_id?: number | null;
-}
-
-// 7. Records
-export interface RecordEntry extends SoftDeletable {
-  id: number;
-  amount: number;
-  record_name: string;
-  date: number; // Unix timestamp en ms o s
-  record_type_id?: number | null;
-  group_id?: number | null;
-  category_id?: number | null;
-  payment_method_id?: number | null;
-  fixed_id?: number | null;
-  paid_credit_id?: number | null; // Agregado en migración
-}
+export type {
+  BudgetLine,
+  BudgetPlan,
+  BudgetTemplate,
+  BudgetTemplateItem,
+  Category,
+  Cents,
+  Entity,
+  Financing,
+  FinancingAdjustment,
+  FinancingPayment,
+  FixedRecord,
+  Group,
+  Migration,
+  PaidCredit,
+  PaymentMethod,
+  PaymentType,
+  Person,
+  RecordEntry,
+  RecordType,
+  Saving,
+  SavingsHistoryEntry,
+  SavingsSetting,
+  SharedExpenseParticipant,
+  SharedPaymentAllocation,
+  SoftDeletable,
+  TimestampMs,
+  Vehicle,
+  VehicleExpenseLink,
+  VehicleFuelEntry,
+  VehicleMaintenanceEntry,
+  VehicleMaintenanceItem,
+  VehicleReminder,
+  VehicleSetting,
+} from '../db/schema/generated/types';
 
 export type RecordFormEntry = Partial<RecordWithRelations> & {
-  paid_method_id?: number;
+  paid_method_id?: number | null;
+  saving_name?: string | null;
 };
 
-// 8. PaidCredits
-export interface PaidCredit extends SoftDeletable {
-  id: number;
-  amount: number;
-  date: number;
-  group_id?: number | null;
-  payment_method_id?: number | null;
-}
-
-// 9. BudgetTemplates
-export interface BudgetTemplate extends SoftDeletable {
-  id: number;
-  template_name: string;
-  description?: string | null;
-}
-
-// 10. BudgetTemplateItems
-export interface BudgetTemplateItem extends SoftDeletable {
-  id: number;
-  budget_template_id: number;
-  amount: number;
-  record_type_id: number;
-  category_id: number;
-}
-
-// 11. Budgets
-export interface Budget extends SoftDeletable {
-  id: number;
-  amount: number;
-  record_type_id?: number | null;
-  group_id?: number | null;
-  category_id?: number | null;
-}
-
-// 12. Savings
-export interface Saving extends SoftDeletable {
-  id: number;
-  saving_name: string;
-  amount: number;
-}
-
-// 13. SavingsHistory
-export interface SavingsHistoryEntry extends SoftDeletable {
-  id: number;
-  savings_id?: number | null;
-  previous_amount: number;
-  new_amount: number;
-  change_date: number;
-}
-
-// 14. Migrations (Tabla interna de control)
-export interface Migration {
-  id: number;
-  migration_name: string;
-  applied_at: number;
-}
-
-// 15. FuelRefills
-export interface FuelRefill extends SoftDeletable {
-  id: number;
-  date?: string | null;
-  odometer_reading: number;
-  total_cost: number;
-  gallons: number;
-  price_per_gallon: number;
-  is_full_tank: boolean | number;
-  notes?: string | null;
-}
-
-// 16. TripLogs
-export interface TripLog extends SoftDeletable {
-  id: number;
-  date?: string | null;
-  distance_traveled: number;
-  average_consumption?: number | null;
-  is_counter_reset?: boolean | number | null;
-  trip_type?: string | null;
-  notes?: string | null;
-}
-
-// Omite 'id' y 'deleted_at' para operaciones INSERT
-export type Insertable<T> = Omit<T, 'id' | 'deleted_at'>;
-
-// Ejemplo de uso para insertar un nuevo grupo:
-// const newGroup: Insertable<Group> = { group_name: 'Viaje', goal: 500, year: 2026, month: 8 };
+export type NewEntity<T> = Omit<T, 'id' | 'deleted_at'>;
+export type UpdateEntity<T> = Partial<T>;
+export type WithRelations<T, R> = T & R;
+export type Insertable<T> = NewEntity<T>;
 
 ///                 Relations               ///
 
-// ----------------------------------------------------------------------
-// 1. PaymentMethods
-// ----------------------------------------------------------------------
 export interface PaymentMethodWithRelations extends PaymentMethod {
   PaymentTypes?: PaymentType | null;
 }
 
-// ----------------------------------------------------------------------
-// 2. Fixed
-// ----------------------------------------------------------------------
 export interface FixedRecordWithRelations extends FixedRecord {
   RecordTypes?: RecordType | null;
   Categories?: Category | null;
-  PaymentMethods?: PaymentMethodWithRelations | null; // Soporta anidación
+  PaymentMethods?: PaymentMethodWithRelations | null;
 }
 
-// ----------------------------------------------------------------------
-// 3. PaidCredits
-// ----------------------------------------------------------------------
 export interface PaidCreditWithRelations extends PaidCredit {
   Groups?: Group | null;
   PaymentMethods?: PaymentMethodWithRelations | null;
 }
 
-// ----------------------------------------------------------------------
-// 4. Records (Soporta relaciones anidadas profundas)
-// ----------------------------------------------------------------------
+export interface FinancingWithRelations extends Financing {
+  PaymentMethods?: PaymentMethodWithRelations | null;
+  Categories?: Category | null;
+  RecordTypes?: RecordType | null;
+  FinancingPayments?: FinancingPaymentWithRelations[];
+  FinancingAdjustments?: FinancingAdjustmentWithRelations[];
+}
+
+export interface FinancingPaymentWithRelations extends FinancingPayment {
+  Financings?: FinancingWithRelations | null;
+  Groups?: Group | null;
+  PaymentMethods?: PaymentMethodWithRelations | null;
+}
+
+export interface FinancingAdjustmentWithRelations extends FinancingAdjustment {
+  Financings?: FinancingWithRelations | null;
+}
+
+export interface SharedExpenseParticipantWithRelations
+  extends SharedExpenseParticipant {
+  People?: Person | null;
+}
+
 export interface RecordWithRelations extends RecordEntry {
   RecordTypes?: RecordType | null;
   Groups?: Group | null;
   Categories?: Category | null;
-  PaymentMethods?: PaymentMethodWithRelations | null; // p. ej: record.PaymentMethods.PaymentTypes
-  Fixed?: FixedRecordWithRelations | null;             // p. ej: record.Fixed.Categories
-  PaidCredits?: PaidCreditWithRelations | null;       // p. ej: record.PaidCredits.PaymentMethods
+  PaymentMethods?: PaymentMethodWithRelations | null;
+  Fixed?: FixedRecordWithRelations | null;
+  PaidCredits?: PaidCreditWithRelations | null;
+  Savings?: Saving | null;
 }
 
-// ----------------------------------------------------------------------
-// 5. BudgetTemplateItems
-// ----------------------------------------------------------------------
 export interface BudgetTemplateItemWithRelations extends BudgetTemplateItem {
   BudgetTemplates?: BudgetTemplate | null;
   RecordTypes?: RecordType | null;
   Categories?: Category | null;
+  Fixed?: FixedRecordWithRelations | null;
 }
 
-// ----------------------------------------------------------------------
-// 6. BudgetTemplates (Relación 1 a Muchos / Arreglo)
-// ----------------------------------------------------------------------
 export interface BudgetTemplateWithRelations extends BudgetTemplate {
   BudgetTemplateItems?: BudgetTemplateItemWithRelations[];
 }
 
-// ----------------------------------------------------------------------
-// 7. Budgets
-// ----------------------------------------------------------------------
-export interface BudgetWithRelations extends Budget {
-  RecordTypes?: RecordType | null;
+export interface BudgetPlanWithRelations extends BudgetPlan {
   Groups?: Group | null;
-  Categories?: Category | null;
+  BudgetTemplates?: BudgetTemplate | null;
+  BudgetLines?: BudgetLineWithRelations[];
 }
 
-// ----------------------------------------------------------------------
-// 8. SavingsHistory
-// ----------------------------------------------------------------------
+export interface BudgetLineWithRelations extends BudgetLine {
+  BudgetPlans?: BudgetPlanWithRelations | null;
+  Categories?: Category | null;
+  RecordTypes?: RecordType | null;
+  Fixed?: FixedRecordWithRelations | null;
+  BudgetTemplateItems?: BudgetTemplateItemWithRelations | null;
+}
+
 export interface SavingsHistoryWithRelations extends SavingsHistoryEntry {
   Savings?: Saving | null;
+}
+
+export interface VehicleFuelEntryWithRelations extends VehicleFuelEntry {
+  Vehicles?: Vehicle | null;
+}
+
+export interface VehicleMaintenanceItemWithRelations extends VehicleMaintenanceItem {
+  VehicleMaintenance?: VehicleMaintenanceEntry | null;
+}
+
+export interface VehicleMaintenanceEntryWithRelations extends VehicleMaintenanceEntry {
+  Vehicles?: Vehicle | null;
+  VehicleMaintenanceItems?: VehicleMaintenanceItemWithRelations[];
+}
+
+export interface VehicleReminderWithRelations extends VehicleReminder {
+  Vehicles?: Vehicle | null;
+}
+
+export interface VehicleSettingWithRelations extends VehicleSetting {
+  Categories?: Category | null;
+  PaymentMethods?: PaymentMethodWithRelations | null;
+}
+
+export interface VehicleExpenseLinkWithRelations extends VehicleExpenseLink {
+  Records?: RecordWithRelations | null;
+  VehicleFuelEntries?: VehicleFuelEntry | null;
+  VehicleMaintenance?: VehicleMaintenanceEntry | null;
+}
+
+/**
+ * Flattened shapes used by table/list screens. Repositories populate these
+ * convenience fields from the nested relations returned by the ORM.
+ */
+export interface RecordView extends RecordWithRelations {
+  record_id?: number;
+  group_name?: string | null;
+  category_name?: string | null;
+  method_name?: string | null;
+  payment_type_id?: number | null;
+  payment_type_name?: string | null;
+  payment_color?: string | null;
+  type_name?: string | null;
+  effect?: string | null;
+  record_color?: string | null;
+  paid_method_id?: number | null;
+  paid_method_amount?: Cents | null;
+  saving_name?: string | null;
+}
+
+export interface FixedView extends FixedRecordWithRelations {
+  fixed_id?: number;
+  category_name?: string | null;
+  method_name?: string | null;
+  payment_type_id?: number | null;
+  payment_type_name?: string | null;
+  payment_color?: string | null;
+  type_name?: string | null;
+  effect?: string | null;
+  record_color?: string | null;
+}
+
+export interface PaymentMethodView extends PaymentMethodWithRelations {
+  payment_type_name?: string | null;
+  payment_color?: string | null;
+}
+
+export interface BudgetLineView extends BudgetLineWithRelations {
+  category_name?: string | null;
+  type_name?: string | null;
+  effect?: string | null;
+  record_color?: string | null;
+  fixed_name?: string | null;
+  fixed_day?: number | null;
 }

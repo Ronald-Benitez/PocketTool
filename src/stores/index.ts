@@ -1,8 +1,7 @@
-import { Budget, Category, Group, Migration, PaymentType, Saving, SavingsHistoryWithRelations, FixedRecordWithRelations, RecordType, PaymentMethodWithRelations } from "../interfaces/schema";
+import { Category, Group, Migration, PaymentType, Saving, SavingsHistoryWithRelations, FixedView, RecordType, PaymentMethodWithRelations, FinancingWithRelations } from "../interfaces/schema";
 import { create } from "zustand";
 
 interface TableState {
-    Budgets: Budget[];
     Categories: Category[];
     Groups: Group[];
     Migrations: Migration[];
@@ -11,8 +10,8 @@ interface TableState {
     RecordTypes: RecordType[];
     Savings: Saving[];
     SavingsHistory: SavingsHistoryWithRelations[];
-    Fixeds: FixedRecordWithRelations[],
-    setBudgets: (budgets: Budget[]) => void;
+    Fixeds: FixedView[],
+    Financings: FinancingWithRelations[],
     setCategories: (categories: Category[]) => void;
     setGroups: (groups: Group[]) => void;
     setMigrations: (migrations: Migration[]) => void;
@@ -21,23 +20,22 @@ interface TableState {
     setRecordTypes: (recordTypes: RecordType[]) => void;
     setSavings: (savings: Saving[]) => void;
     setSavingsHistory: (savingsHistory: SavingsHistoryWithRelations[]) => void;
-    setFixeds: (fixeds: FixedRecordWithRelations[] | undefined) => void
+    setFixeds: (fixeds: FixedView[] | undefined) => void
+    setFinancings: (financings: FinancingWithRelations[]) => void
 }
 
 export const useDataStore = create<TableState>()((set) => ({
-    Budgets: [],
     Categories: [],
     Groups: [],
     Migrations: [],
     PaymentMethods: [],
     PaymentTypes: [],
-    Records: [],
     RecordTypes: [],
     Savings: [],
     SavingsHistory: [],
     Fixeds: [],
+    Financings: [],
 
-    setBudgets: (budgets) => set({ Budgets: budgets }),
     setCategories: (categories) => set({ Categories: categories }),
     setGroups: (groups) => set({ Groups: groups }),
     setMigrations: (migrations) => set({ Migrations: migrations }),
@@ -46,7 +44,8 @@ export const useDataStore = create<TableState>()((set) => ({
     setRecordTypes: (recordTypes) => set({ RecordTypes: recordTypes }),
     setSavings: (savings) => set({ Savings: savings }),
     setSavingsHistory: (savingsHistory) => set({ SavingsHistory: savingsHistory }),
-    setFixeds: (fixeds) => set({ Fixeds: fixeds || [] })
+    setFixeds: (fixeds) => set({ Fixeds: fixeds || [] }),
+    setFinancings: (financings) => set({ Financings: financings })
 
 }));
 
