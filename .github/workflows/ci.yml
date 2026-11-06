@@ -37,3 +37,6 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Documentation budget
+        run: npm run docs:audit

@@ -15,7 +15,8 @@
     "test:db": "node scripts/db-tests.js",
     "typecheck": "tsc --noEmit",
     "doctor": "npx expo-doctor",
-    "ci": "npm run typecheck && npm run test:db && npm test",
+    "docs:audit": "node ./scripts/docs-audit.js",
+    "ci": "npm run typecheck && npm run test:db && npm test && npm run docs:audit",
     "lint": "expo lint",
     "apk": "eas build -p android --profile preview"
   },
