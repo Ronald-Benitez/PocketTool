@@ -1,5 +1,18 @@
 # Plan de mejora de Presupuestos — Fase 7 (BUD)
 
+**Resumen:** plan mensual comparado con `Records`, plantillas reutilizables,
+proyección, insights y gráficos Mermaid offline.
+**Estado:** implementado y validado (2026-10-29). Documento histórico; no es
+plan vigente.
+**Leer solo si:** necesitas el detalle del motor de comparación, plantillas o
+gráficos de la Fase 7.
+**Secciones:** 1. Resumen ejecutivo · 2. Diagnóstico · 3. Principios · 4. Modelo
+de datos · 5. Migración · 6. Motor plan vs. real · 7. Plantillas · 8. UX ·
+9. Mermaid · 10. Resúmenes y fijos · 11. Traducciones · 12. Pruebas ·
+13. Fases · 14. Riesgos · 15. Decisiones · 16. Archivos · 17. Verificación ·
+18. Resultado · 19. Estado.
+
+
 > **Archivado 2026-10-29.** La Fase 7 se implementó y validó. Este documento se
 > conserva como registro del diseño y de las decisiones. El estado vigente vive
 > en [`../phases.md`](../phases.md) y [`../database.md`](../database.md).

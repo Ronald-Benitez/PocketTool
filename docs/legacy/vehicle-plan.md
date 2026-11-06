@@ -1,5 +1,17 @@
 # Plan de la sección Vehículo — Fase 8 (VEH)
 
+**Resumen:** módulo de vehículo con combustible, mantenimiento, piezas,
+recordatorios, unidades, consumo, visuales y vínculos con `Records`.
+**Estado:** implementado y validado (2026-10-31). Documento histórico; no es
+plan vigente.
+**Leer solo si:** necesitas el detalle de una decisión o ajuste de la Fase 8.
+**Secciones:** 1. Resumen ejecutivo · 2. Diagnóstico · 3. Alcance · 4. Modelo de
+datos · 5. Unidades y cálculos · 6. Integración con Registros · 7. Experiencia
+de usuario · 8. Migración · 9. Arquitectura · 10. Traducciones y ayuda ·
+11. Pruebas · 12. Fases · 13. Riesgos · 14. Decisiones · 15. Archivos ·
+16. Verificación · 17. Resultado · 18. Estado · 19. Ajustes posteriores.
+
+
 **Estado:** ✅ Finalizada y archivada
 **Fecha de cierre:** 2026-10-31
 **Fecha original:** 2026-10-30

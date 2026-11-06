@@ -1,5 +1,14 @@
 # Plan de mejora — Ahorros compartidos, metas e integración con Registros
 
+**Resumen:** ahorros compartidos, metas, movimientos tipados, intereses,
+proyección, trofeo e integración con `Records`.
+**Estado:** implementado y validado (2026-11-04). Documento histórico; no es
+plan vigente.
+**Leer solo si:** necesitas el detalle de una decisión de la Fase 11.
+**Secciones:** 1. Estado · 2. Alcance · 3. Modelo · 4. Dominio · 5. Repositorios ·
+6. UX · 7. Fases · 7.1 Implementado · 8. Criterios · 9. Decisiones · 10. Riesgos.
+
+
 **Fase:** 11 (SAV)
 **Estado:** ✅ Finalizada y validada (2026-11-04)
 **Fecha:** 2026-11-04

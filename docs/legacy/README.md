@@ -3,6 +3,10 @@
 Aquí se conserva el detalle de trabajo ya completado para no cargar el contexto
 diario de `docs/phases.md`.
 
+**Cómo leer:** empieza por el `**Resumen:**` de cada documento. Si necesitas
+detalle, usa `**Secciones:**` y busca el encabezado con
+`rg -n "^## " archivo.md`; no leas el plan completo.
+
 - [`phase-history.md`](phase-history.md): historial detallado de las fases 0–3,
   con checklists, commits y verificaciones.
 - [`ui-history.md`](ui-history.md): historial de ejecución de la Fase 4.

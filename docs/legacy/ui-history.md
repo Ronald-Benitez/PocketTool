@@ -1,5 +1,13 @@
 # Historial de la Fase 4 — Sistema de UI
 
+**Resumen:** ejecución de la Fase 4: primitivas, tema, formularios, modales,
+feedback, filtros y migración de pantallas.
+**Estado:** finalizada (2026-10-29). Documento histórico; el plan original vive
+en [`ui-plan.md`](ui-plan.md).
+**Leer solo si:** necesitas el detalle de ejecución o commits de la Fase 4.
+**Secciones:** Fase 4. Sistema de UI reutilizable.
+
+
 Documento histórico. El plan detallado original vive en [ui-plan.md](ui-plan.md).
 
 **Estado final:** UI implementada. Queda pendiente únicamente el checklist visual en iOS/Android/web.

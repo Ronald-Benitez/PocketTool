@@ -1,5 +1,16 @@
 # Plan de mejora de UI — Sistema de componentes reutilizables
 
+**Resumen:** sistema de componentes reutilizables con primitivas, formularios,
+modales, feedback, tema, modo oscuro y accesibilidad.
+**Estado:** implementado y archivado (2026-10-29). Documento histórico; no es
+plan vigente.
+**Leer solo si:** necesitas el diseño original del sistema de UI.
+**Secciones:** 1. Diagnóstico · 2. Principios · 3. Arquitectura · 4. Tema y modo
+oscuro · 5. Catálogo de componentes · 6. Contratos de formularios · 7. Toast ·
+8. Accesibilidad · 9. Fases · 10. Mapa de reemplazo · 11. Testing · 12. Criterios ·
+13. Riesgos · 14. Próximos pasos · 15. Base de datos.
+
+
 > **Archivado 2026-10-29.** Este plan se implementó y se conserva como registro.
 > El historial de ejecución vive en [`ui-history.md`](ui-history.md). Queda
 > pendiente únicamente el checklist visual final en iOS/Android/web.

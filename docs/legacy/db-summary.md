@@ -1,5 +1,13 @@
 # Resumen de la base de datos
 
+**Resumen:** resumen anterior de tablas, tipos, convenciones, relaciones y
+migraciones; fue reemplazado por [`../database.md`](../database.md).
+**Estado:** obsoleto. Documento histórico.
+**Leer solo si:** necesitas comparar con la documentación anterior.
+**Secciones:** Artefactos generados · Tipos de datos · Convenciones · Tablas
+principales · Relaciones principales · Migraciones · Resumen conceptual.
+
+
 Basado en el esquema declarativo de [src/db/schema/tables.ts](src/db/schema/tables.ts)
 y en el motor de normalización/migración [src/db/migration.ts](src/db/migration.ts).
 La versión generada y detallada del esquema está en

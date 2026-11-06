@@ -1,5 +1,14 @@
 # Plan de traducciones tipadas y centro de ayuda
 
+**Resumen:** traducciones tipadas bilingües co-localizadas y centro de ayuda con
+temas, búsqueda y pruebas.
+**Estado:** implementado en las fases 5 y 6 (2026-10-29). Documento histórico;
+no es plan vigente.
+**Leer solo si:** necesitas el diseño original de i18n o del centro de ayuda.
+**Secciones:** Parte A. Traducciones tipadas · Parte B. Centro de ayuda ·
+Decisiones para validar.
+
+
 > **Archivado 2026-10-29.** Este plan se implementó en las fases 5 y 6 y se
 > conserva como registro histórico. La documentación vigente vive en
 > [`../phases.md`](../phases.md) y [`../../AGENTS.md`](../../AGENTS.md).

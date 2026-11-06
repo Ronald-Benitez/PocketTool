@@ -1,5 +1,14 @@
 # Plan de la siguiente versión — Fase 10 (NV)
 
+**Resumen:** ajustes de integración entre Registros, compromisos, créditos,
+vehículo, personas, compartidos y modos de importe.
+**Estado:** implementado y validado (2026-11-03). Documento histórico; no es
+plan vigente.
+**Leer solo si:** necesitas el detalle de una decisión de la Fase 10.
+**Secciones:** 1. Alcance · 2. Decisiones · 3. Ítems · 4. Modelo y migraciones ·
+5. Subfases · 6. Riesgos · 7. Estado · 8. Verificación.
+
+
 **Estado:** ✅ Finalizada, validada y archivada (2026-11-03)
 **Fecha:** 2026-11-03
 **Objetivo:** cerrar los errores de integración entre Registros, Gastos fijos,

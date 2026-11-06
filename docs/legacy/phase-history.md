@@ -1,5 +1,13 @@
 # Plan de fases y bitácora
 
+**Resumen:** bitácora detallada de las fases 0–3: acceso a datos, esquema
+declarativo, ORM, pruebas, export/import y CI.
+**Estado:** fases 0–3 finalizadas (2026-10-28). Documento histórico; el estado
+vigente vive en [`../phases.md`](../phases.md).
+**Leer solo si:** necesitas el detalle de una decisión de las fases 0–3.
+**Secciones:** Fase 0 · Fase 1 · Fase 2 · Fase 3 · Registro de decisiones.
+
+
 **Última actualización:** 2026-10-28
 **Estado global:** Fases 0–3 finalizadas.
 

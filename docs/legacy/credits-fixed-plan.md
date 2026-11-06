@@ -1,5 +1,16 @@
 # Plan de Gastos fijos y Créditos — Fase 9 (CRED)
 
+**Resumen:** tarjetas, financiamientos, pagos, abonos a capital,
+refinanciamientos, simulaciones y gastos compartidos.
+**Estado:** implementado y validado (2026-11-03). Documento histórico; no es
+plan vigente.
+**Leer solo si:** necesitas el detalle de amortización, pagos o simulaciones de
+la Fase 9.
+**Secciones:** 1. Contexto · 2. Problemas · 3. Decisiones · 4. UI · 5. Esquema y
+migración · 6. Dominio · 7. Ejecución · 8. Criterios · 9. Riesgos ·
+10. Preguntas · 11. Verificación · 12. Estado.
+
+
 **Estado:** ✅ Finalizada, validada y archivada (2026-11-03)
 **Fecha:** 2026-11-01 (inicio), 2026-11-02 (reanudación), 2026-11-03 (cierre)
 **Objetivo:** convertir Gastos fijos y Créditos en un módulo de obligaciones
