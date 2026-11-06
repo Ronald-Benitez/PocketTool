@@ -2,504 +2,146 @@
 
 Contexto e instrucciones para agentes que trabajen en PocketTool.
 
-## Objetivo del proyecto
+## Objetivo
 
-PocketTool es una app Expo/React Native de finanzas personales con almacenamiento
-local en SQLite. La app gestiona grupos, registros, presupuestos, gastos fijos,
-métodos de pago, créditos, ahorros y vehículo.
+PocketTool es una app Expo/React Native de finanzas personales con SQLite local.
+Gestiona grupos, registros, presupuestos, compromisos, métodos de pago, créditos,
+ahorros, personas y vehículo.
 
 ## Estado actual
 
-- **Fase 0 — Correcciones críticas: FINALIZADA** (2026-10-28).
-- **Fase 1 — Fuente única de verdad del esquema: FINALIZADA** (2026-10-28).
-- **Fase 2 — Repositorios y ORM robusto: FINALIZADA** (2026-10-28).
-- **Fase 3 — Calidad, pruebas y operación: FINALIZADA** (2026-10-28).
-- **Fase 4 — Sistema de UI reutilizable: FINALIZADA** (2026-10-29), con
-  checklist visual completado.
-- **Fase 5 — Traducciones tipadas: FINALIZADA** (2026-10-29).
-- **Fase 6 — Centro de ayuda: FINALIZADA** (2026-10-29).
-- **Fase 7 — Presupuestos: FINALIZADA** (2026-10-29). El plan archivado vive en
-  [`docs/legacy/budget-plan.md`](docs/legacy/budget-plan.md).
-- **Fase 8 — Vehículo: FINALIZADA** (2026-10-31). El plan archivado vive en
-  [`docs/legacy/vehicle-plan.md`](docs/legacy/vehicle-plan.md).
-- **Fase 9 — Gastos fijos y Créditos: FINALIZADA** (2026-11-03). El plan
-  archivado vive en
-  [`docs/legacy/credits-fixed-plan.md`](docs/legacy/credits-fixed-plan.md).
-- **Fase 10 — Errores y ajustes de siguiente versión: FINALIZADA** (2026-11-03).
-  El plan archivado vive en
-  [`docs/legacy/next-version-plan.md`](docs/legacy/next-version-plan.md). Incluye
-  créditos/préstamos pendientes en Registros, tipo de registro de Vehículo,
-  odómetro efectivo, financiamientos en resúmenes de fijos, renombre a
-  Compromisos, cambio de grupo en Resumen, personas como sección propia con
-  historial de pagos, compartidos ilimitados, snapshot propio/compartido y modos
-  de importe propio/total/compartido.
-- **Fase 11 — Ahorros compartidos y metas: FINALIZADA** (2026-11-04). El plan
-  archivado vive en
-  [`docs/legacy/savings-plan.md`](docs/legacy/savings-plan.md). Incluye
-  migraciones, dominio, repositorios, UI de ahorros, movimientos, detalle de
-  movimiento de solo lectura, metas, intereses, trofeo, settings, aportes a
-  ahorros en Personas y pruebas de vínculo con `Records`.
+Todas las fases 0–11 están finalizadas (2026-11-04). El estado vigente, la fase
+activa y el histórico viven en [`docs/phases.md`](docs/phases.md). No repitas el
+estado de las fases en este archivo.
 
-El plan completo, el detalle de lo ejecutado y los criterios de aceptación viven
-en [`docs/phases.md`](docs/phases.md). **Cada vez que se complete una fase hay
-que actualizar ese documento y marcar la fase como finalizada**, incluyendo fecha,
-commits relevantes, archivos tocados y verificaciones realizadas.
+## Flujo de trabajo
 
-## Arquitectura de UI
+| Situación | Acción |
+| --- | --- |
+| Nueva funcionalidad o cambio grande | `/nueva-funcionalidad` (modo plan) |
+| Pantallas, componentes, formularios, modales, tema | Skill `pockettool-ui` |
+| Esquema, migraciones, repositorios, ORM | Skill `pockettool-db` |
+| Cálculos, dinero, reglas de negocio | Skill `pockettool-domain` |
+| Cualquier flujo que mueva dinero | Skill `pockettool-records` (autodetecta) |
+| Cualquier cambio visible al usuario | Skill `pockettool-help` (obligatorio) |
+| Cerrar la fase activa | `/cerrar-fase` |
+| Notas de Google Play | `/notas-version <versión>` |
+| Auditar documentación | `/docs-audit` |
+| Verificación completa | `/verificar` o los comandos de abajo |
 
-- `src/ui/theme/tokens.ts`: tokens de espaciado, radios, alturas, tipografía,
-  sombras y z-index.
-- `src/ui/theme/palettes/bright.base.json` y `dark.base.json`: paletas base
-  versionadas. No editar valores base sin actualizar tests de contraste.
-- `src/ui/theme/ThemeProvider.tsx`: fuente del tema. Expone `colors`,
-  `palettes`, `mode`, `resolvedMode`, setters y resets.
-- `src/ui/theme/settings.ts`: normalización, migración legacy, resolución de
-  modo/paleta y merge; funciones puras testeables.
-- `src/ui/theme/contrast.ts`: contraste WCAG AA.
-- `src/ui/primitives/`: `AppText`, `Surface`, `Divider`, `Screen`, `Stack`/`Row`/
-  `Column`.
-- `src/ui/actions/`: `Button`, `IconButton`, `LinkButton` y `SwipeAction` con
-  variantes y estados.
-- `src/ui/forms/`: `FormField`, `TextField`, `MoneyField`, `SelectField`,
-  `MultiSelectField`, `DateField`, `MonthField`, `SwitchField`, `ColorField` y
-  `ColorPicker` con label/required/hint/error.
-- `src/ui/overlays/`: `Modal` (center/bottom), `BottomSheet`, `Dialog` y
-  `ConfirmDialog`. `Modal` maneja el teclado con `KeyboardAvoidingView`, insets
-  y auto-scroll al `TextField` enfocado.
-- `src/db/schema/metadata.ts`: resolución de columnas, tipos, `kind` y
-  referencias del esquema para construir UI tipada sin ejecutar SQL.
-- `src/domain/filters/types.ts` y `src/domain/records/filtering.ts`: tipos de
-  filtro, matcher y orden compartidos.
-- `src/domain/records/filterFields.ts`: campos curados de Records, opciones de
-  relaciones y columnas avanzadas.
-- `src/domain/budgets/`: comparación plan/real, estados de línea, proyección,
-  insights y builders de gráficos Mermaid. La UI no calcula dinero.
-- `src/domain/summaries/`: reglas compartidas de efecto, gasto y balance usadas
-  por resúmenes y presupuestos.
-- `src/db/repositories/budgets.ts`: repositorios de planes, líneas y plantillas;
-  entrega `BudgetPlanView` listo para la UI.
-- `src/ui/charts/MermaidChart.tsx`: WebView offline con Mermaid vendorizado,
-  tema y fallback accesible.
-- `src/hooks/useBudgetPlan.ts`: carga y refresco del plan mensual y plantillas.
-- `src/domain/vehicle/`: unidades, consumo, promedios, recordatorios,
-  resolución de colores (`colors.ts`) y tipos/referencias visuales
-  (`models.ts`).
-- `src/domain/vehicle/fuel.ts`: odómetro efectivo que conserva la inferencia a
-  través de entradas con solo distancia; se usa en consumo, recordatorios y
-  lecturas previas.
-- `src/domain/vehicle/charts.ts`: builders de rendimiento, volumen, precio,
-  total gastado y comparativa de movilidad (volumen, distancia y costo total),
-  agrupados por segmento de tanque lleno.
-- `app/(vehicle)/fuel.tsx`: segmentos, selector de unidad de volumen/precio y
-  gráficos.
-- `src/components/vehicle/FuelEntryForm.tsx`: alta/edición de combustible y
-  preferencias de unidades por vehículo en AsyncStorage.
-- `src/components/vehicle/VehicleVisual.tsx`: modelos SVG por tipo de vehículo
-  con animación Reanimated; `VehicleColorField` resuelve texto/HEX/paleta.
-- `src/db/repositories/vehicle.ts`: vehículos, combustible, mantenimiento,
-  piezas, recordatorios, settings y vínculos con `Records`. El tipo de registro
-  del gasto es explícito y se configura en `VehicleSettings.record_type_id`.
-- `src/hooks/useVehicle.ts` y `src/stores/VehicleStore.ts`: vehículo activo y
-  refresco.
-- `app/(vehicle)/`: `StackBase` con tabs de resumen, combustible, mantenimiento
-  y recordatorios.
-- `src/ui/filters/`: `FilterModal`, `FilterRow`, `OrderRow` y
-  `FilterValueInput`; `RecordsFilterModal` es el wrapper de Records.
-- `SelectField` y `MultiSelectField` aceptan `searchable` para buscar opciones.
-- `src/ui/feedback/`: `ToastProvider` único, `InlineMessage`, `EmptyState`,
-  `LoadingState` y `ToastViewport` para modales.
-- `src/ui/data-display/`: `Card`, `ListItem`, `Badge`, `FinanceValue`,
-  `SummaryBlock`, `SummaryGroup` y `AccentRow`; `FinanceValue` recibe centavos y
-  usa el tema.
-- `src/ui/index.ts`: barrel público del sistema de UI.
-- `src/styles/useThemedStyles.ts`: adapta los estilos legacy al tema activo.
-- `src/components/summaries/`: `FinanceTableBlock`/`FinanceTableChart` con
-  `SummaryGroup`.
-- `app/gallery.tsx`: galería de desarrollo, oculta del drawer.
-- No crear toasts o modales locales; usar `ToastProvider` y `src/ui`.
-- `eslint.config.js` bloquea `TextInput`, `Modal`, `Alert` y `ToastAndroid` de
-  `react-native` fuera de `src/ui`.
-- Los componentes nuevos usan `useTheme()`; no leer `useColorStore` ni claves
-  legacy.
-- `src/stores/ColorsStore.ts` es solo un adaptador de compatibilidad durante la
-  migración.
+Las skills contienen el procedimiento; este archivo contiene solo reglas. No
+dupliques arquitectura ni checklists aquí.
 
-### Navegación por grupos
+## Reglas no negociables
 
-- Cada sección del drawer vive en un grupo `app/(...)/` con un `_layout.tsx`
-  basado en `StackBase`, igual que `app/(financials)/_layout.tsx`.
-- Declarar cada pantalla con `<Tabs.Screen name='...'>`; `StackBase` aporta el
-  header, el botón de menú del drawer, el tema y la tab bar.
-- **No** crear un `Stack` interno para una sección del drawer. Un `Stack`
-  reemplaza el header de `StackBase` y puede dejar al usuario sin acceso al
-  drawer. Si se necesita navegación interna, usar estado/modal dentro de la
-  pantalla o una ruta del mismo grupo declarada como tab.
-- Para editores de una entidad (por ejemplo plantillas), preferir estado local
-  en la pantalla de la sección y un componente editor, no una ruta dinámica
-  oculta dentro de `Tabs`.
-- Referencia vigente: `app/(budget)/_layout.tsx` declara `index` y `templates`
-  con `Tabs.Screen`; el editor de plantillas es un componente dentro de
-  `templates.tsx`.
-
-### Footers de modales
-
-- El contenedor interno del `footer` de un `Modal` debe tener `flex: 1` cuando
-  los botones usan `flex: 1`. Sin ese `flex`, el contenedor queda con ancho
-  automático, los botones colapsan y el texto desaparece.
-- Patrón correcto, igual que `src/components/records/add-record.tsx`:
-  ```tsx
-  footer={
-    <View style={styles.footer}>
-      <Button label='Cancel' variant='outline' style={styles.footerButton} />
-      <Button label='Save' style={styles.footerButton} />
-    </View>
-  }
-  // styles.footer = { flex: 1, flexDirection: 'row', gap: 8 }
-  // styles.footerButton = { flex: 1 }
-  ```
-- Si se usa `Row` de `src/ui/primitives` como footer, pasarle
-  `style={{ flex: 1 }}`.
-- No usar `flexDirection: 'row'` sin `flex: 1` en el footer interno.
-
-### Carpetas de la sección Presupuestos
-
-- `app/(budget)/_layout.tsx`: `StackBase` con tabs `index` y `templates`.
-- `app/(budget)/index.tsx`: plan mensual, comparación, modos de gráfico, fijos y
-  acciones.
-- `app/(budget)/templates.tsx`: lista de plantillas y editor embebido.
-- `src/components/budgets/`: formularios, diálogos y editor de plantillas.
-  El detalle de una línea reutiliza `src/components/records/RecordsModal`.
-- `src/domain/budgets/`: lógica pura de comparación, media, charts e insights.
-- `src/hooks/useBudgetPlan.ts`: carga/refresco de plan y plantillas.
-- `src/ui/charts/`: `MermaidChart` y wrappers de gráficos.
-- `assets/vendor/mermaid/`: bundle offline generado con `npm run vendor:mermaid`.
-- Persistencia del tema: clave `themeSettings`; migra desde `colors` y elimina
-  la clave legacy al migrar.
-- La UI no debe hardcodear colores nuevos; usar tokens semánticos.
-- Los colores personalizados viven por paleta (`bright`/`dark`) y se completan
-  con la base al agregar tokens nuevos.
-
-### Créditos y financiamientos
-
-- `app/(credits)/index.tsx`: resumen de tarjetas, crédito en uso, disponible y
-  utilización. Incluye el saldo pendiente de compras a plazo al 0%.
-- `app/(fixeds)/FinancingsScreen.tsx`: deuda, cuota mensual, tasa media,
-  financiamientos, pagos, refinanciamientos y simulaciones.
-- `src/components/credits/`: alta/edición de financiamientos, pagos, historial,
-  ajustes y simulador. `TermField` permite meses o años y guarda meses.
-- `src/domain/credits/amortization.ts`: cuota francesa, tasa cero, calendario,
-  utilización de tarjeta y partes compartidas.
-- `src/domain/credits/summary.ts`: saldo y calendario vigente con ajustes
-  acumulados y `payment_cents` como cuota pactada opcional; la UI no calcula
-  dinero.
-- `src/domain/credits/payments.ts`: separa interés, capital y diferencia a
-  seguro/otros cargos. Esa diferencia nunca aumenta capital ni interés.
-- `src/domain/credits/charts.ts`: disminución del saldo y composición de pagos
-  (interés, capital y seguros).
-- `src/domain/credits/simulations.ts`: comparación de escenarios; el formulario
-  puede guardar simulaciones en AsyncStorage.
-- `src/domain/credits/cards.ts`: agrupa compras a plazo al 0% activas por
-  tarjeta; su saldo pendiente reduce el crédito disponible.
-- `src/components/credits/FinancingPaymentsModal.tsx`: historial, edición y
-  eliminación de pagos; el registro vinculado se conserva por defecto.
-- `src/db/repositories/financings.ts`: financiamientos, pagos, ajustes y
-  vínculos de pagos con `Records` (crear, vincular u omitir).
-- `src/db/errors.ts`: `mapDatabaseError` y códigos explícitos para errores de
-  SQLite.
-- `src/db/repositories/people.ts`: registro de personas, participantes de
-  gastos compartidos (`fixed`/`financing`) e historial de pagos compartidos.
-- `src/domain/shared/split.ts`: reparte un monto compartido entre personas y
-  garantiza que la suma reconcilie.
-- `src/db/shared-ledger.ts`: sincroniza `SharedPaymentAllocations` desde
-  registros de fijos y pagos de financiamientos.
-- `app/(people)/index.tsx`: sección Personas con alta, edición, archivo y
-  ledger por persona.
-- Regla de compartidos: `Records.amount` guarda el monto propio del usuario;
-  `own_amount_cents` lo replica y `shared_amount_cents` es el snapshot de la
-  parte compartida. El total es `own + shared`. Los resúmenes personales usan el
-  monto propio.
-- Regla de ahorros: `saving_id` solo marca un gasto **pagado con ahorro** desde
-  AddItem. Ese `Record` se conserva en Registros pero no cuenta como gasto del mes
-  en resúmenes, presupuestos ni créditos; el monto se descuenta del ahorro
-  mediante `SavingsHistory`. Un `Record` creado desde un movimiento de ahorro es
-  un registro normal: conserva categoría, método y tipo elegidos, y no lleva
-  `saving_id`. `SavingsHistory.record_id` solo indica el vínculo.
-- `src/components/shared/SharedParticipantsField.tsx`: selector reutilizable de
-  personas y porcentajes con total/propio/compartido.
-- `src/stores/CreditsStore.ts`: totales por ciclo y uso de tarjeta con compras a
-  plazo al 0%. No duplicar una compra como gasto de tarjeta y financiamiento.
-- `src/stores/FixedsResumesStore.ts`: resumen de compromisos; suma gastos fijos y
-  cuotas mensuales de financiamientos activos por tipo, pago, método y categoría.
-- `src/components/groups/group-selector.tsx`: una sola selección de grupo; las
-  cargas asíncronas no deben pisar una selección del usuario.
-
-### Colores nuevos y editables
-
-- Cualquier color semántico nuevo que no elija el usuario debe agregarse a:
-  1. `ThemeColorTokens` en `src/interfaces/colors.ts`.
-  2. `bright.base.json` y `dark.base.json`.
-  3. `COLOR_GROUPS` y `COLOR_LABELS_ES` en `src/ui/theme/colors.ts`.
-- Con eso aparece automáticamente en Settings → Colors, porque el editor recorre
-  `COLOR_GROUPS`.
-- No hardcodear colores en componentes, gráficos, Mermaid ni estilos. Si un
-  gráfico necesita una serie nueva, crear un token (`chartPlanned`,
-  `chartActual`, `chartProjected`) y pasarlo desde `useTheme()`.
-- Los gráficos deben incluir una leyenda visible que relacione cada color con
-  su serie.
-
-- **Idiomas:** `src/lang/messages/` es la fuente de verdad. Cada dominio contiene
-  inglés y español; `t()` se tipa con `TranslationKey`. No agregar JSON de
-  traducciones.
-- **Ayuda:** `src/help/registry.ts` define los temas y `src/lang/messages/help.ts`
-  su contenido bilingüe. Ver “Mantenimiento del centro de ayuda”.
-
-## Mantenimiento del centro de ayuda
-
-La sección de ayuda debe actualizarse cuando cambie una funcionalidad, una regla
-de negocio o se agregue una pantalla.
-
-### Agregar un tema
-
-1. Agregar el ID a `HelpTopicId` en `src/help/types.ts`.
-2. Agregar el seed en `src/help/registry.ts` con:
-   - `id`, `icon`, `category` y `related`;
-   - un tema por cada flujo importante.
-3. Agregar el contenido en `src/lang/messages/help.ts` dentro de
-   `helpEn.topics.<id>` y `helpEs.topics.<id>`.
-4. Mantener exactamente las mismas claves en inglés y español:
-   - `title`, `summary`;
-   - `what.{title,body}`;
-   - `how.{title,body}`;
-   - `steps.{title,step1,step2,step3}`;
-   - `example.{title,body}`;
-   - `tips.{title,body}`;
-   - `warning.{title,body}`.
-5. Agregar relaciones en `related` solo con IDs existentes.
-6. Usar datos ficticios en los ejemplos; nunca datos reales del usuario.
-7. Validar la lógica del ejemplo contra los stores reales:
-   - `useResumesStore` para balances y resúmenes;
-   - `useCreditStore` para créditos;
-   - `useBudgetPlan`/`useBudgetPlansRepository` para presupuestos;
-   - `useSavingsStore` para ahorros.
-
-### Agregar una categoría de ayuda
-
-1. Agregar el valor a `HelpCategory` en `src/help/types.ts`.
-2. Agregarla a `HELP_CATEGORIES` en `src/help/registry.ts`.
-3. Agregar su etiqueta en `helpEn.categories` y `helpEs.categories`.
-
-### Reglas de contenido
-
-- No escribir texto directamente en `app/(help)` ni en componentes; usar
-  `titleKey`/`bodyKey` y `t()`.
-- Cada tema debe explicar la lógica, no solo describir botones.
-- Los cambios de lógica deben reflejarse en el tema correspondiente y en su
-  ejemplo.
-- La búsqueda del hub indexa título, resumen y secciones; si se agrega contenido
-  nuevo, no hace falta un índice aparte.
-- Usar `Screen`, `Surface`, `ListItem`, `InlineMessage` y el resto de `src/ui`
-  para mantener dark mode y accesibilidad.
-- Ejecutar `npm run typecheck` y `npm test` después de cambiar ayuda o
-  traducciones.
-
-### Tests de ayuda
-
-- `src/help/__tests__/registry.test.ts` valida IDs, categorías, relaciones,
-  claves bilingües y pasos.
-- Si se agrega una sección obligatoria, actualizar ese test.
-- Si se agrega una nueva categoría, actualizar `HELP_CATEGORIES` y el test.
-
-## Arquitectura de datos
-
-- `src/db/schema/tables.ts`: `APP_SCHEMA`, única fuente de verdad del esquema.
-  Nombres lógicos PascalCase (`Records`, `PaymentMethods`, `Fixed`, etc.) y
-  nombres físicos snake_case (`records`, `payment_methods`, `fixed_records`, etc.).
-  Incluye metadatos semánticos (`kind: 'money' | 'timestamp' | 'boolean'`) y el
-  nombre de la entidad TypeScript.
-- `src/db/schema/generated/`: artefactos generados desde `tables.ts`
-  (`schema.sql`, `types.ts`, `relations.json`, `columns.json`). **No editar a
-  mano.**
-- `scripts/generate-db-artifacts.js`: generador de artefactos (`npm run db:generate`).
-- `src/db/schema/seed.ts`: seed idempotente de datos de referencia y ejemplo.
-- `src/db/migrations/0004_budget_plans.ts`: migra `budgets` a
-  `budget_plans`/`budget_lines` y conserva `budgets_legacy` durante una versión.
-- `src/db/migrations/0005_drop_budget_legacy.ts`: elimina la tabla legacy
-  después de validar la migración.
-- `src/db/migrations/0006_drop_budget_plan_status.ts`: elimina la columna
-  `status` de `budget_plans`; el plan no tiene estados funcionales.
-- Presupuestos: un plan por grupo, líneas `category` o `fixed`, snapshot del
-  monto planificado y comparación derivada desde `Records`. No guardar el real.
-- Gráficos: Mermaid se vendoriza en `assets/vendor/mermaid/mermaid.min.js.txt`
-  con `node scripts/vendor-mermaid.js`; no usar CDN.
-- `src/db/schema/apply.ts`: normalización/rebuild de tablas, conversiones legacy
-  e índices.
-- `src/db/migration.ts`: bootstrap, pragmas y runner de migraciones.
-- `src/db/migrations/0001_baseline.ts`: baseline consolidado.
-- `src/db/migrations/0002_audit_timestamps.ts`: migración incremental de auditoría.
-- `src/db/migrations/0003_timestamp_triggers.ts`: triggers de `created_at`/`updated_at`.
-- `src/orm/index.ts`: ORM tipado; usa las relaciones generadas, filtros de soft
-  delete, CRUD y transacciones.
-- `src/orm/errors.ts`: errores tipados (`InvalidIdentifierError`,
-  `InvalidDataError`, `QueryError`).
-- `src/db/repositories/index.ts`: repositorios por agregado.
-- `src/db/repositories/fuel.ts`: consultas tipadas de combustible y viajes.
-- `src/db/utils/sql-dump.ts`: generación/validación del dump SQL.
-- `src/db/utils/backup.ts`: metadatos versionados del backup.
-- `src/validation/entities.ts`: esquemas zod para entradas de repositorio.
-- `src/db/index.ts`: barrel público; expone `useRecords`, `useGroups`, etc.
-- `.github/workflows/ci.yml`: typecheck, tests, artefactos de esquema y lint no
-  bloqueante.
-- `src/interfaces/schema.ts`: entidades generadas + relaciones/vistas.
-- `src/utils/index.ts`: helpers de dinero (`parseMoneyToCents`, `centsToInput`,
-  `formatMoney`, `formatMoneyWithSymbol`).
-
-## Integración con Registros para operaciones con impacto en cuentas
-
-**Regla obligatoria:** toda operación que represente una entrada, una salida, un
-pago, una transferencia, un aporte, un retiro o cualquier movimiento que afecte
-las cuentas del mes debe integrarse con `Records`. No crear un sistema paralelo
-de gastos o ingresos.
-
-El flujo debe ofrecer siempre estas tres opciones:
-
-1. **Crear un registro nuevo** en `Records`.
-2. **Vincular un registro existente**.
-3. **No vincular**.
-
-Requisitos:
-
-- La UI no escribe `Records` directamente: el repositorio del agregado debe
-  crear, actualizar o vincular el registro dentro de la misma transacción que
-  guarda la operación.
-- Al crear, usar el grupo del mes, categoría, método de pago y tipo de registro
-  correctos (ingreso o gasto). Validar que no falten.
-- Al vincular, buscar solo registros compatibles y validar que el **monto** y la
-  **fecha** coincidan. Guardar la relación con `record_id` o una tabla de
-  vínculo.
-- Excluir de la búsqueda los registros ya vinculados a otra operación, incluidos
-  vehículo y financiamientos. Un registro no puede representar dos gastos.
-- Al elegir **no vincular**, guardar la operación con `record_id = null` y no
-  crear ni modificar `Records`.
-- Al editar, actualizar el registro vinculado solo si el flujo lo permite; al
-  eliminar, conservar el registro por defecto y quitar únicamente el vínculo,
-  salvo que el usuario confirme borrarlo.
-- El valor por defecto debe ser explícito y no duplicar registros. Mantener el
-  comportamiento histórico del flujo: Vehículo crea por defecto; Financiamientos
-  no vincula por defecto.
-- No duplicar la búsqueda de registros en la UI. Reutilizar el picker existente
-  y, al agregar un tercer flujo, extraer un `RecordPicker` común.
-- Agregar pruebas para validación de monto/fecha, exclusión de registros ya
-  vinculados y creación/vinculación transaccional.
-
-Referencias vigentes:
-
-- `src/components/vehicle/FuelEntryForm.tsx` y
-  `src/components/vehicle/MaintenanceForm.tsx` con
-  `VehicleExpensePicker`.
-- `src/components/credits/FinancingPaymentForm.tsx` con
-  `FinancingRecordPicker`.
-- `src/db/repositories/vehicle.ts` y `src/db/repositories/financings.ts` como
-  ejemplos de creación/vinculación transaccional.
-
-## Errores de base de datos
-
-- **Regla obligatoria:** ningún repositorio, store o pantalla debe tragarse un
-  error de SQLite ni mostrar un mensaje genérico como “la acción no se pudo
-  completar”.
-- Envolver las operaciones de base de datos con `mapDatabaseError` de
-  `src/db/errors.ts` y lanzar un `DatabaseMappedError` con un código explícito:
-  - `DB_MIGRATION_REQUIRED`
-  - `DB_DUPLICATE`
-  - `DB_REQUIRED`
-  - `DB_FOREIGN_KEY`
-  - `DB_UNKNOWN`
-- La UI debe traducir el código con las claves `dbErrors.<code>` y mostrar el
-  detalle real en `__DEV__`.
-- `migrateDb` ejecuta `ensureSchema` después de las migraciones para crear
-  tablas/columnas faltantes como red de seguridad.
-- `ensureSchema` nunca debe multiplicar por 100 una columna monetaria entera:
-  los centavos enteros ya están en centavos. Solo se convierten a centavos las
-  columnas legacy REAL/TEXT que guardaban dólares (`toCentsExpr` en
-  `src/db/schema/apply.ts`).
-- Al agregar una migración, actualizar `SCHEMA_VERSION`, los artefactos y las
-  pruebas de base de datos.
-
-## Convenciones obligatorias
-
-- Dinero: **integer cents** en SQLite. La UI convierte con los helpers; nunca
-  guardar dólares en columnas monetarias.
-- Fechas: **Unix milliseconds** para `date`, `change_date`, `applied_at` y
+- **Dinero:** integer cents en SQLite. La UI convierte con `src/utils`; nunca
+  guardes dólares en columnas monetarias.
+- **Fechas:** Unix milliseconds para `date`, `change_date`, `applied_at` y
   `deleted_at`.
-- Borrado: soft delete con `deleted_at`; el ORM y los repositorios excluyen
-  filas borradas por defecto.
-- Tablas: nombre lógico PascalCase, nombre físico snake_case.
-- No volver a introducir handlers raw-SQL ni un segundo `useRecords`.
-- Los componentes y stores deben usar repositorios; no SQL directo ni `useORM` en UI.
-- Las entradas de repositorio se validan con zod y el ORM rechaza columnas
-  inexistentes con errores tipados.
-- `created_at` y `updated_at` se llenan con triggers; no asignarlos manualmente
-  salvo que se requiera un valor histórico explícito.
-- UI: los componentes nuevos van en `src/ui`; las pantallas no deben usar
-  `TextInput`, `Modal`, `Alert` ni `ToastAndroid` directos. Mantener adaptadores
-  legacy solo durante la migración.
-- Export/import: usar validación, backup previo y transacción. No dropear tablas
-  fuera de una transacción.
-- Migraciones: no capturar errores internamente; deben propagarse al runner.
-  Registrar la migración solo después del commit.
+- **Borrado:** soft delete con `deleted_at`; ORM y repositorios excluyen filas
+  borradas por defecto.
+- **Tablas:** nombre lógico PascalCase, nombre físico snake_case.
+- **Acceso a datos:** UI y stores usan repositorios; nunca SQL directo ni
+  `useORM` en UI.
+- **Validación:** las entradas de repositorio se validan con zod; el ORM rechaza
+  columnas inexistentes con errores tipados.
+- **Auditoría:** `created_at`/`updated_at` se llenan con triggers; no los asignes
+  manualmente salvo por un valor histórico explícito.
+- **Migraciones:** transacción exclusiva, registrar solo después del commit,
+  propagar errores al runner, nunca capturarlos internamente.
+- **Errores de base de datos:** envuelve con `mapDatabaseError` de
+  `src/db/errors.ts` y lanza `DatabaseMappedError` con un código explícito
+  (`DB_MIGRATION_REQUIRED`, `DB_DUPLICATE`, `DB_REQUIRED`, `DB_FOREIGN_KEY`,
+  `DB_UNKNOWN`). La UI traduce `dbErrors.<code>` y muestra el detalle real en
+  `__DEV__`. Nunca muestres “la acción no se pudo completar”.
+- **UI:** los componentes nuevos van en `src/ui`; las pantallas no usan
+  `TextInput`, `Modal`, `Alert` ni `ToastAndroid` de React Native.
+- **Colores:** no hardcodees colores. Usa tokens semánticos de `useTheme()`. Un
+  color nuevo se registra en `ThemeColorTokens`, `bright.base.json`,
+  `dark.base.json`, `COLOR_GROUPS` y `COLOR_LABELS_ES`.
+- **Navegación:** cada sección del drawer es un grupo `app/(...)/` con
+  `StackBase` y `Tabs.Screen`. No crees un `Stack` interno dentro de una sección.
+- **Idiomas:** `src/lang/messages/` es la fuente de verdad, con inglés y español
+  co-localizados. `t()` se tipa con `TranslationKey`. No agregues JSON de
+  traducciones.
+- **Ayuda:** todo cambio visible al usuario actualiza la ayuda bilingüe en el
+  mismo cambio. No esperes a que el usuario lo pida.
+- **Plataformas:** Android e iOS. Web no es objetivo de soporte; no agregues
+  ramas, polyfills ni fallbacks para web.
+- **Documentación:** lee por secciones. No leas `docs/legacy/*` completos ni
+  `docs/schema.md` completo; usa resúmenes, índices y rangos.
 
-## Soporte de plataformas
+## Integración con Registros
 
-- La app está pensada para Android e iOS. **Web no es un objetivo de soporte.**
-- No agregar fallbacks, polyfills, ramas `Platform.OS === 'web'` ni lógica
-  específica para web en Presupuestos ni en el resto de la app.
-- No bloquear una entrega porque `npx expo export --platform web` falle; el
-  error conocido de `expo-sqlite`/WASM es ajeno a las pantallas de producto.
+Toda operación que represente entrada, salida, pago, transferencia, aporte,
+retiro o cualquier movimiento que afecte las cuentas del mes debe evaluarse con
+la skill `pockettool-records`. Si aplica, debe ofrecer siempre:
 
-## Comandos de verificación
+1. Crear un registro nuevo en `Records`.
+2. Vincular un registro existente.
+3. No vincular (`record_id = null`).
+
+Reglas clave:
+
+- La UI no escribe `Records`: el repositorio del agregado crea, actualiza o
+  vincula dentro de la misma transacción que guarda la operación.
+- Al vincular, valida que **monto** y **fecha** coincidan y excluye registros ya
+  vinculados a vehículo, financiamientos, ahorros o créditos. Un registro no
+  puede representar dos gastos.
+- Al eliminar, conserva el registro por defecto y quita solo el vínculo, salvo
+  que el usuario confirme borrarlo.
+- Mantén el comportamiento histórico: Vehículo crea por defecto; Financiamientos
+  no vincula por defecto.
+- Reutiliza los pickers existentes; si aparece un tercer flujo, extrae un
+  `RecordPicker` común.
+- Agrega pruebas de monto/fecha, exclusión de ya vinculados y
+  creación/vinculación transaccional.
+
+## Verificación
 
 ```bash
 npm run typecheck
 npm run test:db
 npm test
+npm run lint
 npm run db:generate
-npm run vendor:mermaid
-npm run ci
 npm run doctor
+npm run docs:audit
+npm run ci
 ```
 
-`npm run db:generate` debe ejecutarse después de editar
-`src/db/schema/tables.ts`. Los archivos de `src/db/schema/generated/` y
-`docs/schema.md` se sobrescriben.
+- `db:generate` es obligatorio después de editar `src/db/schema/tables.ts`.
+  `src/db/schema/generated/` y `docs/schema.md` se sobrescriben.
+- `test:db` usa `node:sqlite` para migraciones, seed, ORM, triggers, backups,
+  validación y créditos.
+- `doctor` se ejecuta antes de cerrar una fase o entregar cambios de Expo; no
+  sustituye typecheck, Jest, `test:db` ni lint.
+- `docs:audit` falla si `AGENTS.md` o `docs/phases.md` exceden su presupuesto.
 
-- `test:db`: suite de migraciones/ORM/backup con `node:sqlite`.
-- `test`: Jest.
-- `ci`: typecheck + tests de base de datos + Jest.
-- `lint`: ESLint (`npm run lint`); forma parte de CI y debe pasar.
-- `doctor`: `npx expo-doctor`; debe ejecutarse además de los tests antes de
-  cerrar una fase o entregar cambios de Expo. No sustituye typecheck, Jest,
-  `test:db` ni lint.
+## Mapa de contexto
+
+| Necesitas | Lee | Skill |
+| --- | --- | --- |
+| UI, tema, formularios, modales, filtros | `src/ui/AGENTS.md`, `docs/architecture/ui.md` | `pockettool-ui` |
+| Esquema, migraciones, ORM, repositorios | `src/db/AGENTS.md`, `docs/database.md` | `pockettool-db` |
+| Dominio, dinero, presupuestos, créditos, ahorros, vehículo | `src/domain/AGENTS.md`, `docs/architecture/domains.md` | `pockettool-domain` |
+| Navegación y pantallas | `app/AGENTS.md` | `pockettool-ui` |
+| Traducciones y centro de ayuda | `src/lang/AGENTS.md` | `pockettool-help` |
+| Registros y operaciones con dinero | `src/db/AGENTS.md` | `pockettool-records` |
+| Histórico de fases | `docs/legacy/AGENTS.md` | — |
 
 ## Documentación
 
-- [`docs/README.md`](docs/README.md): índice de documentación.
-- [`docs/phases.md`](docs/phases.md): estado actual y fases activas.
-- [`docs/legacy/savings-plan.md`](docs/legacy/savings-plan.md): plan archivado de
-  Ahorros compartidos y metas (Fase 11).
-- [`docs/legacy/budget-plan.md`](docs/legacy/budget-plan.md): plan archivado de
-  Presupuestos (Fase 7).
-- [`docs/legacy/vehicle-plan.md`](docs/legacy/vehicle-plan.md): plan archivado de
-  Vehículo (Fase 8).
-- [`docs/legacy/credits-fixed-plan.md`](docs/legacy/credits-fixed-plan.md): plan
-  archivado de Gastos fijos y Créditos (Fase 9).
-- [`docs/legacy/next-version-plan.md`](docs/legacy/next-version-plan.md): plan
-  archivado de errores y ajustes de la siguiente versión (Fase 10).
-- [`docs/schema.md`](docs/schema.md): esquema generado.
-- [`docs/database.md`](docs/database.md): documentación de la base de datos.
-- [`docs/legacy/phase-history.md`](docs/legacy/phase-history.md): historial de
-  fases 0–3.
-- [`docs/legacy/ui-history.md`](docs/legacy/ui-history.md): historial de la
-  Fase 4.
-- [`docs/legacy/ui-plan.md`](docs/legacy/ui-plan.md): plan de UI archivado.
-- [`docs/legacy/i18n-help-plan.md`](docs/legacy/i18n-help-plan.md): plan de
-  traducciones tipadas y centro de ayuda archivado.
-- [`README.md`](README.md): descripción general y ejecución del proyecto.
+- [`docs/README.md`](docs/README.md): contrato de documentación e índice.
+- [`docs/phases.md`](docs/phases.md): estado vigente y fase activa.
+- [`docs/database.md`](docs/database.md): base de datos y reglas de lectura.
+- [`docs/schema.md`](docs/schema.md): esquema generado; no editar a mano.
+- [`docs/release-notes/`](docs/release-notes/): notas de Google Play.
+- [`docs/legacy/`](docs/legacy/): archivo histórico; no es documentación vigente.
+- Skills: `.opencode/skills/<id>/SKILL.md`; el campo `name` debe ser exactamente
+  el ID de la carpeta (minúsculas, números y guiones). Los comandos viven en
+  `.opencode/commands/`.
+
+Al cerrar una fase: actualiza `docs/phases.md` y la tabla de `docs/README.md`,
+archiva el plan en `docs/legacy/` con resumen e índice de secciones, actualiza la
+ayuda si cambió el comportamiento visible y ejecuta `/cerrar-fase`.
