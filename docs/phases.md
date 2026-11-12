@@ -184,7 +184,8 @@ Plan completo en [`legacy/shared-purchases-plan.md`](legacy/shared-purchases-pla
   recuperar el foco.
 - Pendientes fuera de la fase: compartidos por monto y criterio del plan mensual
   en Presupuestos, en [`plans/futuro-borrador.md`](plans/futuro-borrador.md).
-- Commits principales: `PENDIENTE`.
+- Commits principales: `5622d5c` (funcionalidad y documentación),
+  `d61072b` (parches de Expo SDK 58).
 
 ## Decisiones vigentes
 
