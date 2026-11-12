@@ -20,6 +20,8 @@ export type HelpTopicId =
   | 'credits'
   | 'financings'
   | 'people'
+  | 'sharedPurchases'
+  | 'settlements'
   | 'amountModes'
   | 'savings'
   | 'filters'

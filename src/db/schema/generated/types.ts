@@ -74,6 +74,14 @@ export interface FixedRecord extends Entity, SoftDeletable {
   updated_at?: TimestampMs | null;
 }
 
+export interface Person extends Entity, SoftDeletable {
+  name: string;
+  notes?: string | null;
+  is_active: boolean | number;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
 export interface RecordEntry extends Entity, SoftDeletable {
   amount: Cents;
   own_amount_cents?: Cents | null;
@@ -87,6 +95,8 @@ export interface RecordEntry extends Entity, SoftDeletable {
   fixed_id?: number | null;
   paid_credit_id?: number | null;
   saving_id?: number | null;
+  paid_by_person_id?: number | null;
+  paid_scope: string;
   created_at?: TimestampMs | null;
   updated_at?: TimestampMs | null;
 }
@@ -162,10 +172,13 @@ export interface FinancingAdjustment extends Entity, SoftDeletable {
   updated_at?: TimestampMs | null;
 }
 
-export interface Person extends Entity, SoftDeletable {
-  name: string;
+export interface PersonSettlement extends Entity, SoftDeletable {
+  person_id: number;
+  group_id?: number | null;
+  date: TimestampMs;
+  amount_cents: Cents;
+  direction: string;
   notes?: string | null;
-  is_active: boolean | number;
   created_at?: TimestampMs | null;
   updated_at?: TimestampMs | null;
 }

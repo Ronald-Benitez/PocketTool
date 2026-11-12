@@ -64,7 +64,7 @@ const Index = () => {
     const [pendingFixeds, setPendingFixeds] = useState<
         { fixed: FixedView; date: number }[]
     >([])
-    const { balance, todayBalanceByRecordType } = useResumesStore()
+    const { balance, cashBalance, todayBalanceByRecordType } = useResumesStore()
     const [fixedToSave, setFixedToSave] = useState<RecordFormEntry>()
     const { loadConfigs } = useConfigs()
     const [open, setOpen] = useState(false)
@@ -330,14 +330,24 @@ const Index = () => {
                 ) : null}
 
                 <Surface variant='raised' padding='lg'>
-                    <SummaryBlock
-                        label={t("resume.balance")}
-                        cents={balance}
-                        size='xl'
-                        labelVariant='subtitle'
-                        valueColorOverride={colors.text}
-                        accentColor={colors.primary}
-                    />
+                    <Stack gap='md'>
+                        <SummaryBlock
+                            label={t("resume.consumptionBalance")}
+                            cents={balance}
+                            size='xl'
+                            labelVariant='subtitle'
+                            valueColorOverride={colors.text}
+                            accentColor={colors.primary}
+                        />
+                        <SummaryBlock
+                            label={t("resume.cashBalance")}
+                            cents={cashBalance}
+                            size='lg'
+                            labelVariant='subtitle'
+                            valueColorOverride={colors.text}
+                            accentColor={colors.transfer}
+                        />
+                    </Stack>
                 </Surface>
 
                 <Surface variant='outlined' padding='md'>

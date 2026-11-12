@@ -18,6 +18,8 @@ type AmountBuckets = {
     own: number;
     shared: number;
     total: number;
+    paid: number;
+    cash: number;
 };
 
 interface totalPerRecordType extends RecordTypes, AmountBuckets {}
@@ -40,27 +42,32 @@ export interface Resumes {
     balanceByCategory: BucketResume<Categories>[];
 }
 
-const emptyBuckets = (): AmountBuckets => ({ own: 0, shared: 0, total: 0 });
+const emptyBuckets = (): AmountBuckets => ({
+    own: 0,
+    shared: 0,
+    total: 0,
+    paid: 0,
+    cash: 0,
+});
 
 const addBuckets = (
     target: AmountBuckets,
     own: number,
-    shared: number
+    shared: number,
+    paid = own + shared,
+    cash = 0
 ) => {
     target.own += own;
     target.shared += shared;
     target.total += own + shared;
+    target.paid += paid;
+    target.cash += cash;
 };
 
-const reduceBuckets = (
+const sumBuckets = (
     items: totalPerRecordType[],
     field: keyof AmountBuckets
-) =>
-    items.reduce((balance, item) => {
-        if (item.effect === "-") return balance - item[field];
-        if (item.effect === "+") return balance + item[field];
-        return balance;
-    }, 0);
+) => items.reduce((total, item) => total + item[field], 0);
 
 export const useFixedsResumesStore = () => {
     const { configs: { recordTypes } } = useConfigs();
@@ -203,9 +210,10 @@ export const useFixedsResumesStore = () => {
                 paymentType.totalPerRecordType.forEach(r => {
                     if (r.id === recordTypeId) addBuckets(r, own, shared);
                 });
-                paymentType.own = reduceBuckets(paymentType.totalPerRecordType, 'own');
-                paymentType.shared = reduceBuckets(paymentType.totalPerRecordType, 'shared');
-                paymentType.total = reduceBuckets(paymentType.totalPerRecordType, 'total');
+                paymentType.own = sumBuckets(paymentType.totalPerRecordType, 'own');
+                paymentType.shared = sumBuckets(paymentType.totalPerRecordType, 'shared');
+                paymentType.total = sumBuckets(paymentType.totalPerRecordType, 'total');
+                paymentType.paid = sumBuckets(paymentType.totalPerRecordType, 'paid');
                 paymentType.balance = paymentType.own;
             }
 
@@ -214,9 +222,10 @@ export const useFixedsResumesStore = () => {
                 paymentMethod.totalPerRecordType.forEach(r => {
                     if (r.id === recordTypeId) addBuckets(r, own, shared);
                 });
-                paymentMethod.own = reduceBuckets(paymentMethod.totalPerRecordType, 'own');
-                paymentMethod.shared = reduceBuckets(paymentMethod.totalPerRecordType, 'shared');
-                paymentMethod.total = reduceBuckets(paymentMethod.totalPerRecordType, 'total');
+                paymentMethod.own = sumBuckets(paymentMethod.totalPerRecordType, 'own');
+                paymentMethod.shared = sumBuckets(paymentMethod.totalPerRecordType, 'shared');
+                paymentMethod.total = sumBuckets(paymentMethod.totalPerRecordType, 'total');
+                paymentMethod.paid = sumBuckets(paymentMethod.totalPerRecordType, 'paid');
                 paymentMethod.balance = paymentMethod.own;
             }
 
@@ -225,9 +234,10 @@ export const useFixedsResumesStore = () => {
                 category.totalPerRecordType.forEach(r => {
                     if (r.id === recordTypeId) addBuckets(r, own, shared);
                 });
-                category.own = reduceBuckets(category.totalPerRecordType, 'own');
-                category.shared = reduceBuckets(category.totalPerRecordType, 'shared');
-                category.total = reduceBuckets(category.totalPerRecordType, 'total');
+                category.own = sumBuckets(category.totalPerRecordType, 'own');
+                category.shared = sumBuckets(category.totalPerRecordType, 'shared');
+                category.total = sumBuckets(category.totalPerRecordType, 'total');
+                category.paid = sumBuckets(category.totalPerRecordType, 'paid');
                 category.balance = category.own;
             }
         };

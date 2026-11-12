@@ -51,6 +51,15 @@ const RecordsGroup = ({ records, handleDelete, handleUpdate }: RecordsGroupProps
                                                 {t('shared.total')}: {formatMoneyWithSymbol((item.own_amount_cents ?? item.amount) + (item.shared_amount_cents ?? 0))} · {t('shared.totalShared')}: {formatMoneyWithSymbol(item.shared_amount_cents ?? 0)}
                                             </Text>
                                         ) : null}
+                                        {item.paid_by_person_id != null ? (
+                                            <Text style={[localStyles.captionText, styles.textMuted]}>
+                                                {t('shared.paidByName', {
+                                                    name:
+                                                        item.People?.name ??
+                                                        t('shared.deletedPerson'),
+                                                })}
+                                            </Text>
+                                        ) : null}
                                         {item.saving_name ? (
                                             <Text style={[localStyles.captionText, styles.textMuted]}>
                                                 {t('savings.records.paidWith')}: {item.saving_name}

@@ -56,14 +56,15 @@ No editar esos archivos a mano.
 | `Categories` | `categories` | Categorías de movimientos. |
 | `RecordTypes` | `record_types` | Tipos de movimiento y efecto. |
 | `Fixed` | `fixed_records` | Movimientos recurrentes. |
-| `Records` | `records` | Movimientos principales. `amount` guarda el monto propio; `shared_amount_cents` guarda la parte compartida como snapshot. `saving_id` indica si el gasto se pagó con un ahorro. |
+| `Records` | `records` | Movimientos principales. `amount` guarda el monto propio; `shared_amount_cents` guarda la parte compartida como snapshot. `saving_id` indica si el gasto se pagó con un ahorro. `paid_by_person_id` indica quién pagó (`NULL` = el usuario) y `paid_scope` distingue si el pagador cubrió el total (`full`) o solo su parte (`own`). |
 | `SharedPaymentAllocations` | `shared_payment_allocations` | Historial por persona de la parte compartida de cada pago (fijos y financiamientos). |
 | `PaidCredits` | `paid_credits` | Pagos de créditos. |
 | `Financings` | `financings` | Compras a plazo y préstamos con tasa, plazo y estado inicial. |
 | `FinancingPayments` | `financing_payments` | Pagos, capital, interés, seguros, honorarios, abonos y vínculo opcional con `Records`. |
 | `FinancingAdjustments` | `financing_adjustments` | Refinanciamientos y cambios de tasa/plazo. |
 | `People` | `people` | Registro de personas para gastos compartidos. |
-| `SharedExpenseParticipants` | `shared_expense_participants` | Participantes y porcentajes de fijos y financiamientos compartidos. |
+| `PersonSettlements` | `person_settlements` | Pagos de liquidación por persona; `direction` indica si pagó el usuario o la persona y `group_id` imputa el movimiento al grupo de caja. |
+| `SharedExpenseParticipants` | `shared_expense_participants` | Participantes y porcentajes de fijos, financiamientos, ahorros y compras compartidas (`owner_type = 'record'`). |
 | `BudgetTemplates` | `budget_templates` | Plantillas de presupuesto reutilizables. |
 | `BudgetTemplateItems` | `budget_template_items` | Líneas de plantilla (categoría o fijo). |
 | `BudgetPlans` | `budget_plans` | Plan mensual por grupo. |
@@ -85,7 +86,7 @@ No editar esos archivos a mano.
 - `PaymentMethods` → `PaymentTypes`
 - `Fixed` → `RecordTypes`, `Categories`, `PaymentMethods`
 - `Records` → `RecordTypes`, `Groups`, `Categories`, `PaymentMethods`,
-  `Fixed`, `PaidCredits`
+  `Fixed`, `PaidCredits`, `People`
 - `PaidCredits` → `Groups`, `PaymentMethods`
 - `BudgetTemplateItems` → `BudgetTemplates`, `RecordTypes`, `Categories`, `Fixed`
 - `BudgetPlans` → `Groups`, `BudgetTemplates`
@@ -98,6 +99,7 @@ No editar esos archivos a mano.
 - `VehicleSettings` → `Categories`, `PaymentMethods`
 - `VehicleExpenseLinks` → `Records`, `VehicleFuelEntries`, `VehicleMaintenance`
 - `SavingsHistory` → `Savings`
+- `PersonSettlements` → `People`, `Groups`
 
 Las rutas navegables se generan en `relations.json` a partir de las FKs.
 
@@ -125,6 +127,8 @@ Las rutas navegables se generan en `relations.json` a partir de las FKs.
 | 18 | `0018_savings_movements` | Agrega tipo, persona, período, notas y vínculo a `Records` en `savings_history`; conserva el saldo inicial. |
 | 19 | `0019_records_saving_source` | Agrega `records.saving_id` y migra el vínculo existente desde `savings_history.record_id`, excepto los registros creados desde un movimiento (`Saving · `). |
 | 20 | `0020_clear_movement_saving_source` | Limpia `records.saving_id` de los registros creados desde un movimiento de ahorro que quedaron marcados por error. |
+| 21 | `0021_records_payer_and_scope` | Agrega `records.paid_by_person_id` y `records.paid_scope`; backfill `full`. |
+| 22 | `0022_person_settlements` | Crea `person_settlements` para las liquidaciones por persona y su grupo de caja. |
 
 Reglas:
 

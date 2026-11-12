@@ -40,7 +40,14 @@ export interface ResumeByCreditCards {
 
 export {
   usePeopleRepository,
+  usePersonSettlementsRepository,
   useSharedLedgerRepository,
   useSharedParticipantsRepository,
+} from './repositories';
+export type {
+  ParticipantDraft,
+  PersonStatement,
+  PersonStatementsResult,
+  SharedOwnerType,
 } from './repositories';
 

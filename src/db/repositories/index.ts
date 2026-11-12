@@ -3,10 +3,14 @@ import { z } from 'zod';
 
 import { ORM, useORM } from '@/src/orm';
 import { isMonthlyCashRecord } from '@/src/domain/summaries/monthly';
+import { computeRecordShares } from '@/src/domain/shared/split';
 import { withExclusiveTransaction } from '@/src/db/transaction';
 import {
+  clearOwnerParticipants,
   clearRecordAllocations,
+  replaceOwnerParticipants,
   syncRecordAllocations,
+  type ParticipantShareDraft,
 } from '@/src/db/shared-ledger';
 import {
   insertSavingMovement,
@@ -78,6 +82,7 @@ const RECORD_JOINS = [
   'PaidCredits.PaymentMethods',
   'PaidCredits.PaymentMethods.PaymentTypes',
   'Savings',
+  'People',
 ] as const;
 
 const FIXED_JOINS = [
@@ -103,6 +108,7 @@ const flattenRecord = (record: RecordWithRelations): RecordView => ({
   paid_method_id: record.PaidCredits?.payment_method_id,
   paid_method_amount: record.PaidCredits?.amount,
   saving_name: record.Savings?.saving_name,
+  paid_by_name: record.People?.name,
 });
 
 const flattenFixed = (fixed: FixedRecordWithRelations): FixedView => ({
@@ -200,6 +206,8 @@ export const useRecordsRepository = () => {
   const db = useSQLiteContext();
   const recordsOrm = useORM('Records');
   const paidCreditsOrm = useORM('PaidCredits');
+  const savingsHistoryOrm = useORM('SavingsHistory');
+  const financingPaymentsOrm = useORM('FinancingPayments');
   const handler = useTableRepository('Records');
 
   type SaveRecordInput = {
@@ -208,6 +216,7 @@ export const useRecordsRepository = () => {
     paidCredit?: Insertable<PaidCredit> | null;
     paidCreditId?: number | null;
     savingId?: number | null;
+    participants?: ParticipantShareDraft[];
   };
 
   const saveRecord = async ({
@@ -216,14 +225,47 @@ export const useRecordsRepository = () => {
     paidCredit,
     paidCreditId,
     savingId,
+    participants,
   }: SaveRecordInput): Promise<number> => {
-    const creditRecord = recordInputSchema.parse(record);
+    const creditRecord = recordInputSchema.parse({
+      ...record,
+      paid_scope: record.paid_scope ?? 'full',
+    });
     const creditPayment = paidCredit ? paidCreditInputSchema.parse(paidCredit) : null;
 
     return withExclusiveTransaction(db, async (txn) => {
       const records = new ORM<'Records'>(txn, 'Records');
       const credits = new ORM<'PaidCredits'>(txn, 'PaidCredits');
+      const people = new ORM(txn, 'People');
       let currentPaidCreditId = paidCreditId ?? null;
+
+      if (creditRecord.paid_by_person_id != null) {
+        const payer = (await people.getById(
+          creditRecord.paid_by_person_id
+        )) as { id?: number } | null;
+        if (!payer) throw new Error('SHARED_PERSON_NOT_FOUND');
+      }
+
+      if (participants !== undefined && !creditRecord.fixed_id) {
+        const own = creditRecord.own_amount_cents ?? creditRecord.amount;
+        const shared = creditRecord.shared_amount_cents ?? 0;
+        const expected = computeRecordShares(own + shared, participants);
+        if (
+          expected.ownCents !== own ||
+          expected.sharedCents !== shared
+        ) {
+          throw new Error('RECORD_SHARES_MISMATCH');
+        }
+        if (
+          creditRecord.paid_by_person_id != null &&
+          !participants.some(
+            (participant) =>
+              participant.personId === creditRecord.paid_by_person_id
+          )
+        ) {
+          throw new Error('SHARED_PAYER_NOT_PARTICIPANT');
+        }
+      }
 
       if (creditPayment && currentPaidCreditId !== null) {
         await credits.update(currentPaidCreditId, creditPayment);
@@ -236,6 +278,7 @@ export const useRecordsRepository = () => {
 
       const payload = {
         ...creditRecord,
+        paid_scope: creditRecord.paid_scope ?? 'full',
         paid_credit_id: currentPaidCreditId,
         saving_id: savingId ?? creditRecord.saving_id ?? null,
       };
@@ -249,22 +292,37 @@ export const useRecordsRepository = () => {
       }
 
       if (payload.fixed_id) {
-        const participants = (await new ORM(txn, 'SharedExpenseParticipants')
-          .where('owner_type', 'fixed')
-          .where('owner_id', payload.fixed_id)
-          .getAll()) as { person_id: number; share_percent: number }[];
-        await syncRecordAllocations({
-          txn,
-          recordId: savedId,
-          ownerType: 'fixed',
-          ownerId: payload.fixed_id,
-          label: payload.record_name,
-          date: payload.date,
-          sharedCents: payload.shared_amount_cents ?? 0,
-          participants,
-        });
+        await clearOwnerParticipants(txn, 'record', savedId);
+        if (payload.paid_by_person_id != null || payload.paid_scope === 'own') {
+          await clearRecordAllocations(txn, savedId, 'fixed');
+        } else {
+          const fixedParticipants = (await new ORM(txn, 'SharedExpenseParticipants')
+            .where('owner_type', 'fixed')
+            .where('owner_id', payload.fixed_id)
+            .getAll()) as { person_id: number; share_percent: number }[];
+          await syncRecordAllocations({
+            txn,
+            recordId: savedId,
+            ownerType: 'fixed',
+            ownerId: payload.fixed_id,
+            label: payload.record_name,
+            date: payload.date,
+            sharedCents: payload.shared_amount_cents ?? 0,
+            participants: fixedParticipants,
+          });
+        }
       } else {
         await clearRecordAllocations(txn, savedId, 'fixed');
+        if (participants !== undefined && !payload.saving_id) {
+          await replaceOwnerParticipants(
+            txn,
+            'record',
+            savedId,
+            participants
+          );
+        } else if (payload.saving_id) {
+          await clearOwnerParticipants(txn, 'record', savedId);
+        }
       }
 
       if (savingId) {
@@ -311,12 +369,35 @@ export const useRecordsRepository = () => {
           await syncSavingTotals(txn, movement.savings_id);
         }
       }
+      await clearOwnerParticipants(txn, 'record', recordId);
       await clearRecordAllocations(txn, recordId);
       await records.delete(recordId);
       if (paidCreditId) {
         await credits.delete(paidCreditId);
       }
     });
+  };
+
+  /**
+   * Tells whether a record is shared from another aggregate. Such records must
+   * not be edited as manual shared purchases from Records.
+  */
+  const getSharingSource = async (
+    recordId: number
+  ): Promise<'fixed' | 'financing' | 'saving' | null> => {
+    const record = await recordsOrm.getById(recordId);
+    if (!record) return null;
+    if (record.fixed_id != null) return 'fixed';
+    if (record.saving_id != null) return 'saving';
+    const savingMovement = await savingsHistoryOrm
+      .where('record_id', recordId)
+      .first();
+    if (savingMovement) return 'saving';
+    const financingPayment = await financingPaymentsOrm
+      .where('record_id', recordId)
+      .first();
+    if (financingPayment) return 'financing';
+    return null;
   };
 
   const fetchRecords = async (group_id: number | undefined): Promise<RecordView[] | undefined> => {
@@ -406,18 +487,22 @@ export const useRecordsRepository = () => {
         .getAll(),
     ]);
 
-    const cashRecords = records.filter(isMonthlyCashRecord);
+    const cashRecords = records
+      .filter(isMonthlyCashRecord)
+      .filter((record) => record.paid_by_person_id == null);
     const recordsOwnTotal = cashRecords.reduce(
       (total, record) => total + (record.own_amount_cents ?? record.amount ?? 0),
       0
     );
     const recordsSharedTotal = cashRecords.reduce(
-      (total, record) => total + (record.shared_amount_cents ?? 0),
+      (total, record) =>
+        total +
+        (record.paid_scope === 'own' ? 0 : (record.shared_amount_cents ?? 0)),
       0
     );
 
     return {
-      recordsTotal: cashRecords.reduce((total, record) => total + (record.amount || 0), 0),
+      recordsTotal: recordsOwnTotal + recordsSharedTotal,
       recordsOwnTotal,
       recordsSharedTotal,
       recordsCombinedTotal: recordsOwnTotal + recordsSharedTotal,
@@ -449,8 +534,18 @@ export const useRecordsRepository = () => {
   };
 
   const deleteRecordByGroup = async (group_id: number) => {
-    await recordsOrm.deleteWhere('group_id', group_id);
-    await paidCreditsOrm.deleteWhere('group_id', group_id);
+    await withExclusiveTransaction(db, async (txn) => {
+      const records = new ORM(txn, 'Records');
+      const rows = await records.where('group_id', group_id).getAll();
+      for (const row of rows) {
+        if (row.id === undefined) continue;
+        await clearOwnerParticipants(txn, 'record', row.id);
+        await clearRecordAllocations(txn, row.id);
+        await records.delete(row.id);
+      }
+      await new ORM(txn, 'PaidCredits').deleteWhere('group_id', group_id);
+      await new ORM(txn, 'PersonSettlements').deleteWhere('group_id', group_id);
+    });
   };
 
   return {
@@ -465,6 +560,7 @@ export const useRecordsRepository = () => {
     fetchTotalIncomes,
     fetchTotalExpenses,
     saveRecord,
+    getSharingSource,
     deleteRecordWithCredit,
     deleteRecordByGroup,
     handler,
@@ -526,9 +622,8 @@ export const useFixedsRepository = () => {
 };
 
 export const useGroupsRepository = () => {
+  const db = useSQLiteContext();
   const groupsOrm = useORM('Groups');
-  const recordsOrm = useORM('Records');
-  const paidCreditsOrm = useORM('PaidCredits');
 
   const fetchGroups = async (): Promise<Group[]> => groupsOrm.getAll();
 
@@ -546,9 +641,19 @@ export const useGroupsRepository = () => {
   };
 
   const deleteGroup = async (id: number) => {
-    await recordsOrm.deleteWhere('group_id', id);
-    await paidCreditsOrm.deleteWhere('group_id', id);
-    await groupsOrm.delete(id);
+    await withExclusiveTransaction(db, async (txn) => {
+      const records = new ORM(txn, 'Records');
+      const rows = await records.where('group_id', id).getAll();
+      for (const row of rows) {
+        if (row.id === undefined) continue;
+        await clearOwnerParticipants(txn, 'record', row.id);
+        await clearRecordAllocations(txn, row.id);
+        await records.delete(row.id);
+      }
+      await new ORM(txn, 'PaidCredits').deleteWhere('group_id', id);
+      await new ORM(txn, 'PersonSettlements').deleteWhere('group_id', id);
+      await new ORM(txn, 'Groups').delete(id);
+    });
   };
 
   const editGroup = async (id: number, updatedGroup: Partial<Group>) => {
@@ -681,7 +786,14 @@ export type { SavingsHistoryEntry };
 
 export {
   usePeopleRepository,
+  usePersonSettlementsRepository,
   useSharedLedgerRepository,
   useSharedParticipantsRepository,
+} from './people';
+export type {
+  ParticipantDraft,
+  PersonStatement,
+  PersonStatementsResult,
+  SharedOwnerType,
 } from './people';
 

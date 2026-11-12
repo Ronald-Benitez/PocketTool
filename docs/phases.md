@@ -1,6 +1,6 @@
 # Plan de fases
 
-**Última actualización:** 2026-11-05
+**Última actualización:** 2026-11-11
 
 ## Estado
 
@@ -18,6 +18,7 @@
 | Fase 9 — Gastos fijos y Créditos | ✅ Finalizada | 2026-11-03 |
 | Fase 10 — Errores y ajustes de siguiente versión | ✅ Finalizada | 2026-11-03 |
 | Fase 11 — Ahorros compartidos y metas | ✅ Finalizada | 2026-11-04 |
+| Fase 12 — Compras compartidas, saldo por persona y doble balance | ✅ Finalizada | 2026-11-11 |
 
 ## Fase activa
 
@@ -26,10 +27,10 @@
 Para iniciar una fase, reemplaza este bloque por:
 
 ```md
-## Fase activa: 12 — Nombre de la fase
+## Fase activa: 13 — Nombre de la fase
 - Estado: 🚧 En curso
-- Inicio: 2026-11-05
-- Plan: docs/plans/fase-12.md
+- Inicio: 2026-11-11
+- Plan: docs/plans/fase-13.md
 ```
 
 `/cerrar-fase` busca este encabezado para saber qué fase cerrar. Si no existe,
@@ -43,7 +44,7 @@ se detiene y pide cuál cerrar.
 - **Dinero/fechas:** centavos enteros y timestamps Unix en milisegundos.
 - **Auditoría:** `created_at`/`updated_at` con triggers; soft delete con
   `deleted_at`.
-- **Migraciones:** `0001` a `0020`; `SCHEMA_VERSION = 20`.
+- **Migraciones:** `0001` a `0022`; `SCHEMA_VERSION = 22`.
 - **Acceso a datos:** ORM tipado + repositorios; la UI no usa `useORM` ni SQL.
 - **Backups:** dump SQL con metadatos versionados y compatibilidad legacy.
 - **Calidad:** `test:db` con `node:sqlite`, Jest, typecheck, lint bloqueante y
@@ -165,6 +166,26 @@ Plan completo en [`legacy/savings-plan.md`](legacy/savings-plan.md).
 - Commits principales: `e3e6a7a`, `b7be5c4`, `2dc3bd8`, `17cdc4f`, `cf21572`,
   `e1a281c`, `789a125`, `e5a1fc0`, `5cc9684`, `b33df55`, `7dc8c1b`.
 
+## Fase 12 — Compras compartidas, saldo por persona y doble balance (✅ 2026-11-11)
+
+Plan completo en [`legacy/shared-purchases-plan.md`](legacy/shared-purchases-plan.md).
+
+- Migraciones `0021` y `0022`: pagador y alcance en `Records`, y
+  `PersonSettlements` para liquidaciones por persona y grupo.
+- Compras compartidas en `Records` con participantes `owner_type = 'record'` y
+  pagador; fijos con total / solo mi parte / pagó otra persona.
+- Estado de cuenta por persona con compras, pagos, financiamientos informativos,
+  saldo y modal de movimientos; liquidaciones totales o parciales.
+- Aviso de saldos pendientes al crear un grupo, con liquidación en el grupo
+  anterior, en el nuevo o seguimiento.
+- Doble balance consumo/caja y modos `Tu parte`, `Compartido`, `Total` y
+  `Propio bruto`; bloque de balances en 3 filas × 2 columnas.
+- Ayuda bilingüe `sharedPurchases` y `settlements`; Personas se refresca al
+  recuperar el foco.
+- Pendientes fuera de la fase: compartidos por monto y criterio del plan mensual
+  en Presupuestos, en [`plans/futuro-borrador.md`](plans/futuro-borrador.md).
+- Commits principales: `PENDIENTE`.
+
 ## Decisiones vigentes
 
 - Tablas lógicas PascalCase, nombres físicos y columnas snake_case.
@@ -179,6 +200,11 @@ Plan completo en [`legacy/savings-plan.md`](legacy/savings-plan.md).
 - La UI nueva usa `src/ui`; los estilos legacy se adaptan con
   `useThemedStyles`.
 - La ayuda se actualiza en el mismo cambio que la funcionalidad visible.
+- Los compartidos usan porcentajes; el pagador y las liquidaciones viven en
+  `Records` y `PersonSettlements`. El estado de cuenta distingue lo que te deben
+  de lo que debes y no mezcla financiamientos.
+- Los modos de importe son `Tu parte`, `Compartido`, `Total` y `Propio bruto`;
+  el balance de caja es el único que incluye liquidaciones.
 
 ## Documentación
 

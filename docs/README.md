@@ -31,6 +31,9 @@ arquitectura y enlaces. La documentación se lee **por secciones**, no completa.
   reglas de estilo.
 - [`architecture/domains.md`](architecture/domains.md): reglas de presupuestos,
   créditos, ahorros, vehículo, personas y compartidos.
+- [`plans/futuro-borrador.md`](plans/futuro-borrador.md): pendientes futuros fuera
+  de la Fase 12 (compartidos por monto, plan mensual, refresco de combustible y
+  ahorros con monto 0).
 - [`release-notes/4.0.4-google-play.md`](release-notes/4.0.4-google-play.md):
   notas de Google Play 4.0.4 en inglés y español.
 - [`release-notes/4.0.3-google-play.md`](release-notes/4.0.3-google-play.md):
@@ -50,6 +53,8 @@ arquitectura y enlaces. La documentación se lee **por secciones**, no completa.
 - [`legacy/next-version-plan.md`](legacy/next-version-plan.md): ajustes de la
   siguiente versión (Fase 10).
 - [`legacy/savings-plan.md`](legacy/savings-plan.md): ahorros y metas (Fase 11).
+- [`legacy/shared-purchases-plan.md`](legacy/shared-purchases-plan.md): compras
+  compartidas, estado de cuenta y doble balance (Fase 12).
 - [`legacy/db-summary.md`](legacy/db-summary.md): resumen anterior de base de
   datos.
 
@@ -82,6 +87,7 @@ arquitectura y enlaces. La documentación se lee **por secciones**, no completa.
 | Fase 9 — Gastos fijos y Créditos | ✅ Finalizada (2026-11-03) |
 | Fase 10 — Errores y ajustes de siguiente versión | ✅ Finalizada (2026-11-03) |
 | Fase 11 — Ahorros compartidos y metas | ✅ Finalizada (2026-11-04) |
+| Fase 12 — Compras compartidas, saldo por persona y doble balance | ✅ Finalizada (2026-11-11) |
 
 ## Regla de mantenimiento
 

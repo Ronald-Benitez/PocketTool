@@ -23,6 +23,7 @@ import type {
   PaymentMethod,
   PaymentType,
   Person,
+  PersonSettlement,
   RecordEntry,
   RecordType,
   Saving,
@@ -59,6 +60,7 @@ export type {
   PaymentMethod,
   PaymentType,
   Person,
+  PersonSettlement,
   RecordEntry,
   RecordType,
   Saving,
@@ -135,6 +137,7 @@ export interface RecordWithRelations extends RecordEntry {
   Fixed?: FixedRecordWithRelations | null;
   PaidCredits?: PaidCreditWithRelations | null;
   Savings?: Saving | null;
+  People?: Person | null;
 }
 
 export interface BudgetTemplateItemWithRelations extends BudgetTemplateItem {
@@ -212,6 +215,7 @@ export interface RecordView extends RecordWithRelations {
   paid_method_id?: number | null;
   paid_method_amount?: Cents | null;
   saving_name?: string | null;
+  paid_by_name?: string | null;
 }
 
 export interface FixedView extends FixedRecordWithRelations {

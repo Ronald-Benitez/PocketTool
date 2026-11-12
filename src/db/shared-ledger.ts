@@ -5,16 +5,29 @@ import type {
   SharedExpenseParticipant,
   SharedPaymentAllocation,
 } from '@/src/interfaces/schema';
-import { sharedAllocationInputSchema } from '@/src/validation/entities';
+import {
+  sharedAllocationInputSchema,
+  sharedParticipantInputSchema,
+} from '@/src/validation/entities';
 
 import type { TransactionDatabase } from './transaction';
 
-export type SharedOwnerType = 'fixed' | 'financing';
+export type SharedOwnerType = 'fixed' | 'financing' | 'saving' | 'record';
+export type AllocationOwnerType = 'fixed' | 'financing';
+
+export type ParticipantShareDraft = {
+  personId: number;
+  sharePercent: number;
+  notes?: string | null;
+};
 
 type ParticipantShare = Pick<
   SharedExpenseParticipant,
   'person_id' | 'share_percent'
 >;
+
+const participantsOrm = (txn: TransactionDatabase) =>
+  new ORM(txn, 'SharedExpenseParticipants');
 
 const allocationsOrm = (txn: TransactionDatabase) =>
   new ORM(txn, 'SharedPaymentAllocations');
@@ -33,7 +46,7 @@ const deleteAllocations = async (
 export const clearRecordAllocations = async (
   txn: TransactionDatabase,
   recordId: number,
-  ownerType?: SharedOwnerType
+  ownerType?: AllocationOwnerType
 ) => {
   await deleteAllocations(txn, async (orm) => {
     const rows = (await orm.where('record_id', recordId).getAll()) as SharedPaymentAllocation[];
@@ -68,6 +81,67 @@ export const clearFinancingPaymentAllocations = async (
   });
 };
 
+const validateParticipants = (participants: ParticipantShareDraft[]) => {
+  const unique = new Set(participants.map((participant) => participant.personId));
+  if (unique.size !== participants.length) {
+    throw new Error('SHARED_PERSON_DUPLICATED');
+  }
+  const total = participants.reduce(
+    (sum, participant) => sum + participant.sharePercent,
+    0
+  );
+  if (total > 100.0001) throw new Error('SHARED_PERCENT_INVALID');
+};
+
+/**
+ * Replace the participants of any shared owner (`fixed`, `financing`,
+ * `saving` or `record`). Runs inside an existing transaction so aggregates can
+ * save the owner and its participants atomically.
+ */
+export const replaceOwnerParticipants = async (
+  txn: TransactionDatabase,
+  ownerType: SharedOwnerType,
+  ownerId: number,
+  participants: ParticipantShareDraft[]
+) => {
+  validateParticipants(participants);
+  const orm = participantsOrm(txn);
+  const existing = (await orm
+    .where('owner_type', ownerType)
+    .where('owner_id', ownerId)
+    .getAll()) as SharedExpenseParticipant[];
+  for (const participant of existing) {
+    if (participant.id !== undefined) await orm.delete(participant.id);
+  }
+  for (const participant of participants) {
+    if (participant.sharePercent <= 0) continue;
+    await orm.insert(
+      sharedParticipantInputSchema.parse({
+        owner_type: ownerType,
+        owner_id: ownerId,
+        person_id: participant.personId,
+        share_percent: participant.sharePercent,
+        notes: participant.notes ?? null,
+      }) as Insertable<SharedExpenseParticipant>
+    );
+  }
+};
+
+export const clearOwnerParticipants = async (
+  txn: TransactionDatabase,
+  ownerType: SharedOwnerType,
+  ownerId: number
+) => {
+  const orm = participantsOrm(txn);
+  const rows = (await orm
+    .where('owner_type', ownerType)
+    .where('owner_id', ownerId)
+    .getAll()) as SharedExpenseParticipant[];
+  for (const row of rows) {
+    if (row.id !== undefined) await orm.delete(row.id);
+  }
+};
+
 export const syncRecordAllocations = async ({
   txn,
   recordId,
@@ -81,7 +155,7 @@ export const syncRecordAllocations = async ({
 }: {
   txn: TransactionDatabase;
   recordId: number;
-  ownerType: SharedOwnerType;
+  ownerType: AllocationOwnerType;
   ownerId: number;
   label: string;
   date: number;

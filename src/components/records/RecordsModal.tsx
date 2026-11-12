@@ -8,6 +8,9 @@ import { View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import useDate from '@/src/hooks/useDate';
+import { pickSummaryAmount, useSummaryMode } from '@/src/hooks/useSummaryMode';
+import { useBalanceMode } from '@/src/hooks/useBalanceMode';
+import { getRecordPaidByMeCents, getRecordReceivableCents } from '@/src/domain/summaries/cash';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import type { OrderCondition } from '@/src/orm';
 import type { RecordView } from '@/src/interfaces/schema';
@@ -41,6 +44,8 @@ export const RecordsModal = forwardRef<RecordsModalRef, Record<string, unknown>>
         const [order, setOrder] = useState<OrderCondition<'Records'>[]>([])
         const { t } = useLanguage()
         const { colors } = useTheme()
+        const { mode } = useSummaryMode()
+        const { mode: balanceMode } = useBalanceMode()
         const dateh = useDate()
 
         const handleClose = () => {
@@ -67,6 +72,17 @@ export const RecordsModal = forwardRef<RecordsModalRef, Record<string, unknown>>
             const filtered = records.filter(record => matchesRecordFilters(record, filters))
             return sortRecords(filtered, order)
         }, [records, filters, order])
+
+        const amountLabel =
+            balanceMode === 'cash'
+                ? t('resume.modeCash')
+                : mode === 'total'
+                    ? t('shared.totalPurchase')
+                    : mode === 'shared'
+                        ? t('shared.totalShared')
+                        : mode === 'paid'
+                            ? t('resume.paid')
+                            : t('shared.yourPart')
 
         return (
             <>
@@ -95,6 +111,7 @@ export const RecordsModal = forwardRef<RecordsModalRef, Record<string, unknown>>
                                     leftIcon={<MaterialIcons name='filter-list' size={18} color={colors.primary} />}
                                     onPress={() => setFilterVisible(true)}
                                 />
+                                <Badge label={amountLabel} tone='neutral' size='sm' />
                                 {filters.length > 0 ? (
                                     <Badge label={String(filters.length)} tone='primary' />
                                 ) : null}
@@ -111,11 +128,36 @@ export const RecordsModal = forwardRef<RecordsModalRef, Record<string, unknown>>
                             <EmptyState title={t('recordsFilters.noResults')} />
                         ) : (
                             <View>
-                                {filteredRecords.map((item, index) => (
+                                {filteredRecords.map((item, index) => {
+                                    const own = item.own_amount_cents ?? item.amount
+                                    const sharedSnapshot = item.shared_amount_cents ?? 0
+                                    const isExpense = item.effect === '-'
+                                    const receivable = isExpense
+                                        ? getRecordReceivableCents(item)
+                                        : 0
+                                    const paid = isExpense
+                                        ? getRecordPaidByMeCents(item)
+                                        : item.effect === '+'
+                                            ? own
+                                            : 0
+                                    const cash = isExpense
+                                        ? paid
+                                        : item.effect === '+'
+                                            ? own
+                                            : 0
+                                    return (
                                     <ListItem
                                         key={item.id ?? item.record_id ?? index}
                                         title={item.record_name}
-                                        subtitle={dateh.getStringDate(item.date)}
+                                        subtitle={
+                                            item.paid_by_person_id != null
+                                                ? `${dateh.getStringDate(item.date)} · ${t('shared.paidByName', {
+                                                    name:
+                                                        item.People?.name ??
+                                                        t('shared.deletedPerson'),
+                                                })}`
+                                                : dateh.getStringDate(item.date)
+                                        }
                                         leading={
                                             <View
                                                 style={{
@@ -126,10 +168,24 @@ export const RecordsModal = forwardRef<RecordsModalRef, Record<string, unknown>>
                                                 }}
                                             />
                                         }
-                                        trailing={<FinanceValue cents={item.amount} size='md' color={colors.text} />}
+                                        trailing={<FinanceValue
+                                            cents={
+                                                balanceMode === 'cash'
+                                                    ? cash
+                                                    : pickSummaryAmount(mode, {
+                                                        own,
+                                                        shared: receivable,
+                                                        total: own + sharedSnapshot,
+                                                        paid,
+                                                    })
+                                            }
+                                            size='md'
+                                            color={colors.text}
+                                        />}
                                         showDivider
                                     />
-                                ))}
+                                    )
+                                })}
                             </View>
                         )}
                     </Stack>

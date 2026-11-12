@@ -1,6 +1,6 @@
 import type { TableDefinition, TableSchema } from '../types';
 
-export const SCHEMA_VERSION = 20;
+export const SCHEMA_VERSION = 22;
 
 export type TableName =
   | 'Groups'
@@ -15,6 +15,7 @@ export type TableName =
   | 'FinancingPayments'
   | 'FinancingAdjustments'
   | 'People'
+  | 'PersonSettlements'
   | 'SharedExpenseParticipants'
   | 'SharedPaymentAllocations'
   | 'BudgetTemplates'
@@ -156,6 +157,32 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
       { name: 'idx_fixed_record_type', columns: ['record_type_id'], where: 'deleted_at IS NULL' },
     ],
   },
+  People: {
+    name: 'People',
+    sqlName: 'people',
+    entity: 'Person',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      { name: 'name', type: 'TEXT', notNull: true },
+      { name: 'notes', type: 'TEXT' },
+      {
+        name: 'is_active',
+        type: 'INTEGER',
+        kind: 'boolean',
+        notNull: true,
+        defaultValue: 1,
+      },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      {
+        name: 'idx_people_active',
+        columns: ['is_active'],
+        where: 'deleted_at IS NULL',
+      },
+    ],
+  },
   Records: {
     name: 'Records',
     sqlName: 'records',
@@ -202,11 +229,18 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
         type: 'INTEGER',
         references: { table: 'Savings', column: 'id', onDelete: 'SET NULL' },
       },
+      {
+        name: 'paid_by_person_id',
+        type: 'INTEGER',
+        references: { table: 'People', column: 'id', onDelete: 'SET NULL' },
+      },
+      { name: 'paid_scope', type: 'TEXT', notNull: true, defaultValue: 'full' },
       ...timestamps,
       softDelete,
     ],
     indexes: [
       { name: 'idx_records_group_date', columns: ['group_id', 'date'], where: 'deleted_at IS NULL' },
+      { name: 'idx_records_paid_by', columns: ['paid_by_person_id'], where: 'deleted_at IS NULL' },
       { name: 'idx_records_category', columns: ['category_id'], where: 'deleted_at IS NULL' },
       { name: 'idx_records_payment_method', columns: ['payment_method_id'], where: 'deleted_at IS NULL' },
       { name: 'idx_records_record_type', columns: ['record_type_id'], where: 'deleted_at IS NULL' },
@@ -359,28 +393,39 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
       { name: 'idx_financing_adjustments_financing_date', columns: ['financing_id', 'date'], where: 'deleted_at IS NULL' },
     ],
   },
-  People: {
-    name: 'People',
-    sqlName: 'people',
-    entity: 'Person',
+  PersonSettlements: {
+    name: 'PersonSettlements',
+    sqlName: 'person_settlements',
+    entity: 'PersonSettlement',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
-      { name: 'name', type: 'TEXT', notNull: true },
-      { name: 'notes', type: 'TEXT' },
       {
-        name: 'is_active',
+        name: 'person_id',
         type: 'INTEGER',
-        kind: 'boolean',
+        references: { table: 'People', column: 'id', onDelete: 'CASCADE' },
         notNull: true,
-        defaultValue: 1,
       },
+      {
+        name: 'group_id',
+        type: 'INTEGER',
+        references: { table: 'Groups', column: 'id', onDelete: 'SET NULL' },
+      },
+      { name: 'date', type: 'INTEGER', kind: 'timestamp', notNull: true },
+      { name: 'amount_cents', type: 'INTEGER', kind: 'money', notNull: true },
+      { name: 'direction', type: 'TEXT', notNull: true },
+      { name: 'notes', type: 'TEXT' },
       ...timestamps,
       softDelete,
     ],
     indexes: [
       {
-        name: 'idx_people_active',
-        columns: ['is_active'],
+        name: 'idx_person_settlements_person_date',
+        columns: ['person_id', 'date'],
+        where: 'deleted_at IS NULL',
+      },
+      {
+        name: 'idx_person_settlements_group_date',
+        columns: ['group_id', 'date'],
         where: 'deleted_at IS NULL',
       },
     ],

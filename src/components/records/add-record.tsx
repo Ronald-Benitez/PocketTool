@@ -8,8 +8,10 @@ import { useToast } from "@/src/ui/feedback/ToastProvider";
 import {
     usePaidCredits,
     usePaymentMethods,
+    usePeopleRepository,
     useRecords,
     useSavings,
+    useSharedParticipantsRepository,
     useTableRepository,
 } from "@/src/db";
 import type {
@@ -17,19 +19,24 @@ import type {
     Insertable,
     PaidCredit,
     PaymentMethodWithRelations,
+    Person,
     RecordEntry,
     RecordFormEntry,
     RecordType,
     Saving
 } from "@/src/interfaces/schema";
+import type { ParticipantDraft } from "@/src/db";
+import { computeRecordShares } from "@/src/domain/shared/split";
 import { useConfigs } from "@/src/hooks/useConfigs";
 import { formatMoneyWithSymbol } from "@/src/utils";
+import { SharedParticipantsField } from "@/src/components/shared/SharedParticipantsField";
 import { Button } from "@/src/ui/actions/Button";
 import { ColoredSelectOption } from "@/src/ui/forms/ColoredSelectOption";
 import { DateField } from "@/src/ui/forms/DateField";
 import { MoneyField } from "@/src/ui/forms/MoneyField";
 import { SelectField } from "@/src/ui/forms/SelectField";
 import { TextField } from "@/src/ui/forms/TextField";
+import { InlineMessage } from "@/src/ui/feedback/InlineMessage";
 import { Modal } from "@/src/ui/overlays/Modal";
 import { AppText } from "@/src/ui/primitives/AppText";
 import { Surface } from "@/src/ui/primitives/Surface";
@@ -40,6 +47,9 @@ interface AddItemProps {
     openUpdate?: boolean
     open?: boolean
 }
+
+type SharingSource = 'fixed' | 'financing' | 'saving' | null;
+type FixedPaidMode = 'me_full' | 'me_own' | 'person_full';
 
 const AddItem = ({ item, children, open }: AddItemProps) => {
     const { setRecords, group, setPaidCredits } = useRecordsStore()
@@ -53,8 +63,14 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     const [to_pay_method, setToPayMethod] = useState<PaymentMethodWithRelations>()
     const [category, setCategory] = useState<Category>()
     const [fixed_id, setFixedId] = useState<number | undefined>(undefined)
-    const [amountCents, setAmountCents] = useState<number>(0)
-    const [sharedCents, setSharedCents] = useState<number>(0)
+    const [totalCents, setTotalCents] = useState<number>(0)
+    const [participants, setParticipants] = useState<ParticipantDraft[]>([])
+    const [paidByPersonId, setPaidByPersonId] = useState<number | null>(null)
+    const [paidScope, setPaidScope] = useState<'full' | 'own'>('full')
+    const [fixedPaidMode, setFixedPaidMode] = useState<FixedPaidMode>('me_full')
+    const [sharingSource, setSharingSource] = useState<SharingSource>(null)
+    const [sharingLoaded, setSharingLoaded] = useState(false)
+    const [people, setPeople] = useState<Person[]>([])
     const [group_id, setGroupId] = useState<number>(group?.id || 0)
     const { showToast } = useToast()
     const [recordTypes, setRecordTypes] = useState<RecordType[]>([])
@@ -63,7 +79,9 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     const [savings, setSavings] = useState<Saving[]>([])
     const [savingId, setSavingId] = useState<number | null>(null)
     const savingsRepository = useSavings()
-    const { fetchRecords, saveRecord, fetchPaidCreditsByGroup } = useRecords()
+    const peopleRepository = usePeopleRepository()
+    const participantsRepository = useSharedParticipantsRepository()
+    const { fetchRecords, saveRecord, fetchPaidCreditsByGroup, getSharingSource } = useRecords()
     const { fetchById: fetchPaidCreditById } = usePaidCredits()
     const { fetchPaymentMethods } = usePaymentMethods()
     const recordTypesRepository = useTableRepository("RecordTypes")
@@ -81,16 +99,18 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
 
     useEffect(() => {
         const loadOptions = async () => {
-            const [loadedRecordTypes, loadedPaymentMethods, loadedCategories, loadedSavings] = await Promise.all([
+            const [loadedRecordTypes, loadedPaymentMethods, loadedCategories, loadedSavings, loadedPeople] = await Promise.all([
                 recordTypesRepository.fetchAll(),
                 fetchPaymentMethods(),
                 categoriesRepository.fetchAll(),
-                savingsRepository.fetchSavings({ status: 'active' })
+                savingsRepository.fetchSavings({ status: 'active' }),
+                peopleRepository.fetchPeople()
             ])
             setRecordTypes(loadedRecordTypes)
             setPaymentMethods(loadedPaymentMethods)
             setCategories(loadedCategories)
             setSavings(loadedSavings)
+            setPeople(loadedPeople)
         }
 
         loadOptions().catch((error) => {
@@ -105,10 +125,73 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     }, [group])
 
     useEffect(() => {
+        if (!item || (item.id == null && item.fixed_id == null)) {
+            setParticipants([])
+            setPaidByPersonId(null)
+            setPaidScope('full')
+            setFixedPaidMode('me_full')
+            setSharingSource(null)
+            setSharingLoaded(true)
+            return
+        }
+
+        let active = true
+        setSharingLoaded(false)
+        const loadSharing = async () => {
+            let source: SharingSource = item.fixed_id ? 'fixed' : null
+            if (item.id != null) {
+                const resolved = await getSharingSource(item.id)
+                if (resolved) source = resolved
+            }
+            if (!active) return
+            setSharingSource(source)
+
+            let rows: ParticipantDraft[] = []
+            if (source === 'fixed' && item.fixed_id != null) {
+                const fixedRows = await participantsRepository.fetchFor('fixed', item.fixed_id)
+                rows = fixedRows.map((row) => ({
+                    personId: row.person_id,
+                    sharePercent: row.share_percent,
+                }))
+            } else if (source === null && item.id != null) {
+                const recordRows = await participantsRepository.fetchFor('record', item.id)
+                rows = recordRows.map((row) => ({
+                    personId: row.person_id,
+                    sharePercent: row.share_percent,
+                }))
+            }
+            if (!active) return
+            setParticipants(rows)
+            const hasParticipants = rows.length > 0
+            setPaidByPersonId(hasParticipants ? item.paid_by_person_id ?? null : null)
+            setPaidScope(hasParticipants && item.paid_scope === 'own' ? 'own' : 'full')
+            setFixedPaidMode(
+                hasParticipants
+                    ? item.paid_by_person_id != null
+                        ? 'person_full'
+                        : item.paid_scope === 'own'
+                            ? 'me_own'
+                            : 'me_full'
+                    : 'me_full'
+            )
+            setSharingLoaded(true)
+        }
+
+        loadSharing().catch((error) => {
+            console.error("Error al cargar los participantes del registro:", error)
+            showToast({ message: t('toast.error'), type: 'error' })
+            setSharingLoaded(true)
+        })
+        return () => { active = false }
+    }, [item?.id, item?.fixed_id])
+
+    useEffect(() => {
         if (!item) return
         setName(item.record_name ?? "")
-        setAmountCents(item.own_amount_cents ?? item.amount ?? 0)
-        setSharedCents(item.shared_amount_cents ?? 0)
+        setTotalCents(
+            (item.own_amount_cents ?? item.amount ?? 0) +
+            (item.shared_amount_cents ?? 0)
+        )
         if (item.date !== undefined) setDate(dateH.verify(item.date).getTime())
         setType(recordTypes.find(val => val.id === item.record_type_id))
         if (item.group_id !== undefined && item.group_id !== null) setGroupId(item.group_id)
@@ -134,6 +217,14 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
         if (type?.effect !== '-') setSavingId(null)
     }, [type?.effect])
 
+    useEffect(() => {
+        if (savingId == null) return
+        setParticipants([])
+        setPaidByPersonId(null)
+        setPaidScope('full')
+        setFixedPaidMode('me_full')
+    }, [savingId])
+
     const closeModal = () => setVisible(false)
 
     const typeOptions = recordTypes.flatMap(val =>
@@ -152,15 +243,89 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     )
     const selectedSaving = savings.find((saving) => saving.id === savingId)
 
-    const onSave = async () => {
-        if (!group) return
+    const sharingLocked = sharingSource === 'financing' || sharingSource === 'saving';
+    const isFixed = sharingSource === 'fixed' || fixed_id !== undefined;
+    const sharingAvailable =
+        !sharingLocked &&
+        type?.effect === '-' &&
+        type?.id !== paymentCreditType;
 
+    const computed = computeRecordShares(totalCents, participants);
+    const ownCents = sharingLocked
+        ? item?.own_amount_cents ?? item?.amount ?? totalCents
+        : computed.ownCents;
+    const sharedCents = sharingLocked
+        ? item?.shared_amount_cents ?? 0
+        : computed.sharedCents;
+    const paidByMeCents =
+        paidByPersonId == null
+            ? paidScope === 'own'
+                ? ownCents
+                : ownCents + sharedCents
+            : 0;
+
+    const personName = (personId: number | null) =>
+        personId == null
+            ? t('shared.paidByMe')
+            : people.find((person) => person.id === personId)?.name ??
+              t('shared.deletedPerson');
+
+    const participantOptions = participants.flatMap((participant) =>
+        participant.sharePercent > 0 &&
+        people.some((person) => person.id === participant.personId)
+            ? [{
+                label:
+                    people.find((person) => person.id === participant.personId)?.name ??
+                    t('shared.deletedPerson'),
+                value: participant.personId,
+            }]
+            : []
+    );
+
+    const updateParticipants = (next: ParticipantDraft[]) => {
+        setParticipants(next)
+        if (next.some((participant) => participant.sharePercent > 0)) {
+            setSavingId(null)
+        }
         if (
-            amountCents <= 0 ||
-            !payment_method?.id ||
+            paidByPersonId != null &&
+            !next.some(
+                (participant) =>
+                    participant.personId === paidByPersonId &&
+                    participant.sharePercent > 0
+            )
+        ) {
+            setPaidByPersonId(null)
+            setPaidScope('full')
+            setFixedPaidMode('me_full')
+        }
+    }
+
+    const onFixedPaidModeChange = (mode: FixedPaidMode) => {
+        setFixedPaidMode(mode)
+        if (mode === 'me_own') {
+            setPaidByPersonId(null)
+            setPaidScope('own')
+            return
+        }
+        setPaidScope('full')
+        if (mode === 'person_full') {
+            setPaidByPersonId(participantOptions[0]?.value ?? null)
+        } else {
+            setPaidByPersonId(null)
+        }
+    }
+
+    const onSave = async () => {
+        if (!group || !sharingLoaded) return
+
+        const requiresPayment = paidByMeCents > 0;
+        if (
+            totalCents <= 0 ||
             !category?.id ||
             !type?.id ||
-            (type.id === paymentCreditType && !to_pay_method?.id)
+            (requiresPayment && !payment_method?.id) ||
+            (requiresPayment && type.id === paymentCreditType && !to_pay_method?.id)
         ) {
             showToast({ message: t('toast.empty'), type: 'warning' })
             return
@@ -168,10 +333,10 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
 
         try {
             const paidCredit: Insertable<PaidCredit> | null =
-                type.id === paymentCreditType && to_pay_method?.id
+                requiresPayment && type.id === paymentCreditType && to_pay_method?.id
                     ? {
                         group_id,
-                        amount: amountCents,
+                        amount: paidByMeCents,
                         date,
                         payment_method_id: to_pay_method.id,
                     }
@@ -182,11 +347,13 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                 group_id,
                 record_name: name.length < 1 ? category.category_name : name,
                 record_type_id: type.id,
-                amount: amountCents,
-                own_amount_cents: amountCents,
+                amount: ownCents,
+                own_amount_cents: ownCents,
                 shared_amount_cents: sharedCents,
+                paid_by_person_id: paidByPersonId,
+                paid_scope: paidScope,
                 category_id: category.id,
-                payment_method_id: payment_method.id,
+                payment_method_id: paidByPersonId == null ? payment_method?.id ?? null : null,
                 fixed_id,
                 saving_id: savingId ?? item?.saving_id ?? null,
             }
@@ -197,6 +364,10 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                 paidCredit,
                 paidCreditId: item?.paid_credit_id ?? null,
                 savingId: item?.id ? null : savingId,
+                participants:
+                    sharingLocked || isFixed
+                        ? undefined
+                        : participants,
             })
 
             if (item?.id) {
@@ -204,8 +375,11 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
             } else {
                 showToast({ message: t('toast.added'), type: 'success' })
                 setName("")
-                setAmountCents(0)
-                setSharedCents(0)
+                setTotalCents(0)
+                setParticipants([])
+                setPaidByPersonId(null)
+                setPaidScope('full')
+                setFixedPaidMode('me_full')
                 setSavingId(null)
             }
 
@@ -221,7 +395,12 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                 message:
                     message === 'SAVING_INSUFFICIENT_FUNDS'
                         ? t('savings.movement.insufficient')
-                        : t('toast.error'),
+                        : message === 'RECORD_SHARES_MISMATCH' ||
+                            message === 'SHARED_PAYER_NOT_PARTICIPANT'
+                            ? t('shared.invalidTotal')
+                            : message === 'SHARED_PERSON_NOT_FOUND'
+                                ? t('shared.personRequired')
+                                : t('toast.error'),
                 type: 'error',
             })
         }
@@ -249,6 +428,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                         <Button
                             label={t('item.save')}
                             onPress={onSave}
+                            disabled={!sharingLoaded}
                             style={styles.footerButton}
                         />
                     </View>
@@ -289,27 +469,29 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                         options={categoryOptions}
                         onChange={(id) => setCategory(categories.find(cat => cat.id === id))}
                     />
-                    <SelectField<number>
-                        label={t('item.payment')}
-                        required
-                        value={payment_method?.id}
-                        title={t('item.selectPayment')}
-                        options={paymentOptions}
-                        onChange={(id) => setPaymentMethod(paymentMethods.find(pay => pay.id === id))}
-                        renderValue={(option) => (
-                            <ColoredSelectOption
-                                color={payment_method?.PaymentTypes?.payment_color}
-                                label={option?.label ?? t('item.selectPayment')}
-                            />
-                        )}
-                        renderOption={(option) => (
-                            <ColoredSelectOption
-                                color={paymentMethods.find(pay => pay.id === option.value)?.PaymentTypes?.payment_color}
-                                label={option.label}
-                            />
-                        )}
-                    />
-                    {type?.id === paymentCreditType ? (
+                    {paidByPersonId == null ? (
+                        <SelectField<number>
+                            label={t('item.payment')}
+                            required
+                            value={payment_method?.id}
+                            title={t('item.selectPayment')}
+                            options={paymentOptions}
+                            onChange={(id) => setPaymentMethod(paymentMethods.find(pay => pay.id === id))}
+                            renderValue={(option) => (
+                                <ColoredSelectOption
+                                    color={payment_method?.PaymentTypes?.payment_color}
+                                    label={option?.label ?? t('item.selectPayment')}
+                                />
+                            )}
+                            renderOption={(option) => (
+                                <ColoredSelectOption
+                                    color={paymentMethods.find(pay => pay.id === option.value)?.PaymentTypes?.payment_color}
+                                    label={option.label}
+                                />
+                            )}
+                        />
+                    ) : null}
+                    {type?.id === paymentCreditType && paidByPersonId == null ? (
                         <SelectField<number>
                             label={t('item.toPay')}
                             required
@@ -332,20 +514,94 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                         />
                     ) : null}
                     <MoneyField
-                        label={sharedCents > 0 ? t('shared.ownAmount') : t('item.value')}
+                        label={participants.length > 0 ? t('shared.totalPurchase') : t('item.value')}
                         required
-                        value={amountCents}
-                        onChangeCents={setAmountCents}
+                        value={totalCents}
+                        onChangeCents={setTotalCents}
                     />
-                    {sharedCents > 0 ? (
+
+                    {sharingLocked ? (
+                        <InlineMessage variant='info' message={t('shared.managedRecordHint')} />
+                    ) : sharingAvailable ? (
+                        <>
+                            {isFixed ? (
+                                <Surface variant='muted' padding='md'>
+                                    <AppText variant='caption' color='muted'>
+                                        {participants.length > 0
+                                            ? participants
+                                                .map((participant) =>
+                                                    `${personName(participant.personId)} ${participant.sharePercent.toFixed(0)}%`
+                                                )
+                                                .join(' · ')
+                                            : t('shared.noPeople')}
+                                    </AppText>
+                                </Surface>
+                            ) : (
+                                <SharedParticipantsField
+                                    people={people}
+                                    value={participants}
+                                    onChange={updateParticipants}
+                                    totalCents={totalCents}
+                                />
+                            )}
+
+                            {participants.length > 0 ? (
+                                isFixed ? (
+                                    <>
+                                        <SelectField<FixedPaidMode>
+                                            label={t('shared.paidBy')}
+                                            value={fixedPaidMode}
+                                            options={[
+                                                { label: t('shared.fixedPaidFull'), value: 'me_full' },
+                                                { label: t('shared.fixedPaidOwnShare'), value: 'me_own' },
+                                                ...(participantOptions.length > 0
+                                                    ? [{
+                                                        label: t('shared.fixedPaidByOther'),
+                                                        value: 'person_full' as FixedPaidMode,
+                                                    }]
+                                                    : []),
+                                            ]}
+                                            onChange={onFixedPaidModeChange}
+                                        />
+                                        {fixedPaidMode === 'person_full' && participantOptions.length > 0 ? (
+                                            <SelectField<number>
+                                                label={t('shared.person')}
+                                                value={paidByPersonId ?? undefined}
+                                                options={participantOptions}
+                                                onChange={(personId) => setPaidByPersonId(personId)}
+                                            />
+                                        ) : null}
+                                    </>
+                                ) : (
+                                    <SelectField<number>
+                                        label={t('shared.paidBy')}
+                                        value={paidByPersonId ?? 0}
+                                        options={[
+                                            { label: t('shared.paidByMe'), value: 0 },
+                                            ...participantOptions,
+                                        ]}
+                                        onChange={(personId) =>
+                                            setPaidByPersonId(personId === 0 ? null : personId)
+                                        }
+                                    />
+                                )
+                            ) : null}
+
+                            {paidByPersonId != null ? (
+                                <InlineMessage variant='info' message={t('shared.payerHint')} />
+                            ) : null}
+                        </>
+                    ) : null}
+
+                    {participants.length > 0 ? (
                         <Surface variant='muted' padding='md'>
                             <AppText variant='caption' color='muted'>
                                 {t('shared.total')}:{' '}
-                                {formatMoneyWithSymbol(amountCents + sharedCents)}
+                                {formatMoneyWithSymbol(totalCents)}
                             </AppText>
                             <AppText variant='caption' color='muted'>
                                 {t('shared.own')}:{' '}
-                                {formatMoneyWithSymbol(amountCents)}
+                                {formatMoneyWithSymbol(ownCents)}
                             </AppText>
                             <AppText variant='caption' color='muted'>
                                 {t('shared.totalShared')}:{' '}
@@ -353,6 +609,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                             </AppText>
                         </Surface>
                     ) : null}
+
                     {item?.saving_id ? (
                         <AppText variant='caption' color='muted'>
                             {t('savings.records.paidWith')}: {item.saving_name ?? ''}
@@ -361,6 +618,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                     {!item?.id &&
                     type?.effect === '-' &&
                     type.id !== paymentCreditType &&
+                    participants.length === 0 &&
                     savingOptions.length > 0 ? (
                         <>
                             <SelectField<number>

@@ -20,6 +20,8 @@ import savingsGoalsAndSharing from './0017_savings_goals_and_sharing';
 import savingsMovements from './0018_savings_movements';
 import recordsSavingSource from './0019_records_saving_source';
 import clearMovementSavingSource from './0020_clear_movement_saving_source';
+import recordsPayerAndScope from './0021_records_payer_and_scope';
+import personSettlements from './0022_person_settlements';
 
 export interface Migration {
   version: number;
@@ -52,4 +54,6 @@ export const migrations: Migration[] = [
   savingsMovements,
   recordsSavingSource,
   clearMovementSavingSource,
+  recordsPayerAndScope,
+  personSettlements,
 ];

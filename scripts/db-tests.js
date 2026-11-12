@@ -56,6 +56,7 @@ const {
   groupInputSchema,
   budgetLineInputSchema,
   budgetPlanInputSchema,
+  personSettlementInputSchema,
   vehicleInputSchema,
 } = require(path.join(ROOT, 'src/validation/entities.ts'));
 const { getCreditPeriods } = require(path.join(ROOT, 'src/utils/creditPeriods.ts'));
@@ -410,7 +411,7 @@ async function testEmptyDatabase() {
   assert.strictEqual(q(raw, 'SELECT goal FROM groups')[0].goal, 500000);
   assert.strictEqual(q(raw, 'SELECT amount FROM records ORDER BY id')[0].amount, 100000);
   assert.strictEqual(q(raw, 'SELECT migration_name FROM migrations')[0].migration_name, '0001_baseline');
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 20);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 22);
   const recordColumns = q(raw, 'PRAGMA table_info(records)').map(c => c.name);
   assert.ok(recordColumns.includes('created_at'));
   assert.ok(recordColumns.includes('updated_at'));
@@ -447,7 +448,7 @@ async function testExportImport() {
   assert.ok(metadata);
   assert.strictEqual(metadata.formatVersion, BACKUP_FORMAT_VERSION);
   assert.strictEqual(metadata.appVersion, 'test-version');
-  assert.strictEqual(metadata.schemaVersion, 20);
+  assert.strictEqual(metadata.schemaVersion, 22);
   assert.ok(metadata.tables.includes('records'));
   assert.doesNotThrow(() => validateSqlDump(backupSql));
   assert.strictEqual(parseBackupMetadata(dump), null);
@@ -500,7 +501,7 @@ async function testAuditTimestampMigration() {
   const backfilled = q(raw, 'SELECT created_at, updated_at FROM records LIMIT 1')[0];
   assert.ok(backfilled.created_at > 0);
   assert.ok(backfilled.updated_at > 0);
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 20);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 22);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,
     1
@@ -535,6 +536,39 @@ async function testValidationSchemas() {
       record_name: 'Unknown column',
       date: Date.now(),
       not_a_column: true,
+    })
+  );
+  assert.doesNotThrow(() =>
+    recordInputSchema.parse({
+      amount: 1000,
+      record_name: 'Shared record',
+      date: Date.now(),
+      paid_by_person_id: 1,
+      paid_scope: 'own',
+    })
+  );
+  assert.throws(() =>
+    recordInputSchema.parse({
+      amount: 1000,
+      record_name: 'Invalid scope',
+      date: Date.now(),
+      paid_scope: 'other',
+    })
+  );
+  const settlement = personSettlementInputSchema.parse({
+    person_id: 1,
+    group_id: null,
+    date: Date.now(),
+    amount_cents: 500,
+    direction: 'they_paid_me',
+  });
+  assert.strictEqual(settlement.direction, 'they_paid_me');
+  assert.throws(() =>
+    personSettlementInputSchema.parse({
+      person_id: 1,
+      date: Date.now(),
+      amount_cents: -1,
+      direction: 'they_paid_me',
     })
   );
   assert.throws(() =>
@@ -1421,6 +1455,77 @@ async function testSharedPaymentAllocations() {
   console.log('shared payment allocations: OK');
 }
 
+async function testRecordsPayerAndSettlements() {
+  const raw = new DatabaseSync(':memory:');
+  const db = shim(raw);
+  await migrateDb(db);
+
+  const recordColumns = q(raw, 'PRAGMA table_info(records)').map((row) => row.name);
+  assert.ok(recordColumns.includes('paid_by_person_id'), 'missing paid_by_person_id');
+  assert.ok(recordColumns.includes('paid_scope'), 'missing paid_scope');
+
+  const tables = q(raw, "SELECT name FROM sqlite_master WHERE type='table'").map(
+    (row) => row.name
+  );
+  assert.ok(tables.includes('person_settlements'), 'missing person_settlements table');
+
+  raw.exec(`
+    INSERT INTO records (amount, record_name, date)
+    VALUES (1000, 'Default payer', 1);
+  `);
+  const defaultRecord = q(
+    raw,
+    "SELECT paid_by_person_id, paid_scope FROM records WHERE record_name = 'Default payer'"
+  )[0];
+  assert.strictEqual(defaultRecord.paid_by_person_id, null);
+  assert.strictEqual(defaultRecord.paid_scope, 'full');
+
+  const people = new ORM(db, 'People');
+  const personId = await people.insert({ name: 'Ana' });
+  const records = new ORM(db, 'Records');
+  const recordId = await records.insert({
+    amount: 5000,
+    own_amount_cents: 5000,
+    shared_amount_cents: 5000,
+    record_name: 'Shared groceries',
+    date: 2,
+    paid_by_person_id: personId,
+    paid_scope: 'full',
+  });
+
+  const stored = q(
+    raw,
+    'SELECT paid_by_person_id, paid_scope FROM records WHERE id = ?',
+    [recordId]
+  )[0];
+  assert.strictEqual(stored.paid_by_person_id, personId);
+  assert.strictEqual(stored.paid_scope, 'full');
+
+  const settlements = new ORM(db, 'PersonSettlements');
+  const settlementId = await settlements.insert({
+    person_id: personId,
+    group_id: null,
+    date: 3,
+    amount_cents: 5000,
+    direction: 'they_paid_me',
+    notes: 'Settle',
+  });
+  const settlement = q(
+    raw,
+    'SELECT person_id, direction, amount_cents FROM person_settlements WHERE id = ?',
+    [settlementId]
+  )[0];
+  assert.strictEqual(settlement.person_id, personId);
+  assert.strictEqual(settlement.direction, 'they_paid_me');
+  assert.strictEqual(settlement.amount_cents, 5000);
+
+  await settlements.delete(settlementId);
+  assert.strictEqual((await settlements.getAll()).length, 0);
+
+  raw.close();
+  console.log('records payer and settlements: OK');
+}
+
 async function testVehicleInsert() {
   const raw = new DatabaseSync(':memory:');
   const db = shim(raw);
@@ -1606,6 +1711,7 @@ async function testInterruptedRebuild() {
   await testRecordsSavingSourceMigration();
   await testSavingsRecordLink();
   await testSharedPaymentAllocations();
+  await testRecordsPayerAndSettlements();
   await testVehicleSettingsRecordTypeMigration();
   await testVehicleInsert();
   await testVehicleTypeMigration();

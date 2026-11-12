@@ -15,6 +15,7 @@ import {
     useGroups,
     usePaidCredits,
     usePaymentMethods,
+    usePersonSettlementsRepository,
     useRecords,
     useTableRepository,
 } from '@/src/db'
@@ -26,7 +27,7 @@ const GroupSelector = () => {
     const { t } = useLanguage()
     const { showToast } = useToast()
     const [year, setYear] = useState<string>(new Date().getFullYear().toString())
-    const { group, setGroup, setRecords, groups, setGroups, setPaidCredits } = useRecordsStore()
+    const { group, setGroup, setRecords, groups, setGroups, setPaidCredits, setSettlements } = useRecordsStore()
     const [openUpdate, setOpenUpdate] = useState(false)
     const userSelectedRef = useRef(false)
     const selectionIdRef = useRef(0)
@@ -40,6 +41,7 @@ const GroupSelector = () => {
     const { fetchFixeds } = useFixeds()
     const { fetchPaymentMethods } = usePaymentMethods()
     const { fetchRecords } = useRecords()
+    const settlementsRepository = usePersonSettlementsRepository()
     const { loadConfigs } = useConfigs()
 
     useEffect(() => {
@@ -87,6 +89,9 @@ const GroupSelector = () => {
         const paidCredits = await fetchPaidCreditsByGroup(group.id)
         if (selectionIdRef.current !== selectionId) return
         setPaidCredits(paidCredits)
+        const settlements = await settlementsRepository.fetchByGroup(group.id)
+        if (selectionIdRef.current !== selectionId) return
+        setSettlements(settlements)
     }
 
     const getPlaceHolder = (group: Group | null) => {

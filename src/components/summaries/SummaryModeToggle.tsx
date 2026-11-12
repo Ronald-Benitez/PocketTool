@@ -5,10 +5,14 @@ import { useLanguage } from '@/src/lang/LanguageContext';
 import { Button } from '@/src/ui/actions/Button';
 import { Row } from '@/src/ui/primitives/Stack';
 
-const MODES: { value: SummaryMode; labelKey: 'resume.own' | 'resume.total' | 'resume.shared' }[] = [
+const MODES: {
+  value: SummaryMode;
+  labelKey: 'resume.own' | 'resume.total' | 'resume.shared' | 'resume.paid';
+}[] = [
   { value: 'own', labelKey: 'resume.own' },
-  { value: 'total', labelKey: 'resume.total' },
   { value: 'shared', labelKey: 'resume.shared' },
+  { value: 'total', labelKey: 'resume.total' },
+  { value: 'paid', labelKey: 'resume.paid' },
 ];
 
 export const SummaryModeToggle = () => {

@@ -7,6 +7,38 @@ export type SharedSplit = SharedParticipantShare & {
   amountCents: number;
 };
 
+export type RecordShareSplit = {
+  ownCents: number;
+  sharedCents: number;
+};
+
+/**
+ * Split a total purchase into the user's own share and the shared share using
+ * the participants' percentages. The shared share is rounded once and the own
+ * share is the remainder, so `ownCents + sharedCents` always equals the total.
+ */
+export const computeRecordShares = (
+  totalCents: number,
+  participants: SharedParticipantShare[]
+): RecordShareSplit => {
+  const totalPercent = Math.min(
+    100,
+    participants.reduce(
+      (total, participant) =>
+        Number.isFinite(participant.sharePercent) && participant.sharePercent > 0
+          ? total + participant.sharePercent
+          : total,
+      0
+    )
+  );
+  const safeTotal = Math.max(0, Math.round(totalCents));
+  const sharedCents = Math.round((safeTotal * totalPercent) / 100);
+  return {
+    ownCents: safeTotal - sharedCents,
+    sharedCents,
+  };
+};
+
 /**
  * Split a shared amount (in cents) across participants proportionally to their
  * percentages. The returned amounts always add up to `amountCents`.

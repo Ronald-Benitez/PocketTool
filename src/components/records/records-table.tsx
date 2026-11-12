@@ -182,7 +182,9 @@ const ItemsTable = () => {
     return sortRecords(filtered, recordOrder)
   }, [records, filters, recordOrder])
 
-  const { balance } = useResumesStore(visibleRecords);
+  const { balance, cashBalance } = useResumesStore(visibleRecords, {
+    includeSettlements: false,
+  });
 
   const selectePaymentCreditType = RecordTypes.find(
     (e) => e.id == paymentCreditType
@@ -344,15 +346,20 @@ const ItemsTable = () => {
     <>
       <View>
         <View style={localStyles.rowContainer}>
-          <Text
-            style={[
-              localStyles.balanceText,
-              styles.textPrimary,
-              color(balance < 0 ? "expense" : "income"),
-            ]}
-          >
-            $ {formatMoney(balance)}
-          </Text>
+          <View style={{ flex: 1 }}>
+            <Text
+              style={[
+                localStyles.balanceText,
+                styles.textPrimary,
+                color(balance < 0 ? "expense" : "income"),
+              ]}
+            >
+              $ {formatMoney(balance)}
+            </Text>
+            <Text style={[localStyles.cashText, styles.textMuted]}>
+              {t("resume.cashBalance")}: $ {formatMoney(cashBalance)}
+            </Text>
+          </View>
           <View style={[{ position: "absolute", right: 0, top: 0, flexDirection: "row", gap: 2, alignItems: "center" }]}>
             <AppIconButton
               label={t("recordsFilters.title")}
@@ -530,14 +537,19 @@ const localStyles = StyleSheet.create({
     fontWeight: "300",
   },
   balanceText: {
-    width: "60%",
+    width: "100%",
     borderTopWidth: 4,
-    height: 60,
-    paddingTop: 10,
+    height: 40,
+    paddingTop: 6,
     textAlign: "center",
     marginLeft: 5,
     fontWeight: "300",
     fontSize: 18,
+  },
+  cashText: {
+    textAlign: "center",
+    fontSize: 11,
+    marginLeft: 5,
   },
   filterPill: {
     borderWidth: 1,

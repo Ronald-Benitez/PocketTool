@@ -27,7 +27,7 @@ export const headersEs: MessageShape<typeof headersEn> = {
     "headers": {
         "financialsIndex": "Resumen",
         "records": "Registros",
-        "paymentTypes": "Métodos de pago",
+        "paymentTypes": "Tipos de pago",
         "recordTypes": "Tipos de registro",
         "categories": "Categorías",
         "payments": "Métodos de pago",

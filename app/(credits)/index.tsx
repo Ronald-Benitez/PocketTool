@@ -27,13 +27,13 @@ const Index = () => {
     const { getStringDate } = useDate();
     const { mode } = useSummaryMode();
     const currentAmount = (credit: Credit) =>
-        mode === 'total'
+        mode === 'total' || mode === 'paid'
             ? credit.totalCurrentCombined ?? credit.totalCurrent ?? 0
             : mode === 'shared'
               ? credit.totalCurrentShared ?? 0
               : credit.totalCurrentOwn ?? credit.totalCurrent ?? 0;
     const previousAmount = (credit: Credit) =>
-        mode === 'total'
+        mode === 'total' || mode === 'paid'
             ? credit.totalPreviousCombined ?? credit.totalPrevious ?? 0
             : mode === 'shared'
               ? credit.totalPreviousShared ?? 0

@@ -1,4 +1,4 @@
-import { splitSharedAmount } from '../split';
+import { computeRecordShares, splitSharedAmount } from '../split';
 
 describe('splitSharedAmount', () => {
   it('splits a shared amount proportionally', () => {
@@ -41,5 +41,38 @@ describe('splitSharedAmount', () => {
     expect(
       splitSharedAmount(500, [{ personId: 1, sharePercent: 0 }])
     ).toEqual([]);
+  });
+});
+
+describe('computeRecordShares', () => {
+  it('splits the total into own and shared shares', () => {
+    expect(
+      computeRecordShares(10000, [{ personId: 1, sharePercent: 50 }])
+    ).toEqual({ ownCents: 5000, sharedCents: 5000 });
+  });
+
+  it('clamps percentages above 100', () => {
+    expect(
+      computeRecordShares(10000, [
+        { personId: 1, sharePercent: 80 },
+        { personId: 2, sharePercent: 40 },
+      ])
+    ).toEqual({ ownCents: 0, sharedCents: 10000 });
+  });
+
+  it('keeps the own share when only part is shared', () => {
+    expect(
+      computeRecordShares(900, [{ personId: 1, sharePercent: 33.33 }])
+    ).toEqual({ ownCents: 600, sharedCents: 300 });
+  });
+
+  it('handles zero and negative totals', () => {
+    expect(computeRecordShares(0, [{ personId: 1, sharePercent: 50 }])).toEqual({
+      ownCents: 0,
+      sharedCents: 0,
+    });
+    expect(
+      computeRecordShares(-100, [{ personId: 1, sharePercent: 50 }])
+    ).toEqual({ ownCents: 0, sharedCents: 0 });
   });
 });

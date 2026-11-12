@@ -128,7 +128,19 @@ const seeds: HelpTopicSeed[] = [
     id: 'people',
     icon: 'people',
     category: 'records',
-    related: ['fixeds', 'financings', 'summaries'],
+    related: ['fixeds', 'financings', 'summaries', 'sharedPurchases'],
+  },
+  {
+    id: 'sharedPurchases',
+    icon: 'receipt-long',
+    category: 'records',
+    related: ['records', 'people', 'fixeds', 'amountModes'],
+  },
+  {
+    id: 'settlements',
+    icon: 'payments',
+    category: 'records',
+    related: ['people', 'sharedPurchases', 'groups', 'summaries'],
   },
   {
     id: 'amountModes',

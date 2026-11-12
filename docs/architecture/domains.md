@@ -96,13 +96,33 @@ compartidos, resúmenes o reglas de dinero.
 ## Personas y compartidos
 
 - `src/db/repositories/people.ts`: personas, participantes de gastos
-  compartidos (`fixed`/`financing`/`saving`) e historial de pagos compartidos.
+  compartidos (`fixed`/`financing`/`saving`/`record`), liquidaciones y estado de
+  cuenta por persona.
 - `src/domain/shared/split.ts`: reparte un monto entre personas y garantiza que
-  la suma reconcilie.
-- `src/db/shared-ledger.ts`: sincroniza `SharedPaymentAllocations` desde
-  registros de fijos y pagos de financiamientos.
-- `app/(people)/index.tsx`: sección Personas con alta, edición, archivo y
-  ledger por persona.
+  la suma reconcilie. `computeRecordShares` separa la parte propia y la
+  compartida de una compra.
+- `src/domain/shared/statement.ts`: construye el estado de cuenta por persona.
+  Las compras pagadas por el usuario generan “te debe”; las pagadas por otra
+  persona generan “le debes”; los financiamientos son informativos y los
+  ahorros se mantienen aparte.
+- `src/domain/summaries/cash.ts`: calcula lo que el usuario realmente pagó por
+  un registro, lo que le deben por compras compartidas y el neto de las
+  liquidaciones.
+- Modos de importe: `Tu parte` (parte propia de cada compra), `Compartido`
+  (lo que le deben, bruto y antes de liquidar), `Total` (compra completa sin
+  importar quién pagó) y `Propio bruto` (ingresos menos lo que pagó por compras,
+  sin liquidaciones). El balance de consumo y el balance de caja se muestran
+  aparte.
+- `src/db/shared-ledger.ts`: sincroniza participantes y las asignaciones de
+  fijos/financiamientos. El estado de cuenta nuevo deriva fijos y compras desde
+  `Records` y no duplica las asignaciones.
+- `app/(people)/index.tsx`: sección Personas con alta, edición, archivo, estado
+  de cuenta y registro de pagos.
+- `src/components/people/`: modal de estado de cuenta y formulario de
+  liquidación.
+- `src/components/groups/PendingBalancesDialog.tsx`: al crear un grupo, informa
+  saldos pendientes y permite liquidarlos en el grupo anterior, en el nuevo o
+  darles seguimiento.
 - `src/components/shared/SharedParticipantsField.tsx`: selector reutilizable de
   personas y porcentajes con total/propio/compartido.
 

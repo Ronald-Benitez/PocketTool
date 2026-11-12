@@ -1,12 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useFocusEffect } from 'expo-router';
 
-import { usePeopleRepository, useSavings, useSharedLedgerRepository } from '@/src/db';
+import { usePeopleRepository, usePersonSettlementsRepository, useSavings, useSharedLedgerRepository } from '@/src/db';
+import type { PersonStatement } from '@/src/db';
 import { mapDatabaseError } from '@/src/db/errors';
-import type { Person, SharedPaymentAllocation } from '@/src/interfaces/schema';
+import type { Person } from '@/src/interfaces/schema';
 import { useLanguage } from '@/src/lang/LanguageContext';
+import useRecordsStore from '@/src/stores/RecordsStore';
 import { formatMoneyWithSymbol } from '@/src/utils';
+import { PersonStatementModal } from '@/src/components/people/PersonStatementModal';
+import { SettlementForm } from '@/src/components/people/SettlementForm';
 import { FinanceValue } from '@/src/ui/data-display/FinanceValue';
 import { Button } from '@/src/ui/actions/Button';
 import { Badge } from '@/src/ui/data-display/Badge';
@@ -28,13 +33,18 @@ const PeopleScreen = () => {
   const { showToast } = useToast();
   const repository = usePeopleRepository();
   const ledgerRepository = useSharedLedgerRepository();
+  const settlementsRepository = usePersonSettlementsRepository();
   const savingsRepository = useSavings();
+  const { group, setSettlements } = useRecordsStore();
   const [people, setPeople] = useState<Person[]>([]);
-  const [allocations, setAllocations] = useState<SharedPaymentAllocation[]>([]);
+  const [statements, setStatements] = useState<Map<number, PersonStatement>>(
+    new Map()
+  );
   const [savingsTotals, setSavingsTotals] = useState<
     Map<number, { contributedCents: number; balanceCents: number }>
   >(new Map());
   const [ledgerPerson, setLedgerPerson] = useState<Person | null>(null);
+  const [settlementPerson, setSettlementPerson] = useState<Person | null>(null);
   const [visible, setVisible] = useState(false);
   const [editing, setEditing] = useState<Person | null>(null);
   const [name, setName] = useState('');
@@ -44,18 +54,29 @@ const PeopleScreen = () => {
   const [deleting, setDeleting] = useState<Person | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const focusedOnce = useRef(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!focusedOnce.current) {
+        focusedOnce.current = true;
+        return;
+      }
+      setRefreshKey((value) => value + 1);
+    }, [])
+  );
 
   useEffect(() => {
     let active = true;
     Promise.all([
       repository.fetchPeople(),
-      ledgerRepository.fetchAllocations(),
+      ledgerRepository.fetchStatements(),
       savingsRepository.fetchParticipantTotals(),
     ])
       .then(([rows, ledger, savingRows]) => {
         if (!active) return;
         setPeople(rows);
-        setAllocations(ledger);
+        setStatements(ledger.statements);
         setSavingsTotals(
           new Map(
             savingRows.map((row) => [
@@ -152,20 +173,8 @@ const PeopleScreen = () => {
     }
   };
 
-  const ledgerTotals = new Map<number, { total: number; count: number }>();
-  allocations.forEach((allocation) => {
-    const current = ledgerTotals.get(allocation.person_id) ?? {
-      total: 0,
-      count: 0,
-    };
-    ledgerTotals.set(allocation.person_id, {
-      total: current.total + allocation.amount_cents,
-      count: current.count + 1,
-    });
-  });
-  const ledgerEntries = ledgerPerson?.id
-    ? allocations.filter((allocation) => allocation.person_id === ledgerPerson.id)
-    : [];
+  const statementFor = (person: Person): PersonStatement | undefined =>
+    person.id != null ? statements.get(person.id) : undefined;
 
   return (
     <Screen scroll edges={['left', 'right']}>
@@ -191,89 +200,140 @@ const PeopleScreen = () => {
           />
         ) : (
           <Stack gap='md'>
-            {people.map((person) => (
-              <Surface key={person.id} variant='outlined' padding='md'>
-                <Stack gap='sm'>
-                  <Row justify='space-between' align='center' gap='sm'>
-                    <Stack gap='xxs' style={{ flex: 1 }}>
-                      <AppText weight='600'>{person.name}</AppText>
-                      {person.notes ? (
-                        <AppText variant='caption' color='muted'>
-                          {person.notes}
-                        </AppText>
-                      ) : null}
-                    </Stack>
-                    <Badge
-                      label={
-                        person.is_active === 0
-                          ? t('shared.inactive')
-                          : t('shared.active')
-                      }
-                      tone={person.is_active === 0 ? 'neutral' : 'success'}
-                      size='sm'
-                    />
-                  </Row>
-                  {person.id != null && savingsTotals.get(person.id) ? (
+            {people.map((person) => {
+              const statement = statementFor(person);
+              const summary = statement?.summary;
+              const hasStatement = Boolean(
+                summary &&
+                  (summary.purchasePaidByMeCents > 0 ||
+                    summary.purchasePaidByPersonCents > 0 ||
+                    summary.settlementsPaidByMeCents > 0 ||
+                    summary.settlementsPaidByPersonCents > 0 ||
+                    summary.balanceCents !== 0)
+              );
+              const savings = person.id != null ? savingsTotals.get(person.id) : undefined;
+              return (
+                <Surface key={person.id} variant='outlined' padding='md'>
+                  <Stack gap='sm'>
                     <Row justify='space-between' align='center' gap='sm'>
                       <Stack gap='xxs' style={{ flex: 1 }}>
-                        <AppText variant='caption' color='muted'>
-                          {t('shared.savingsContributed')}
-                        </AppText>
-                        <AppText weight='600'>
-                          {formatMoneyWithSymbol(
-                            savingsTotals.get(person.id)?.contributedCents ?? 0
-                          )}
-                        </AppText>
+                        <AppText weight='600'>{person.name}</AppText>
+                        {person.notes ? (
+                          <AppText variant='caption' color='muted'>
+                            {person.notes}
+                          </AppText>
+                        ) : null}
                       </Stack>
-                      <Stack gap='xxs' align='flex-end'>
-                        <AppText variant='caption' color='muted'>
-                          {t('shared.savingsBalance')}
-                        </AppText>
-                        <AppText weight='600'>
-                          {formatMoneyWithSymbol(
-                            savingsTotals.get(person.id)?.balanceCents ?? 0
-                          )}
-                        </AppText>
-                      </Stack>
-                    </Row>
-                  ) : null}
-                  {person.id != null && (ledgerTotals.get(person.id)?.count ?? 0) > 0 ? (
-                    <Row justify='space-between' align='center' gap='sm'>
-                      <Stack gap='xxs' style={{ flex: 1 }}>
-                        <AppText variant='caption' color='muted'>
-                          {t('shared.ledgerTotal')}
-                        </AppText>
-                        <AppText weight='600'>
-                          {formatMoneyWithSymbol(
-                            ledgerTotals.get(person.id)?.total ?? 0
-                          )}
-                        </AppText>
-                      </Stack>
-                      <Button
-                        label={t('shared.ledger')}
+                      <Badge
+                        label={
+                          person.is_active === 0
+                            ? t('shared.inactive')
+                            : t('shared.active')
+                        }
+                        tone={person.is_active === 0 ? 'neutral' : 'success'}
                         size='sm'
-                        variant='ghost'
-                        onPress={() => setLedgerPerson(person)}
                       />
                     </Row>
-                  ) : null}
-                  <Row gap='sm' wrap>
-                    <Button
-                      label={t('shared.edit')}
-                      size='sm'
-                      variant='outline'
-                      onPress={() => openEdit(person)}
-                    />
-                    <Button
-                      label={t('delete')}
-                      size='sm'
-                      variant='danger'
-                      onPress={() => setDeleting(person)}
-                    />
-                  </Row>
-                </Stack>
-              </Surface>
-            ))}
+
+                    {hasStatement && summary ? (
+                      <Surface variant='muted' padding='md'>
+                        <Stack gap='xs'>
+                          <Row justify='space-between'>
+                            <AppText variant='caption' color='muted'>
+                              {t('shared.paidByYou')}
+                            </AppText>
+                            <AppText weight='600'>
+                              {formatMoneyWithSymbol(summary.paidByMeCents)}
+                            </AppText>
+                          </Row>
+                          <Row justify='space-between'>
+                            <AppText variant='caption' color='muted'>
+                              {t('shared.paidByThem')}
+                            </AppText>
+                            <AppText weight='600'>
+                              {formatMoneyWithSymbol(summary.paidByPersonCents)}
+                            </AppText>
+                          </Row>
+                          <Row justify='space-between' align='center'>
+                            <AppText weight='600'>{t('shared.balance')}</AppText>
+                            <FinanceValue
+                              cents={summary.balanceCents}
+                              size='md'
+                              tone={
+                                summary.balanceCents > 0
+                                  ? 'income'
+                                  : summary.balanceCents < 0
+                                    ? 'expense'
+                                    : 'neutral'
+                              }
+                            />
+                          </Row>
+                          <AppText variant='caption' color='muted'>
+                            {summary.balanceCents > 0
+                              ? t('shared.balanceInYourFavor')
+                              : summary.balanceCents < 0
+                                ? t('shared.balanceInTheirFavor')
+                                : t('shared.settled')}
+                          </AppText>
+                        </Stack>
+                      </Surface>
+                    ) : null}
+
+                    {savings ? (
+                      <Row justify='space-between' align='center' gap='sm'>
+                        <Stack gap='xxs' style={{ flex: 1 }}>
+                          <AppText variant='caption' color='muted'>
+                            {t('shared.savingsContributed')}
+                          </AppText>
+                          <AppText weight='600'>
+                            {formatMoneyWithSymbol(savings.contributedCents)}
+                          </AppText>
+                        </Stack>
+                        <Stack gap='xxs' align='flex-end'>
+                          <AppText variant='caption' color='muted'>
+                            {t('shared.savingsBalance')}
+                          </AppText>
+                          <AppText weight='600'>
+                            {formatMoneyWithSymbol(savings.balanceCents)}
+                          </AppText>
+                        </Stack>
+                      </Row>
+                    ) : null}
+
+                    <Row gap='sm' wrap>
+                      {summary && summary.entryCount > 0 ? (
+                        <Button
+                          label={t('shared.movements')}
+                          size='sm'
+                          variant='ghost'
+                          onPress={() => setLedgerPerson(person)}
+                        />
+                      ) : null}
+                      {summary && summary.balanceCents !== 0 ? (
+                        <Button
+                          label={t('shared.registerPayment')}
+                          size='sm'
+                          variant='outline'
+                          onPress={() => setSettlementPerson(person)}
+                        />
+                      ) : null}
+                      <Button
+                        label={t('shared.edit')}
+                        size='sm'
+                        variant='outline'
+                        onPress={() => openEdit(person)}
+                      />
+                      <Button
+                        label={t('delete')}
+                        size='sm'
+                        variant='danger'
+                        onPress={() => setDeleting(person)}
+                      />
+                    </Row>
+                  </Stack>
+                </Surface>
+              );
+            })}
           </Stack>
         )}
       </Stack>
@@ -325,37 +385,44 @@ const PeopleScreen = () => {
           {error ? <AppText color='danger'>{error}</AppText> : null}
         </Stack>
       </Modal>
-      <Modal
+
+      <PersonStatementModal
         visible={Boolean(ledgerPerson)}
+        person={ledgerPerson}
+        statement={
+          ledgerPerson?.id != null ? statements.get(ledgerPerson.id) : undefined
+        }
         onClose={() => setLedgerPerson(null)}
-        title={`${t('shared.ledger')}${ledgerPerson ? ` · ${ledgerPerson.name}` : ''}`}
-        closeLabel={t('close')}
-        scrollable
-      >
-        {ledgerEntries.length === 0 ? (
-          <EmptyState title={t('shared.ledgerEmpty')} />
-        ) : (
-          <Stack gap='sm'>
-            {ledgerEntries.map((entry) => (
-              <Surface key={entry.id} variant='muted' padding='md'>
-                <Row justify='space-between' align='center' gap='sm'>
-                  <Stack gap='xxs' style={{ flex: 1 }}>
-                    <AppText numberOfLines={1}>{entry.label}</AppText>
-                    <AppText variant='caption' color='muted'>
-                      {new Date(entry.date).toLocaleDateString()} ·{' '}
-                      {entry.owner_type === 'fixed'
-                        ? t('records.fixeds')
-                        : t('records.financingPayments')}{' '}
-                      · {entry.share_percent.toFixed(0)}%
-                    </AppText>
-                  </Stack>
-                  <FinanceValue cents={entry.amount_cents} size='md' />
-                </Row>
-              </Surface>
-            ))}
-          </Stack>
-        )}
-      </Modal>
+        onRegisterPayment={() => {
+          const person = ledgerPerson;
+          setLedgerPerson(null);
+          setSettlementPerson(person);
+        }}
+      />
+
+      <SettlementForm
+        visible={Boolean(settlementPerson)}
+        person={settlementPerson}
+        balanceCents={
+          settlementPerson?.id != null
+            ? statements.get(settlementPerson.id)?.summary.balanceCents ?? 0
+            : 0
+        }
+        defaultGroupId={group?.id ?? null}
+        onClose={() => setSettlementPerson(null)}
+        onSaved={() => {
+          setRefreshKey((value) => value + 1);
+          if (group?.id) {
+            settlementsRepository
+              .fetchByGroup(group.id)
+              .then((rows) => setSettlements(rows))
+              .catch(() => {
+                // The next group selection refreshes the settlements again.
+              });
+          }
+        }}
+      />
+
       <ConfirmDialog
         visible={Boolean(deleting)}
         title={t('delete')}

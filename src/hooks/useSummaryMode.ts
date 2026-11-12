@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 
-export type SummaryMode = 'own' | 'total' | 'shared';
+export type SummaryMode = 'own' | 'total' | 'shared' | 'paid';
 
 const STORAGE_KEY = 'summaryMode';
 
@@ -13,7 +13,7 @@ type SummaryModeStore = {
 };
 
 const isSummaryMode = (value: unknown): value is SummaryMode =>
-  value === 'own' || value === 'total' || value === 'shared';
+  value === 'own' || value === 'total' || value === 'shared' || value === 'paid';
 
 export const useSummaryMode = create<SummaryModeStore>((set) => ({
   mode: 'own',
@@ -38,9 +38,10 @@ export const useSummaryMode = create<SummaryModeStore>((set) => ({
 
 export const pickSummaryAmount = (
   mode: SummaryMode,
-  buckets: { own: number; shared: number; total: number }
+  buckets: { own: number; shared: number; total: number; paid?: number }
 ) => {
   if (mode === 'total') return buckets.total;
   if (mode === 'shared') return buckets.shared;
+  if (mode === 'paid') return buckets.paid ?? 0;
   return buckets.own;
 };

@@ -2,6 +2,11 @@ import { create } from "zustand";
 
 import { getEffectMap } from "@/src/domain/summaries/aggregate";
 import { isMonthlyCashRecord } from "@/src/domain/summaries/monthly";
+import {
+    getRecordPaidByMeCents,
+    getRecordReceivableCents,
+    getSettlementsNetCents,
+} from "@/src/domain/summaries/cash";
 import { useConfigs } from "../hooks/useConfigs";
 import useRecordsStore from "./RecordsStore";
 import type {
@@ -14,9 +19,16 @@ import type {
 import { useDataStore } from ".";
 
 type AmountBuckets = {
+    /** The user's share of every purchase. */
     own: number;
+    /** What other people owe the user for shared purchases (gross). */
     shared: number;
+    /** The full purchase total, regardless of who paid. */
     total: number;
+    /** The gross amount the user actually paid for purchases. */
+    paid: number;
+    /** Cash view: income received minus expenses paid, including settlements. */
+    cash: number;
 };
 
 type TotalPerRecordType = RecordType & AmountBuckets;
@@ -35,8 +47,22 @@ export interface Resumes {
     totalBalance: number;
     ownBalance: number;
     sharedBalance: number;
+    /** Full purchase total of the month, regardless of who paid. */
+    totalPurchasesCents: number;
+    /** What other people owe the user for shared purchases, gross. */
+    receivableCents: number;
+    /** Gross amount the user paid for purchases, before settlements. */
+    grossPaidCents: number;
+    /** Income minus gross purchases paid; excludes settlements. */
+    paidBalanceCents: number;
     /** Personal expenses covered by a saving instead of the month's cash. */
     savingsPaidCents: number;
+    /** Balance based on what the user actually paid and received. */
+    cashBalance: number;
+    cashPaidCents: number;
+    cashIncomeCents: number;
+    settlementsPaidCents: number;
+    settlementsReceivedCents: number;
     todayBalanceByRecordType: RecordTypeResume[];
     balanceByRecordType: RecordTypeResume[];
     balanceByPaymentType: PaymentResume<PaymentType>[];
@@ -44,16 +70,27 @@ export interface Resumes {
     balanceByCategory: PaymentResume<Category>[];
 }
 
-const emptyBuckets = (): AmountBuckets => ({ own: 0, shared: 0, total: 0 });
+const emptyBuckets = (): AmountBuckets => ({
+    own: 0,
+    shared: 0,
+    total: 0,
+    paid: 0,
+    cash: 0,
+});
 
 const addBuckets = (
     target: AmountBuckets,
     own: number,
-    shared: number
+    total: number,
+    receivable: number,
+    paid: number,
+    cash: number
 ) => {
     target.own += own;
-    target.shared += shared;
-    target.total += own + shared;
+    target.shared += receivable;
+    target.total += total;
+    target.paid += paid;
+    target.cash += cash;
 };
 
 const reduceBuckets = (
@@ -66,16 +103,36 @@ const reduceBuckets = (
         return balance;
     }, 0);
 
-export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
+const sumBuckets = (
+    items: TotalPerRecordType[],
+    field: keyof AmountBuckets
+) => items.reduce((total, item) => total + item[field], 0);
+
+export const useResumesStore = (
+    recordsToSummarize?: RecordWithRelations[],
+    options?: { includeSettlements?: boolean }
+) => {
     const { configs: { recordTypes: configuredRecordTypes } } = useConfigs();
-    const { records: allRecords } = useRecordsStore();
+    const { records: allRecords, settlements } = useRecordsStore();
     const { PaymentMethods, Categories, RecordTypes, PaymentTypes } = useDataStore();
     const records = recordsToSummarize ?? allRecords;
+    const includeSettlements = options?.includeSettlements ?? true;
 
     const calculateBalances = () => {
         const effectMap = getEffectMap(RecordTypes);
         const allowed = new Set(configuredRecordTypes);
-        const balances = { total: 0, own: 0, shared: 0, savingsPaid: 0 };
+        const balances = {
+            total: 0,
+            own: 0,
+            shared: 0,
+            cash: 0,
+            savingsPaid: 0,
+            cashPaid: 0,
+            cashIncome: 0,
+            grossPaid: 0,
+            receivable: 0,
+            totalPurchases: 0,
+        };
         records.forEach((record) => {
             if (
                 record.record_type_id == null ||
@@ -91,12 +148,51 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
                 if (effect === '-') balances.savingsPaid += own;
                 return;
             }
-            const shared = record.shared_amount_cents ?? 0;
-            balances.total += sign * (own + shared);
+            const sharedSnapshot = record.shared_amount_cents ?? 0;
+            const totalPurchase = own + sharedSnapshot;
+            const receivable = effect === '-'
+                ? getRecordReceivableCents(record)
+                : 0;
+
+            balances.total += sign * totalPurchase;
             balances.own += sign * own;
-            balances.shared += sign * shared;
+            balances.shared += sign * receivable;
+
+            if (effect === '+') {
+                balances.cash += own;
+                balances.cashIncome += own;
+            } else if (effect === '-') {
+                const paid = getRecordPaidByMeCents(record);
+                balances.cash -= paid;
+                balances.cashPaid += paid;
+                balances.grossPaid += paid;
+                balances.receivable += receivable;
+                balances.totalPurchases += totalPurchase;
+            }
         });
-        return balances;
+
+        const activeSettlements = includeSettlements ? settlements : [];
+        const settlementsPaid = activeSettlements.reduce(
+            (total, settlement) =>
+                settlement.direction === 'i_paid_them'
+                    ? total + settlement.amount_cents
+                    : total,
+            0
+        );
+        const settlementsReceived = activeSettlements.reduce(
+            (total, settlement) =>
+                settlement.direction === 'they_paid_me'
+                    ? total + settlement.amount_cents
+                    : total,
+            0
+        );
+        balances.cash += getSettlementsNetCents(activeSettlements);
+
+        return {
+            ...balances,
+            settlementsPaid,
+            settlementsReceived,
+        };
     };
 
     const createRecordTypeTotals = (): TotalPerRecordType[] =>
@@ -104,7 +200,20 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
 
     const calculateResumes = (): Omit<
         Resumes,
-        "balance" | "totalBalance" | "ownBalance" | "sharedBalance" | "savingsPaidCents"
+        | "balance"
+        | "totalBalance"
+        | "ownBalance"
+        | "sharedBalance"
+        | "totalPurchasesCents"
+        | "receivableCents"
+        | "grossPaidCents"
+        | "paidBalanceCents"
+        | "savingsPaidCents"
+        | "cashBalance"
+        | "cashPaidCents"
+        | "cashIncomeCents"
+        | "settlementsPaidCents"
+        | "settlementsReceivedCents"
     > => {
         const todayBalanceByRecordType = createRecordTypeTotals();
         const balanceByRecordType = createRecordTypeTotals();
@@ -131,13 +240,41 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
         const endOfToday = now.getTime();
         now.setHours(0, 0, 0, 0);
         const startOfToday = now.getTime();
+        const effectMap = getEffectMap(RecordTypes);
 
         records.forEach(record => {
             if (!isMonthlyCashRecord(record)) return;
             const ownAmount = record.own_amount_cents ?? record.amount;
-            const sharedAmount = record.shared_amount_cents ?? 0;
+            const sharedSnapshot = record.shared_amount_cents ?? 0;
+            const totalPurchase = ownAmount + sharedSnapshot;
+            const effect = record.record_type_id != null
+                ? effectMap.get(record.record_type_id)
+                : null;
+            const receivable = effect === '-'
+                ? getRecordReceivableCents(record)
+                : 0;
+            const paid = effect === '-'
+                ? getRecordPaidByMeCents(record)
+                : effect === '+'
+                    ? ownAmount
+                    : 0;
+            const cashAmount = effect === '+'
+                ? ownAmount
+                : effect === '-'
+                    ? paid
+                    : 0;
+
             const recordType = balanceByRecordType.find(item => item.id === record.record_type_id);
-            if (recordType) addBuckets(recordType, ownAmount, sharedAmount);
+            if (recordType) {
+                addBuckets(
+                    recordType,
+                    ownAmount,
+                    totalPurchase,
+                    receivable,
+                    paid,
+                    cashAmount
+                );
+            }
 
             const todayRecordType = todayBalanceByRecordType.find(item => item.id === record.record_type_id);
             if (
@@ -145,7 +282,14 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
                 record.date >= startOfToday &&
                 record.date <= endOfToday
             ) {
-                addBuckets(todayRecordType, ownAmount, sharedAmount);
+                addBuckets(
+                    todayRecordType,
+                    ownAmount,
+                    totalPurchase,
+                    receivable,
+                    paid,
+                    cashAmount
+                );
             }
 
             const paymentMethodId = record.payment_method_id;
@@ -160,10 +304,21 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
                 const typeTotal = resume.totalPerRecordType.find(
                     item => item.id === record.record_type_id
                 );
-                if (typeTotal) addBuckets(typeTotal, ownAmount, sharedAmount);
-                resume.own = reduceBuckets(resume.totalPerRecordType, 'own');
-                resume.shared = reduceBuckets(resume.totalPerRecordType, 'shared');
-                resume.total = reduceBuckets(resume.totalPerRecordType, 'total');
+                if (typeTotal) {
+                    addBuckets(
+                        typeTotal,
+                        ownAmount,
+                        totalPurchase,
+                        receivable,
+                        paid,
+                        cashAmount
+                    );
+                }
+                resume.own = sumBuckets(resume.totalPerRecordType, 'own');
+                resume.shared = sumBuckets(resume.totalPerRecordType, 'shared');
+                resume.total = sumBuckets(resume.totalPerRecordType, 'total');
+                resume.paid = sumBuckets(resume.totalPerRecordType, 'paid');
+                resume.cash = reduceBuckets(resume.totalPerRecordType, 'cash');
                 resume.balance = resume.own;
             }
         });
@@ -184,7 +339,16 @@ export const useResumesStore = (recordsToSummarize?: RecordWithRelations[]) => {
         totalBalance: balances.total,
         ownBalance: balances.own,
         sharedBalance: balances.shared,
+        totalPurchasesCents: balances.totalPurchases,
+        receivableCents: balances.receivable,
+        grossPaidCents: balances.grossPaid,
+        paidBalanceCents: balances.cashIncome - balances.grossPaid,
         savingsPaidCents: balances.savingsPaid,
+        cashBalance: balances.cash,
+        cashPaidCents: balances.cashPaid,
+        cashIncomeCents: balances.cashIncome,
+        settlementsPaidCents: balances.settlementsPaid,
+        settlementsReceivedCents: balances.settlementsReceived,
         ...calculateResumes()
     }))();
 };

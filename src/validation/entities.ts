@@ -38,6 +38,8 @@ export const recordInputSchema = z
     fixed_id: id,
     paid_credit_id: id,
     saving_id: id,
+    paid_by_person_id: z.number().int().positive().nullable().optional(),
+    paid_scope: z.enum(['full', 'own']).optional(),
     ...auditTimestamps,
   })
   .strict();
@@ -609,7 +611,8 @@ export const financingAdjustmentInputSchema = z
 export const financingAdjustmentUpdateSchema =
   financingAdjustmentInputSchema.partial().extend(updateMeta);
 
-const sharedOwnerType = z.enum(['fixed', 'financing', 'saving']);
+const sharedOwnerType = z.enum(['fixed', 'financing', 'saving', 'record']);
+const settlementDirection = z.enum(['i_paid_them', 'they_paid_me']);
 
 export const personInputSchema = z
   .object({
@@ -652,3 +655,19 @@ export const sharedAllocationInputSchema = z
     ...auditTimestamps,
   })
   .strict();
+
+export const personSettlementInputSchema = z
+  .object({
+    person_id: z.number().int().positive(),
+    group_id: z.number().int().positive().nullable().optional(),
+    date: timestamp,
+    amount_cents: cents.positive(),
+    direction: settlementDirection,
+    notes: z.string().max(240).nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const personSettlementUpdateSchema = personSettlementInputSchema
+  .partial()
+  .extend(updateMeta);

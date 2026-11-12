@@ -2,6 +2,10 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { z } from 'zod';
 
 import { ORM, useORM } from '@/src/orm';
+import {
+  getRecordPaidByMeCents,
+  getRecordReceivableCents,
+} from '@/src/domain/summaries/cash';
 import { withExclusiveTransaction } from '@/src/db/transaction';
 import { useConfigs } from '@/src/hooks/useConfigs';
 import type {
@@ -139,7 +143,7 @@ export const useBudgetPlansRepository = () => {
     await plansOrm.update(planId, payload);
   };
 
-  type AmountMode = 'own' | 'total' | 'shared';
+  type AmountMode = 'own' | 'total' | 'shared' | 'paid';
 
   const fetchPlanView = async (
     groupId: number,
@@ -170,14 +174,17 @@ export const useBudgetPlansRepository = () => {
       records: records.filter(isMonthlyCashRecord).map((record) => {
         const own = record.own_amount_cents ?? record.amount;
         const shared = record.shared_amount_cents ?? 0;
+        const receivable = getRecordReceivableCents(record);
         return {
           id: record.id as number,
           amount:
             mode === 'total'
               ? own + shared
               : mode === 'shared'
-                ? shared
-                : own,
+                ? receivable
+                : mode === 'paid'
+                  ? getRecordPaidByMeCents(record)
+                  : own,
           category_id: record.category_id ?? null,
           record_type_id: record.record_type_id ?? null,
           fixed_id: record.fixed_id ?? null,

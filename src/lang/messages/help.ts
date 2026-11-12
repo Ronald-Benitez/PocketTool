@@ -148,7 +148,7 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "The app groups records and calculates totals. Credit and debit movements are separated so you can see the difference between actual balance and credit usage. The main balance uses your own amount by default; the total and shared amounts are shown separately so shared expenses do not inflate your personal balance."
+                "body": "The app groups records and calculates totals. Use Consumption to see your share of every expense and Cash to see what you actually paid and received, including settlements. Credit and debit movements are separated so you can see the difference between consumption and credit usage. The amount selector changes the consumption view; cash is a single amount."
             },
             "steps": {
                 "title": "Step by step",
@@ -158,7 +158,7 @@ export const helpEn = {
             },
             "example": {
                 "title": "Example",
-                "body": "If income is 5,000 and expenses are 1,250, the balance is 3,750. The category summary shows where the expenses came from."
+                "body": "If income is 5,000 and expenses are 1,250, the consumption balance is 3,750. If a 1,000 purchase was paid by another person, your consumption still includes your 500 share, but your cash balance does not subtract it. The category summary shows where the expenses came from."
             },
             "tips": {
                 "title": "Tips",
@@ -418,7 +418,7 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "When you assign a person to a fixed expense, financing or savings goal, you also set their share percentage. Each shared payment creates an allocation for every participant, and savings movements record who contributed or withdrew. The history shows the date, concept, percentage and amount of that person's share, including capital reductions, savings contributions and payments that reduce the installment."
+                "body": "When you assign a person to a fixed expense, financing, savings goal or a shared purchase, you also set their share percentage. Each shared payment creates an allocation or statement entry for every participant, and savings movements record who contributed or withdrew. The statement shows the total paid by you, the total paid by the person, the purchases and payments, and the net balance with its direction. Financing shares are informational and do not affect the new balance; savings stay separate."
             },
             "steps": {
                 "title": "Step by step",
@@ -428,7 +428,7 @@ export const helpEn = {
             },
             "example": {
                 "title": "Example",
-                "body": "A 1,000 rent is shared 50% with Ana. The record keeps 500 as your own amount and 500 as shared. Ana's history shows a 500 entry with the date and the rent concept. In a saving shared 50%, Ana's deposits appear in her history and count toward her share of the balance."
+                "body": "A 1,000 rent is shared 50% with Ana. If you paid the total, the record keeps 500 as your own amount and 500 as shared, and Ana's statement shows that she owes you 500. If Ana paid, your statement shows that you owe her 500. In a saving shared 50%, Ana's deposits appear separately and count toward her share of the balance."
             },
             "tips": {
                 "title": "Tips",
@@ -439,12 +439,72 @@ export const helpEn = {
                 "body": "Deleting a person removes their shared links and payment history. If they are only temporarily inactive, archive them."
             }
         },
+        "sharedPurchases": {
+            "title": "Shared purchases",
+            "summary": "Share a purchase with people you already track and record who paid.",
+            "what": {
+                "title": "What it is",
+                "body": "A shared purchase is a single record whose total is split between your share and the shares of the people you select. It also records whether you or one of those people paid the total."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "Set the total purchase, add participants and their percentages, and choose who paid. If you paid the total, each participant owes you their share. If another participant paid the total, your share becomes a debt with that person. The person statement shows the total paid by each side, the net balance and a movement history. Fixed expenses also ask whether you paid the total, only your share, or another person paid. Financing shares stay informational and savings stay separate."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Create or open an expense record and enter the total purchase.",
+                "step2": "Add the people and percentages, then choose who paid.",
+                "step3": "Open the person's statement to review the total paid by each side and the balance."
+            },
+            "example": {
+                "title": "Example",
+                "body": "A 1,000 purchase is shared 50% with Ana. If you paid, Ana owes you 500. If Ana paid, you owe her 500. The statement shows 1,000 paid by you or by Ana and the 500 balance."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Keep the sum of percentages at 100% or less. Enter the total purchase, not only your share, so the statement knows what each side actually paid."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "Do not record the same purchase twice. If Ana paid, record it once, mark her as the payer and let the debt appear in the statement."
+            }
+        },
+        "settlements": {
+            "title": "Settlements",
+            "summary": "Register payments between you and a person and carry pending balances into a new group.",
+            "what": {
+                "title": "What it is",
+                "body": "A settlement is a payment that reduces the balance between you and a person. It can be partial and can be assigned to the previous group or to the new one."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "From a person's statement use Register payment, choose the direction, amount, date and group. Settlements affect the cash balance but not the consumption balance because the purchase was already recorded. When you create a group, PocketTool warns about pending balances and lets you settle them in the previous group, in the new group or carry them over."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Open a person's statement and tap Register payment.",
+                "step2": "Choose whether you paid or the person paid, enter the amount and select the group.",
+                "step3": "When you create a new group, decide whether to settle pending balances or carry them over."
+            },
+            "example": {
+                "title": "Example",
+                "body": "Ana owes you 500. You register that she paid you 200; her balance becomes 300. When the next group is created, PocketTool shows the pending 300 and lets you settle it or carry it over."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Settlements can be partial. Assign them to the group where the money moved so the cash balance stays accurate."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "Do not create a purchase record for a settlement; it would double count your consumption. Use Register payment."
+            }
+        },
         "amountModes": {
-            "title": "Your share, total and shared",
+            "title": "Your share, shared, total and gross paid",
             "summary": "Choose how summaries, budgets and credits display amounts.",
             "what": {
                 "title": "What it is",
-                "body": "The amount mode has three options: your share, total and shared. Your share is what you really pay, shared is the part covered by other people and total is the sum of both."
+                "body": "The amount mode has four options: your share, shared, total and gross paid. Your share is your part of every purchase. Shared is what other people owe you for purchases you paid, before settlements. Total is the full purchase regardless of who paid. Gross paid is income minus what you actually paid for purchases; settlements are not included."
             },
             "how": {
                 "title": "How it works",
@@ -453,20 +513,20 @@ export const helpEn = {
             "steps": {
                 "title": "Step by step",
                 "step1": "Open a summary, budget or credit screen.",
-                "step2": "Tap Your share, Total or Shared above the figures.",
+                "step2": "Tap Your share, Shared, Total or Gross paid above the figures.",
                 "step3": "Review the totals and buckets with the selected view."
             },
             "example": {
                 "title": "Example",
-                "body": "A 1,000 expense shared 50% shows 500 as your share, 500 as shared and 1,000 as total. On a budget, Your share compares 500 against the planned amount."
+                "body": "A 1,000 purchase shared 50% shows 500 as your share, 500 as shared and 1,000 as total. If you paid it, gross paid subtracts 1,000 from your income. If the other person paid it, gross paid does not subtract it, but total is still 1,000."
             },
             "tips": {
                 "title": "Tips",
-                "body": "Use Your share for your personal balance, Total to see the full commitment and Shared to review what others cover."
+                "body": "Use Shared to see what other people owe you, Total to see the full purchase and Gross paid to see your income minus purchases paid, before settlements."
             },
             "warning": {
                 "title": "Common mistake",
-                "body": "Shared is not money you paid. Do not use it as your personal expense when reviewing your balance."
+                "body": "Shared is not money you paid. Total is the full purchase (your share plus the shared amount), not your cash. Gross paid includes income and purchases paid but not settlements; cash balance adds settlements."
             }
         },
         "savings": {
@@ -710,7 +770,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "La app agrupa los registros y calcula totales. Los movimientos de crédito y débito se separan para ver la diferencia entre balance real y uso de crédito. El balance principal usa tu monto propio por defecto; el total y lo compartido se muestran por separado para que los gastos compartidos no inflen tu balance personal."
+                "body": "La app agrupa los registros y calcula totales. Usa Consumo para ver tu parte de cada gasto y Caja para ver lo que realmente pagaste y recibiste, incluidas las liquidaciones. Los movimientos de crédito y débito se separan para ver la diferencia entre consumo y uso de crédito. El selector de importe cambia la vista de consumo; caja es un solo monto."
             },
             "steps": {
                 "title": "Paso a paso",
@@ -720,7 +780,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "example": {
                 "title": "Ejemplo",
-                "body": "Si los ingresos son 5,000 y los gastos 1,250, el balance es 3,750. El resumen por categoría muestra de dónde vienen los gastos."
+                "body": "Si los ingresos son 5,000 y los gastos 1,250, el balance de consumo es 3,750. Si otra persona pagó una compra de 1,000, tu consumo sigue incluyendo tu parte de 500, pero tu balance de caja no la resta. El resumen por categoría muestra de dónde vienen los gastos."
             },
             "tips": {
                 "title": "Consejos",
@@ -980,7 +1040,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "Cuando asignas una persona a un gasto fijo, financiamiento o meta de ahorro también defines su porcentaje. Cada pago compartido genera una asignación por participante y los movimientos del ahorro registran quién aportó o retiró. El historial muestra la fecha, el concepto, el porcentaje y el monto de la parte de esa persona, incluidos los abonos a capital, los aportes a ahorros y los pagos que reducen la cuota."
+                "body": "Cuando asignas una persona a un gasto fijo, financiamiento, meta de ahorro o compra compartida también defines su porcentaje. Cada pago compartido genera una asignación o un movimiento en su estado de cuenta, y los movimientos del ahorro registran quién aportó o retiró. El estado de cuenta muestra el total pagado por ti, el total pagado por la persona, las compras y los pagos, y el saldo neto con su dirección. Los financiamientos son informativos y no afectan el nuevo saldo; los ahorros se mantienen aparte."
             },
             "steps": {
                 "title": "Paso a paso",
@@ -990,7 +1050,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "example": {
                 "title": "Ejemplo",
-                "body": "Una renta de 1,000 se comparte al 50% con Ana. El registro guarda 500 como tu parte y 500 como compartido. El historial de Ana muestra un movimiento de 500 con la fecha y el concepto de la renta. En un ahorro compartido al 50%, los aportes de Ana aparecen en su historial y cuentan para su parte del saldo."
+                "body": "Una renta de 1,000 se comparte al 50% con Ana. Si pagaste el total, el registro guarda 500 como tu parte y 500 como compartido, y el estado de cuenta de Ana muestra que te debe 500. Si pagó Ana, tu estado de cuenta muestra que le debes 500. En un ahorro compartido al 50%, los aportes de Ana aparecen aparte y cuentan para su parte del saldo."
             },
             "tips": {
                 "title": "Consejos",
@@ -1001,12 +1061,72 @@ export const helpEs: MessageShape<typeof helpEn> = {
                 "body": "Eliminar a una persona quita sus vínculos compartidos y su historial de pagos. Si solo está inactiva temporalmente, archívala."
             }
         },
+        "sharedPurchases": {
+            "title": "Compras compartidas",
+            "summary": "Comparte una compra con personas que ya tienes registradas y guarda quién pagó.",
+            "what": {
+                "title": "Qué es",
+                "body": "Una compra compartida es un solo registro cuyo total se reparte entre tu parte y las partes de las personas que elijas. También guarda si pagaste tú o una de esas personas."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "Ingresa el total de la compra, agrega participantes y porcentajes, y elige quién pagó. Si pagaste el total, cada participante te debe su parte. Si pagó otra persona el total, tu parte queda como deuda con ella. El estado de cuenta muestra el total pagado por cada lado, el saldo neto y el historial de movimientos. En los gastos fijos también se pregunta si pagaste el total, solo tu parte, o si pagó otra persona. Los financiamientos quedan como informativos y los ahorros se mantienen aparte."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Crea o abre un registro de gasto e ingresa el total de la compra.",
+                "step2": "Agrega las personas y los porcentajes, y elige quién pagó.",
+                "step3": "Abre el estado de cuenta de la persona para revisar el total pagado por cada lado y el saldo."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "Una compra de 1,000 se comparte al 50% con Ana. Si pagaste tú, Ana te debe 500. Si pagó Ana, tú le debes 500. El estado de cuenta muestra 1,000 pagados por ti o por Ana y el saldo de 500."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Mantén la suma de porcentajes en 100% o menos. Ingresa el total de la compra, no solo tu parte, para que el estado de cuenta sepa cuánto pagó cada lado."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "No registres la misma compra dos veces. Si pagó Ana, regístrala una vez, márcala como pagada por ella y deja que la deuda aparezca en el estado de cuenta."
+            }
+        },
+        "settlements": {
+            "title": "Liquidaciones",
+            "summary": "Registra pagos entre tú y una persona y arrastra saldos pendientes al nuevo grupo.",
+            "what": {
+                "title": "Qué es",
+                "body": "Una liquidación es un pago que reduce el saldo entre tú y una persona. Puede ser parcial y se puede asignar al grupo anterior o al nuevo."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "Desde el estado de cuenta de una persona usa Registrar pago, elige la dirección, el monto, la fecha y el grupo. Las liquidaciones afectan el balance de caja pero no el de consumo, porque la compra ya está registrada. Al crear un grupo, PocketTool avisa de los saldos pendientes y permite liquidarlos en el grupo anterior, en el nuevo o darles seguimiento."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Abre el estado de cuenta de una persona y toca Registrar pago.",
+                "step2": "Elige si pagaste tú o si pagó la persona, ingresa el monto y selecciona el grupo.",
+                "step3": "Al crear un grupo nuevo, decide si liquidar los saldos pendientes o darles seguimiento."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "Ana te debe 500. Registras que te pagó 200; su saldo queda en 300. Al crear el siguiente grupo, PocketTool muestra los 300 pendientes y permite liquidarlos o darles seguimiento."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Las liquidaciones pueden ser parciales. Asígnalas al grupo donde se movió el dinero para que el balance de caja sea exacto."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "No crees un registro de compra para una liquidación; duplicaría tu consumo. Usa Registrar pago."
+            }
+        },
         "amountModes": {
-            "title": "Tu parte, total y compartido",
+            "title": "Tu parte, compartido, total y propio bruto",
             "summary": "Elige cómo muestran los importes los resúmenes, presupuestos y créditos.",
             "what": {
                 "title": "Qué es",
-                "body": "El modo de importe tiene tres opciones: tu parte, total y compartido. Tu parte es lo que realmente pagas, compartido es lo que cubren otras personas y total es la suma de ambos."
+                "body": "El modo de importe tiene cuatro opciones: tu parte, compartido, total y propio bruto. Tu parte es lo que te corresponde de cada compra. Compartido es lo que otras personas te deben por las compras que pagaste, antes de liquidar. Total es la compra completa sin importar quién pagó. Propio bruto es el ingreso menos lo que realmente pagaste por compras; las liquidaciones no se incluyen."
             },
             "how": {
                 "title": "Cómo funciona",
@@ -1015,20 +1135,20 @@ export const helpEs: MessageShape<typeof helpEn> = {
             "steps": {
                 "title": "Paso a paso",
                 "step1": "Abre una pantalla de resumen, presupuesto o créditos.",
-                "step2": "Toca Tu parte, Total o Compartido encima de las cifras.",
+                "step2": "Toca Tu parte, Compartido, Total o Propio bruto encima de las cifras.",
                 "step3": "Revisa los totales y los buckets con la vista seleccionada."
             },
             "example": {
                 "title": "Ejemplo",
-                "body": "Un gasto de 1,000 compartido al 50% muestra 500 como tu parte, 500 como compartido y 1,000 como total. En un presupuesto, Tu parte compara 500 contra el monto planificado."
+                "body": "Una compra de 1,000 compartida al 50% muestra 500 como tu parte, 500 como compartido y 1,000 como total. Si la pagaste tú, el propio bruto resta 1,000 de tus ingresos. Si la pagó la otra persona, el propio bruto no la resta, pero el total sigue siendo 1,000."
             },
             "tips": {
                 "title": "Consejos",
-                "body": "Usa Tu parte para tu balance personal, Total para ver el compromiso completo y Compartido para revisar lo que cubren otras personas."
+                "body": "Usa Compartido para ver lo que te deben, Total para ver la compra completa y Propio bruto para ver tus ingresos menos las compras pagadas, antes de liquidaciones."
             },
             "warning": {
                 "title": "Error común",
-                "body": "Compartido no es dinero que pagaste. No lo uses como tu gasto personal al revisar tu balance."
+                "body": "Compartido no es dinero que pagaste. Total es la compra completa (tu parte más la parte compartida), no tu caja. Propio bruto incluye ingresos y compras pagadas, pero no liquidaciones; el balance de caja sí incluye las liquidaciones."
             }
         },
         "savings": {

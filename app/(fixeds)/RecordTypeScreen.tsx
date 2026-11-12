@@ -20,7 +20,11 @@ const RecordTypeScreen = () => {
     const { balance, totalBalance, sharedBalance, balanceByRecordType } = useFixedsResumesStore()
     const { mode } = useSummaryMode()
     const selectedBalance =
-        mode === 'total' ? totalBalance : mode === 'shared' ? sharedBalance : balance
+        mode === 'total' || mode === 'paid'
+            ? totalBalance
+            : mode === 'shared'
+                ? sharedBalance
+                : balance
 
     return (
         <Screen scroll edges={['left', 'right']}>

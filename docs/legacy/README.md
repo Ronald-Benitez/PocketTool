@@ -27,6 +27,9 @@ detalle, usa `**Secciones:**` y busca el encabezado con
   (Fase 11), implementado, validado y archivado. Incluye migraciones, dominio,
   movimientos tipados, metas, intereses, integración con `Records` y detalle de
   movimientos de solo lectura.
+- [`shared-purchases-plan.md`](shared-purchases-plan.md): plan de compras
+  compartidas, estado de cuenta por persona, liquidaciones y doble balance
+  (Fase 12), implementado, validado y archivado.
 - [`db-summary.md`](db-summary.md): resumen anterior de la base de datos,
   reemplazado por [`../database.md`](../database.md).
 

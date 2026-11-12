@@ -27,6 +27,7 @@ import type {
   FinancingAdjustment,
   FinancingAdjustmentWithRelations,
   Person,
+  PersonSettlement,
   SharedExpenseParticipant,
   SharedExpenseParticipantWithRelations,
   SharedPaymentAllocation,
@@ -73,6 +74,7 @@ export type BaseSchemaMap = {
   FinancingPayments: FinancingPayment;
   FinancingAdjustments: FinancingAdjustment;
   People: Person;
+  PersonSettlements: PersonSettlement;
   SharedExpenseParticipants: SharedExpenseParticipant;
   SharedPaymentAllocations: SharedPaymentAllocation;
   BudgetTemplates: BudgetTemplate;
@@ -107,6 +109,7 @@ export type RelationsSchemaMap = {
   FinancingPayments: FinancingPaymentWithRelations;
   FinancingAdjustments: FinancingAdjustmentWithRelations;
   People: Person;
+  PersonSettlements: PersonSettlement;
   SharedExpenseParticipants: SharedExpenseParticipantWithRelations;
   SharedPaymentAllocations: SharedPaymentAllocation;
   BudgetTemplates: BudgetTemplateWithRelations;
