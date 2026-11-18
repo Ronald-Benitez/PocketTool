@@ -13,6 +13,7 @@ import { summariesEn, summariesEs } from './summaries';
 import { filtersEn, filtersEs } from './filters';
 import { financingsEn, financingsEs } from './financings';
 import { vehicleEn, vehicleEs } from './vehicle';
+import { whatsNewEn, whatsNewEs } from './whatsNew';
 import type { Language, Leaves, MessageShape } from './types';
 
 export const en = {
@@ -30,6 +31,7 @@ export const en = {
   budget: budgetEn,
   ...financingsEn,
   vehicle: vehicleEn,
+  whatsNew: whatsNewEn,
   help: helpEn,
 } as const;
 
@@ -48,6 +50,7 @@ export const es: MessageShape<typeof en> = {
   budget: budgetEs,
   ...financingsEs,
   vehicle: vehicleEs,
+  whatsNew: whatsNewEs,
   help: helpEs,
 };
 
@@ -83,4 +86,5 @@ export type TranslationKey =
   | Leaves<typeof budgetEn, 'budget.'>
   | Leaves<typeof financingsEn>
   | Leaves<typeof vehicleEn, 'vehicle.'>
+  | Leaves<typeof whatsNewEn, 'whatsNew.'>
   | HelpTranslationKey;
