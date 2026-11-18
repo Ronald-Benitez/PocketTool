@@ -20,19 +20,15 @@
 | Fase 11 — Ahorros compartidos y metas | ✅ Finalizada | 2026-11-04 |
 | Fase 12 — Compras compartidas, saldo por persona y doble balance | ✅ Finalizada | 2026-11-11 |
 | Fase 13 — Pendientes de Fase 12 y ajustes de Registros/Vehículo | ✅ Finalizada | 2026-11-17 |
+| Fase 14 — “Qué hay de nuevo” acumulado | 🚧 En curso | 2026-11-17 |
 
 ## Fase activa
 
-**No hay fase activa.**
+**Fase activa: 14 — “Qué hay de nuevo” acumulado**
 
-Para iniciar una fase, reemplaza este bloque por:
-
-```md
-## Fase activa: 14 — Nombre de la fase
 - Estado: 🚧 En curso
 - Inicio: 2026-11-17
-- Plan: docs/plans/fase-14.md
-```
+- Plan: [`docs/plans/fase-14.md`](plans/fase-14.md)
 
 `/cerrar-fase` busca este encabezado para saber qué fase cerrar. Si no existe,
 se detiene y pide cuál cerrar.
