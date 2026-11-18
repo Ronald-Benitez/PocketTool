@@ -9,7 +9,9 @@ export const helpEn = {
         "readTime": "{minutes} min read",
         "related": "Related topics",
         "back": "Back to help",
-        "open": "Open topic"
+        "open": "Open topic",
+        "whatsNewTitle": "What's new",
+        "whatsNewSubtitle": "Review everything added in recent updates."
     },
     "categories": {
         "start": "Getting started",
@@ -47,6 +49,36 @@ export const helpEn = {
             "warning": {
                 "title": "Common mistake",
                 "body": "Records need a selected group. If you change groups, the lists and summaries change too."
+            }
+        },
+        "whatsNew": {
+            "title": "What's new",
+            "summary": "See everything that changed after each update.",
+            "what": {
+                "title": "What it is",
+                "body": "A summary of the new features, improvements and fixes included in PocketTool updates."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "PocketTool compares the installed version with the last version you saw. If there are pending updates, it shows one summary with all of them when you open the app."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Update PocketTool from the store.",
+                "step2": "Open the app and read the accumulated summary.",
+                "step3": "Tap Got it to mark the version as seen."
+            },
+            "example": {
+                "title": "Example",
+                "body": "You had not opened version 4.0.5 and now update to 4.0.6. The summary shows the changes of both versions together."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "You can reopen the summary at any time from Help center, in the What's new section."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "Closing the summary marks the version as seen. If you want to read it again, open it from Help center."
             }
         },
         "groups": {
@@ -631,7 +663,9 @@ export const helpEs: MessageShape<typeof helpEn> = {
         "readTime": "{minutes} min de lectura",
         "related": "Temas relacionados",
         "back": "Volver a la ayuda",
-        "open": "Abrir tema"
+        "open": "Abrir tema",
+        "whatsNewTitle": "Qué hay de nuevo",
+        "whatsNewSubtitle": "Revisa todo lo agregado en las actualizaciones recientes."
     },
     "categories": {
         "start": "Primeros pasos",
@@ -669,6 +703,36 @@ export const helpEs: MessageShape<typeof helpEn> = {
             "warning": {
                 "title": "Error común",
                 "body": "Los registros necesitan un grupo seleccionado. Si cambias de grupo, también cambian las listas y los resúmenes."
+            }
+        },
+        "whatsNew": {
+            "title": "Qué hay de nuevo",
+            "summary": "Consulta todo lo que cambió después de cada actualización.",
+            "what": {
+                "title": "Qué es",
+                "body": "Un resumen de las funciones nuevas, mejoras y correcciones incluidas en las actualizaciones de PocketTool."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "PocketTool compara la versión instalada con la última versión que viste. Si hay actualizaciones pendientes, muestra un solo resumen con todas al abrir la app."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Actualiza PocketTool desde la tienda.",
+                "step2": "Abre la app y lee el resumen acumulado.",
+                "step3": "Toca Entendido para marcar la versión como vista."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "No habías abierto la versión 4.0.5 y ahora actualizas a 4.0.6. El resumen muestra juntos los cambios de ambas versiones."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Puedes volver a abrir el resumen cuando quieras desde el Centro de ayuda, en la sección Qué hay de nuevo."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "Cerrar el resumen marca la versión como vista. Si quieres leerlo otra vez, ábrelo desde el Centro de ayuda."
             }
         },
         "groups": {

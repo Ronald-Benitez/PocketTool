@@ -7,6 +7,7 @@ export type HelpCategory = 'start' | 'records' | 'planning' | 'money' | 'tools';
 
 export type HelpTopicId =
   | 'gettingStarted'
+  | 'whatsNew'
   | 'groups'
   | 'records'
   | 'fixeds'

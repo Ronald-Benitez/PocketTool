@@ -4,6 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 import { HelpTopicView } from '@/src/components/help/HelpTopicView';
 import { HELP_CATEGORIES, HELP_TOPICS } from '@/src/help/registry';
+import { useWhatsNew } from '@/src/hooks/useWhatsNew';
 import type { HelpTopic } from '@/src/help/types';
 import { helpCategoryKey } from '@/src/lang/keys';
 import { useLanguage } from '@/src/lang/LanguageContext';
@@ -28,6 +29,7 @@ const Index = () => {
   const { colors } = useTheme();
   const [search, setSearch] = useState('');
   const [selectedTopic, setSelectedTopic] = useState<HelpTopic | null>(null);
+  const openWhatsNew = useWhatsNew((state) => state.openManual);
 
   const filteredTopics = useMemo(() => {
     const term = normalize(search);
@@ -76,6 +78,35 @@ const Index = () => {
           autoCapitalize='none'
           autoCorrect={false}
         />
+
+        <Surface variant='outlined' padding='none'>
+          <ListItem
+            title={t('help.hub.whatsNewTitle')}
+            subtitle={t('help.hub.whatsNewSubtitle')}
+            leading={
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: colors.surfaceMuted,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <MaterialIcons name='new-releases' size={18} color={colors.primary} />
+              </View>
+            }
+            trailing={
+              <MaterialIcons
+                name='chevron-right'
+                size={20}
+                color={colors.textMuted}
+              />
+            }
+            onPress={openWhatsNew}
+          />
+        </Surface>
 
         {filteredTopics.length === 0 ? (
           <EmptyState

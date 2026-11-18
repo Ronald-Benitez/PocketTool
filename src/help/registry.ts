@@ -53,6 +53,12 @@ const seeds: HelpTopicSeed[] = [
     related: ['groups', 'records'],
   },
   {
+    id: 'whatsNew',
+    icon: 'new-releases',
+    category: 'start',
+    related: ['gettingStarted', 'theme', 'filters'],
+  },
+  {
     id: 'groups',
     icon: 'folder',
     category: 'start',
