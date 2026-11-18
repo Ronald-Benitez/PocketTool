@@ -33,8 +33,6 @@ arquitectura y enlaces. La documentación se lee **por secciones**, no completa.
   créditos, ahorros, vehículo, personas y compartidos.
 - [`plans/futuro-borrador.md`](plans/futuro-borrador.md): pendientes futuros,
   principalmente el criterio del plan mensual en Presupuestos.
-- [`plans/fase-14.md`](plans/fase-14.md): plan de “Qué hay de nuevo” acumulado
-  (fase activa).
 - [`release-notes/4.0.5-google-play.md`](release-notes/4.0.5-google-play.md):
   notas de Google Play 4.0.5 en inglés y español.
 - [`release-notes/4.0.4-google-play.md`](release-notes/4.0.4-google-play.md):
@@ -60,6 +58,8 @@ arquitectura y enlaces. La documentación se lee **por secciones**, no completa.
   compartidas, estado de cuenta y doble balance (Fase 12).
 - [`legacy/pending-adjustments-plan.md`](legacy/pending-adjustments-plan.md):
   compartidos por monto y ajustes de Registros/Vehículo (Fase 13).
+- [`legacy/whats-new-plan.md`](legacy/whats-new-plan.md): plan de “Qué hay de
+  nuevo” acumulado (Fase 14).
 - [`legacy/db-summary.md`](legacy/db-summary.md): resumen anterior de base de
   datos.
 
@@ -74,6 +74,8 @@ arquitectura y enlaces. La documentación se lee **por secciones**, no completa.
 - [`../src/domain/AGENTS.md`](../src/domain/AGENTS.md): reglas de dominio.
 - [`../src/lang/AGENTS.md`](../src/lang/AGENTS.md): idiomas y ayuda.
 - [`../app/AGENTS.md`](../app/AGENTS.md): navegación y pantallas.
+- [`../src/release-notes/AGENTS.md`](../src/release-notes/AGENTS.md): reglas de
+  “Qué hay de nuevo” y notas de versión.
 - [`legacy/AGENTS.md`](legacy/AGENTS.md): cómo leer el histórico.
 
 ## Estado rápido
@@ -94,7 +96,7 @@ arquitectura y enlaces. La documentación se lee **por secciones**, no completa.
 | Fase 11 — Ahorros compartidos y metas | ✅ Finalizada (2026-11-04) |
 | Fase 12 — Compras compartidas, saldo por persona y doble balance | ✅ Finalizada (2026-11-11) |
 | Fase 13 — Pendientes de Fase 12 y ajustes de Registros/Vehículo | ✅ Finalizada (2026-11-17) |
-| Fase 14 — “Qué hay de nuevo” acumulado | 🚧 En curso (2026-11-17) |
+| Fase 14 — “Qué hay de nuevo” acumulado | ✅ Finalizada (2026-11-17) |
 
 ## Regla de mantenimiento
 

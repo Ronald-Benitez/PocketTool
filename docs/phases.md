@@ -20,15 +20,11 @@
 | Fase 11 — Ahorros compartidos y metas | ✅ Finalizada | 2026-11-04 |
 | Fase 12 — Compras compartidas, saldo por persona y doble balance | ✅ Finalizada | 2026-11-11 |
 | Fase 13 — Pendientes de Fase 12 y ajustes de Registros/Vehículo | ✅ Finalizada | 2026-11-17 |
-| Fase 14 — “Qué hay de nuevo” acumulado | 🚧 En curso | 2026-11-17 |
+| Fase 14 — “Qué hay de nuevo” acumulado | ✅ Finalizada | 2026-11-17 |
 
 ## Fase activa
 
-**Fase activa: 14 — “Qué hay de nuevo” acumulado**
-
-- Estado: 🚧 En curso
-- Inicio: 2026-11-17
-- Plan: [`docs/plans/fase-14.md`](plans/fase-14.md)
+**No hay fase activa.**
 
 `/cerrar-fase` busca este encabezado para saber qué fase cerrar. Si no existe,
 se detiene y pide cuál cerrar.
@@ -169,41 +165,42 @@ Plan completo en [`legacy/shared-purchases-plan.md`](legacy/shared-purchases-pla
 
 - Migraciones `0021` y `0022`: pagador y alcance en `Records`, y
   `PersonSettlements` para liquidaciones por persona y grupo.
-- Compras compartidas en `Records` con participantes `owner_type = 'record'` y
-  pagador; fijos con total / solo mi parte / pagó otra persona.
-- Estado de cuenta por persona con compras, pagos, financiamientos informativos,
-  saldo y modal de movimientos; liquidaciones totales o parciales.
-- Aviso de saldos pendientes al crear un grupo, con liquidación en el grupo
-  anterior, en el nuevo o seguimiento.
+- Compras compartidas con participantes y pagador; fijos con total, solo mi
+  parte o pagó otra persona.
+- Estado de cuenta por persona con saldo, movimientos y liquidaciones totales o
+  parciales; aviso de saldos al crear un grupo.
 - Doble balance consumo/caja y modos `Tu parte`, `Compartido`, `Total` y
-  `Propio bruto`; bloque de balances en 3 filas × 2 columnas.
-- Ayuda bilingüe `sharedPurchases` y `settlements`; Personas se refresca al
-  recuperar el foco.
-- Pendientes fuera de la fase: compartidos por monto y criterio del plan mensual
-  en Presupuestos, en [`plans/futuro-borrador.md`](plans/futuro-borrador.md).
-- Commits principales: `5622d5c` (funcionalidad y documentación),
-  `d61072b` (parches de Expo SDK 58).
+  `Propio bruto`.
+- Ayuda bilingüe `sharedPurchases` y `settlements`. Commits: `5622d5c`,
+  `d61072b`.
 
 ## Fase 13 — Pendientes de Fase 12 y ajustes de Registros/Vehículo (✅ 2026-11-17)
 
 Plan completo en [`legacy/pending-adjustments-plan.md`](legacy/pending-adjustments-plan.md).
 
-- Migración `0023`: `share_mode` y `share_amount_cents` en
-  `SharedExpenseParticipants`; porcentajes y montos mezclados, ambos sobre el
-  total. Ahorros sigue solo con porcentaje.
-- Refresco global con `useGroupRefresh` tras combustible, mantenimiento y
-  ahorros; refresco por foco en Inicio, Registros y Resúmenes. Ahorros permite
-  monto inicial 0.
-- Pickers centrados (`SelectField`, `MultiSelectField`, `DateField`) con altura
-  máxima y scroll, sin depender de la barra de navegación.
-- Configuración de fecha de pagos pendientes de tarjeta: hoy o día de pago de la
-  tarjeta dentro del mes del grupo.
-- Gasolina: distancia total por segmento y memoria de “Use odometer” por
-  vehículo.
-- Limpieza de datos en memoria al borrar el último grupo.
-- QA manual validado. Pendiente futuro fuera de la fase: criterio del plan
-  mensual en Presupuestos.
-- Commits principales: `0265179`.
+- Migración `0023`: reparto por porcentaje o monto en compartidos; ahorros
+  sigue solo con porcentaje.
+- Refresco global tras combustible, mantenimiento y ahorros; ahorros con monto
+  inicial 0.
+- Pickers centrados con altura máxima y scroll.
+- Fecha configurable de pagos pendientes de tarjeta y distancia por segmento en
+  gasolina, con memoria de “Use odometer” por vehículo.
+- Limpieza de datos en memoria al borrar el último grupo. Commit: `0265179`.
+
+## Fase 14 — “Qué hay de nuevo” acumulado (✅ 2026-11-17)
+
+Plan completo en [`legacy/whats-new-plan.md`](legacy/whats-new-plan.md).
+
+- Catálogo bilingüe versionado desde 4.0.5, con comparación semver y acumulación
+  de versiones pendientes; instalaciones nuevas se marcan vistas salvo la
+  excepción de lanzamiento 4.0.5.
+- Modal único con todas las novedades, un botón “Entendido” y acceso manual
+  desde la sección especial de Ayuda.
+- `useWhatsNew` guarda `whatsNewLastSeenVersion` en AsyncStorage; no toca SQLite
+  ni bloquea el arranque.
+- `/notas-version` queda a cargo de las notas de Play, el catálogo in-app y el
+  bump de versión.
+- Commits principales: `1eb2061`, `7b59c00`, `0dbc416`, `eedaaf1`, `ce01b8e`.
 
 ## Decisiones vigentes
 
@@ -226,6 +223,8 @@ Plan completo en [`legacy/pending-adjustments-plan.md`](legacy/pending-adjustmen
 - Los pickers de formularios usan modales centrados con altura máxima y scroll.
 - Los modos de importe son `Tu parte`, `Compartido`, `Total` y `Propio bruto`;
   el balance de caja es el único que incluye liquidaciones.
+- Las novedades in-app son un catálogo manual versionado; `/notas-version`
+  actualiza notas de Play, catálogo y versión en la misma entrega.
 
 ## Documentación
 

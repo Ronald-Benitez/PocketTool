@@ -1,13 +1,22 @@
 # Fase 14 — “Qué hay de nuevo” acumulado
 
-**Cuándo leer:** al implementar la pantalla automática de novedades.
-**Resumen:** mostrar un único resumen de novedades después de actualizar, acumulando
-todas las versiones que el usuario no vio. Un solo modal con secciones por versión y
-un único botón para cerrar; sin pasos “siguiente” repetidos. Incluye acceso manual
-desde Configuraciones y ayuda.
-**Secciones:** [Alcance](#alcance) · [Catálogo](#catálogo) · [Reglas](#reglas) ·
-[UI](#ui) · [Integración](#integración) · [Pruebas](#pruebas) · [Riesgos](#riesgos) ·
-[Verificación](#verificación) · [Preguntas](#preguntas)
+**Cuándo leer:** solo para revisar el diseño histórico de la Fase 14; las reglas
+vigentes están en
+[`../../src/release-notes/AGENTS.md`](../../src/release-notes/AGENTS.md).
+**Resumen:** resumen acumulado de novedades después de actualizar, con un solo
+modal para todas las versiones pendientes, catálogo bilingüe manual y acceso
+manual desde Ayuda.
+**Estado:** ✅ Finalizada 2026-11-17.
+**Fecha:** 2026-11-17.
+**Leer solo si:** necesitas el contexto original, la excepción de lanzamiento
+4.0.5 o el detalle de las decisiones.
+**Secciones:** [Alcance](#alcance) · [Catálogo](#catálogo) ·
+[Reglas de versiones](#reglas-de-versiones) · [UI](#ui) ·
+[Integración](#integración) · [Ayuda](#ayuda) · [Pruebas](#pruebas) ·
+[Riesgos](#riesgos) · [Verificación](#verificación) ·
+[Implementación](#implementación) ·
+[Decisiones confirmadas](#decisiones-confirmadas) ·
+[Excepción de lanzamiento](#excepción-de-lanzamiento-confirmada)
 
 ## Alcance
 
@@ -17,7 +26,7 @@ Incluye:
 - Si hay una o varias versiones nuevas, mostrar **un solo modal** con todas las
   novedades acumuladas.
 - Guardar la versión vista al cerrar el modal.
-- Reabrir el resumen manualmente desde Configuraciones.
+- Reabrir el resumen manualmente desde la sección especial de Ayuda.
 - Catálogo bilingüe de novedades por versión.
 - Ayuda y textos.
 
@@ -46,8 +55,8 @@ No incluye:
     tarjeta, gasolina y ahorros 0) y esta Fase 14 (resumen de novedades).
   - No se siembran versiones históricas.
   - Las versiones futuras se agregan al publicar.
-- Actualizar `package.json` y `app.json` de `4.0.4` a `4.0.5` en el mismo cambio
-  de release.
+- Actualizar `package.json`, `package-lock.json` y `app.json` de `4.0.4` a
+  `4.0.5` en el mismo cambio de release.
 - Mantener sincronizados `docs/release-notes/` y el catálogo. El catálogo es la
   fuente de la app; las notas de Play son la fuente pública.
 
@@ -161,6 +170,18 @@ npm run ci
 
 Además: QA manual de actualización simulada cambiando la versión guardada y
 probando varias versiones acumuladas.
+
+## Implementación
+
+- Catálogo en `src/release-notes/catalog.ts`; comparación y selección en
+  `src/release-notes/versions.ts`; pruebas en `src/release-notes/__tests__/`.
+- `useWhatsNew` más `WhatsNewGate`/`WhatsNewModal`; montaje en
+  `app/_layout.tsx`.
+- Acceso manual desde la sección especial del hub de Ayuda y tema `whatsNew`.
+- Versión 4.0.5 en `package.json`, `package-lock.json` y `app.json`.
+- Mantenimiento vigente en `src/release-notes/AGENTS.md`; `/notas-version`
+  genera notas de Play, catálogo in-app y bump de versión.
+- Commits: `1eb2061`, `7b59c00`, `0dbc416`, `eedaaf1`, `ce01b8e`.
 
 ## Decisiones confirmadas
 

@@ -33,6 +33,8 @@ detalle, usa `**Secciones:**` y busca el encabezado con
 - [`pending-adjustments-plan.md`](pending-adjustments-plan.md): plan de
   compartidos por monto y ajustes de Registros/Vehículo (Fase 13), implementado,
   validado y archivado.
+- [`whats-new-plan.md`](whats-new-plan.md): plan de “Qué hay de nuevo”
+  acumulado (Fase 14), implementado, validado y archivado.
 - [`db-summary.md`](db-summary.md): resumen anterior de la base de datos,
   reemplazado por [`../database.md`](../database.md).
 
