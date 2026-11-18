@@ -11,6 +11,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Drawer } from 'expo-router/drawer';
 import CustomDrawer from '@/src/components/navigation/custom-drawer';
+import { WhatsNewGate } from '@/src/components/whats-new/WhatsNewGate';
 import migrateDb from '@/src/db/migration';
 import { LanguageProvider, useLanguage } from '@/src/lang/LanguageContext';
 import { ToastProvider } from '@/src/ui/feedback/ToastProvider';
@@ -48,6 +49,7 @@ export default function RootLayout() {
           <LanguageProvider>
             <ToastProvider>
               <AppShell />
+              <WhatsNewGate />
             </ToastProvider>
           </LanguageProvider>
         </SQLiteProvider>
