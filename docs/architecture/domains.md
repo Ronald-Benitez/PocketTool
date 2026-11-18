@@ -99,8 +99,10 @@ compartidos, resúmenes o reglas de dinero.
   compartidos (`fixed`/`financing`/`saving`/`record`), liquidaciones y estado de
   cuenta por persona.
 - `src/domain/shared/split.ts`: reparte un monto entre personas y garantiza que
-  la suma reconcilie. `computeRecordShares` separa la parte propia y la
-  compartida de una compra.
+  la suma reconcilie. `computeParticipantShares` admite porcentajes y montos
+  mezclados; ambos se calculan sobre el total y se bloquea si la suma supera el
+  total. `computeRecordShares` separa la parte propia y la compartida de una
+  compra.
 - `src/domain/shared/statement.ts`: construye el estado de cuenta por persona.
   Las compras pagadas por el usuario generan “te debe”; las pagadas por otra
   persona generan “le debes”; los financiamientos son informativos y los

@@ -3,7 +3,7 @@
 > Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.
 > Fuente de verdad: `src/db/schema/tables.ts`.
 
-Versión de esquema: **22**
+Versión de esquema: **23**
 
 ## Convenciones
 
@@ -33,23 +33,23 @@ completo.
 | `FinancingPayments` | `financing_payments` | `FinancingPayment` | 19 | 2 | 300 |
 | `FinancingAdjustments` | `financing_adjustments` | `FinancingAdjustment` | 13 | 1 | 334 |
 | `PersonSettlements` | `person_settlements` | `PersonSettlement` | 10 | 2 | 361 |
-| `SharedExpenseParticipants` | `shared_expense_participants` | `SharedExpenseParticipant` | 9 | 2 | 386 |
-| `SharedPaymentAllocations` | `shared_payment_allocations` | `SharedPaymentAllocation` | 13 | 3 | 410 |
-| `BudgetTemplates` | `budget_templates` | `BudgetTemplate` | 8 | 0 | 439 |
-| `BudgetTemplateItems` | `budget_template_items` | `BudgetTemplateItem` | 13 | 4 | 456 |
-| `BudgetPlans` | `budget_plans` | `BudgetPlan` | 10 | 2 | 486 |
-| `BudgetLines` | `budget_lines` | `BudgetLine` | 15 | 6 | 511 |
-| `Savings` | `savings` | `Saving` | 21 | 1 | 545 |
-| `SavingsHistory` | `savings_history` | `SavingsHistoryEntry` | 17 | 4 | 578 |
-| `SavingsSettings` | `savings_settings` | `SavingsSetting` | 9 | 0 | 612 |
-| `Migrations` | `migrations` | `Migration` | 3 | 0 | 632 |
-| `Vehicles` | `vehicles` | `Vehicle` | 19 | 1 | 642 |
-| `VehicleFuelEntries` | `vehicle_fuel_entries` | `VehicleFuelEntry` | 19 | 2 | 673 |
-| `VehicleMaintenance` | `vehicle_maintenance` | `VehicleMaintenanceEntry` | 13 | 2 | 707 |
-| `VehicleMaintenanceItems` | `vehicle_maintenance_items` | `VehicleMaintenanceItem` | 10 | 1 | 735 |
-| `VehicleReminders` | `vehicle_reminders` | `VehicleReminder` | 17 | 1 | 759 |
-| `VehicleSettings` | `vehicle_settings` | `VehicleSetting` | 7 | 0 | 790 |
-| `VehicleExpenseLinks` | `vehicle_expense_links` | `VehicleExpenseLink` | 6 | 3 | 808 |
+| `SharedExpenseParticipants` | `shared_expense_participants` | `SharedExpenseParticipant` | 11 | 2 | 386 |
+| `SharedPaymentAllocations` | `shared_payment_allocations` | `SharedPaymentAllocation` | 13 | 3 | 412 |
+| `BudgetTemplates` | `budget_templates` | `BudgetTemplate` | 8 | 0 | 441 |
+| `BudgetTemplateItems` | `budget_template_items` | `BudgetTemplateItem` | 13 | 4 | 458 |
+| `BudgetPlans` | `budget_plans` | `BudgetPlan` | 10 | 2 | 488 |
+| `BudgetLines` | `budget_lines` | `BudgetLine` | 15 | 6 | 513 |
+| `Savings` | `savings` | `Saving` | 21 | 1 | 547 |
+| `SavingsHistory` | `savings_history` | `SavingsHistoryEntry` | 17 | 4 | 580 |
+| `SavingsSettings` | `savings_settings` | `SavingsSetting` | 9 | 0 | 614 |
+| `Migrations` | `migrations` | `Migration` | 3 | 0 | 634 |
+| `Vehicles` | `vehicles` | `Vehicle` | 19 | 1 | 644 |
+| `VehicleFuelEntries` | `vehicle_fuel_entries` | `VehicleFuelEntry` | 19 | 2 | 675 |
+| `VehicleMaintenance` | `vehicle_maintenance` | `VehicleMaintenanceEntry` | 13 | 2 | 709 |
+| `VehicleMaintenanceItems` | `vehicle_maintenance_items` | `VehicleMaintenanceItem` | 10 | 1 | 737 |
+| `VehicleReminders` | `vehicle_reminders` | `VehicleReminder` | 17 | 1 | 761 |
+| `VehicleSettings` | `vehicle_settings` | `VehicleSetting` | 7 | 0 | 792 |
+| `VehicleExpenseLinks` | `vehicle_expense_links` | `VehicleExpenseLink` | 6 | 3 | 810 |
 
 ## Groups (`groups`)
 
@@ -394,6 +394,8 @@ Entidad TypeScript: `SharedExpenseParticipant`
 | `owner_id` | `INTEGER` | `number` | NOT NULL |
 | `person_id` | `INTEGER` | `number` | NOT NULL, FK → People.id ON DELETE CASCADE |
 | `share_percent` | `REAL` | `number` | NOT NULL |
+| `share_mode` | `TEXT` | `string` | NOT NULL, default="percent" |
+| `share_amount_cents` | `INTEGER` | `Cents` | kind=money |
 | `notes` | `TEXT` | `string` |  |
 | `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |

@@ -1,6 +1,6 @@
 import type { TableDefinition, TableSchema } from '../types';
 
-export const SCHEMA_VERSION = 22;
+export const SCHEMA_VERSION = 23;
 
 export type TableName =
   | 'Groups'
@@ -445,6 +445,8 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
         notNull: true,
       },
       { name: 'share_percent', type: 'REAL', notNull: true },
+      { name: 'share_mode', type: 'TEXT', notNull: true, defaultValue: 'percent' },
+      { name: 'share_amount_cents', type: 'INTEGER', kind: 'money' },
       { name: 'notes', type: 'TEXT' },
       ...timestamps,
       softDelete,

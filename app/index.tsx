@@ -1,6 +1,7 @@
 import { View, Pressable } from 'react-native';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFocusEffect } from 'expo-router';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
 import useColorStore from '@/src/stores/ColorsStore';
@@ -20,15 +21,16 @@ import {
   summarizeFinancing,
   type FinancingSummary,
 } from '@/src/domain/credits/summary';
+import { computeParticipantShares } from '@/src/domain/shared/split';
 import {
     useFinancingsRepository,
     useFixeds,
-    useRecords,
     useSharedParticipantsRepository,
 } from '@/src/db';
 import { mapDatabaseError } from '@/src/db/errors';
 import { FinancingPaymentForm } from '@/src/components/credits/FinancingPaymentForm';
 import { useConfigs } from '@/src/hooks/useConfigs';
+import { useGroupRefresh } from '@/src/hooks/useGroupRefresh';
 import { formatMoneyWithSymbol } from '@/src/utils';
 import { useToast } from '@/src/ui/feedback/ToastProvider';
 import { AppText } from '@/src/ui/primitives/AppText';
@@ -73,7 +75,17 @@ const Index = () => {
     const { fetchFixeds } = useFixeds();
     const financingsRepository = useFinancingsRepository();
     const participantsRepository = useSharedParticipantsRepository();
-    const { fetchRecords } = useRecords();
+    const { refreshGroupData } = useGroupRefresh();
+    const groupId = group?.id;
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!groupId) return;
+            refreshGroupData(groupId).catch((cause) => {
+                if (__DEV__) console.warn('[home] group refresh failed', cause);
+            });
+        }, [groupId, refreshGroupData])
+    );
     const [participants, setParticipants] = useState<SharedExpenseParticipant[]>([]);
     const [financings, setFinancings] = useState<FinancingWithRelations[]>([]);
     const [financingsRefreshKey, setFinancingsRefreshKey] = useState(0);
@@ -131,18 +143,22 @@ const Index = () => {
     }, [financingsRefreshKey]);
 
     const splitFixed = (fixed: FixedView) => {
-        const percent = Math.min(
-            100,
+        const split = computeParticipantShares(
+            fixed.fixed_amount,
             participants
                 .filter(
                     (participant) =>
                         participant.owner_type === 'fixed' &&
                         participant.owner_id === fixed.id
                 )
-                .reduce((sum, participant) => sum + participant.share_percent, 0)
+                .map((participant) => ({
+                    personId: participant.person_id,
+                    shareMode: participant.share_mode as 'percent' | 'amount',
+                    sharePercent: participant.share_percent,
+                    shareAmountCents: participant.share_amount_cents ?? null,
+                }))
         );
-        const shared = Math.round((fixed.fixed_amount * percent) / 100);
-        return { own: fixed.fixed_amount - shared, shared };
+        return { own: split.ownCents, shared: split.sharedCents };
     };
 
     const buildPendingFixeds = () => {
@@ -186,8 +202,7 @@ const Index = () => {
 
     const refreshHomeRecords = async () => {
         if (!group?.id) return;
-        const rows = await fetchRecords(group.id);
-        useRecordsStore.getState().setRecords(rows ?? []);
+        await refreshGroupData(group.id);
     };
 
     const decideText = () => {

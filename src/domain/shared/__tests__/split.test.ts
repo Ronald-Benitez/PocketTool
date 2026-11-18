@@ -1,4 +1,4 @@
-import { computeRecordShares, splitSharedAmount } from '../split';
+import { computeParticipantShares, computeRecordShares, splitSharedAmount } from '../split';
 
 describe('splitSharedAmount', () => {
   it('splits a shared amount proportionally', () => {
@@ -74,5 +74,54 @@ describe('computeRecordShares', () => {
     expect(
       computeRecordShares(-100, [{ personId: 1, sharePercent: 50 }])
     ).toEqual({ ownCents: 0, sharedCents: 0 });
+  });
+});
+
+describe('computeParticipantShares', () => {
+  it('mixes percentages and fixed amounts over the total', () => {
+    const split = computeParticipantShares(1000, [
+      { personId: 1, shareMode: 'amount', shareAmountCents: 300 },
+      { personId: 2, shareMode: 'percent', sharePercent: 20 },
+    ]);
+
+    expect(split.ownCents).toBe(500);
+    expect(split.sharedCents).toBe(500);
+    expect(split.participants).toEqual([
+      {
+        personId: 1,
+        shareMode: 'amount',
+        sharePercent: 30,
+        amountCents: 300,
+      },
+      {
+        personId: 2,
+        shareMode: 'percent',
+        sharePercent: 20,
+        amountCents: 200,
+      },
+    ]);
+    expect(split.exceedsTotal).toBe(false);
+  });
+
+  it('flags and clamps totals that exceed the purchase', () => {
+    const split = computeParticipantShares(1000, [
+      { personId: 1, shareMode: 'amount', shareAmountCents: 600 },
+      { personId: 2, shareMode: 'percent', sharePercent: 50 },
+    ]);
+
+    expect(split.exceedsTotal).toBe(true);
+    expect(split.ownCents).toBe(0);
+    expect(split.sharedCents).toBe(1000);
+    expect(split.participants[1].amountCents).toBe(400);
+  });
+
+  it('skips zero shares', () => {
+    const split = computeParticipantShares(1000, [
+      { personId: 1, shareMode: 'amount', shareAmountCents: 0 },
+      { personId: 2, shareMode: 'percent', sharePercent: 0 },
+    ]);
+
+    expect(split.participants).toEqual([]);
+    expect(split.ownCents).toBe(1000);
   });
 });

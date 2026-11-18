@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useContext, useRef } from 'react';
 import {
   KeyboardAvoidingView,
   Modal as RNModal,
@@ -7,10 +7,12 @@ import {
   ScrollView,
   StyleSheet,
   View,
+  useWindowDimensions,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 
 import { useTheme } from '../theme/ThemeProvider';
 import { radii, shadows, spacing } from '../theme/tokens';
@@ -50,8 +52,19 @@ export const Modal = ({
   closeLabel = 'Close',
 }: ModalProps) => {
   const { colors } = useTheme();
+  const { height: windowHeight } = useWindowDimensions();
+  const insets = useContext(SafeAreaInsetsContext) ?? {
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+  };
   const isBottom = placement === 'bottom';
   const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
+  const bottomMaxHeight = Math.max(
+    280,
+    windowHeight - insets.top - insets.bottom - spacing.xxl
+  );
 
   const scrollToInput = useCallback((nodeHandle: number) => {
     setTimeout(() => {
@@ -99,6 +112,9 @@ export const Modal = ({
             {
               backgroundColor: colors.overlay,
               justifyContent: isBottom ? 'flex-end' : 'center',
+              paddingBottom: isBottom
+                ? Math.max(spacing.md, insets.bottom)
+                : spacing.md,
             },
           ]}
         >
@@ -123,7 +139,7 @@ export const Modal = ({
               borderBottomRightRadius: isBottom ? 0 : radii.lg,
               maxWidth: isBottom ? undefined : maxWidth,
               width: isBottom ? '100%' : '92%',
-              maxHeight: isBottom ? '88%' : '85%',
+              maxHeight: isBottom ? bottomMaxHeight : '85%',
             },
           ]}
         >
@@ -206,6 +222,7 @@ const styles = StyleSheet.create({
   body: {
     flexGrow: 1,
     flexShrink: 1,
+    minHeight: 0,
   },
   footer: {
     borderTopWidth: 1,

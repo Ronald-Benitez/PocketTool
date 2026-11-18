@@ -1,6 +1,6 @@
 # Plan de fases
 
-**Última actualización:** 2026-11-11
+**Última actualización:** 2026-11-17
 
 ## Estado
 
@@ -19,6 +19,7 @@
 | Fase 10 — Errores y ajustes de siguiente versión | ✅ Finalizada | 2026-11-03 |
 | Fase 11 — Ahorros compartidos y metas | ✅ Finalizada | 2026-11-04 |
 | Fase 12 — Compras compartidas, saldo por persona y doble balance | ✅ Finalizada | 2026-11-11 |
+| Fase 13 — Pendientes de Fase 12 y ajustes de Registros/Vehículo | ✅ Finalizada | 2026-11-17 |
 
 ## Fase activa
 
@@ -27,10 +28,10 @@
 Para iniciar una fase, reemplaza este bloque por:
 
 ```md
-## Fase activa: 13 — Nombre de la fase
+## Fase activa: 14 — Nombre de la fase
 - Estado: 🚧 En curso
-- Inicio: 2026-11-11
-- Plan: docs/plans/fase-13.md
+- Inicio: 2026-11-17
+- Plan: docs/plans/fase-14.md
 ```
 
 `/cerrar-fase` busca este encabezado para saber qué fase cerrar. Si no existe,
@@ -44,7 +45,7 @@ se detiene y pide cuál cerrar.
 - **Dinero/fechas:** centavos enteros y timestamps Unix en milisegundos.
 - **Auditoría:** `created_at`/`updated_at` con triggers; soft delete con
   `deleted_at`.
-- **Migraciones:** `0001` a `0022`; `SCHEMA_VERSION = 22`.
+- **Migraciones:** `0001` a `0023`; `SCHEMA_VERSION = 23`.
 - **Acceso a datos:** ORM tipado + repositorios; la UI no usa `useORM` ni SQL.
 - **Backups:** dump SQL con metadatos versionados y compatibilidad legacy.
 - **Calidad:** `test:db` con `node:sqlite`, Jest, typecheck, lint bloqueante y
@@ -187,6 +188,27 @@ Plan completo en [`legacy/shared-purchases-plan.md`](legacy/shared-purchases-pla
 - Commits principales: `5622d5c` (funcionalidad y documentación),
   `d61072b` (parches de Expo SDK 58).
 
+## Fase 13 — Pendientes de Fase 12 y ajustes de Registros/Vehículo (✅ 2026-11-17)
+
+Plan completo en [`legacy/pending-adjustments-plan.md`](legacy/pending-adjustments-plan.md).
+
+- Migración `0023`: `share_mode` y `share_amount_cents` en
+  `SharedExpenseParticipants`; porcentajes y montos mezclados, ambos sobre el
+  total. Ahorros sigue solo con porcentaje.
+- Refresco global con `useGroupRefresh` tras combustible, mantenimiento y
+  ahorros; refresco por foco en Inicio, Registros y Resúmenes. Ahorros permite
+  monto inicial 0.
+- Pickers centrados (`SelectField`, `MultiSelectField`, `DateField`) con altura
+  máxima y scroll, sin depender de la barra de navegación.
+- Configuración de fecha de pagos pendientes de tarjeta: hoy o día de pago de la
+  tarjeta dentro del mes del grupo.
+- Gasolina: distancia total por segmento y memoria de “Use odometer” por
+  vehículo.
+- Limpieza de datos en memoria al borrar el último grupo.
+- QA manual validado. Pendiente futuro fuera de la fase: criterio del plan
+  mensual en Presupuestos.
+- Commits principales: `PENDIENTE`.
+
 ## Decisiones vigentes
 
 - Tablas lógicas PascalCase, nombres físicos y columnas snake_case.
@@ -201,9 +223,11 @@ Plan completo en [`legacy/shared-purchases-plan.md`](legacy/shared-purchases-pla
 - La UI nueva usa `src/ui`; los estilos legacy se adaptan con
   `useThemedStyles`.
 - La ayuda se actualiza en el mismo cambio que la funcionalidad visible.
-- Los compartidos usan porcentajes; el pagador y las liquidaciones viven en
-  `Records` y `PersonSettlements`. El estado de cuenta distingue lo que te deben
-  de lo que debes y no mezcla financiamientos.
+- Los compartidos usan porcentajes o montos; los montos y porcentajes se
+  calculan sobre el total y se bloquea si la suma lo supera. Ahorros usa solo
+  porcentaje. El pagador y las liquidaciones viven en `Records` y
+  `PersonSettlements`.
+- Los pickers de formularios usan modales centrados con altura máxima y scroll.
 - Los modos de importe son `Tu parte`, `Compartido`, `Total` y `Propio bruto`;
   el balance de caja es el único que incluye liquidaciones.
 

@@ -1,5 +1,9 @@
 import { ORM } from '@/src/orm';
-import { splitSharedAmount } from '@/src/domain/shared/split';
+import {
+  computeParticipantShares,
+  splitSharedAmount,
+  type ShareMode,
+} from '@/src/domain/shared/split';
 import type {
   Insertable,
   SharedExpenseParticipant,
@@ -18,12 +22,19 @@ export type AllocationOwnerType = 'fixed' | 'financing';
 export type ParticipantShareDraft = {
   personId: number;
   sharePercent: number;
+  shareMode?: ShareMode;
+  shareAmountCents?: number | null;
   notes?: string | null;
 };
 
 type ParticipantShare = Pick<
   SharedExpenseParticipant,
   'person_id' | 'share_percent'
+>;
+
+type AllocationParticipant = Pick<
+  SharedExpenseParticipant,
+  'person_id' | 'share_percent' | 'share_mode' | 'share_amount_cents'
 >;
 
 const participantsOrm = (txn: TransactionDatabase) =>
@@ -86,11 +97,19 @@ const validateParticipants = (participants: ParticipantShareDraft[]) => {
   if (unique.size !== participants.length) {
     throw new Error('SHARED_PERSON_DUPLICATED');
   }
-  const total = participants.reduce(
-    (sum, participant) => sum + participant.sharePercent,
-    0
-  );
-  if (total > 100.0001) throw new Error('SHARED_PERCENT_INVALID');
+  const totalPercent = participants
+    .filter((participant) => participant.shareMode !== 'amount')
+    .reduce((sum, participant) => sum + participant.sharePercent, 0);
+  if (totalPercent > 100.0001) throw new Error('SHARED_PERCENT_INVALID');
+  if (
+    participants.some(
+      (participant) =>
+        participant.shareMode === 'amount' &&
+        (participant.shareAmountCents ?? 0) <= 0
+    )
+  ) {
+    throw new Error('SHARED_AMOUNT_INVALID');
+  }
 };
 
 /**
@@ -114,13 +133,23 @@ export const replaceOwnerParticipants = async (
     if (participant.id !== undefined) await orm.delete(participant.id);
   }
   for (const participant of participants) {
-    if (participant.sharePercent <= 0) continue;
+    if (
+      participant.shareMode !== 'amount' &&
+      participant.sharePercent <= 0
+    ) {
+      continue;
+    }
     await orm.insert(
       sharedParticipantInputSchema.parse({
         owner_type: ownerType,
         owner_id: ownerId,
         person_id: participant.personId,
         share_percent: participant.sharePercent,
+        share_mode: participant.shareMode ?? 'percent',
+        share_amount_cents:
+          participant.shareMode === 'amount'
+            ? participant.shareAmountCents ?? 0
+            : null,
         notes: participant.notes ?? null,
       }) as Insertable<SharedExpenseParticipant>
     );
@@ -186,6 +215,62 @@ export const syncRecordAllocations = async ({
       date,
       amount_cents: split.amountCents,
       share_percent: split.sharePercent,
+    });
+    await orm.insert(payload as Insertable<SharedPaymentAllocation>);
+  }
+};
+
+/**
+ * Sync allocations from participants that may use percentages or fixed
+ * amounts. The owner total is required because amount-based shares are fixed
+ * against it.
+ */
+export const syncRecordAllocationsFromShares = async ({
+  txn,
+  recordId,
+  ownerType,
+  ownerId,
+  label,
+  date,
+  totalCents,
+  participants,
+  financingPaymentId = null,
+}: {
+  txn: TransactionDatabase;
+  recordId: number;
+  ownerType: AllocationOwnerType;
+  ownerId: number;
+  label: string;
+  date: number;
+  totalCents: number;
+  participants: AllocationParticipant[];
+  financingPaymentId?: number | null;
+}) => {
+  await clearRecordAllocations(txn, recordId);
+
+  const split = computeParticipantShares(
+    totalCents,
+    participants.map((participant) => ({
+      personId: participant.person_id,
+      shareMode: participant.share_mode as ShareMode,
+      sharePercent: participant.share_percent,
+      shareAmountCents: participant.share_amount_cents ?? null,
+    }))
+  );
+  if (split.participants.length === 0) return;
+
+  const orm = allocationsOrm(txn);
+  for (const participant of split.participants) {
+    const payload = sharedAllocationInputSchema.parse({
+      person_id: participant.personId,
+      owner_type: ownerType,
+      owner_id: ownerId,
+      record_id: recordId,
+      financing_payment_id: financingPaymentId,
+      label,
+      date,
+      amount_cents: participant.amountCents,
+      share_percent: participant.sharePercent,
     });
     await orm.insert(payload as Insertable<SharedPaymentAllocation>);
   }

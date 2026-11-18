@@ -30,6 +30,9 @@ detalle, usa `**Secciones:**` y busca el encabezado con
 - [`shared-purchases-plan.md`](shared-purchases-plan.md): plan de compras
   compartidas, estado de cuenta por persona, liquidaciones y doble balance
   (Fase 12), implementado, validado y archivado.
+- [`pending-adjustments-plan.md`](pending-adjustments-plan.md): plan de
+  compartidos por monto y ajustes de Registros/Vehículo (Fase 13), implementado,
+  validado y archivado.
 - [`db-summary.md`](db-summary.md): resumen anterior de la base de datos,
   reemplazado por [`../database.md`](../database.md).
 

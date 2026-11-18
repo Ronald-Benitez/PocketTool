@@ -16,7 +16,7 @@ import { controlHeight, radii, spacing } from '../theme/tokens';
 import { AppText } from '../primitives/AppText';
 import { Button } from '../actions/Button';
 import { IconButton } from '../actions/IconButton';
-import { BottomSheet } from '../overlays/Modal';
+import { Modal } from '../overlays/Modal';
 import { FormField } from './FormField';
 
 export type DateFieldProps = {
@@ -152,11 +152,12 @@ export const DateField = ({
         <MaterialIcons name='calendar-month' size={22} color={colors.textMuted} />
       </Pressable>
 
-      <BottomSheet
+      <Modal
         visible={visible}
         onClose={() => setVisible(false)}
         title={title ?? label ?? placeholder}
         closeLabel={closeLabel ?? cancelLabel ?? t('datePicker.cancel')}
+        scrollable
         footer={
           <View style={styles.footer}>
             <Button
@@ -251,7 +252,7 @@ export const DateField = ({
             );
           })}
         </View>
-      </BottomSheet>
+      </Modal>
     </FormField>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StyleSheet, View } from 'react-native';
 
@@ -16,6 +16,7 @@ import type {
   Vehicle,
   VehicleSetting,
 } from '@/src/interfaces/schema';
+import { resolveOdometerMode } from '@/src/domain/vehicle/fuel';
 import useRecordsStore from '@/src/stores/RecordsStore';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { formatMoneyWithSymbol } from '@/src/utils';
@@ -79,6 +80,7 @@ export const FuelEntryForm = ({
   const recordTypesRepository = useTableRepository('RecordTypes');
   const [date, setDate] = useState(() => Date.now());
   const [odometerMode, setOdometerMode] = useState<'odometer' | 'distance'>('odometer');
+  const odometerModeTouched = useRef(false);
   const [odometer, setOdometer] = useState('');
   const [distance, setDistance] = useState('');
   const [distanceUnit, setDistanceUnit] = useState<'mi' | 'km'>('mi');
@@ -114,11 +116,14 @@ export const FuelEntryForm = ({
     const baseline = Boolean(entry?.is_baseline);
     setDate(entry?.date ?? Date.now());
     setOdometerMode(
-      baseline ||
-        (entry?.odometer != null && entry.odometer_source !== 'inferred')
-        ? 'odometer'
-        : 'distance'
+      resolveOdometerMode({
+        isBaseline: baseline,
+        isEditing: Boolean(entry),
+        hasManualOdometer:
+          entry?.odometer != null && entry.odometer_source !== 'inferred',
+      })
     );
+    odometerModeTouched.current = false;
     setOdometer(entry?.odometer?.toString() ?? '');
     setDistance(entry?.distance_traveled?.toString() ?? '');
     setDistanceUnit(
@@ -173,12 +178,20 @@ export const FuelEntryForm = ({
               const stored = JSON.parse(raw) as {
                 distanceUnit?: string;
                 volumeUnit?: string;
+                odometerMode?: string;
               };
               if (stored.distanceUnit === 'km' || stored.distanceUnit === 'mi') {
                 setDistanceUnit(stored.distanceUnit);
               }
               if (stored.volumeUnit === 'L' || stored.volumeUnit === 'gal') {
                 setVolumeUnit(stored.volumeUnit);
+              }
+              if (
+                !odometerModeTouched.current &&
+                (stored.odometerMode === 'odometer' ||
+                  stored.odometerMode === 'distance')
+              ) {
+                setOdometerMode(stored.odometerMode);
               }
             } catch {
               // Ignore corrupted preferences and keep the vehicle defaults.
@@ -343,11 +356,20 @@ export const FuelEntryForm = ({
     try {
       await AsyncStorage.setItem(
         key,
-        JSON.stringify({ distanceUnit, volumeUnit })
+        JSON.stringify(
+          isBaseline
+            ? { distanceUnit, volumeUnit }
+            : { distanceUnit, volumeUnit, odometerMode }
+        )
       );
     } catch {
       // Preferences are optional.
     }
+  };
+
+  const onOdometerModeChange = (mode: 'odometer' | 'distance') => {
+    odometerModeTouched.current = true;
+    setOdometerMode(mode);
   };
 
   const save = async () => {
@@ -700,7 +722,7 @@ export const FuelEntryForm = ({
                 { label: t('vehicle.fuel.useOdometer'), value: 'odometer' },
                 { label: t('vehicle.fuel.useDistance'), value: 'distance' },
               ]}
-              onChange={setOdometerMode}
+              onChange={onOdometerModeChange}
             />
           ) : null}
           {isBaseline || odometerMode === 'odometer' ? (

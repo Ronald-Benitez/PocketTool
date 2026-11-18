@@ -22,6 +22,11 @@ export const settingsEn = {
         "selectRecordType": "Resume record types",
         "selectCreditExpenseType": "Credit expenses type",
         "selectCreditPaymentType": "Credit payments type",
+        "pendingPaymentDate": "Pending card payment date",
+        "pendingPaymentDateToday": "Today",
+        "pendingPaymentDateCard": "Card payment date",
+        "pendingPaymentDateHint":
+            "Date used when pending card payments appear in Records.",
         "export": "Export database",
         "import": "Import database",
         "languages": {
@@ -124,6 +129,11 @@ export const settingsEs: MessageShape<typeof settingsEn> = {
         "selectRecordType": "Tipos de registro del resumen",
         "selectCreditExpenseType": "Tipo de gastos a crédito",
         "selectCreditPaymentType": "Tipo de pagos a crédito",
+        "pendingPaymentDate": "Fecha de pagos pendientes de tarjeta",
+        "pendingPaymentDateToday": "Hoy",
+        "pendingPaymentDateCard": "Fecha de pago de la tarjeta",
+        "pendingPaymentDateHint":
+            "Fecha que se usa cuando aparecen pagos pendientes de tarjeta en Registros.",
         "export": "Exportar base de datos",
         "import": "Importar base de datos",
         "languages": {

@@ -64,7 +64,7 @@ No editar esos archivos a mano.
 | `FinancingAdjustments` | `financing_adjustments` | Refinanciamientos y cambios de tasa/plazo. |
 | `People` | `people` | Registro de personas para gastos compartidos. |
 | `PersonSettlements` | `person_settlements` | Pagos de liquidación por persona; `direction` indica si pagó el usuario o la persona y `group_id` imputa el movimiento al grupo de caja. |
-| `SharedExpenseParticipants` | `shared_expense_participants` | Participantes y porcentajes de fijos, financiamientos, ahorros y compras compartidas (`owner_type = 'record'`). |
+| `SharedExpenseParticipants` | `shared_expense_participants` | Participantes y porcentajes o montos de fijos, financiamientos, ahorros y compras compartidas (`owner_type = 'record'`). `share_mode` distingue `percent`/`amount`; `share_amount_cents` guarda el monto fijo. |
 | `BudgetTemplates` | `budget_templates` | Plantillas de presupuesto reutilizables. |
 | `BudgetTemplateItems` | `budget_template_items` | Líneas de plantilla (categoría o fijo). |
 | `BudgetPlans` | `budget_plans` | Plan mensual por grupo. |
@@ -129,6 +129,7 @@ Las rutas navegables se generan en `relations.json` a partir de las FKs.
 | 20 | `0020_clear_movement_saving_source` | Limpia `records.saving_id` de los registros creados desde un movimiento de ahorro que quedaron marcados por error. |
 | 21 | `0021_records_payer_and_scope` | Agrega `records.paid_by_person_id` y `records.paid_scope`; backfill `full`. |
 | 22 | `0022_person_settlements` | Crea `person_settlements` para las liquidaciones por persona y su grupo de caja. |
+| 23 | `0023_shared_participant_amounts` | Agrega `share_mode` y `share_amount_cents` a `shared_expense_participants`; backfill `percent`. |
 
 Reglas:
 

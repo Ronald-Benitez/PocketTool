@@ -152,12 +152,16 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                 rows = fixedRows.map((row) => ({
                     personId: row.person_id,
                     sharePercent: row.share_percent,
+                    shareMode: row.share_mode as 'percent' | 'amount',
+                    shareAmountCents: row.share_amount_cents ?? null,
                 }))
             } else if (source === null && item.id != null) {
                 const recordRows = await participantsRepository.fetchFor('record', item.id)
                 rows = recordRows.map((row) => ({
                     personId: row.person_id,
                     sharePercent: row.share_percent,
+                    shareMode: row.share_mode as 'percent' | 'amount',
+                    shareAmountCents: row.share_amount_cents ?? null,
                 }))
             }
             if (!active) return
@@ -271,7 +275,9 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
               t('shared.deletedPerson');
 
     const participantOptions = participants.flatMap((participant) =>
-        participant.sharePercent > 0 &&
+        (participant.shareMode === 'amount'
+            ? (participant.shareAmountCents ?? 0) > 0
+            : participant.sharePercent > 0) &&
         people.some((person) => person.id === participant.personId)
             ? [{
                 label:
@@ -284,7 +290,11 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
 
     const updateParticipants = (next: ParticipantDraft[]) => {
         setParticipants(next)
-        if (next.some((participant) => participant.sharePercent > 0)) {
+        if (next.some((participant) =>
+            participant.shareMode === 'amount'
+                ? (participant.shareAmountCents ?? 0) > 0
+                : participant.sharePercent > 0
+        )) {
             setSavingId(null)
         }
         if (
@@ -292,7 +302,9 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
             !next.some(
                 (participant) =>
                     participant.personId === paidByPersonId &&
-                    participant.sharePercent > 0
+                    (participant.shareMode === 'amount'
+                        ? (participant.shareAmountCents ?? 0) > 0
+                        : participant.sharePercent > 0)
             )
         ) {
             setPaidByPersonId(null)
@@ -320,6 +332,16 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
         if (!group || !sharingLoaded) return
 
         const requiresPayment = paidByMeCents > 0;
+        if (
+            participants.some(
+                (participant) =>
+                    participant.shareMode === 'amount' &&
+                    (participant.shareAmountCents ?? 0) <= 0
+            )
+        ) {
+            showToast({ message: t('shared.amountRequired'), type: 'warning' })
+            return
+        }
         if (
             totalCents <= 0 ||
             !category?.id ||
@@ -530,7 +552,11 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                                         {participants.length > 0
                                             ? participants
                                                 .map((participant) =>
-                                                    `${personName(participant.personId)} ${participant.sharePercent.toFixed(0)}%`
+                                                    `${personName(participant.personId)} ${
+                                                        participant.shareMode === 'amount'
+                                                            ? formatMoneyWithSymbol(participant.shareAmountCents ?? 0)
+                                                            : `${participant.sharePercent.toFixed(0)}%`
+                                                    }`
                                                 )
                                                 .join(' · ')
                                             : t('shared.noPeople')}

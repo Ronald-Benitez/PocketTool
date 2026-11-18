@@ -7,8 +7,9 @@ import {
   clearFinancingAllocations,
   clearFinancingPaymentAllocations,
   clearRecordAllocations,
-  syncRecordAllocations,
+  syncRecordAllocationsFromShares,
 } from '@/src/db/shared-ledger';
+import { computeParticipantShares } from '@/src/domain/shared/split';
 import type {
   Financing,
   FinancingAdjustment,
@@ -219,18 +220,26 @@ export const useFinancingsRepository = () => {
       )
         .where('owner_type', 'financing')
         .where('owner_id', values.financing_id)
-        .getAll()) as { person_id: number; share_percent: number }[];
-      const sharedPercent = Math.min(
-        100,
-        participantRows.reduce(
-          (sum, participant) => sum + participant.share_percent,
-          0
-        )
+        .getAll()) as {
+          person_id: number;
+          share_percent: number;
+          share_mode: string;
+          share_amount_cents: number | null;
+        }[];
+      const participantSplit = computeParticipantShares(
+        values.amount_cents,
+        participantRows.map((participant) => ({
+          personId: participant.person_id,
+          shareMode: participant.share_mode as 'percent' | 'amount',
+          sharePercent: participant.share_percent,
+          shareAmountCents: participant.share_amount_cents,
+        }))
       );
-      const sharedAmount = Math.round(
-        (values.amount_cents * sharedPercent) / 100
-      );
-      const ownAmount = values.amount_cents - sharedAmount;
+      if (participantSplit.exceedsTotal) {
+        throw new Error('SHARED_AMOUNT_EXCEEDS_TOTAL');
+      }
+      const sharedAmount = participantSplit.sharedCents;
+      const ownAmount = participantSplit.ownCents;
 
       if (record?.linkMode === 'link') {
         if (!record.recordId) throw new Error('RECORD_REQUIRED');
@@ -332,14 +341,14 @@ export const useFinancingsRepository = () => {
       }
 
       if (recordId != null && recordLabel) {
-        await syncRecordAllocations({
+        await syncRecordAllocationsFromShares({
           txn,
           recordId,
           ownerType: 'financing',
           ownerId: values.financing_id,
           label: recordLabel,
           date: values.date,
-          sharedCents: sharedAmount,
+          totalCents: values.amount_cents,
           participants: participantRows,
           financingPaymentId: paymentId,
         });

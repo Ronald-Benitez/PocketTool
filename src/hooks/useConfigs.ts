@@ -1,16 +1,24 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import type { RecordType } from '@/src/interfaces/schema';
+import type { PendingPaymentDateMode } from '@/src/domain/credits/pending';
 
 export interface Configs {
     recordTypes: number[];
     creditType: number;
     paymentCreditType: number;
+    pendingPaymentDateMode: PendingPaymentDateMode;
 }
 
 const DEFAULT_RECORD_TYPES = ['Income', 'Expense'];
 const DEFAULT_CREDIT_TYPE = 'Credit expenses';
 const DEFAULT_PAYMENT_CREDIT_TYPE = 'Payments';
+const DEFAULT_PENDING_PAYMENT_DATE_MODE: PendingPaymentDateMode = 'today';
+
+const isPendingPaymentDateMode = (
+    value: unknown
+): value is PendingPaymentDateMode =>
+    value === 'today' || value === 'payment_date';
 
 /**
  * Resolve the default configuration by stable record-type names instead of
@@ -31,6 +39,7 @@ export const resolveDefaultConfigs = (recordTypes: RecordType[]): Configs => {
             .filter((id) => id > 0),
         creditType: idFor(DEFAULT_CREDIT_TYPE),
         paymentCreditType: idFor(DEFAULT_PAYMENT_CREDIT_TYPE),
+        pendingPaymentDateMode: DEFAULT_PENDING_PAYMENT_DATE_MODE,
     };
 };
 
@@ -41,13 +50,23 @@ interface ConfigsStore {
 }
 
 export const useConfigs = create<ConfigsStore>((set) => ({
-    configs: { recordTypes: [], creditType: 0, paymentCreditType: 0 },
+    configs: {
+        recordTypes: [],
+        creditType: 0,
+        paymentCreditType: 0,
+        pendingPaymentDateMode: DEFAULT_PENDING_PAYMENT_DATE_MODE,
+    },
 
     loadConfigs: async (recordTypes) => {
         try {
             const defaults = recordTypes?.length
                 ? resolveDefaultConfigs(recordTypes)
-                : { recordTypes: [], creditType: 0, paymentCreditType: 0 };
+                : {
+                    recordTypes: [],
+                    creditType: 0,
+                    paymentCreditType: 0,
+                    pendingPaymentDateMode: DEFAULT_PENDING_PAYMENT_DATE_MODE,
+                };
 
             const storedConfigs = await AsyncStorage.getItem('configs');
             if (!storedConfigs) {
@@ -67,6 +86,11 @@ export const useConfigs = create<ConfigsStore>((set) => ({
                     typeof parsed.paymentCreditType === 'number' && parsed.paymentCreditType > 0
                         ? parsed.paymentCreditType
                         : defaults.paymentCreditType,
+                pendingPaymentDateMode: isPendingPaymentDateMode(
+                    parsed.pendingPaymentDateMode
+                )
+                    ? parsed.pendingPaymentDateMode
+                    : defaults.pendingPaymentDateMode,
             };
 
             set({ configs: merged });
@@ -74,7 +98,8 @@ export const useConfigs = create<ConfigsStore>((set) => ({
             const wasIncomplete =
                 parsedRecordTypes.length === 0 ||
                 !(typeof parsed.creditType === 'number' && parsed.creditType > 0) ||
-                !(typeof parsed.paymentCreditType === 'number' && parsed.paymentCreditType > 0);
+                !(typeof parsed.paymentCreditType === 'number' && parsed.paymentCreditType > 0) ||
+                !isPendingPaymentDateMode(parsed.pendingPaymentDateMode);
             if (wasIncomplete && recordTypes?.length) {
                 await AsyncStorage.setItem('configs', JSON.stringify(merged));
             }

@@ -7,6 +7,90 @@ export type SharedSplit = SharedParticipantShare & {
   amountCents: number;
 };
 
+export type ShareMode = 'percent' | 'amount';
+
+export type ParticipantShareInput = {
+  personId: number;
+  shareMode?: ShareMode | null;
+  sharePercent?: number | null;
+  shareAmountCents?: number | null;
+};
+
+export type ParticipantShareAmount = {
+  personId: number;
+  shareMode: ShareMode;
+  /** Effective percentage of the total, useful for snapshots and display. */
+  sharePercent: number;
+  amountCents: number;
+};
+
+export type ParticipantSplit = {
+  ownCents: number;
+  sharedCents: number;
+  participants: ParticipantShareAmount[];
+  exceedsTotal: boolean;
+};
+
+/**
+ * Split a total between the user and participants that may use a percentage or
+ * a fixed amount. Both kinds are calculated over the total. If the assigned
+ * sum exceeds the total, `exceedsTotal` is true and amounts are clamped to the
+ * remaining total so `ownCents + sharedCents` always reconciles.
+ */
+export const computeParticipantShares = (
+  totalCents: number,
+  participants: ParticipantShareInput[]
+): ParticipantSplit => {
+  const total = Math.max(0, Math.round(totalCents));
+  let remaining = total;
+  let exceedsTotal = false;
+  const result: ParticipantShareAmount[] = [];
+
+  participants.forEach((participant) => {
+    const mode: ShareMode =
+      participant.shareMode === 'amount' ? 'amount' : 'percent';
+
+    if (mode === 'percent') {
+      const percent = Number.isFinite(participant.sharePercent)
+        ? Math.max(0, participant.sharePercent ?? 0)
+        : 0;
+      if (percent <= 0) return;
+      const raw = Math.round((total * percent) / 100);
+      if (raw > remaining) exceedsTotal = true;
+      const amount = Math.min(remaining, Math.max(0, raw));
+      if (amount <= 0) return;
+      result.push({
+        personId: participant.personId,
+        shareMode: 'percent',
+        sharePercent: percent,
+        amountCents: amount,
+      });
+      remaining -= amount;
+      return;
+    }
+
+    const raw = Math.max(0, Math.round(participant.shareAmountCents ?? 0));
+    if (raw <= 0) return;
+    if (raw > remaining) exceedsTotal = true;
+    const amount = Math.min(remaining, raw);
+    if (amount <= 0) return;
+    result.push({
+      personId: participant.personId,
+      shareMode: 'amount',
+      sharePercent: total > 0 ? (amount / total) * 100 : 0,
+      amountCents: amount,
+    });
+    remaining -= amount;
+  });
+
+  return {
+    ownCents: remaining,
+    sharedCents: total - remaining,
+    participants: result,
+    exceedsTotal,
+  };
+};
+
 export type RecordShareSplit = {
   ownCents: number;
   sharedCents: number;
@@ -14,28 +98,16 @@ export type RecordShareSplit = {
 
 /**
  * Split a total purchase into the user's own share and the shared share using
- * the participants' percentages. The shared share is rounded once and the own
- * share is the remainder, so `ownCents + sharedCents` always equals the total.
+ * participants' percentages or fixed amounts.
  */
 export const computeRecordShares = (
   totalCents: number,
-  participants: SharedParticipantShare[]
+  participants: ParticipantShareInput[]
 ): RecordShareSplit => {
-  const totalPercent = Math.min(
-    100,
-    participants.reduce(
-      (total, participant) =>
-        Number.isFinite(participant.sharePercent) && participant.sharePercent > 0
-          ? total + participant.sharePercent
-          : total,
-      0
-    )
-  );
-  const safeTotal = Math.max(0, Math.round(totalCents));
-  const sharedCents = Math.round((safeTotal * totalPercent) / 100);
+  const split = computeParticipantShares(totalCents, participants);
   return {
-    ownCents: safeTotal - sharedCents,
-    sharedCents,
+    ownCents: split.ownCents,
+    sharedCents: split.sharedCents,
   };
 };
 

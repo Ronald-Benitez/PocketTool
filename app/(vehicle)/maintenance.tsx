@@ -12,7 +12,9 @@ import {
 } from '@/src/components/vehicle/ReminderForm';
 import type { VehicleMaintenanceView } from '@/src/db/repositories/vehicle';
 import { useVehicle } from '@/src/hooks/useVehicle';
+import { useGroupRefresh } from '@/src/hooks/useGroupRefresh';
 import { useLanguage } from '@/src/lang/LanguageContext';
+import useRecordsStore from '@/src/stores/RecordsStore';
 import { formatMoneyWithSymbol } from '@/src/utils';
 import { Badge } from '@/src/ui/data-display/Badge';
 import { ListItem } from '@/src/ui/data-display/ListItem';
@@ -28,6 +30,8 @@ const MaintenanceScreen = () => {
   const { t } = useLanguage();
   const { colors } = useTheme();
   const { vehicle } = useVehicle();
+  const { group } = useRecordsStore();
+  const { refreshGroupData } = useGroupRefresh();
   const repository = useVehicleMaintenanceRepository();
   const [entries, setEntries] = useState<VehicleMaintenanceView[]>([]);
   const [formVisible, setFormVisible] = useState(false);
@@ -134,7 +138,14 @@ const MaintenanceScreen = () => {
         entry={selected}
         onCreateReminder={handleCreateReminder}
         onClose={() => setFormVisible(false)}
-        onSaved={() => setRefreshKey((value) => value + 1)}
+        onSaved={() => {
+          setRefreshKey((value) => value + 1);
+          if (group?.id) {
+            refreshGroupData(group.id).catch((cause) => {
+              if (__DEV__) console.warn('[maintenance] group refresh failed', cause);
+            });
+          }
+        }}
       />
       <ReminderForm
         visible={reminderVisible}
@@ -142,7 +153,14 @@ const MaintenanceScreen = () => {
         initialData={reminderInitialData}
         replaceActiveForType={replaceActiveType}
         onClose={() => setReminderVisible(false)}
-        onSaved={() => setRefreshKey((value) => value + 1)}
+        onSaved={() => {
+          setRefreshKey((value) => value + 1);
+          if (group?.id) {
+            refreshGroupData(group.id).catch((cause) => {
+              if (__DEV__) console.warn('[maintenance] group refresh failed', cause);
+            });
+          }
+        }}
       />
     </Screen>
   );

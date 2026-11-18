@@ -3,13 +3,13 @@ import { z } from 'zod';
 
 import { ORM, useORM } from '@/src/orm';
 import { isMonthlyCashRecord } from '@/src/domain/summaries/monthly';
-import { computeRecordShares } from '@/src/domain/shared/split';
+import { computeParticipantShares } from '@/src/domain/shared/split';
 import { withExclusiveTransaction } from '@/src/db/transaction';
 import {
   clearOwnerParticipants,
   clearRecordAllocations,
   replaceOwnerParticipants,
-  syncRecordAllocations,
+  syncRecordAllocationsFromShares,
   type ParticipantShareDraft,
 } from '@/src/db/shared-ledger';
 import {
@@ -249,8 +249,9 @@ export const useRecordsRepository = () => {
       if (participants !== undefined && !creditRecord.fixed_id) {
         const own = creditRecord.own_amount_cents ?? creditRecord.amount;
         const shared = creditRecord.shared_amount_cents ?? 0;
-        const expected = computeRecordShares(own + shared, participants);
+        const expected = computeParticipantShares(own + shared, participants);
         if (
+          expected.exceedsTotal ||
           expected.ownCents !== own ||
           expected.sharedCents !== shared
         ) {
@@ -299,15 +300,40 @@ export const useRecordsRepository = () => {
           const fixedParticipants = (await new ORM(txn, 'SharedExpenseParticipants')
             .where('owner_type', 'fixed')
             .where('owner_id', payload.fixed_id)
-            .getAll()) as { person_id: number; share_percent: number }[];
-          await syncRecordAllocations({
+            .getAll()) as {
+              person_id: number;
+              share_percent: number;
+              share_mode: string;
+              share_amount_cents: number | null;
+            }[];
+          const fixedSplit = computeParticipantShares(
+            (payload.own_amount_cents ?? payload.amount) +
+              (payload.shared_amount_cents ?? 0),
+            fixedParticipants.map((participant) => ({
+              personId: participant.person_id,
+              shareMode: participant.share_mode as 'percent' | 'amount',
+              sharePercent: participant.share_percent,
+              shareAmountCents: participant.share_amount_cents,
+            }))
+          );
+          if (
+            fixedSplit.exceedsTotal ||
+            fixedSplit.ownCents !==
+              (payload.own_amount_cents ?? payload.amount) ||
+            fixedSplit.sharedCents !== (payload.shared_amount_cents ?? 0)
+          ) {
+            throw new Error('RECORD_SHARES_MISMATCH');
+          }
+          await syncRecordAllocationsFromShares({
             txn,
             recordId: savedId,
             ownerType: 'fixed',
             ownerId: payload.fixed_id,
             label: payload.record_name,
             date: payload.date,
-            sharedCents: payload.shared_amount_cents ?? 0,
+            totalCents:
+              (payload.own_amount_cents ?? payload.amount) +
+              (payload.shared_amount_cents ?? 0),
             participants: fixedParticipants,
           });
         }

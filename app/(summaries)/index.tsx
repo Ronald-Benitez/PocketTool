@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { View } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 
 import { BudgetSummaryBlock } from '@/src/components/summaries/BudgetSummaryBlock';
 import { BalanceModeToggle } from '@/src/components/summaries/BalanceModeToggle';
@@ -12,6 +13,7 @@ import useRecordsStore from '@/src/stores/RecordsStore';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { pickSummaryAmount, useSummaryMode } from '@/src/hooks/useSummaryMode';
 import { useBalanceMode } from '@/src/hooks/useBalanceMode';
+import { useGroupRefresh } from '@/src/hooks/useGroupRefresh';
 import GroupSelector from '@/src/components/groups/group-selector';
 import useResumesStore from '@/src/stores/ResumesStore';
 import { AppText } from '@/src/ui/primitives/AppText';
@@ -45,7 +47,18 @@ const Index = () => {
     const { mode: balanceMode, loaded, load } = useBalanceMode()
     const { group: selectedGroup } = useRecordsStore()
     const { fetchRecordsWithMultipleWhere } = useRecords()
+    const { refreshGroupData } = useGroupRefresh()
     const recordsModalRef = useRef<RecordsModalRef | null>(null)
+    const selectedGroupId = selectedGroup?.id
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!selectedGroupId) return
+            refreshGroupData(selectedGroupId).catch((cause) => {
+                if (__DEV__) console.warn('[summaries] group refresh failed', cause)
+            })
+        }, [selectedGroupId, refreshGroupData])
+    )
     const cashReceived = cashIncomeCents + settlementsReceivedCents
 
     const openRecordType = async (id: number | undefined) => {

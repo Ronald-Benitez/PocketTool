@@ -9,7 +9,7 @@ import {
   type ParticipantShareDraft,
   type SharedOwnerType,
 } from '@/src/db/shared-ledger';
-import { splitSharedAmount } from '@/src/domain/shared/split';
+import { computeParticipantShares } from '@/src/domain/shared/split';
 import {
   buildFinancingEntry,
   buildPersonStatements,
@@ -208,13 +208,20 @@ export const useSharedLedgerRepository = () => {
         const own = record.own_amount_cents ?? record.amount ?? 0;
         const shared = record.shared_amount_cents ?? 0;
         if (shared <= 0 || rows.length === 0) return;
-        const splits = splitSharedAmount(
-          shared,
+        const split = computeParticipantShares(
+          own + shared,
           rows.map((row) => ({
             personId: row.person_id,
+            shareMode: row.share_mode as 'percent' | 'amount',
             sharePercent: row.share_percent,
+            shareAmountCents: row.share_amount_cents ?? null,
           }))
         );
+        const splits = split.participants.map((participant) => ({
+          personId: participant.personId,
+          sharePercent: participant.sharePercent,
+          amountCents: participant.amountCents,
+        }));
         const payerId = record.paid_by_person_id ?? null;
         const splitRows = splits.map((split) => ({
           personId: split.personId,

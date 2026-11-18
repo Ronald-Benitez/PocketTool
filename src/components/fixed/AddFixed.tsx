@@ -16,6 +16,7 @@ import type {
     RecordType,
 } from "@/src/interfaces/schema";
 import type { ParticipantDraft } from "@/src/db/repositories/people";
+import { computeParticipantShares } from "@/src/domain/shared/split";
 import { SharedParticipantsField } from "@/src/components/shared/SharedParticipantsField";
 import { Button } from "@/src/ui/actions/Button";
 import { ColoredSelectOption } from "@/src/ui/forms/ColoredSelectOption";
@@ -93,6 +94,8 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
                 rows.map((row) => ({
                     personId: row.person_id,
                     sharePercent: row.share_percent,
+                    shareMode: row.share_mode as 'percent' | 'amount',
+                    shareAmountCents: row.share_amount_cents ?? null,
                     notes: row.notes,
                 }))
             )
@@ -110,11 +113,18 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
             return
         }
 
-        const totalShared = participants.reduce(
-            (total, participant) => total + participant.sharePercent,
-            0
-        )
-        if (totalShared > 100.0001) {
+        const split = computeParticipantShares(amountCents, participants)
+        if (
+            participants.some(
+                (participant) =>
+                    participant.shareMode === 'amount' &&
+                    (participant.shareAmountCents ?? 0) <= 0
+            )
+        ) {
+            showToast({ message: t('shared.amountRequired'), type: 'warning' })
+            return
+        }
+        if (split.exceedsTotal) {
             showToast({ message: t('shared.invalidTotal'), type: 'warning' })
             return
         }

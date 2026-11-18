@@ -11,7 +11,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../theme/ThemeProvider';
 import { controlHeight, radii, spacing } from '../theme/tokens';
 import { AppText } from '../primitives/AppText';
-import { BottomSheet } from '../overlays/Modal';
+import { Modal } from '../overlays/Modal';
 import { FormField } from './FormField';
 import { TextField } from './TextField';
 
@@ -137,7 +137,7 @@ export const SelectField = <T extends string | number,>({
         )}
       </Pressable>
 
-      <BottomSheet
+      <Modal
         visible={visible}
         onClose={() => {
           setVisible(false);
@@ -201,7 +201,7 @@ export const SelectField = <T extends string | number,>({
             })}
           </View>
         )}
-      </BottomSheet>
+      </Modal>
     </FormField>
   );
 };

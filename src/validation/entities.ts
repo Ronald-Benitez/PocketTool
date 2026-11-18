@@ -612,6 +612,7 @@ export const financingAdjustmentUpdateSchema =
   financingAdjustmentInputSchema.partial().extend(updateMeta);
 
 const sharedOwnerType = z.enum(['fixed', 'financing', 'saving', 'record']);
+const sharedShareMode = z.enum(['percent', 'amount']);
 const settlementDirection = z.enum(['i_paid_them', 'they_paid_me']);
 
 export const personInputSchema = z
@@ -633,13 +634,27 @@ export const sharedParticipantInputSchema = z
     owner_id: z.number().int().positive(),
     person_id: z.number().int().positive(),
     share_percent: z.number().finite().min(0).max(100),
+    share_mode: sharedShareMode.optional(),
+    share_amount_cents: cents.nonnegative().nullable().optional(),
     notes: z.string().nullable().optional(),
     ...auditTimestamps,
   })
-  .strict();
+  .strict()
+  .superRefine((value, ctx) => {
+    if (
+      value.share_mode === 'amount' &&
+      (value.share_amount_cents == null || value.share_amount_cents <= 0)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['share_amount_cents'],
+        message: 'Required',
+      });
+    }
+  });
 
 export const sharedParticipantUpdateSchema =
-  sharedParticipantInputSchema.partial().extend(updateMeta);
+  sharedParticipantInputSchema.innerType().partial().extend(updateMeta);
 
 export const sharedAllocationInputSchema = z
   .object({

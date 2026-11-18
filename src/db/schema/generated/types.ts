@@ -188,6 +188,8 @@ export interface SharedExpenseParticipant extends Entity, SoftDeletable {
   owner_id: number;
   person_id: number;
   share_percent: number;
+  share_mode: string;
+  share_amount_cents?: Cents | null;
   notes?: string | null;
   created_at?: TimestampMs | null;
   updated_at?: TimestampMs | null;

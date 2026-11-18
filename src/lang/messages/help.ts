@@ -88,7 +88,7 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "Income adds to the balance, expense subtracts, and transfer moves money between payment methods. Amounts are stored as integer cents. A shared record keeps your own amount in the record and the shared portion separately, so personal balances only use what you really pay."
+                "body": "Income adds to the balance, expense subtracts, and transfer moves money between payment methods. Amounts are stored as integer cents. A shared record keeps your own amount in the record and the shared portion separately, so personal balances only use what you really pay. Pending card payments can use today's date or the card payment day; choose it in Settings."
             },
             "steps": {
                 "title": "Step by step",
@@ -268,11 +268,11 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "Enter any two of volume, price per unit and total; the third is calculated. Consumption can be shown as mi/gal, km/gal, mi/L, km/L, L/100 km, gal/100 km, L/60 mi or gal/60 mi. Full-tank segments are the most accurate method; partial fills accumulate until the next full tank. Any fill recorded with distance instead of odometer is inferred from the previous reading, including full tanks, and mixed entries keep their creation order when they share the same date. The fuel screen shows performance, volume, price and total spend charts grouped by full-tank segment, plus a normalized comparison of volume, distance and total cost."
+                "body": "Enter any two of volume, price per unit and total; the third is calculated. Consumption can be shown as mi/gal, km/gal, mi/L, km/L, L/100 km, gal/100 km, L/60 mi or gal/60 mi. Full-tank segments are the most accurate method; partial fills accumulate until the next full tank. Any fill recorded with distance instead of odometer is inferred from the previous reading, including full tanks, and mixed entries keep their creation order when they share the same date. Each segment shows its total distance traveled. The fuel screen shows performance, volume, price and total spend charts grouped by full-tank segment, plus a normalized comparison of volume, distance and total cost."
             },
             "steps": {
                 "title": "Step by step",
-                "step1": "Choose the vehicle, date and units. The form remembers the last volume and odometer units saved for that vehicle. If it is the first entry, you can record only the odometer as a baseline.",
+                "step1": "Choose the vehicle, date and units. The form remembers the last volume and odometer units and the last odometer/distance mode for that vehicle. If it is the first entry, you can record only the odometer as a baseline.",
                 "step2": "Enter odometer or distance and two of volume, price and total. A partial fill may leave odometer/distance empty or at 0.",
                 "step3": "Mark full tank, choose whether to create or link an expense, and save."
             },
@@ -423,7 +423,7 @@ export const helpEn = {
             "steps": {
                 "title": "Step by step",
                 "step1": "Open the People section and create the people you share expenses with.",
-                "step2": "Add them as participants in a fixed expense, financing or saving and set their percentages.",
+                "step2": "Add them as participants in a fixed expense, financing or saving and set their percentage or fixed amount (savings use percentage only).",
                 "step3": "Open a person's payment history to review their accumulated shared amount and savings contributions."
             },
             "example": {
@@ -432,7 +432,7 @@ export const helpEn = {
             },
             "tips": {
                 "title": "Tips",
-                "body": "Keep the sum of participant percentages at 100% or less. Archive a person instead of deleting them when you want to keep their history."
+                "body": "Keep the assigned sum within the total. Percentages are calculated over the total and fixed amounts cannot exceed the remainder. Archive a person instead of deleting them when you want to keep their history."
             },
             "warning": {
                 "title": "Common mistake",
@@ -448,12 +448,12 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "Set the total purchase, add participants and their percentages, and choose who paid. If you paid the total, each participant owes you their share. If another participant paid the total, your share becomes a debt with that person. The person statement shows the total paid by each side, the net balance and a movement history. Fixed expenses also ask whether you paid the total, only your share, or another person paid. Financing shares stay informational and savings stay separate."
+                "body": "Set the total purchase, add participants with a percentage or a fixed amount, and choose who paid. A new participant inherits the previous participant's share type. Both percentages and amounts are calculated over the total, and the app blocks the save if the assigned sum exceeds it. If you paid the total, each participant owes you their share. If another participant paid the total, your share becomes a debt with that person. The person statement shows the total paid by each side, the net balance and a movement history. Fixed expenses also ask whether you paid the total, only your share, or another person paid. Financing shares stay informational and savings stay separate."
             },
             "steps": {
                 "title": "Step by step",
                 "step1": "Create or open an expense record and enter the total purchase.",
-                "step2": "Add the people and percentages, then choose who paid.",
+                "step2": "Add the people with a percentage or a fixed amount, then choose who paid.",
                 "step3": "Open the person's statement to review the total paid by each side and the balance."
             },
             "example": {
@@ -462,7 +462,7 @@ export const helpEn = {
             },
             "tips": {
                 "title": "Tips",
-                "body": "Keep the sum of percentages at 100% or less. Enter the total purchase, not only your share, so the statement knows what each side actually paid."
+                "body": "Keep the assigned sum within the total. Percentages are calculated over the total and fixed amounts cannot exceed the remainder. Enter the total purchase, not only your share, so the statement knows what each side actually paid."
             },
             "warning": {
                 "title": "Common mistake",
@@ -542,7 +542,7 @@ export const helpEn = {
             },
             "steps": {
                 "title": "Step by step",
-                "step1": "Create a saving with its name, initial amount and optional goal, participants and contribution rule.",
+                "step1": "Create a saving with its name, initial amount (it can be 0) and optional goal, participants and contribution rule.",
                 "step2": "Register deposits, withdrawals, interest or adjustments. Choose a person when the movement belongs to a shared part.",
                 "step3": "Review the global, own and shared progress, the goal projection and the movement history. Archive it when you no longer need it active."
             },
@@ -710,7 +710,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "El ingreso suma al balance, el gasto resta y la transferencia mueve dinero entre métodos de pago. Los montos se guardan en centavos enteros. Un registro compartido guarda tu monto propio y separa la parte compartida, para que los balances personales solo usen lo que realmente pagas."
+                "body": "El ingreso suma al balance, el gasto resta y la transferencia mueve dinero entre métodos de pago. Los montos se guardan en centavos enteros. Un registro compartido guarda tu monto propio y separa la parte compartida, para que los balances personales solo usen lo que realmente pagas. Los pagos pendientes de tarjeta pueden usar la fecha de hoy o el día de pago de la tarjeta; se elige en Configuraciones."
             },
             "steps": {
                 "title": "Paso a paso",
@@ -890,11 +890,11 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "Ingresa dos de tres valores entre volumen, precio por unidad y total; el tercero se calcula. El consumo se puede mostrar como mi/gal, km/gal, mi/L, km/L, L/100 km, gal/100 km, L/60 mi o gal/60 mi. Los segmentos de tanque lleno son el método más preciso; las cargas parciales se acumulan hasta el siguiente tanque lleno. Cualquier carga registrada con distancia en lugar de odómetro se infiere desde la lectura anterior, incluidos los tanques llenos, y las entradas mixtas conservan su orden de creación cuando comparten la misma fecha. La pantalla de combustible muestra gráficos de rendimiento, volumen, precio y total gastado agrupados por segmento de tanque lleno, además de una comparativa normalizada de volumen, distancia y costo total."
+                "body": "Ingresa dos de tres valores entre volumen, precio por unidad y total; el tercero se calcula. El consumo se puede mostrar como mi/gal, km/gal, mi/L, km/L, L/100 km, gal/100 km, L/60 mi o gal/60 mi. Los segmentos de tanque lleno son el método más preciso; las cargas parciales se acumulan hasta el siguiente tanque lleno. Cualquier carga registrada con distancia en lugar de odómetro se infiere desde la lectura anterior, incluidos los tanques llenos, y las entradas mixtas conservan su orden de creación cuando comparten la misma fecha. Cada segmento muestra su distancia total recorrida. La pantalla de combustible muestra gráficos de rendimiento, volumen, precio y total gastado agrupados por segmento de tanque lleno, además de una comparativa normalizada de volumen, distancia y costo total."
             },
             "steps": {
                 "title": "Paso a paso",
-                "step1": "Elige el vehículo, la fecha y las unidades. El formulario recuerda las últimas unidades de volumen y odómetro guardadas para ese vehículo. Si es el primer registro, puedes anotar solo el odómetro como base.",
+                "step1": "Elige el vehículo, la fecha y las unidades. El formulario recuerda las últimas unidades de volumen y odómetro y el último modo odómetro/distancia para ese vehículo. Si es el primer registro, puedes anotar solo el odómetro como base.",
                 "step2": "Ingresa odómetro o distancia y dos de volumen, precio y total. Una carga parcial puede dejar el odómetro/distancia vacío o en 0.",
                 "step3": "Marca tanque lleno, elige crear o vincular un gasto y guarda."
             },
@@ -1045,7 +1045,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             "steps": {
                 "title": "Paso a paso",
                 "step1": "Abre la sección Personas y crea las personas con las que compartes gastos.",
-                "step2": "Agrégalas como participantes en un gasto fijo, financiamiento o ahorro y define sus porcentajes.",
+                "step2": "Agrégalas como participantes en un gasto fijo, financiamiento o ahorro y define su porcentaje o monto fijo (los ahorros usan solo porcentaje).",
                 "step3": "Abre el historial de pagos de una persona para revisar su monto compartido acumulado y sus aportes a ahorros."
             },
             "example": {
@@ -1054,7 +1054,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "tips": {
                 "title": "Consejos",
-                "body": "Mantén la suma de porcentajes en 100% o menos. Archiva a una persona en lugar de eliminarla cuando quieras conservar su historial."
+                "body": "Mantén la suma asignada dentro del total. Los porcentajes se calculan sobre el total y los montos fijos no pueden superar el resto. Archiva a una persona en lugar de eliminarla cuando quieras conservar su historial."
             },
             "warning": {
                 "title": "Error común",
@@ -1070,12 +1070,12 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "Ingresa el total de la compra, agrega participantes y porcentajes, y elige quién pagó. Si pagaste el total, cada participante te debe su parte. Si pagó otra persona el total, tu parte queda como deuda con ella. El estado de cuenta muestra el total pagado por cada lado, el saldo neto y el historial de movimientos. En los gastos fijos también se pregunta si pagaste el total, solo tu parte, o si pagó otra persona. Los financiamientos quedan como informativos y los ahorros se mantienen aparte."
+                "body": "Ingresa el total de la compra, agrega participantes con porcentaje o monto fijo y elige quién pagó. Un participante nuevo hereda el tipo de parte del anterior. Los porcentajes y los montos se calculan sobre el total y la app bloquea el guardado si la suma asignada lo supera. Si pagaste el total, cada participante te debe su parte. Si pagó otra persona el total, tu parte queda como deuda con ella. El estado de cuenta muestra el total pagado por cada lado, el saldo neto y el historial de movimientos. En los gastos fijos también se pregunta si pagaste el total, solo tu parte, o si pagó otra persona. Los financiamientos quedan como informativos y los ahorros se mantienen aparte."
             },
             "steps": {
                 "title": "Paso a paso",
                 "step1": "Crea o abre un registro de gasto e ingresa el total de la compra.",
-                "step2": "Agrega las personas y los porcentajes, y elige quién pagó.",
+                "step2": "Agrega las personas con porcentaje o monto fijo, y elige quién pagó.",
                 "step3": "Abre el estado de cuenta de la persona para revisar el total pagado por cada lado y el saldo."
             },
             "example": {
@@ -1084,7 +1084,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "tips": {
                 "title": "Consejos",
-                "body": "Mantén la suma de porcentajes en 100% o menos. Ingresa el total de la compra, no solo tu parte, para que el estado de cuenta sepa cuánto pagó cada lado."
+                "body": "Mantén la suma asignada dentro del total. Los porcentajes se calculan sobre el total y los montos fijos no pueden superar el resto. Ingresa el total de la compra, no solo tu parte, para que el estado de cuenta sepa cuánto pagó cada lado."
             },
             "warning": {
                 "title": "Error común",
@@ -1164,7 +1164,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "steps": {
                 "title": "Paso a paso",
-                "step1": "Crea un ahorro con nombre, monto inicial y, si quieres, meta, participantes y regla de aporte.",
+                "step1": "Crea un ahorro con nombre, monto inicial (puede ser 0) y, si quieres, meta, participantes y regla de aporte.",
                 "step2": "Registra aportes, retiros, intereses o ajustes. Elige una persona cuando el movimiento corresponda a una parte compartida.",
                 "step3": "Revisa el progreso global, propio y compartido, la proyección de la meta y el historial. Archívalo cuando ya no necesites mantenerlo activo."
             },

@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { useConfigs } from "../hooks/useConfigs";
 import { useFinancingsRepository, useSharedParticipantsRepository } from "../db";
 import { summarizeFinancing } from "../domain/credits/summary";
+import { computeParticipantShares } from "../domain/shared/split";
 import type {
     RecordType as RecordTypes,
     PaymentType as PaymentTypes,
@@ -116,12 +117,16 @@ export const useFixedsResumesStore = () => {
     const splitAmount = (ownerType: 'fixed' | 'financing', ownerId: number | undefined, amount: number) => {
         if (!ownerId) return { total: amount, own: amount, shared: 0 }
         const list = participantsByOwner.get(`${ownerType}:${ownerId}`) ?? []
-        const percent = Math.min(
-            100,
-            list.reduce((sum, participant) => sum + participant.share_percent, 0)
+        const split = computeParticipantShares(
+            amount,
+            list.map((participant) => ({
+                personId: participant.person_id,
+                shareMode: participant.share_mode as 'percent' | 'amount',
+                sharePercent: participant.share_percent,
+                shareAmountCents: participant.share_amount_cents ?? null,
+            }))
         )
-        const shared = Math.round((amount * percent) / 100)
-        return { total: amount, own: amount - shared, shared }
+        return { total: amount, own: split.ownCents, shared: split.sharedCents }
     }
 
     const calculateBalances = () => {

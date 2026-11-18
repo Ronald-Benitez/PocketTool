@@ -1,7 +1,8 @@
 import { View, TouchableOpacity } from 'react-native'
-import React, { useState, useEffect } from 'react'
+import React, { useCallback, useState, useEffect } from 'react'
 import { AntDesign, Ionicons } from '@expo/vector-icons'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from 'expo-router';
 
 import AddGroup from '@/src/components/groups/add-group'
 import Table from '@/src/components/records/records-table'
@@ -10,6 +11,7 @@ import GroupSelector from '@/src/components/groups/group-selector'
 import { useThemedStyles } from '@/src/styles/useThemedStyles'
 import { useTheme } from '@/src/ui/theme/ThemeProvider'
 import useRecordsStore from '@/src/stores/RecordsStore';
+import { useGroupRefresh } from '@/src/hooks/useGroupRefresh';
 
 const Index = () => {
     const styles = useThemedStyles()
@@ -17,6 +19,17 @@ const Index = () => {
     const [pinned, setPinned] = useState<number>(0)
     const setRecordsState = useRecordsStore((state) => state.setRecords)
     const { group, setRecords } = useRecordsStore()
+    const { refreshGroupData } = useGroupRefresh()
+    const groupId = group?.id
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!groupId) return
+            refreshGroupData(groupId).catch((cause) => {
+                if (__DEV__) console.warn('[records] group refresh failed', cause)
+            })
+        }, [groupId, refreshGroupData])
+    )
 
     useEffect(() => {
         getPinned()

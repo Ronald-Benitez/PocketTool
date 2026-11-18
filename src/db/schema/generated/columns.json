@@ -618,6 +618,8 @@
     "owner_id": "owner_id",
     "person_id": "person_id",
     "share_percent": "share_percent",
+    "share_mode": "share_mode",
+    "share_amount_cents": "share_amount_cents",
     "notes": "notes",
     "created_at": "created_at",
     "updated_at": "updated_at",

@@ -115,6 +115,8 @@ export const AddSaving = ({
             rows.map((row) => ({
               personId: row.person_id,
               sharePercent: row.share_percent,
+              shareMode: row.share_mode as 'percent' | 'amount',
+              shareAmountCents: row.share_amount_cents ?? null,
               notes: row.notes,
             }))
           );
@@ -139,7 +141,7 @@ export const AddSaving = ({
   const closeModal = () => setVisible(false);
 
   const save = async () => {
-    if (!name.trim() || amountCents <= 0) {
+    if (!name.trim()) {
       setError(t('savings.form.required'));
       return;
     }
@@ -230,7 +232,6 @@ export const AddSaving = ({
           <TextField label={t('item.name')} value={name} onChangeText={setName} required />
           <MoneyField
             label={isEditing ? t('savings.form.currentAmount') : t('item.value')}
-            required
             value={amountCents}
             onChangeCents={setAmountCents}
           />
@@ -297,6 +298,7 @@ export const AddSaving = ({
             value={participants}
             onChange={setParticipants}
             totalCents={hasGoal ? targetAmountCents : amountCents}
+            allowAmount={false}
           />
           {error ? <AppText color='danger'>{error}</AppText> : null}
         </Stack>

@@ -10,6 +10,7 @@ import {
   useTableRepository,
 } from '@/src/db';
 import { calculatePaymentCents } from '@/src/domain/credits/amortization';
+import { computeParticipantShares } from '@/src/domain/shared/split';
 import type {
   FinancingWithRelations,
   Person,
@@ -171,6 +172,8 @@ export const FinancingForm = ({
         rows.map((row) => ({
           personId: row.person_id,
           sharePercent: row.share_percent,
+          shareMode: row.share_mode as 'percent' | 'amount',
+          shareAmountCents: row.share_amount_cents ?? null,
           notes: row.notes,
         }))
       );
@@ -212,20 +215,50 @@ export const FinancingForm = ({
       setError(t('financings.invalidFields'));
       return;
     }
-    const totalShared = participants.reduce(
-      (total, participant) => total + participant.sharePercent,
-      0
-    );
+    const totalPercent = participants
+      .filter((participant) => participant.shareMode !== 'amount')
+      .reduce((total, participant) => total + participant.sharePercent, 0);
+    if (
+      participants.some(
+        (participant) =>
+          participant.shareMode === 'amount' &&
+          (participant.shareAmountCents ?? 0) <= 0
+      )
+    ) {
+      setError(t('shared.amountRequired'));
+      return;
+    }
     const uniquePeople = new Set(
       participants.map((participant) => participant.personId)
     );
-    if (totalShared > 100.0001) {
+    if (totalPercent > 100.0001) {
+      setError(t('shared.invalidTotal'));
+      return;
+    }
+    if (
+      participants.some(
+        (participant) =>
+          participant.shareMode === 'amount' &&
+          (participant.shareAmountCents ?? 0) < 0
+      )
+    ) {
       setError(t('shared.invalidTotal'));
       return;
     }
     if (uniquePeople.size !== participants.length) {
       setError(t('shared.duplicate'));
       return;
+    }
+    const sharePaymentBase = payment > 0 ? payment : estimatedPayment;
+    if (sharePaymentBase > 0) {
+      const split = computeParticipantShares(
+        sharePaymentBase,
+        participants
+      );
+      if (split.exceedsTotal) {
+        setError(t('shared.invalidTotal'));
+        return;
+      }
     }
     const sharedNames = participants
       .map((participant) => people.find((person) => person.id === participant.personId)?.name)
@@ -259,7 +292,19 @@ export const FinancingForm = ({
         ),
         capital_paid_before_app_cents: capitalPaid,
         is_shared: participants.length > 0 ? 1 : 0,
-        shared_percent: participants.length > 0 ? totalShared : null,
+        shared_percent:
+          participants.length > 0
+            ? (() => {
+                const paymentBase = payment > 0 ? payment : estimatedPayment;
+                const split = computeParticipantShares(
+                  paymentBase,
+                  participants
+                );
+                return paymentBase > 0
+                  ? (split.sharedCents / paymentBase) * 100
+                  : Math.min(100, totalPercent);
+              })()
+            : null,
         shared_counterparty: participants.length > 0 ? sharedNames || null : null,
         status:
           (financing?.status as
@@ -430,7 +475,7 @@ export const FinancingForm = ({
           people={people}
           value={participants}
           onChange={setParticipants}
-          totalCents={financed}
+          totalCents={payment > 0 ? payment : estimatedPayment}
         />
         <SelectField
           label={t('financings.paymentMethod')}

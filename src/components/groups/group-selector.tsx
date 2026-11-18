@@ -128,7 +128,16 @@ const GroupSelector = () => {
             await AsyncStorage.removeItem('group')
         }
         groupsOrm.fetchLastGroup().then((g) => {
-            if (g) onSelect(g)
+            if (g) {
+                void onSelect(g)
+            } else {
+                useRecordsStore.setState({
+                    group: null,
+                    records: [],
+                    paidCredits: [],
+                    settlements: [],
+                })
+            }
         })
         getGroups()
         showToast({ message: t('toast.deleted'), type: 'success' })

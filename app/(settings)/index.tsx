@@ -107,7 +107,7 @@ const SettingsScreen = () => {
                 <SettingsSection
                     title={t('settings.sections.records')}
                     description={t('settings.sections.recordsDescription')}
-                    keywords={['records', 'record type', 'credit', 'registros', 'crédito']}
+                    keywords={['records', 'record type', 'credit', 'registros', 'crédito', 'card payment', 'pago de tarjeta']}
                     search={search}
                 >
                     <MultiSelectField<number>
@@ -141,6 +141,27 @@ const SettingsScreen = () => {
                         options={recordTypeOptions}
                         onChange={onCreditPaymentChange}
                         renderOption={renderTypeOption}
+                        closeLabel={t('cancel')}
+                    />
+
+                    <SelectField<'today' | 'payment_date'>
+                        label={t('settings.pendingPaymentDate')}
+                        hint={t('settings.pendingPaymentDateHint')}
+                        title={t('settings.pendingPaymentDate')}
+                        value={configs?.pendingPaymentDateMode ?? 'today'}
+                        options={[
+                            {
+                                label: t('settings.pendingPaymentDateToday'),
+                                value: 'today',
+                            },
+                            {
+                                label: t('settings.pendingPaymentDateCard'),
+                                value: 'payment_date',
+                            },
+                        ]}
+                        onChange={(pendingPaymentDateMode) =>
+                            saveConfigs({ ...configs, pendingPaymentDateMode })
+                        }
                         closeLabel={t('cancel')}
                     />
                 </SettingsSection>

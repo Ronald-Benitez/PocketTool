@@ -19,6 +19,8 @@ import useColorStore from "@/src/stores/ColorsStore";
 import useResumesStore from "@/src/stores/ResumesStore";
 import { useCreditStore } from "@/src/stores/CreditsStore";
 import { useConfigs } from "@/src/hooks/useConfigs";
+import { resolvePendingPaymentDate } from "@/src/domain/credits/pending";
+import { computeParticipantShares } from "@/src/domain/shared/split";
 import { useDataStore } from "@/src/stores";
 import { useThemedStyles } from "@/src/styles/useThemedStyles";
 import RecordsGroup from "./RecordsGroup";
@@ -68,7 +70,7 @@ const ItemsTable = () => {
   const { RecordTypes, Fixeds, setFixeds } = useDataStore();
   const [creditRecords, setCreditRecords] = useState<RecordFormEntry[]>();
   const {
-    configs: { paymentCreditType },
+    configs: { paymentCreditType, pendingPaymentDateMode },
   } = useConfigs();
   const [fixedsToShow, setFixedsToShow] = useState<RecordFormEntry[]>([]);
   const [financings, setFinancings] = useState<FinancingWithRelations[]>([]);
@@ -225,17 +227,25 @@ const ItemsTable = () => {
 
   const generateCreditRecords = () => {
     const list: RecordFormEntry[] = [];
-    const today = new Date();
+    const now = Date.now();
     credits?.map((credit) => {
       if (!credit.totalPrevious) return;
       if ((credit?.totalCurrentPayments || 0) >= (credit?.totalPrevious || 0))
         return;
 
+      const date = resolvePendingPaymentDate({
+        mode: pendingPaymentDateMode ?? 'today',
+        now,
+        groupYear: group?.year,
+        groupMonth: group?.month,
+        paymentDay: credit.payment_date ?? null,
+      });
+
       const newJoined: RecordFormEntry = {
         record_type_id: paymentCreditType,
         amount: credit?.totalPrevious - (credit?.totalCurrentPayments || 0),
         category_id: 0,
-        date: today.getTime(),
+        date,
         group_id: group?.id || 0,
         record_name: credit.method_name,
         payment_method_id: 0,
@@ -246,7 +256,12 @@ const ItemsTable = () => {
     setCreditRecords(list);
   };
 
-  useEffect(generateCreditRecords, [credits]);
+  useEffect(generateCreditRecords, [
+    credits,
+    group?.year,
+    group?.month,
+    pendingPaymentDateMode,
+  ]);
 
   const generateFixedsToShow = () => {
     const list: RecordFormEntry[] = [];
@@ -262,16 +277,19 @@ const ItemsTable = () => {
         // passed is still listed as pending instead of jumping to next month.
         const date = new Date(baseYear, baseMonth - 1, fixed.fixed_day);
 
-        const sharedPercent = Math.min(
-          100,
+        const split = computeParticipantShares(
+          fixed.fixed_amount,
           fixedParticipants
             .filter((participant) => participant.owner_id === fixed.id)
-            .reduce((sum, participant) => sum + participant.share_percent, 0)
+            .map((participant) => ({
+              personId: participant.person_id,
+              shareMode: participant.share_mode as 'percent' | 'amount',
+              sharePercent: participant.share_percent,
+              shareAmountCents: participant.share_amount_cents ?? null,
+            }))
         );
-        const sharedAmount = Math.round(
-          (fixed.fixed_amount * sharedPercent) / 100
-        );
-        const ownAmount = fixed.fixed_amount - sharedAmount
+        const sharedAmount = split.sharedCents
+        const ownAmount = split.ownCents
         list.push({
           id: undefined,
           fixed_id: fixed.id,

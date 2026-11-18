@@ -12,7 +12,7 @@ import { useTheme } from '../theme/ThemeProvider';
 import { controlHeight, radii, spacing } from '../theme/tokens';
 import { AppText } from '../primitives/AppText';
 import { Button } from '../actions/Button';
-import { BottomSheet } from '../overlays/Modal';
+import { Modal } from '../overlays/Modal';
 import { FormField } from './FormField';
 import { TextField } from './TextField';
 import type { SelectOption } from './SelectField';
@@ -123,7 +123,7 @@ export const MultiSelectField = <T extends string | number,>({
         <MaterialIcons name='expand-more' size={22} color={colors.textMuted} />
       </Pressable>
 
-      <BottomSheet
+      <Modal
         visible={visible}
         onClose={close}
         title={title ?? label ?? placeholder}
@@ -192,7 +192,7 @@ export const MultiSelectField = <T extends string | number,>({
             })}
           </View>
         )}
-      </BottomSheet>
+      </Modal>
     </FormField>
   );
 };

@@ -13,6 +13,7 @@ import { mapDatabaseError } from '@/src/db/errors';
 import type { SavingMovementView, SavingView } from '@/src/db/repositories/savings';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import useRecordsStore from '@/src/stores/RecordsStore';
+import { useGroupRefresh } from '@/src/hooks/useGroupRefresh';
 import useSavingsStore from '@/src/stores/SavingsStore';
 import { formatMoney, formatMoneyWithSymbol } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
@@ -53,6 +54,7 @@ const Index = () => {
   const repository = useSavings();
   const peopleRepository = usePeopleRepository();
   const { group } = useRecordsStore();
+  const { refreshGroupData } = useGroupRefresh();
   const { saving, savings, setSaving, setSavings } = useSavingsStore();
 
   const [view, setView] = useState<SavingView | null>(null);
@@ -69,7 +71,14 @@ const Index = () => {
   const [deleteVisible, setDeleteVisible] = useState(false);
   const [deleteMovementId, setDeleteMovementId] = useState<number | null>(null);
 
-  const refresh = () => setRefreshKey((value) => value + 1);
+  const refresh = () => {
+    setRefreshKey((value) => value + 1);
+    if (group?.id) {
+      refreshGroupData(group.id).catch((cause) => {
+        if (__DEV__) console.warn('[savings] group refresh failed', cause);
+      });
+    }
+  };
 
   useEffect(() => {
     let active = true;

@@ -9,6 +9,7 @@ import {
   buildFuelStats,
   fuelOdometerPoints,
   groupFuelSegments,
+  segmentDistanceKm,
 } from '@/src/domain/vehicle/fuel';
 import {
   buildConsumptionChart,
@@ -20,13 +21,16 @@ import {
 import {
   consumptionUnits,
   convertVolume,
+  fromKm,
   selectConsumption,
   volumeUnitOf,
 } from '@/src/domain/vehicle/units';
 import { MermaidChart } from '@/src/ui/charts/MermaidChart';
 import type { VehicleFuelEntryView } from '@/src/db/repositories/vehicle';
 import { useVehicle } from '@/src/hooks/useVehicle';
+import { useGroupRefresh } from '@/src/hooks/useGroupRefresh';
 import { useLanguage } from '@/src/lang/LanguageContext';
+import useRecordsStore from '@/src/stores/RecordsStore';
 import { formatMoneyWithSymbol } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
 import { Badge } from '@/src/ui/data-display/Badge';
@@ -56,6 +60,8 @@ const FuelScreen = () => {
   const { t } = useLanguage();
   const { colors } = useTheme();
   const { vehicle, loading } = useVehicle();
+  const { group } = useRecordsStore();
+  const { refreshGroupData } = useGroupRefresh();
   const repository = useVehicleFuelRepository();
   const [entries, setEntries] = useState<VehicleFuelEntryView[]>([]);
   const [formVisible, setFormVisible] = useState(false);
@@ -399,6 +405,10 @@ const FuelScreen = () => {
                   vehicle.distance_unit === 'km'
                     ? t('vehicle.vehicle.kilometers')
                     : t('vehicle.vehicle.miles');
+                const totalDistance = fromKm(
+                  segmentDistanceKm(segment),
+                  vehicle.distance_unit === 'km' ? 'km' : 'mi'
+                );
                 const costPerDistance =
                   segment.metrics != null
                     ? vehicle.distance_unit === 'km'
@@ -421,6 +431,12 @@ const FuelScreen = () => {
                           <AppText variant='caption' color='muted'>
                             {detail}
                           </AppText>
+                          {totalDistance > 0 ? (
+                            <AppText variant='caption' color='muted'>
+                              {t('vehicle.fuel.distanceTraveled')}:{' '}
+                              {totalDistance.toFixed(1)} {distanceLabel}
+                            </AppText>
+                          ) : null}
                           {costPerDistance != null ? (
                             <AppText variant='caption' color='muted'>
                               {t('vehicle.fuel.costPerDistance')}:{' '}
@@ -559,7 +575,14 @@ const FuelScreen = () => {
         entry={selected}
         isFirstEntry={entries.length === 0}
         onClose={() => setFormVisible(false)}
-        onSaved={() => setRefreshKey((value) => value + 1)}
+        onSaved={() => {
+          setRefreshKey((value) => value + 1);
+          if (group?.id) {
+            refreshGroupData(group.id).catch((cause) => {
+              if (__DEV__) console.warn('[fuel] group refresh failed', cause);
+            });
+          }
+        }}
       />
     </Screen>
   );
