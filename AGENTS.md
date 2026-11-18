@@ -10,7 +10,7 @@ ahorros, personas y vehículo.
 
 ## Estado actual
 
-Todas las fases 0–13 están finalizadas (2026-11-17). El estado vigente, la fase
+Todas las fases 0–14 están finalizadas (2026-11-17). El estado vigente, la fase
 activa y el histórico viven en [`docs/phases.md`](docs/phases.md). No repitas el
 estado de las fases en este archivo.
 
@@ -25,7 +25,7 @@ estado de las fases en este archivo.
 | Cualquier flujo que mueva dinero | Skill `pockettool-records` (autodetecta) |
 | Cualquier cambio visible al usuario | Skill `pockettool-help` (obligatorio) |
 | Cerrar la fase activa | `/cerrar-fase` |
-| Notas de Google Play | `/notas-version <versión>` |
+| Notas de Play, novedades in-app y versión | `/notas-version <versión>` |
 | Auditar documentación | `/docs-audit` |
 | Verificación completa | `/verificar` o los comandos de abajo |
 
@@ -66,6 +66,9 @@ dupliques arquitectura ni checklists aquí.
   traducciones.
 - **Ayuda:** todo cambio visible al usuario actualiza la ayuda bilingüe en el
   mismo cambio. No esperes a que el usuario lo pida.
+- **Novedades:** el catálogo de “Qué hay de nuevo” es manual y versionado. Cada
+  entrega actualiza catálogo, textos y notas de Play con `/notas-version`; nunca
+  se generan en tiempo de ejecución.
 - **Plataformas:** Android e iOS. Web no es objetivo de soporte; no agregues
   ramas, polyfills ni fallbacks para web.
 - **Documentación:** lee por secciones. No leas `docs/legacy/*` completos ni
@@ -128,6 +131,7 @@ npm run ci
 | Navegación y pantallas | `app/AGENTS.md` | `pockettool-ui` |
 | Traducciones y centro de ayuda | `src/lang/AGENTS.md` | `pockettool-help` |
 | Registros y operaciones con dinero | `src/db/AGENTS.md` | `pockettool-records` |
+| Notas de Play y novedades in-app | `src/release-notes/AGENTS.md` | `pockettool-release` |
 | Histórico de fases | `docs/legacy/AGENTS.md` | — |
 
 ## Documentación
