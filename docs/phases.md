@@ -207,7 +207,7 @@ Plan completo en [`legacy/pending-adjustments-plan.md`](legacy/pending-adjustmen
 - Limpieza de datos en memoria al borrar el último grupo.
 - QA manual validado. Pendiente futuro fuera de la fase: criterio del plan
   mensual en Presupuestos.
-- Commits principales: `PENDIENTE`.
+- Commits principales: `0265179`.
 
 ## Decisiones vigentes
 
