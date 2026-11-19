@@ -24,6 +24,77 @@ export const groupInputSchema = z
 
 export const groupUpdateSchema = groupInputSchema.partial().extend(updateMeta);
 
+export const closingStatus = z.enum(['draft', 'final']);
+export const closingSection = z.enum([
+  'available',
+  'reserve',
+  'obligation',
+  'resolution',
+]);
+export const closingKind = z.enum([
+  'cash',
+  'account',
+  'receivable',
+  'saving',
+  'card',
+  'fixed',
+  'financing',
+  'next_group',
+  'manual',
+  'adjustment',
+]);
+export const closingOperation = z.enum(['add', 'subtract']);
+export const closingDirection = z.enum(['from', 'to']);
+
+export const groupClosingInputSchema = z
+  .object({
+    group_id: z.number().int().positive(),
+    close_name: z.string().min(1).max(160),
+    close_date: timestamp,
+    period_start: timestamp,
+    period_end: timestamp,
+    editable_until: timestamp,
+    status: closingStatus.optional(),
+    notes: z.string().max(1000).nullable().optional(),
+    total_available_cents: cents.optional(),
+    total_reserve_cents: cents.optional(),
+    total_obligations_cents: cents.optional(),
+    result_cents: cents.optional(),
+    total_resolution_cents: cents.optional(),
+    remaining_cents: cents.optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const groupClosingUpdateSchema = groupClosingInputSchema
+  .partial()
+  .extend(updateMeta);
+
+export const groupClosingLineInputSchema = z
+  .object({
+    section: closingSection,
+    kind: closingKind,
+    label: z.string().min(1).max(160),
+    operation: closingOperation.optional(),
+    direction: closingDirection.nullable().optional(),
+    amount_cents: cents.nonnegative(),
+    reference_cents: cents.nonnegative().nullable().optional(),
+    reason: z.string().max(120).nullable().optional(),
+    payment_method_id: id,
+    saving_id: id,
+    fixed_id: id,
+    financing_id: id,
+    related_group_id: id,
+    notes: z.string().max(1000).nullable().optional(),
+    sort_order: z.number().int().min(0).optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const groupClosingLineUpdateSchema = groupClosingLineInputSchema
+  .partial()
+  .extend(updateMeta);
+
 export const recordInputSchema = z
   .object({
     amount: cents,

@@ -8,6 +8,10 @@ import {
 } from "@/src/hooks/useSummaryMode";
 import useResumesStore, { Resumes } from "@/src/stores/ResumesStore";
 import useFixedsResumesStore from "@/src/stores/FixedsResumesStore";
+import {
+    applyEffectSign,
+    sumWithEffect,
+} from "@/src/domain/summaries/aggregate";
 import { SummaryModeToggle } from "./SummaryModeToggle";
 import {
     SummaryGroup,
@@ -27,6 +31,22 @@ interface props {
     onSummarySelected: (id: number | undefined, idRecordType: number | undefined) => void
 }
 
+const signsWithEffect = (mode: SummaryMode) =>
+    mode === 'own' || mode === 'total' || mode === 'paid';
+
+const signedSummaryAmount = (
+    value: SummaryValue,
+    mode: SummaryMode
+): number => {
+    if (!signsWithEffect(mode)) return pickSummaryAmount(mode, value);
+    return sumWithEffect(
+        (value.totalPerRecordType ?? []).map((item) => ({
+            effect: item.effect,
+            amount: pickSummaryAmount(mode, item),
+        }))
+    );
+};
+
 const toGroupItems = (
     value: SummaryValue,
     mode: SummaryMode,
@@ -41,7 +61,9 @@ const toGroupItems = (
         .map(({ item, amount }) => ({
             key: item.id ?? item.type_name,
             label: item.type_name,
-            cents: amount,
+            cents: signsWithEffect(mode)
+                ? applyEffectSign(item.effect, amount)
+                : amount,
             color: item.record_color,
             onPress: () => onSummarySelected(value.id, item.id),
         }))
@@ -70,7 +92,7 @@ const SummaryList = ({
                             ? value.method_name
                             : value.payment_type_name ?? ''
                 }
-                totalCents={pickSummaryAmount(mode, value)}
+                totalCents={signedSummaryAmount(value, mode)}
                 items={toGroupItems(value, mode, onSummarySelected)}
                 onPress={() => onSummarySelected(value.id, undefined)}
             />

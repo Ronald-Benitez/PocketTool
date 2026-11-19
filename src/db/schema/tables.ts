@@ -1,6 +1,6 @@
 import type { TableDefinition, TableSchema } from '../types';
 
-export const SCHEMA_VERSION = 23;
+export const SCHEMA_VERSION = 24;
 
 export type TableName =
   | 'Groups'
@@ -25,6 +25,8 @@ export type TableName =
   | 'Savings'
   | 'SavingsHistory'
   | 'SavingsSettings'
+  | 'GroupClosings'
+  | 'GroupClosingLines'
   | 'Vehicles'
   | 'VehicleFuelEntries'
   | 'VehicleMaintenance'
@@ -779,6 +781,151 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
       { name: 'trophy_color', type: 'TEXT', defaultValue: '#C9A227' },
       ...timestamps,
       softDelete,
+    ],
+  },
+  GroupClosings: {
+    name: 'GroupClosings',
+    sqlName: 'group_closings',
+    entity: 'GroupClosing',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      {
+        name: 'group_id',
+        type: 'INTEGER',
+        references: { table: 'Groups', column: 'id', onDelete: 'CASCADE' },
+        notNull: true,
+      },
+      { name: 'close_name', type: 'TEXT', notNull: true },
+      { name: 'close_date', type: 'INTEGER', kind: 'timestamp', notNull: true },
+      { name: 'period_start', type: 'INTEGER', kind: 'timestamp', notNull: true },
+      { name: 'period_end', type: 'INTEGER', kind: 'timestamp', notNull: true },
+      { name: 'editable_until', type: 'INTEGER', kind: 'timestamp', notNull: true },
+      { name: 'status', type: 'TEXT', notNull: true, defaultValue: 'draft' },
+      { name: 'notes', type: 'TEXT' },
+      { name: 'total_available_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'total_reserve_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'total_obligations_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'result_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'total_resolution_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'remaining_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      {
+        name: 'idx_group_closings_group',
+        columns: ['group_id', 'period_end'],
+        where: 'deleted_at IS NULL',
+      },
+      {
+        name: 'idx_group_closings_final',
+        columns: ['group_id'],
+        unique: true,
+        where: "status = 'final' AND deleted_at IS NULL",
+      },
+    ],
+  },
+  GroupClosingLines: {
+    name: 'GroupClosingLines',
+    sqlName: 'group_closing_lines',
+    entity: 'GroupClosingLine',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      {
+        name: 'closing_id',
+        type: 'INTEGER',
+        references: { table: 'GroupClosings', column: 'id', onDelete: 'CASCADE' },
+        notNull: true,
+      },
+      { name: 'section', type: 'TEXT', notNull: true, defaultValue: 'available' },
+      { name: 'kind', type: 'TEXT', notNull: true, defaultValue: 'manual' },
+      { name: 'label', type: 'TEXT', notNull: true },
+      { name: 'operation', type: 'TEXT', notNull: true, defaultValue: 'add' },
+      { name: 'direction', type: 'TEXT' },
+      { name: 'amount_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'reference_cents', type: 'INTEGER', kind: 'money' },
+      { name: 'reason', type: 'TEXT' },
+      {
+        name: 'payment_method_id',
+        type: 'INTEGER',
+        references: { table: 'PaymentMethods', column: 'id', onDelete: 'SET NULL' },
+      },
+      {
+        name: 'saving_id',
+        type: 'INTEGER',
+        references: { table: 'Savings', column: 'id', onDelete: 'SET NULL' },
+      },
+      {
+        name: 'fixed_id',
+        type: 'INTEGER',
+        references: { table: 'Fixed', column: 'id', onDelete: 'SET NULL' },
+      },
+      {
+        name: 'financing_id',
+        type: 'INTEGER',
+        references: { table: 'Financings', column: 'id', onDelete: 'SET NULL' },
+      },
+      {
+        name: 'related_group_id',
+        type: 'INTEGER',
+        references: { table: 'Groups', column: 'id', onDelete: 'SET NULL' },
+      },
+      { name: 'notes', type: 'TEXT' },
+      { name: 'sort_order', type: 'INTEGER', notNull: true, defaultValue: 0 },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      {
+        name: 'idx_group_closing_lines_closing',
+        columns: ['closing_id', 'section', 'sort_order'],
+        where: 'deleted_at IS NULL',
+      },
+      {
+        name: 'idx_group_closing_lines_saving',
+        columns: ['saving_id'],
+        where: 'deleted_at IS NULL',
+      },
+      {
+        name: 'idx_group_closing_lines_payment_method',
+        columns: ['payment_method_id'],
+        where: 'deleted_at IS NULL',
+      },
+      {
+        name: 'idx_group_closing_lines_fixed',
+        columns: ['fixed_id'],
+        where: 'deleted_at IS NULL',
+      },
+      {
+        name: 'idx_group_closing_lines_financing',
+        columns: ['financing_id'],
+        where: 'deleted_at IS NULL',
+      },
+      {
+        name: 'idx_group_closing_lines_payment_unique',
+        columns: ['closing_id', 'payment_method_id'],
+        unique: true,
+        where:
+          "deleted_at IS NULL AND payment_method_id IS NOT NULL AND kind IN ('card', 'account')",
+      },
+      {
+        name: 'idx_group_closing_lines_saving_unique',
+        columns: ['closing_id', 'saving_id'],
+        unique: true,
+        where: 'deleted_at IS NULL AND saving_id IS NOT NULL',
+      },
+      {
+        name: 'idx_group_closing_lines_fixed_unique',
+        columns: ['closing_id', 'fixed_id'],
+        unique: true,
+        where: 'deleted_at IS NULL AND fixed_id IS NOT NULL',
+      },
+      {
+        name: 'idx_group_closing_lines_financing_unique',
+        columns: ['closing_id', 'financing_id'],
+        unique: true,
+        where: 'deleted_at IS NULL AND financing_id IS NOT NULL',
+      },
     ],
   },
   Migrations: {

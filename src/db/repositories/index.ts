@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { ORM, useORM } from '@/src/orm';
 import { isMonthlyCashRecord } from '@/src/domain/summaries/monthly';
+import { hasCreditCardSavingConflict } from '@/src/domain/credits/cards';
 import { computeParticipantShares } from '@/src/domain/shared/split';
 import { withExclusiveTransaction } from '@/src/db/transaction';
 import {
@@ -244,6 +245,21 @@ export const useRecordsRepository = () => {
           creditRecord.paid_by_person_id
         )) as { id?: number } | null;
         if (!payer) throw new Error('SHARED_PERSON_NOT_FOUND');
+      }
+
+      const effectiveSavingId = savingId ?? creditRecord.saving_id ?? null;
+      if (effectiveSavingId != null && creditRecord.payment_method_id != null) {
+        const method = await new ORM(txn, 'PaymentMethods').getById(
+          creditRecord.payment_method_id
+        );
+        if (
+          hasCreditCardSavingConflict({
+            savingId: effectiveSavingId,
+            paymentMethod: method,
+          })
+        ) {
+          throw new Error('CREDIT_CARD_SAVING_CONFLICT');
+        }
       }
 
       if (participants !== undefined && !creditRecord.fixed_id) {
@@ -693,6 +709,18 @@ export const useGroupsRepository = () => {
       }
       await new ORM(txn, 'PaidCredits').deleteWhere('group_id', id);
       await new ORM(txn, 'PersonSettlements').deleteWhere('group_id', id);
+      const closings = (await new ORM(txn, 'GroupClosings')
+        .where('group_id', id)
+        .getAll()) as { id?: number }[];
+      for (const closing of closings) {
+        if (closing.id !== undefined) {
+          await new ORM(txn, 'GroupClosingLines').deleteWhere(
+            'closing_id',
+            closing.id
+          );
+        }
+      }
+      await new ORM(txn, 'GroupClosings').deleteWhere('group_id', id);
       await new ORM(txn, 'Groups').delete(id);
     });
   };
@@ -812,6 +840,13 @@ export const usePaymentMethodsRepository = () => {
 };
 
 export { useFinancingsRepository } from './financings';
+export { useGroupClosingsRepository } from './closings';
+export type {
+  ClosingInput,
+  ClosingLineInput,
+  ClosingSummary,
+  DuplicateClosingOverrides,
+} from './closings';
 export { useSavingsRepository } from './savings';
 export type {
   SavingInput,

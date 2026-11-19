@@ -25,6 +25,7 @@ export type HelpTopicId =
   | 'settlements'
   | 'amountModes'
   | 'savings'
+  | 'closing'
   | 'filters'
   | 'theme';
 

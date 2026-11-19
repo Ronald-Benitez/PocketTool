@@ -134,7 +134,7 @@ async function testLegacyMigration() {
   await migrateDb(db);
 
   const tables = q(raw, "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").map(r => r.name);
-  for (const expected of ['groups', 'payment_types', 'payment_methods', 'categories', 'record_types', 'fixed_records', 'records', 'paid_credits', 'budget_templates', 'budget_template_items', 'budget_plans', 'budget_lines', 'savings', 'savings_history', 'migrations', 'financings', 'financing_payments', 'financing_adjustments', 'vehicles', 'vehicle_fuel_entries', 'vehicle_maintenance', 'vehicle_maintenance_items', 'vehicle_reminders', 'vehicle_settings', 'vehicle_expense_links', 'fuel_refills_legacy', 'trip_logs_legacy']) {
+  for (const expected of ['groups', 'payment_types', 'payment_methods', 'categories', 'record_types', 'fixed_records', 'records', 'paid_credits', 'budget_templates', 'budget_template_items', 'budget_plans', 'budget_lines', 'savings', 'savings_history', 'migrations', 'financings', 'financing_payments', 'financing_adjustments', 'group_closings', 'group_closing_lines', 'vehicles', 'vehicle_fuel_entries', 'vehicle_maintenance', 'vehicle_maintenance_items', 'vehicle_reminders', 'vehicle_settings', 'vehicle_expense_links', 'fuel_refills_legacy', 'trip_logs_legacy']) {
     assert.ok(tables.includes(expected), `missing table ${expected}`);
   }
   assert.ok(!tables.includes('Groups'), 'legacy Groups should be gone');
@@ -432,7 +432,7 @@ async function testEmptyDatabase() {
   await migrateDb(db);
 
   const tables = q(raw, "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").map(r => r.name);
-  for (const expected of ['groups', 'records', 'payment_types', 'record_types', 'categories', 'payment_methods', 'migrations']) {
+  for (const expected of ['groups', 'records', 'payment_types', 'record_types', 'categories', 'payment_methods', 'group_closings', 'group_closing_lines', 'migrations']) {
     assert.ok(tables.includes(expected), `fresh database missing ${expected}`);
   }
   assert.strictEqual(q(raw, 'SELECT COUNT(*) AS c FROM groups')[0].c, 1);
@@ -440,7 +440,7 @@ async function testEmptyDatabase() {
   assert.strictEqual(q(raw, 'SELECT goal FROM groups')[0].goal, 500000);
   assert.strictEqual(q(raw, 'SELECT amount FROM records ORDER BY id')[0].amount, 100000);
   assert.strictEqual(q(raw, 'SELECT migration_name FROM migrations')[0].migration_name, '0001_baseline');
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 23);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 24);
   const recordColumns = q(raw, 'PRAGMA table_info(records)').map(c => c.name);
   assert.ok(recordColumns.includes('created_at'));
   assert.ok(recordColumns.includes('updated_at'));
@@ -477,10 +477,20 @@ async function testExportImport() {
   assert.ok(metadata);
   assert.strictEqual(metadata.formatVersion, BACKUP_FORMAT_VERSION);
   assert.strictEqual(metadata.appVersion, 'test-version');
-  assert.strictEqual(metadata.schemaVersion, 23);
+  assert.strictEqual(metadata.schemaVersion, 24);
   assert.ok(metadata.tables.includes('records'));
   assert.doesNotThrow(() => validateSqlDump(backupSql));
   assert.strictEqual(parseBackupMetadata(dump), null);
+
+  const backupWithSettings = await createBackupSql(source, 'test-version', {
+    configs: '{"recordTypes":[1,2]}',
+    appLanguage: 'es',
+  });
+  const settingsMetadata = parseBackupMetadata(backupWithSettings);
+  assert.deepStrictEqual(settingsMetadata.settings, {
+    configs: '{"recordTypes":[1,2]}',
+    appLanguage: 'es',
+  });
 
   const targetRaw = new DatabaseSync(':memory:');
   const target = shim(targetRaw);
@@ -530,7 +540,7 @@ async function testAuditTimestampMigration() {
   const backfilled = q(raw, 'SELECT created_at, updated_at FROM records LIMIT 1')[0];
   assert.ok(backfilled.created_at > 0);
   assert.ok(backfilled.updated_at > 0);
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 23);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 24);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,
     1
@@ -1769,6 +1779,133 @@ async function testInterruptedRebuild() {
   console.log('interrupted rebuild recovery: OK');
 }
 
+async function testGroupClosings() {
+  const raw = new DatabaseSync(':memory:');
+  const db = shim(raw);
+  await migrateDb(db);
+
+  const groups = new ORM(db, 'Groups');
+  const group = (await groups.getAll())[0];
+  const groupId = group.id;
+  const closings = new ORM(db, 'GroupClosings');
+  const lines = new ORM(db, 'GroupClosingLines');
+  const now = Date.now();
+
+  const base = {
+    group_id: groupId,
+    close_name: 'Cierre de prueba',
+    close_date: now,
+    period_start: now - 86400000,
+    period_end: now,
+    editable_until: now + 86400000,
+    status: 'draft',
+    notes: null,
+    total_available_cents: 1000,
+    total_reserve_cents: 500,
+    total_obligations_cents: 800,
+    result_cents: 200,
+    total_resolution_cents: 200,
+    remaining_cents: 0,
+  };
+
+  const closingId = await closings.insert(base);
+  await lines.insert({
+    closing_id: closingId,
+    section: 'available',
+    kind: 'manual',
+    label: 'Disponible',
+    operation: 'add',
+    amount_cents: 1000,
+    sort_order: 0,
+  });
+  await lines.insert({
+    closing_id: closingId,
+    section: 'obligation',
+    kind: 'manual',
+    label: 'Pago',
+    operation: 'add',
+    amount_cents: 800,
+    sort_order: 1,
+  });
+
+  const storedLines = await lines.where('closing_id', closingId).getAll();
+  assert.strictEqual(storedLines.length, 2);
+  assert.strictEqual(storedLines[0].amount_cents, 1000);
+
+  const paymentMethodId = q(
+    raw,
+    'SELECT id FROM payment_methods ORDER BY id LIMIT 1'
+  )[0].id;
+  await lines.insert({
+    closing_id: closingId,
+    section: 'obligation',
+    kind: 'card',
+    label: 'Card',
+    operation: 'add',
+    amount_cents: 1000,
+    payment_method_id: paymentMethodId,
+    sort_order: 2,
+  });
+  let duplicateSourceFailed = false;
+  try {
+    await lines.insert({
+      closing_id: closingId,
+      section: 'obligation',
+      kind: 'card',
+      label: 'Card duplicate',
+      operation: 'add',
+      amount_cents: 1000,
+      payment_method_id: paymentMethodId,
+      sort_order: 3,
+    });
+  } catch {
+    duplicateSourceFailed = true;
+  }
+  assert.ok(
+    duplicateSourceFailed,
+    'the same registered source cannot be added twice'
+  );
+
+  const indexes = q(raw, 'PRAGMA index_list(group_closings)');
+  const finalIndex = indexes.find((index) => index.name === 'idx_group_closings_final');
+  assert.ok(finalIndex, 'final closing index should exist');
+  assert.strictEqual(finalIndex.unique, 1);
+
+  await closings.update(closingId, { status: 'final' });
+  let secondFinalFailed = false;
+  try {
+    await closings.insert({ ...base, status: 'final' });
+  } catch {
+    secondFinalFailed = true;
+  }
+  assert.ok(secondFinalFailed, 'only one final closing per group is allowed');
+
+  await closings.delete(closingId);
+  const replacementFinal = await closings.insert({
+    ...base,
+    status: 'final',
+  });
+  assert.ok(replacementFinal > 0, 'a final closing can be created after soft delete');
+
+  const timestamp = q(
+    raw,
+    'SELECT created_at FROM group_closings WHERE id = ?',
+    [replacementFinal]
+  )[0];
+  assert.ok(timestamp.created_at != null, 'audit timestamps should be filled');
+
+  await lines.deleteWhere('closing_id', replacementFinal);
+  await closings.delete(replacementFinal);
+  assert.strictEqual(
+    (await closings.getAll()).length,
+    0,
+    'soft deleted closings should be hidden'
+  );
+
+  raw.close();
+  console.log('group closings: OK');
+}
+
 (async () => {
   await testLegacyMigration();
   await testTextFallbacks();
@@ -1797,6 +1934,7 @@ async function testInterruptedRebuild() {
   await testSharedPaymentAllocations();
   await testRecordsPayerAndSettlements();
   await testSharedParticipantAmounts();
+  await testGroupClosings();
   await testVehicleSettingsRecordTypeMigration();
   await testVehicleInsert();
   await testVehicleTypeMigration();

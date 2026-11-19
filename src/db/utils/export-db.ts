@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SQLite from 'expo-sqlite';
 import Constants from 'expo-constants';
 import { File, Paths } from 'expo-file-system';
@@ -7,8 +8,15 @@ import { Platform } from 'react-native';
 
 import migrateDb from '@/src/db/migration';
 import { withExclusiveTransaction } from '@/src/db/transaction';
+import { useBalanceMode } from '@/src/hooks/useBalanceMode';
+import { useConfigs } from '@/src/hooks/useConfigs';
+import { useSummaryMode } from '@/src/hooks/useSummaryMode';
 import { useToast } from '@/src/ui/feedback/ToastProvider';
-import { createBackupSql, parseBackupMetadata } from './backup';
+import {
+  createBackupSql,
+  parseBackupMetadata,
+  type BackupSettings,
+} from './backup';
 import { validateSqlDump } from './sql-dump';
 
 const appVersion = () => Constants.expoConfig?.version ?? 'unknown';
@@ -44,8 +52,26 @@ const pickSqlFile = async (): Promise<string | null> => {
   return result.result.text();
 };
 
+const collectSettings = async (): Promise<BackupSettings> => {
+  const keys = await AsyncStorage.getAllKeys();
+  if (keys.length === 0) return {};
+  const pairs = await AsyncStorage.multiGet(keys);
+  return Object.fromEntries(
+    pairs.filter((entry): entry is [string, string] => entry[1] != null)
+  );
+};
+
+const applySettings = async (settings?: BackupSettings) => {
+  if (!settings || Object.keys(settings).length === 0) return;
+  await AsyncStorage.multiSet(Object.entries(settings));
+  await useConfigs.getState().loadConfigs();
+  await useSummaryMode.getState().load();
+  await useBalanceMode.getState().load();
+};
+
 const createBackup = async (db: SQLite.SQLiteDatabase): Promise<string> => {
-  const sqlDump = await createBackupSql(db, appVersion());
+  const settings = await collectSettings();
+  const sqlDump = await createBackupSql(db, appVersion(), settings);
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const file = writeDumpFile(`backup-before-import-${timestamp}.sql`, sqlDump);
   return file.uri;
@@ -60,7 +86,8 @@ export const useDBExport = function () {
 
   const exportDatabase = async () => {
     try {
-      const sqlDump = await createBackupSql(db, appVersion());
+      const settings = await collectSettings();
+      const sqlDump = await createBackupSql(db, appVersion(), settings);
       const dumpFile = writeDumpFile('backup.sql', sqlDump);
 
       if (await Sharing.isAvailableAsync()) {
@@ -93,7 +120,7 @@ export const useDBExport = function () {
       if (sqlContent === null) return;
 
       // JSON metadata is optional for backwards compatibility with SQL dumps.
-      parseBackupMetadata(sqlContent);
+      const metadata = parseBackupMetadata(sqlContent);
       validateSqlDump(sqlContent);
 
       // Keep a restorable copy before touching the current database.
@@ -119,11 +146,15 @@ export const useDBExport = function () {
       // Normalize legacy dumps and create any missing canonical tables.
       await migrateDb(db);
 
+      // Restore app settings (record type selection, modes, language, theme,
+      // etc.). Old backups without settings remain valid.
+      await applySettings(metadata?.settings);
+
       showToast({
         title: 'Importación exitosa',
         message: backupUri
-          ? `Los datos han sido restaurados.\nBackup previo:\n${backupUri}`
-          : 'Los datos han sido restaurados.',
+          ? `Los datos y las configuraciones han sido restaurados.\nSi el idioma o el tema no cambian, reinicia la app.\nBackup previo:\n${backupUri}`
+          : 'Los datos y las configuraciones han sido restaurados.',
         type: 'success',
         duration: 7000,
       });

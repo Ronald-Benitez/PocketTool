@@ -9,6 +9,8 @@ export const settingsEn = {
             "generalDescription": "Language and general preferences",
             "records": "Summaries and records",
             "recordsDescription": "Record types used by summaries and credits",
+            "closing": "Closing rules",
+            "closingDescription": "Period definition and edit deadlines for closings",
             "backup": "Backup",
             "backupDescription": "Export or import the database",
             "savings": "Savings defaults",
@@ -38,6 +40,27 @@ export const settingsEn = {
         "pendingFixedDedupePeriod": "By period (month of the proposed date)",
         "pendingFixedDedupeHint":
             "Choose whether a fixed is considered paid when it has a record in the group or in the same period.",
+        "closingPeriod": "Closing period",
+        "closingPeriodCalendar": "Calendar month",
+        "closingPeriodCutoff": "Cutoff day",
+        "closingPeriodStartDay": "Start day",
+        "closingPeriodCustom": "Custom range per closing",
+        "closingPeriodHint":
+            "Defines how the period of a closing is calculated. You can still adjust each closing if allowed.",
+        "closingCutoffDay": "Cutoff day",
+        "closingCutoffDayHint":
+            "Day of the month when the period ends. The next period starts the following day.",
+        "closingStartDay": "Period start day",
+        "closingStartDayHint":
+            "Day of the group month when the period starts. It ends on the same day of the next month.",
+        "closingGraceDays": "Grace days",
+        "closingGraceDaysHint":
+            "Extra days after the period ends to edit the closing.",
+        "closingAllowPeriodOverride": "Allow adjusting the period per closing",
+        "closingAllowPeriodOverrideHint":
+            "Lets you change the start, end and deadline before saving a closing.",
+        "closingPeriodExample":
+            "Example: with start day 18, the October group runs from October 18 to November 18. With 5 grace days you can edit until November 23.",
         "export": "Export database",
         "import": "Import database",
         "languages": {
@@ -127,6 +150,8 @@ export const settingsEs: MessageShape<typeof settingsEn> = {
             "generalDescription": "Idioma y preferencias generales",
             "records": "Resúmenes y registros",
             "recordsDescription": "Tipos de registro usados por resúmenes y créditos",
+            "closing": "Reglas de cierre",
+            "closingDescription": "Definición de periodo y fechas límite de edición",
             "backup": "Respaldo",
             "backupDescription": "Exportar o importar la base de datos",
             "savings": "Datos de ahorros",
@@ -156,6 +181,27 @@ export const settingsEs: MessageShape<typeof settingsEn> = {
         "pendingFixedDedupePeriod": "Por periodo (mes de la fecha propuesta)",
         "pendingFixedDedupeHint":
             "Elige si un fijo se considera pagado cuando tiene un registro en el grupo o en el mismo periodo.",
+        "closingPeriod": "Periodo de cierre",
+        "closingPeriodCalendar": "Mes calendario",
+        "closingPeriodCutoff": "Día de corte",
+        "closingPeriodStartDay": "Día de inicio",
+        "closingPeriodCustom": "Rango personalizado por cierre",
+        "closingPeriodHint":
+            "Define cómo se calcula el periodo de un cierre. Aún puedes ajustar cada cierre si está permitido.",
+        "closingCutoffDay": "Día de corte",
+        "closingCutoffDayHint":
+            "Día del mes en que termina el periodo. El siguiente periodo empieza al día siguiente.",
+        "closingStartDay": "Día de inicio del periodo",
+        "closingStartDayHint":
+            "Día del mes del grupo en que empieza el periodo. Termina el mismo día del mes siguiente.",
+        "closingGraceDays": "Días de gracia",
+        "closingGraceDaysHint":
+            "Días extra después del fin del periodo para editar el cierre.",
+        "closingAllowPeriodOverride": "Permitir ajustar el periodo por cierre",
+        "closingAllowPeriodOverrideHint":
+            "Permite cambiar inicio, fin y fecha límite antes de guardar un cierre.",
+        "closingPeriodExample":
+            "Ejemplo: con día de inicio 18, el grupo de octubre va del 18 de octubre al 18 de noviembre. Con 5 días de gracia puedes editar hasta el 23 de noviembre.",
         "export": "Exportar base de datos",
         "import": "Importar base de datos",
         "languages": {

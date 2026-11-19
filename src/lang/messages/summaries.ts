@@ -182,6 +182,8 @@ export const summariesEn = {
             "sourceMonthly": "This month's money",
             "available": "Available in saving",
             "paidWith": "Paid with saving",
+            "creditCardConflict":
+                "A credit card purchase cannot be paid from a saving. Record the card payment separately.",
             "create": "Create a new record",
             "link": "Link an existing record",
             "none": "Do not create or link a record",
@@ -400,6 +402,8 @@ export const summariesEs: MessageShape<typeof summariesEn> = {
             "sourceMonthly": "Dinero del mes",
             "available": "Disponible en el ahorro",
             "paidWith": "Pagado con ahorro",
+            "creditCardConflict":
+                "Una compra con tarjeta de crédito no puede pagarse desde un ahorro. Registra el pago de la tarjeta por separado.",
             "create": "Crear un registro nuevo",
             "link": "Vincular un registro existente",
             "none": "No crear ni vincular registro",

@@ -1,4 +1,8 @@
-import { cardInstallmentUsage } from '../cards';
+import {
+  cardInstallmentUsage,
+  hasCreditCardSavingConflict,
+  isCreditCardPaymentMethod,
+} from '../cards';
 
 const base = {
   kind: 'installment_purchase',
@@ -9,6 +13,53 @@ const base = {
   term_months: 12,
   first_payment_date: new Date(2026, 0, 1).getTime(),
 };
+
+describe('isCreditCardPaymentMethod', () => {
+  it('detects the card flag, cutoff and visual kind', () => {
+    expect(isCreditCardPaymentMethod({ is_credit_card: 1 })).toBe(true);
+    expect(isCreditCardPaymentMethod({ closing_date: 15 })).toBe(true);
+    expect(isCreditCardPaymentMethod({ visual_kind: 'credit_card' })).toBe(
+      true
+    );
+  });
+
+  it('ignores non-card methods', () => {
+    expect(isCreditCardPaymentMethod(null)).toBe(false);
+    expect(
+      isCreditCardPaymentMethod({
+        is_credit_card: 0,
+        closing_date: 0,
+        visual_kind: 'cash',
+      })
+    ).toBe(false);
+  });
+});
+
+describe('hasCreditCardSavingConflict', () => {
+  it('blocks a credit card purchase paid from a saving', () => {
+    expect(
+      hasCreditCardSavingConflict({
+        savingId: 3,
+        paymentMethod: { is_credit_card: 1 },
+      })
+    ).toBe(true);
+  });
+
+  it('allows a debit method or no saving', () => {
+    expect(
+      hasCreditCardSavingConflict({
+        savingId: 3,
+        paymentMethod: { is_credit_card: 0, visual_kind: 'cash' },
+      })
+    ).toBe(false);
+    expect(
+      hasCreditCardSavingConflict({
+        savingId: null,
+        paymentMethod: { is_credit_card: 1 },
+      })
+    ).toBe(false);
+  });
+});
 
 describe('card installment usage', () => {
   it('adds the pending balance of active 0% purchases to the card', () => {

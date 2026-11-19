@@ -6,6 +6,7 @@ import type {
     FixedPendingDateMode,
     FixedPendingDedupeMode,
 } from '@/src/domain/records/fixedPending';
+import type { ClosingPeriodMode } from '@/src/domain/closing/types';
 
 export interface Configs {
     recordTypes: number[];
@@ -14,6 +15,11 @@ export interface Configs {
     pendingPaymentDateMode: PendingPaymentDateMode;
     pendingFixedDateMode: FixedPendingDateMode;
     pendingFixedDedupeMode: FixedPendingDedupeMode;
+    closingPeriodMode: ClosingPeriodMode;
+    closingCutoffDay: number;
+    closingStartDay: number;
+    closingGraceDays: number;
+    closingAllowPeriodOverride: boolean;
 }
 
 const DEFAULT_RECORD_TYPES = ['Income', 'Expense'];
@@ -22,6 +28,11 @@ const DEFAULT_PAYMENT_CREDIT_TYPE = 'Payments';
 const DEFAULT_PENDING_PAYMENT_DATE_MODE: PendingPaymentDateMode = 'today';
 const DEFAULT_PENDING_FIXED_DATE_MODE: FixedPendingDateMode = 'next_occurrence';
 const DEFAULT_PENDING_FIXED_DEDUPE_MODE: FixedPendingDedupeMode = 'period';
+const DEFAULT_CLOSING_PERIOD_MODE: ClosingPeriodMode = 'calendar_month';
+const DEFAULT_CLOSING_CUTOFF_DAY = 31;
+const DEFAULT_CLOSING_START_DAY = 1;
+const DEFAULT_CLOSING_GRACE_DAYS = 5;
+const DEFAULT_CLOSING_ALLOW_PERIOD_OVERRIDE = true;
 
 const isPendingPaymentDateMode = (
     value: unknown
@@ -39,6 +50,27 @@ const isPendingFixedDedupeMode = (
     value: unknown
 ): value is FixedPendingDedupeMode =>
     value === 'group' || value === 'period';
+
+const isClosingPeriodMode = (value: unknown): value is ClosingPeriodMode =>
+    value === 'calendar_month' ||
+    value === 'cutoff_day' ||
+    value === 'start_day' ||
+    value === 'custom_range';
+
+const isClosingDay = (value: unknown): value is number =>
+    typeof value === 'number' &&
+    Number.isInteger(value) &&
+    value >= 1 &&
+    value <= 31;
+
+const isClosingGraceDays = (value: unknown): value is number =>
+    typeof value === 'number' &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value <= 31;
+
+const isBoolean = (value: unknown): value is boolean =>
+    typeof value === 'boolean';
 
 /**
  * Resolve the default configuration by stable record-type names instead of
@@ -62,6 +94,11 @@ export const resolveDefaultConfigs = (recordTypes: RecordType[]): Configs => {
         pendingPaymentDateMode: DEFAULT_PENDING_PAYMENT_DATE_MODE,
         pendingFixedDateMode: DEFAULT_PENDING_FIXED_DATE_MODE,
         pendingFixedDedupeMode: DEFAULT_PENDING_FIXED_DEDUPE_MODE,
+        closingPeriodMode: DEFAULT_CLOSING_PERIOD_MODE,
+        closingCutoffDay: DEFAULT_CLOSING_CUTOFF_DAY,
+        closingStartDay: DEFAULT_CLOSING_START_DAY,
+        closingGraceDays: DEFAULT_CLOSING_GRACE_DAYS,
+        closingAllowPeriodOverride: DEFAULT_CLOSING_ALLOW_PERIOD_OVERRIDE,
     };
 };
 
@@ -79,6 +116,11 @@ export const useConfigs = create<ConfigsStore>((set) => ({
         pendingPaymentDateMode: DEFAULT_PENDING_PAYMENT_DATE_MODE,
         pendingFixedDateMode: DEFAULT_PENDING_FIXED_DATE_MODE,
         pendingFixedDedupeMode: DEFAULT_PENDING_FIXED_DEDUPE_MODE,
+        closingPeriodMode: DEFAULT_CLOSING_PERIOD_MODE,
+        closingCutoffDay: DEFAULT_CLOSING_CUTOFF_DAY,
+        closingStartDay: DEFAULT_CLOSING_START_DAY,
+        closingGraceDays: DEFAULT_CLOSING_GRACE_DAYS,
+        closingAllowPeriodOverride: DEFAULT_CLOSING_ALLOW_PERIOD_OVERRIDE,
     },
 
     loadConfigs: async (recordTypes) => {
@@ -92,6 +134,11 @@ export const useConfigs = create<ConfigsStore>((set) => ({
                     pendingPaymentDateMode: DEFAULT_PENDING_PAYMENT_DATE_MODE,
                     pendingFixedDateMode: DEFAULT_PENDING_FIXED_DATE_MODE,
                     pendingFixedDedupeMode: DEFAULT_PENDING_FIXED_DEDUPE_MODE,
+                    closingPeriodMode: DEFAULT_CLOSING_PERIOD_MODE,
+                    closingCutoffDay: DEFAULT_CLOSING_CUTOFF_DAY,
+                    closingStartDay: DEFAULT_CLOSING_START_DAY,
+                    closingGraceDays: DEFAULT_CLOSING_GRACE_DAYS,
+                    closingAllowPeriodOverride: DEFAULT_CLOSING_ALLOW_PERIOD_OVERRIDE,
                 };
 
             const storedConfigs = await AsyncStorage.getItem('configs');
@@ -127,6 +174,23 @@ export const useConfigs = create<ConfigsStore>((set) => ({
                 )
                     ? parsed.pendingFixedDedupeMode
                     : defaults.pendingFixedDedupeMode,
+                closingPeriodMode: isClosingPeriodMode(parsed.closingPeriodMode)
+                    ? parsed.closingPeriodMode
+                    : defaults.closingPeriodMode,
+                closingCutoffDay: isClosingDay(parsed.closingCutoffDay)
+                    ? parsed.closingCutoffDay
+                    : defaults.closingCutoffDay,
+                closingStartDay: isClosingDay(parsed.closingStartDay)
+                    ? parsed.closingStartDay
+                    : defaults.closingStartDay,
+                closingGraceDays: isClosingGraceDays(parsed.closingGraceDays)
+                    ? parsed.closingGraceDays
+                    : defaults.closingGraceDays,
+                closingAllowPeriodOverride: isBoolean(
+                    parsed.closingAllowPeriodOverride
+                )
+                    ? parsed.closingAllowPeriodOverride
+                    : defaults.closingAllowPeriodOverride,
             };
 
             set({ configs: merged });
@@ -137,7 +201,12 @@ export const useConfigs = create<ConfigsStore>((set) => ({
                 !(typeof parsed.paymentCreditType === 'number' && parsed.paymentCreditType > 0) ||
                 !isPendingPaymentDateMode(parsed.pendingPaymentDateMode) ||
                 !isPendingFixedDateMode(parsed.pendingFixedDateMode) ||
-                !isPendingFixedDedupeMode(parsed.pendingFixedDedupeMode);
+                !isPendingFixedDedupeMode(parsed.pendingFixedDedupeMode) ||
+                !isClosingPeriodMode(parsed.closingPeriodMode) ||
+                !isClosingDay(parsed.closingCutoffDay) ||
+                !isClosingDay(parsed.closingStartDay) ||
+                !isClosingGraceDays(parsed.closingGraceDays) ||
+                !isBoolean(parsed.closingAllowPeriodOverride);
             if (wasIncomplete && recordTypes?.length) {
                 await AsyncStorage.setItem('configs', JSON.stringify(merged));
             }

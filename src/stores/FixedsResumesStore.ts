@@ -5,6 +5,7 @@ import { useConfigs } from "../hooks/useConfigs";
 import { useFinancingsRepository, useSharedParticipantsRepository } from "../db";
 import { summarizeFinancing } from "../domain/credits/summary";
 import { computeParticipantShares } from "../domain/shared/split";
+import { applyEffectSign } from "../domain/summaries/aggregate";
 import type {
     RecordType as RecordTypes,
     PaymentType as PaymentTypes,
@@ -69,6 +70,16 @@ const sumBuckets = (
     items: totalPerRecordType[],
     field: keyof AmountBuckets
 ) => items.reduce((total, item) => total + item[field], 0);
+
+const signedBuckets = (
+    items: totalPerRecordType[],
+    field: keyof AmountBuckets
+) =>
+    items.reduce(
+        (total, item) =>
+            total + applyEffectSign(item.effect, item[field]),
+        0
+    );
 
 export const useFixedsResumesStore = () => {
     const { configs: { recordTypes } } = useConfigs();
@@ -219,7 +230,10 @@ export const useFixedsResumesStore = () => {
                 paymentType.shared = sumBuckets(paymentType.totalPerRecordType, 'shared');
                 paymentType.total = sumBuckets(paymentType.totalPerRecordType, 'total');
                 paymentType.paid = sumBuckets(paymentType.totalPerRecordType, 'paid');
-                paymentType.balance = paymentType.own;
+                paymentType.balance = signedBuckets(
+                    paymentType.totalPerRecordType,
+                    'own'
+                );
             }
 
             const paymentMethod = paymentMethodResume.find(pm => pm.id === paymentMethodId);
@@ -231,7 +245,10 @@ export const useFixedsResumesStore = () => {
                 paymentMethod.shared = sumBuckets(paymentMethod.totalPerRecordType, 'shared');
                 paymentMethod.total = sumBuckets(paymentMethod.totalPerRecordType, 'total');
                 paymentMethod.paid = sumBuckets(paymentMethod.totalPerRecordType, 'paid');
-                paymentMethod.balance = paymentMethod.own;
+                paymentMethod.balance = signedBuckets(
+                    paymentMethod.totalPerRecordType,
+                    'own'
+                );
             }
 
             const category = categoryResume.find(cat => cat.id === categoryId);
@@ -243,11 +260,20 @@ export const useFixedsResumesStore = () => {
                 category.shared = sumBuckets(category.totalPerRecordType, 'shared');
                 category.total = sumBuckets(category.totalPerRecordType, 'total');
                 category.paid = sumBuckets(category.totalPerRecordType, 'paid');
-                category.balance = category.own;
+                category.balance = signedBuckets(
+                    category.totalPerRecordType,
+                    'own'
+                );
             }
         };
 
-        Fixeds.map(fixed => {
+        Fixeds.forEach(fixed => {
+            if (
+                fixed.record_type_id == null ||
+                !recordTypes.includes(fixed.record_type_id)
+            ) {
+                return;
+            }
             const split = splitAmount('fixed', fixed.id, fixed.fixed_amount);
             addToResumes(
                 fixed.record_type_id,
@@ -260,6 +286,12 @@ export const useFixedsResumesStore = () => {
         })
 
         financingObligations.forEach(({ financing, summary }) => {
+            if (
+                financing.record_type_id == null ||
+                !recordTypes.includes(financing.record_type_id)
+            ) {
+                return;
+            }
             const split = splitAmount(
                 'financing',
                 financing.id,

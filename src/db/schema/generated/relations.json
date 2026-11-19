@@ -161,6 +161,27 @@
     "PaymentMethods.PaymentTypes": "PaymentMethods.PaymentTypes",
     "Categories": "Categories"
   },
+  "GroupClosings": {
+    "Groups": "Groups"
+  },
+  "GroupClosingLines": {
+    "GroupClosings": "GroupClosings",
+    "GroupClosings.Groups": "GroupClosings.Groups",
+    "PaymentMethods": "PaymentMethods",
+    "PaymentMethods.PaymentTypes": "PaymentMethods.PaymentTypes",
+    "Savings": "Savings",
+    "Fixed": "Fixed",
+    "Fixed.RecordTypes": "Fixed.RecordTypes",
+    "Fixed.Categories": "Fixed.Categories",
+    "Fixed.PaymentMethods": "Fixed.PaymentMethods",
+    "Fixed.PaymentMethods.PaymentTypes": "Fixed.PaymentMethods.PaymentTypes",
+    "Financings": "Financings",
+    "Financings.PaymentMethods": "Financings.PaymentMethods",
+    "Financings.PaymentMethods.PaymentTypes": "Financings.PaymentMethods.PaymentTypes",
+    "Financings.Categories": "Financings.Categories",
+    "Financings.RecordTypes": "Financings.RecordTypes",
+    "Groups": "Groups"
+  },
   "Migrations": {},
   "Vehicles": {},
   "VehicleFuelEntries": {

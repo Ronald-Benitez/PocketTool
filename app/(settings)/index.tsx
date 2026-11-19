@@ -14,12 +14,14 @@ import type {
     FixedPendingDateMode,
     FixedPendingDedupeMode,
 } from '@/src/domain/records/fixedPending';
+import type { ClosingPeriodMode } from '@/src/domain/closing/types';
 import { useDataStore } from '@/src/stores';
 import { Button } from '@/src/ui/actions/Button';
 import { IconButton } from '@/src/ui/actions/IconButton';
 import { ColoredSelectOption } from '@/src/ui/forms/ColoredSelectOption';
 import { MultiSelectField } from '@/src/ui/forms/MultiSelectField';
 import { SelectField } from '@/src/ui/forms/SelectField';
+import { SwitchField } from '@/src/ui/forms/SwitchField';
 import { TextField } from '@/src/ui/forms/TextField';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Row, Stack } from '@/src/ui/primitives/Stack';
@@ -84,6 +86,26 @@ const SettingsScreen = () => {
 
     const onPendingFixedDedupeChange = (mode: FixedPendingDedupeMode) => {
         saveConfigs({ ...configs, pendingFixedDedupeMode: mode })
+    }
+
+    const onClosingPeriodModeChange = (mode: ClosingPeriodMode) => {
+        saveConfigs({ ...configs, closingPeriodMode: mode })
+    }
+
+    const onClosingCutoffDayChange = (day: number) => {
+        saveConfigs({ ...configs, closingCutoffDay: day })
+    }
+
+    const onClosingStartDayChange = (day: number) => {
+        saveConfigs({ ...configs, closingStartDay: day })
+    }
+
+    const onClosingGraceDaysChange = (days: number) => {
+        saveConfigs({ ...configs, closingGraceDays: days })
+    }
+
+    const onClosingAllowPeriodOverrideChange = (value: boolean) => {
+        saveConfigs({ ...configs, closingAllowPeriodOverride: value })
     }
 
     return (
@@ -219,6 +241,94 @@ const SettingsScreen = () => {
                         onChange={onPendingFixedDedupeChange}
                         closeLabel={t('cancel')}
                     />
+                </SettingsSection>
+
+                <SettingsSection
+                    title={t('settings.sections.closing')}
+                    description={t('settings.sections.closingDescription')}
+                    keywords={['closing', 'period', 'cierre', 'periodo', 'cutoff', 'corte', 'grace', 'gracia']}
+                    search={search}
+                >
+                    <SelectField<ClosingPeriodMode>
+                        label={t('settings.closingPeriod')}
+                        hint={t('settings.closingPeriodHint')}
+                        title={t('settings.closingPeriod')}
+                        value={configs?.closingPeriodMode ?? 'calendar_month'}
+                        options={[
+                            {
+                                label: t('settings.closingPeriodCalendar'),
+                                value: 'calendar_month',
+                            },
+                            {
+                                label: t('settings.closingPeriodCutoff'),
+                                value: 'cutoff_day',
+                            },
+                            {
+                                label: t('settings.closingPeriodStartDay'),
+                                value: 'start_day',
+                            },
+                            {
+                                label: t('settings.closingPeriodCustom'),
+                                value: 'custom_range',
+                            },
+                        ]}
+                        onChange={onClosingPeriodModeChange}
+                        closeLabel={t('cancel')}
+                    />
+
+                    {configs?.closingPeriodMode === 'cutoff_day' ? (
+                        <SelectField<number>
+                            label={t('settings.closingCutoffDay')}
+                            hint={t('settings.closingCutoffDayHint')}
+                            title={t('settings.closingCutoffDay')}
+                            value={configs?.closingCutoffDay ?? 31}
+                            options={Array.from({ length: 31 }, (_, index) => ({
+                                label: String(index + 1),
+                                value: index + 1,
+                            }))}
+                            onChange={onClosingCutoffDayChange}
+                            closeLabel={t('cancel')}
+                        />
+                    ) : null}
+
+                    {configs?.closingPeriodMode === 'start_day' ? (
+                        <SelectField<number>
+                            label={t('settings.closingStartDay')}
+                            hint={t('settings.closingStartDayHint')}
+                            title={t('settings.closingStartDay')}
+                            value={configs?.closingStartDay ?? 1}
+                            options={Array.from({ length: 31 }, (_, index) => ({
+                                label: String(index + 1),
+                                value: index + 1,
+                            }))}
+                            onChange={onClosingStartDayChange}
+                            closeLabel={t('cancel')}
+                        />
+                    ) : null}
+
+                    <SelectField<number>
+                        label={t('settings.closingGraceDays')}
+                        hint={t('settings.closingGraceDaysHint')}
+                        title={t('settings.closingGraceDays')}
+                        value={configs?.closingGraceDays ?? 5}
+                        options={Array.from({ length: 32 }, (_, index) => ({
+                            label: String(index),
+                            value: index,
+                        }))}
+                        onChange={onClosingGraceDaysChange}
+                        closeLabel={t('cancel')}
+                    />
+
+                    <SwitchField
+                        label={t('settings.closingAllowPeriodOverride')}
+                        description={t('settings.closingAllowPeriodOverrideHint')}
+                        value={configs?.closingAllowPeriodOverride ?? true}
+                        onChange={onClosingAllowPeriodOverrideChange}
+                    />
+
+                    <AppText variant='caption' color='muted'>
+                        {t('settings.closingPeriodExample')}
+                    </AppText>
                 </SettingsSection>
 
                 <SettingsSection

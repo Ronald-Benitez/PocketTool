@@ -72,6 +72,8 @@ No editar esos archivos a mano.
 | `Savings` | `savings` | Cuentas/metas de ahorro con meta global opcional, regla de aporte, estado y modo de `Records`. |
 | `SavingsHistory` | `savings_history` | Movimientos de ahorro: saldo inicial, aporte, retiro, interés y ajuste; incluye persona, período y registro vinculado. |
 | `SavingsSettings` | `savings_settings` | Datos por defecto para registros de ahorro y color del trofeo de meta. |
+| `GroupClosings` | `group_closings` | Cierres informativos por grupo con periodo, fecha límite, estado y totales snapshot. Un solo final por grupo. |
+| `GroupClosingLines` | `group_closing_lines` | Líneas del cierre: disponible, obligación o resolución; suma/resta y vínculos opcionales. Índices únicos evitan repetir la misma tarjeta/cuenta, fijo o financiamiento en un cierre. |
 | `Vehicles` | `vehicles` | Vehículos con tipo, color, unidades y consumo por defecto. |
 | `VehicleFuelEntries` | `vehicle_fuel_entries` | Cargas de combustible con odómetro y unidades; `is_baseline` marca el registro inicial solo con odómetro. |
 | `VehicleMaintenance` | `vehicle_maintenance` | Servicios, reparaciones y costos. |
@@ -100,6 +102,9 @@ No editar esos archivos a mano.
 - `VehicleExpenseLinks` → `Records`, `VehicleFuelEntries`, `VehicleMaintenance`
 - `SavingsHistory` → `Savings`
 - `PersonSettlements` → `People`, `Groups`
+- `GroupClosings` → `Groups`
+- `GroupClosingLines` → `GroupClosings`, `PaymentMethods`, `Savings`, `Fixed`,
+  `Financings`, `Groups`
 
 Las rutas navegables se generan en `relations.json` a partir de las FKs.
 
@@ -130,6 +135,7 @@ Las rutas navegables se generan en `relations.json` a partir de las FKs.
 | 21 | `0021_records_payer_and_scope` | Agrega `records.paid_by_person_id` y `records.paid_scope`; backfill `full`. |
 | 22 | `0022_person_settlements` | Crea `person_settlements` para las liquidaciones por persona y su grupo de caja. |
 | 23 | `0023_shared_participant_amounts` | Agrega `share_mode` y `share_amount_cents` a `shared_expense_participants`; backfill `percent`. |
+| 24 | `0024_group_closings` | Crea `group_closings` y `group_closing_lines`; índice único de un final por grupo. |
 
 Reglas:
 
@@ -144,12 +150,17 @@ Reglas:
 El export es un dump SQL con cabecera opcional:
 
 ```sql
--- POCKETTOOL_BACKUP {"formatVersion":1,"appVersion":"...","schemaVersion":3,"exportedAt":...,"tables":[...]}
+-- POCKETTOOL_BACKUP {"formatVersion":1,"appVersion":"...","schemaVersion":3,"exportedAt":...,"tables":[...],"settings":{"configs":"...","appLanguage":"es"}}
 ```
 
 - Los dumps SQL antiguos siguen siendo importables.
-- El import valida metadatos/tablas, crea backup previo, usa transacción
-  exclusiva y restaura FKs.
+- Los backups nuevos incluyen las configuraciones de AsyncStorage: tipos de
+  registro del resumen, modos de balance, idioma, tema, grupo fijado y demás
+  preferencias. Los backups antiguos sin `settings` se importan sin cambios.
+- Al importar se restauran datos y configuraciones; el idioma y el tema pueden
+  requerir reiniciar la app.
+- El import valida metadatos/tablas, crea backup previo con las configuraciones
+  actuales, usa transacción exclusiva y restaura FKs.
 - El backup previo se guarda en caché antes de importar.
 
 ## Acceso a datos

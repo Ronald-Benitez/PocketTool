@@ -27,6 +27,7 @@ import type {
 } from "@/src/interfaces/schema";
 import type { ParticipantDraft } from "@/src/db";
 import { computeRecordShares } from "@/src/domain/shared/split";
+import { hasCreditCardSavingConflict } from "@/src/domain/credits/cards";
 import { useConfigs } from "@/src/hooks/useConfigs";
 import { formatMoneyWithSymbol } from "@/src/utils";
 import { SharedParticipantsField } from "@/src/components/shared/SharedParticipantsField";
@@ -331,6 +332,16 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     const onSave = async () => {
         if (!group || !sharingLoaded) return
 
+        if (
+            hasCreditCardSavingConflict({
+                savingId: savingId ?? item?.saving_id ?? null,
+                paymentMethod: payment_method,
+            })
+        ) {
+            showToast({ message: t('savings.records.creditCardConflict'), type: 'warning' })
+            return
+        }
+
         const requiresPayment = paidByMeCents > 0;
         if (
             participants.some(
@@ -417,7 +428,9 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                 message:
                     message === 'SAVING_INSUFFICIENT_FUNDS'
                         ? t('savings.movement.insufficient')
-                        : message === 'RECORD_SHARES_MISMATCH' ||
+                        : message === 'CREDIT_CARD_SAVING_CONFLICT'
+                            ? t('savings.records.creditCardConflict')
+                            : message === 'RECORD_SHARES_MISMATCH' ||
                             message === 'SHARED_PAYER_NOT_PARTICIPANT'
                             ? t('shared.invalidTotal')
                             : message === 'SHARED_PERSON_NOT_FOUND'
@@ -661,6 +674,15 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                                     {t('savings.records.available')}:{' '}
                                     {formatMoneyWithSymbol(selectedSaving.amount)}
                                 </AppText>
+                            ) : null}
+                            {hasCreditCardSavingConflict({
+                                savingId: savingId ?? item?.saving_id ?? null,
+                                paymentMethod: payment_method,
+                            }) ? (
+                                <InlineMessage
+                                    variant='warning'
+                                    message={t('savings.records.creditCardConflict')}
+                                />
                             ) : null}
                         </>
                     ) : null}

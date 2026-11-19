@@ -309,6 +309,46 @@ export interface SavingsSetting extends Entity, SoftDeletable {
   updated_at?: TimestampMs | null;
 }
 
+export interface GroupClosing extends Entity, SoftDeletable {
+  group_id: number;
+  close_name: string;
+  close_date: TimestampMs;
+  period_start: TimestampMs;
+  period_end: TimestampMs;
+  editable_until: TimestampMs;
+  status: string;
+  notes?: string | null;
+  total_available_cents: Cents;
+  total_reserve_cents: Cents;
+  total_obligations_cents: Cents;
+  result_cents: Cents;
+  total_resolution_cents: Cents;
+  remaining_cents: Cents;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
+export interface GroupClosingLine extends Entity, SoftDeletable {
+  closing_id: number;
+  section: string;
+  kind: string;
+  label: string;
+  operation: string;
+  direction?: string | null;
+  amount_cents: Cents;
+  reference_cents?: Cents | null;
+  reason?: string | null;
+  payment_method_id?: number | null;
+  saving_id?: number | null;
+  fixed_id?: number | null;
+  financing_id?: number | null;
+  related_group_id?: number | null;
+  notes?: string | null;
+  sort_order: number;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
 export interface Migration extends Entity {
   migration_name: string;
   applied_at: TimestampMs;

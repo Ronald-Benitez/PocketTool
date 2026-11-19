@@ -149,3 +149,24 @@ compartidos, resúmenes o reglas de dinero.
 - `src/components/groups/group-selector.tsx`: una sola selección de grupo; las
   cargas asíncronas no deben pisar una selección del usuario.
 - Detalle en `docs/legacy/next-version-plan.md` (histórico).
+
+## Cierre de periodo
+
+- `src/domain/closing/`: cálculo de totales, validaciones, periodo configurable
+  y sugerencias.
+- `GroupClosings` y `GroupClosingLines`: snapshot informativo por grupo. No
+  crea ni modifica `Records`, `PaidCredits`, `SavingsHistory` ni saldos.
+- Secciones: `available`, `obligation` y `resolution`. Los ahorros no se
+  incluyen automáticamente; se pueden agregar como líneas manuales si el
+  usuario decide usarlos.
+- El periodo se configura globalmente (`closingPeriodMode`, `closingCutoffDay`,
+  `closingStartDay`, `closingGraceDays`, `closingAllowPeriodOverride`) y cada
+  cierre guarda `period_start`, `period_end` y `editable_until`. Los modos
+  incluyen mes calendario, día de corte, día de inicio y rango personalizado.
+- Un cierre vencido es inmutable. Los cambios globales no reactivan cierres
+  existentes.
+- Varios borradores y un único final por grupo, reforzado con índice único.
+- Las líneas manuales pueden vincular tarjetas, cuentas, fijos o financiamientos
+  registrados; la misma fuente no se puede repetir en el cierre.
+- La combinación tarjeta de crédito + ahorro se bloquea en registros nuevos y
+  se advierte en registros históricos.

@@ -6,7 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
 import { LogBox } from 'react-native';
 import 'react-native-reanimated';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Drawer } from 'expo-router/drawer';
@@ -190,6 +190,20 @@ const AppDrawer = () => {
           headerShown: false,
           drawerIcon: ({ color, size }) => (
             <Ionicons name="car-outline" size={size} color={color as string | undefined} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="(closing)"
+        options={{
+          title: t('headers.closing'),
+          headerShown: false,
+          drawerIcon: ({ color, size }) => (
+            <MaterialIcons
+              name="calculate"
+              size={size}
+              color={color as string | undefined}
+            />
           ),
         }}
       />

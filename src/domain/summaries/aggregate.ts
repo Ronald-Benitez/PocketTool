@@ -8,6 +8,19 @@ export type RecordForBalance = {
   record_type_id?: number | null;
 };
 
+export const applyEffectSign = (
+  effect: string | null | undefined,
+  amount: number
+) => (effect === '+' ? amount : effect === '-' ? -amount : 0);
+
+export const sumWithEffect = (
+  items: { effect?: string | null; amount: number }[]
+) =>
+  items.reduce(
+    (total, item) => total + applyEffectSign(item.effect, item.amount),
+    0
+  );
+
 export const getEffectMap = (recordTypes: RecordTypeEffect[]) =>
   new Map(
     recordTypes.flatMap((type) =>

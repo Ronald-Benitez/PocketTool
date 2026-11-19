@@ -171,6 +171,36 @@ export const helpEn = {
                 "body": "A fixed transaction is a template. It only affects the balance after you confirm it as a record."
             }
         },
+        "closing": {
+            "title": "Period closing",
+            "summary": "Compare cards, available money and payments without changing real data.",
+            "what": {
+                "title": "What it is",
+                "body": "A closing is an informational calculation for a period. It compares the money you have, your card statements and your pending payments, then shows a shortfall or surplus. It never changes records, debts, savings or balances."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "You can autofill the balance, cards, fixed payments and financings, or add manual lines with add and subtract. When adding a line, attach a registered card, account, fixed payment or financing, or leave it manual; items already added are hidden to avoid duplicates. Choose which balance to use (consumption, total, cash, paid or payment methods) before autofilling. Cards store an expected amount and an editable statement amount, so discounts, cashback and returns can explain the difference. The period can be a calendar month, a cutoff day, a start day (for example 18 October to 18 November), a custom range, or a range with grace days; expired closings become read-only. You can keep several drafts but only one final closing per group. Savings are not included automatically; add them as manual lines only if you use them in the calculation."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Select a group and create a closing, or open a draft.",
+                "step2": "Autofill data, adjust card statement amounts and add manual lines.",
+                "step3": "Cover a shortfall or assign a surplus, then save a draft or finalize."
+            },
+            "example": {
+                "title": "Example",
+                "body": "You have 3,500 available. Visa expects 4,000 but the statement says 3,800, plus a 1,000 fixed payment and an 800 financing payment. Obligations are 5,600 and the shortfall is 2,100. You cover 1,500 from other available money and leave 600 for the next period."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Use grace days if you close after the month ends. Duplicate a closing to reuse its structure next period."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "A closing is only a calculation. Finalizing it does not pay cards, move savings or create records. Once its deadline passes, neither drafts nor finals can be edited."
+            }
+        },
         "summaries": {
             "title": "Summaries",
             "summary": "Read balances, totals by type, category, and payment method.",
@@ -823,6 +853,36 @@ export const helpEs: MessageShape<typeof helpEn> = {
             "warning": {
                 "title": "Error común",
                 "body": "La transacción fija es una plantilla. Solo afecta el balance después de confirmarla como registro."
+            }
+        },
+        "closing": {
+            "title": "Cierre de periodo",
+            "summary": "Compara tarjetas, dinero disponible y pagos sin cambiar datos reales.",
+            "what": {
+                "title": "Qué es",
+                "body": "Un cierre es un cálculo informativo de un periodo. Compara el dinero que tienes, los estados de cuenta de tus tarjetas y tus pagos pendientes, y muestra un faltante o un sobrante. Nunca modifica registros, deudas, ahorros ni saldos."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "Puedes autocompletar el balance, tarjetas, pagos fijos y financiamientos, o agregar líneas manuales con suma y resta. Al agregar una línea, puedes vincular una tarjeta, cuenta, pago fijo o financiamiento registrado, o dejarla manual; los datos ya agregados se ocultan para evitar repetirlos. Elige qué balance usar (consumo, total, caja, pagado o métodos de pago) antes de autocompletar. Las tarjetas guardan un monto esperado y un monto real editable, para explicar diferencias por descuentos, cashback o devoluciones. El periodo puede ser un mes calendario, un día de corte, un día de inicio (por ejemplo 18 de octubre a 18 de noviembre), un rango personalizado o un rango con días de gracia; los cierres vencidos pasan a solo lectura. Puedes tener varios borradores, pero solo un cierre final por grupo. Los ahorros no se incluyen automáticamente; agrégalos como líneas manuales solo si los usas en el cálculo."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Selecciona un grupo y crea un cierre, o abre un borrador.",
+                "step2": "Autocompleta datos, ajusta los estados de cuenta y agrega líneas manuales.",
+                "step3": "Cubre el faltante o asigna el sobrante, y guarda un borrador o finaliza."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "Tienes 3,500 disponibles. Visa espera 4,000 pero el estado de cuenta dice 3,800, más un fijo de 1,000 y un financiamiento de 800. Las obligaciones son 5,600 y el faltante es 2,100. Cubres 1,500 con otro dinero disponible y dejas 600 para el próximo periodo."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Usa días de gracia si cierras después de que termina el mes. Duplica un cierre para reutilizar su estructura en el siguiente periodo."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "Un cierre es solo un cálculo. Finalizarlo no paga tarjetas, no mueve ahorros y no crea registros. Cuando pasa su fecha límite, ni los borradores ni los finales se pueden editar."
             }
         },
         "summaries": {

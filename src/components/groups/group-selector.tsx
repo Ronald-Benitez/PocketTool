@@ -26,7 +26,9 @@ import { TextField } from '@/src/ui/forms/TextField'
 const GroupSelector = () => {
     const { t } = useLanguage()
     const { showToast } = useToast()
-    const [year, setYear] = useState<string>(new Date().getFullYear().toString())
+    const [year, setYear] = useState<string>(
+        (useRecordsStore.getState().group?.year ?? new Date().getFullYear()).toString()
+    )
     const { group, setGroup, setRecords, groups, setGroups, setPaidCredits, setSettlements } = useRecordsStore()
     const [openUpdate, setOpenUpdate] = useState(false)
     const userSelectedRef = useRef(false)
@@ -77,6 +79,12 @@ const GroupSelector = () => {
         getGroups()
     }, [year])
 
+    useEffect(() => {
+        if (group?.year && String(group.year) !== year) {
+            setYear(String(group.year))
+        }
+    }, [group?.year])
+
     const onSelect = async (group: Group, userInitiated = false) => {
         if (!group?.id) return
         if (userInitiated) userSelectedRef.current = true
@@ -100,8 +108,12 @@ const GroupSelector = () => {
     }
 
     const getPinned = async () => {
-        const pinned = await AsyncStorage.getItem('group');
         if (userSelectedRef.current) return
+        // Never replace the group already selected by the user. Every screen
+        // mounts its own GroupSelector; falling back to the last group here
+        // would reset the selection when switching views.
+        if (useRecordsStore.getState().group?.id) return
+        const pinned = await AsyncStorage.getItem('group');
         if (pinned) {
             const p = Number(pinned)
             groupsOrm.fetchGroupsById(p).then((g) => {

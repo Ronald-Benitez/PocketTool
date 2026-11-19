@@ -3,7 +3,7 @@
 > Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.
 > Fuente de verdad: `src/db/schema/tables.ts`.
 
-Versión de esquema: **23**
+Versión de esquema: **24**
 
 ## Convenciones
 
@@ -20,36 +20,38 @@ completo.
 
 | Tabla | Física | Entidad | Columnas | Índices | Línea |
 | --- | --- | --- | ---: | ---: | ---: |
-| `Groups` | `groups` | `Group` | 8 | 1 | 54 |
-| `PaymentTypes` | `payment_types` | `PaymentType` | 6 | 0 | 74 |
-| `PaymentMethods` | `payment_methods` | `PaymentMethod` | 17 | 1 | 89 |
-| `Categories` | `categories` | `Category` | 5 | 0 | 120 |
-| `RecordTypes` | `record_types` | `RecordType` | 7 | 0 | 134 |
-| `Fixed` | `fixed_records` | `FixedRecord` | 10 | 4 | 150 |
-| `People` | `people` | `Person` | 7 | 1 | 177 |
-| `Records` | `records` | `RecordEntry` | 18 | 7 | 196 |
-| `PaidCredits` | `paid_credits` | `PaidCredit` | 8 | 3 | 234 |
-| `Financings` | `financings` | `Financing` | 27 | 2 | 258 |
-| `FinancingPayments` | `financing_payments` | `FinancingPayment` | 19 | 2 | 300 |
-| `FinancingAdjustments` | `financing_adjustments` | `FinancingAdjustment` | 13 | 1 | 334 |
-| `PersonSettlements` | `person_settlements` | `PersonSettlement` | 10 | 2 | 361 |
-| `SharedExpenseParticipants` | `shared_expense_participants` | `SharedExpenseParticipant` | 11 | 2 | 386 |
-| `SharedPaymentAllocations` | `shared_payment_allocations` | `SharedPaymentAllocation` | 13 | 3 | 412 |
-| `BudgetTemplates` | `budget_templates` | `BudgetTemplate` | 8 | 0 | 441 |
-| `BudgetTemplateItems` | `budget_template_items` | `BudgetTemplateItem` | 13 | 4 | 458 |
-| `BudgetPlans` | `budget_plans` | `BudgetPlan` | 10 | 2 | 488 |
-| `BudgetLines` | `budget_lines` | `BudgetLine` | 15 | 6 | 513 |
-| `Savings` | `savings` | `Saving` | 21 | 1 | 547 |
-| `SavingsHistory` | `savings_history` | `SavingsHistoryEntry` | 17 | 4 | 580 |
-| `SavingsSettings` | `savings_settings` | `SavingsSetting` | 9 | 0 | 614 |
-| `Migrations` | `migrations` | `Migration` | 3 | 0 | 634 |
-| `Vehicles` | `vehicles` | `Vehicle` | 19 | 1 | 644 |
-| `VehicleFuelEntries` | `vehicle_fuel_entries` | `VehicleFuelEntry` | 19 | 2 | 675 |
-| `VehicleMaintenance` | `vehicle_maintenance` | `VehicleMaintenanceEntry` | 13 | 2 | 709 |
-| `VehicleMaintenanceItems` | `vehicle_maintenance_items` | `VehicleMaintenanceItem` | 10 | 1 | 737 |
-| `VehicleReminders` | `vehicle_reminders` | `VehicleReminder` | 17 | 1 | 761 |
-| `VehicleSettings` | `vehicle_settings` | `VehicleSetting` | 7 | 0 | 792 |
-| `VehicleExpenseLinks` | `vehicle_expense_links` | `VehicleExpenseLink` | 6 | 3 | 810 |
+| `Groups` | `groups` | `Group` | 8 | 1 | 56 |
+| `PaymentTypes` | `payment_types` | `PaymentType` | 6 | 0 | 76 |
+| `PaymentMethods` | `payment_methods` | `PaymentMethod` | 17 | 1 | 91 |
+| `Categories` | `categories` | `Category` | 5 | 0 | 122 |
+| `RecordTypes` | `record_types` | `RecordType` | 7 | 0 | 136 |
+| `Fixed` | `fixed_records` | `FixedRecord` | 10 | 4 | 152 |
+| `People` | `people` | `Person` | 7 | 1 | 179 |
+| `Records` | `records` | `RecordEntry` | 18 | 7 | 198 |
+| `PaidCredits` | `paid_credits` | `PaidCredit` | 8 | 3 | 236 |
+| `Financings` | `financings` | `Financing` | 27 | 2 | 260 |
+| `FinancingPayments` | `financing_payments` | `FinancingPayment` | 19 | 2 | 302 |
+| `FinancingAdjustments` | `financing_adjustments` | `FinancingAdjustment` | 13 | 1 | 336 |
+| `PersonSettlements` | `person_settlements` | `PersonSettlement` | 10 | 2 | 363 |
+| `SharedExpenseParticipants` | `shared_expense_participants` | `SharedExpenseParticipant` | 11 | 2 | 388 |
+| `SharedPaymentAllocations` | `shared_payment_allocations` | `SharedPaymentAllocation` | 13 | 3 | 414 |
+| `BudgetTemplates` | `budget_templates` | `BudgetTemplate` | 8 | 0 | 443 |
+| `BudgetTemplateItems` | `budget_template_items` | `BudgetTemplateItem` | 13 | 4 | 460 |
+| `BudgetPlans` | `budget_plans` | `BudgetPlan` | 10 | 2 | 490 |
+| `BudgetLines` | `budget_lines` | `BudgetLine` | 15 | 6 | 515 |
+| `Savings` | `savings` | `Saving` | 21 | 1 | 549 |
+| `SavingsHistory` | `savings_history` | `SavingsHistoryEntry` | 17 | 4 | 582 |
+| `SavingsSettings` | `savings_settings` | `SavingsSetting` | 9 | 0 | 616 |
+| `GroupClosings` | `group_closings` | `GroupClosing` | 18 | 2 | 636 |
+| `GroupClosingLines` | `group_closing_lines` | `GroupClosingLine` | 20 | 9 | 669 |
+| `Migrations` | `migrations` | `Migration` | 3 | 0 | 711 |
+| `Vehicles` | `vehicles` | `Vehicle` | 19 | 1 | 721 |
+| `VehicleFuelEntries` | `vehicle_fuel_entries` | `VehicleFuelEntry` | 19 | 2 | 752 |
+| `VehicleMaintenance` | `vehicle_maintenance` | `VehicleMaintenanceEntry` | 13 | 2 | 786 |
+| `VehicleMaintenanceItems` | `vehicle_maintenance_items` | `VehicleMaintenanceItem` | 10 | 1 | 814 |
+| `VehicleReminders` | `vehicle_reminders` | `VehicleReminder` | 17 | 1 | 838 |
+| `VehicleSettings` | `vehicle_settings` | `VehicleSetting` | 7 | 0 | 869 |
+| `VehicleExpenseLinks` | `vehicle_expense_links` | `VehicleExpenseLink` | 6 | 3 | 887 |
 
 ## Groups (`groups`)
 
@@ -628,6 +630,81 @@ Entidad TypeScript: `SavingsSetting`
 | `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 
 Relaciones navegables: `RecordTypes`, `PaymentMethods`, `PaymentMethods.PaymentTypes`, `Categories`
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
+## GroupClosings (`group_closings`)
+
+Entidad TypeScript: `GroupClosing`
+
+| Columna | SQL | TS | Notas |
+| --- | --- | --- | --- |
+| `id` | `INTEGER` | `number` | PK, autoincrement |
+| `group_id` | `INTEGER` | `number` | NOT NULL, FK → Groups.id ON DELETE CASCADE |
+| `close_name` | `TEXT` | `string` | NOT NULL |
+| `close_date` | `INTEGER` | `TimestampMs` | NOT NULL, kind=timestamp |
+| `period_start` | `INTEGER` | `TimestampMs` | NOT NULL, kind=timestamp |
+| `period_end` | `INTEGER` | `TimestampMs` | NOT NULL, kind=timestamp |
+| `editable_until` | `INTEGER` | `TimestampMs` | NOT NULL, kind=timestamp |
+| `status` | `TEXT` | `string` | NOT NULL, default="draft" |
+| `notes` | `TEXT` | `string` |  |
+| `total_available_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
+| `total_reserve_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
+| `total_obligations_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
+| `result_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
+| `total_resolution_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
+| `remaining_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
+| `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Relaciones navegables: `Groups`
+
+Índices:
+- `idx_group_closings_group` (group_id, period_end) WHERE deleted_at IS NULL
+- `idx_group_closings_final` (group_id) UNIQUE WHERE status = 'final' AND deleted_at IS NULL
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
+## GroupClosingLines (`group_closing_lines`)
+
+Entidad TypeScript: `GroupClosingLine`
+
+| Columna | SQL | TS | Notas |
+| --- | --- | --- | --- |
+| `id` | `INTEGER` | `number` | PK, autoincrement |
+| `closing_id` | `INTEGER` | `number` | NOT NULL, FK → GroupClosings.id ON DELETE CASCADE |
+| `section` | `TEXT` | `string` | NOT NULL, default="available" |
+| `kind` | `TEXT` | `string` | NOT NULL, default="manual" |
+| `label` | `TEXT` | `string` | NOT NULL |
+| `operation` | `TEXT` | `string` | NOT NULL, default="add" |
+| `direction` | `TEXT` | `string` |  |
+| `amount_cents` | `INTEGER` | `Cents` | NOT NULL, kind=money, default=0 |
+| `reference_cents` | `INTEGER` | `Cents` | kind=money |
+| `reason` | `TEXT` | `string` |  |
+| `payment_method_id` | `INTEGER` | `number` | FK → PaymentMethods.id ON DELETE SET NULL |
+| `saving_id` | `INTEGER` | `number` | FK → Savings.id ON DELETE SET NULL |
+| `fixed_id` | `INTEGER` | `number` | FK → Fixed.id ON DELETE SET NULL |
+| `financing_id` | `INTEGER` | `number` | FK → Financings.id ON DELETE SET NULL |
+| `related_group_id` | `INTEGER` | `number` | FK → Groups.id ON DELETE SET NULL |
+| `notes` | `TEXT` | `string` |  |
+| `sort_order` | `INTEGER` | `number` | NOT NULL, default=0 |
+| `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Relaciones navegables: `GroupClosings`, `GroupClosings.Groups`, `PaymentMethods`, `PaymentMethods.PaymentTypes`, `Savings`, `Fixed`, `Fixed.RecordTypes`, `Fixed.Categories`, `Fixed.PaymentMethods`, `Fixed.PaymentMethods.PaymentTypes`, `Financings`, `Financings.PaymentMethods`, `Financings.PaymentMethods.PaymentTypes`, `Financings.Categories`, `Financings.RecordTypes`, `Groups`
+
+Índices:
+- `idx_group_closing_lines_closing` (closing_id, section, sort_order) WHERE deleted_at IS NULL
+- `idx_group_closing_lines_saving` (saving_id) WHERE deleted_at IS NULL
+- `idx_group_closing_lines_payment_method` (payment_method_id) WHERE deleted_at IS NULL
+- `idx_group_closing_lines_fixed` (fixed_id) WHERE deleted_at IS NULL
+- `idx_group_closing_lines_financing` (financing_id) WHERE deleted_at IS NULL
+- `idx_group_closing_lines_payment_unique` (closing_id, payment_method_id) UNIQUE WHERE deleted_at IS NULL AND payment_method_id IS NOT NULL AND kind IN ('card', 'account')
+- `idx_group_closing_lines_saving_unique` (closing_id, saving_id) UNIQUE WHERE deleted_at IS NULL AND saving_id IS NOT NULL
+- `idx_group_closing_lines_fixed_unique` (closing_id, fixed_id) UNIQUE WHERE deleted_at IS NULL AND fixed_id IS NOT NULL
+- `idx_group_closing_lines_financing_unique` (closing_id, financing_id) UNIQUE WHERE deleted_at IS NULL AND financing_id IS NOT NULL
 
 Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
 

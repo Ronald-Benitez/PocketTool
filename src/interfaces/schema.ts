@@ -18,6 +18,8 @@ import type {
   FinancingPayment,
   FixedRecord,
   Group,
+  GroupClosing,
+  GroupClosingLine,
   Migration,
   PaidCredit,
   PaymentMethod,
@@ -55,6 +57,8 @@ export type {
   FinancingPayment,
   FixedRecord,
   Group,
+  GroupClosing,
+  GroupClosingLine,
   Migration,
   PaidCredit,
   PaymentMethod,
@@ -201,6 +205,11 @@ export interface VehicleExpenseLinkWithRelations extends VehicleExpenseLink {
  * Flattened shapes used by table/list screens. Repositories populate these
  * convenience fields from the nested relations returned by the ORM.
  */
+export interface GroupClosingView extends GroupClosing {
+  group_name?: string | null;
+  lines: GroupClosingLine[];
+}
+
 export interface RecordView extends RecordWithRelations {
   record_id?: number;
   group_name?: string | null;

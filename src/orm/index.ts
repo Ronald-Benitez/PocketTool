@@ -43,6 +43,8 @@ import type {
   SavingsHistoryEntry,
   SavingsHistoryWithRelations,
   SavingsSetting,
+  GroupClosing,
+  GroupClosingLine,
   Migration,
   Vehicle,
   VehicleExpenseLink,
@@ -84,6 +86,8 @@ export type BaseSchemaMap = {
   Savings: Saving;
   SavingsHistory: SavingsHistoryEntry;
   SavingsSettings: SavingsSetting;
+  GroupClosings: GroupClosing;
+  GroupClosingLines: GroupClosingLine;
   Vehicles: Vehicle;
   VehicleFuelEntries: VehicleFuelEntry;
   VehicleMaintenance: VehicleMaintenanceEntry;
@@ -119,6 +123,8 @@ export type RelationsSchemaMap = {
   Savings: Saving;
   SavingsHistory: SavingsHistoryWithRelations;
   SavingsSettings: SavingsSetting;
+  GroupClosings: GroupClosing;
+  GroupClosingLines: GroupClosingLine;
   Vehicles: Vehicle;
   VehicleFuelEntries: VehicleFuelEntryWithRelations;
   VehicleMaintenance: VehicleMaintenanceEntryWithRelations;

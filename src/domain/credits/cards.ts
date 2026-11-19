@@ -5,6 +5,31 @@ import {
   type FinancingSummaryInput,
 } from './summary';
 
+export type PaymentMethodLike = {
+  is_credit_card?: boolean | number | null;
+  closing_date?: number | null;
+  visual_kind?: string | null;
+};
+
+export const isCreditCardPaymentMethod = (
+  method?: PaymentMethodLike | null
+) =>
+  Boolean(
+    method &&
+      (method.is_credit_card === true ||
+        method.is_credit_card === 1 ||
+        (method.closing_date ?? 0) > 0 ||
+        method.visual_kind === 'credit_card')
+  );
+
+export const hasCreditCardSavingConflict = ({
+  savingId,
+  paymentMethod,
+}: {
+  savingId?: number | null;
+  paymentMethod?: PaymentMethodLike | null;
+}) => savingId != null && isCreditCardPaymentMethod(paymentMethod);
+
 export type CardInstallmentInput = FinancingSummaryInput & {
   kind: string;
   status?: string | null;

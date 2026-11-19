@@ -241,8 +241,15 @@ export const useResumesStore = (
         now.setHours(0, 0, 0, 0);
         const startOfToday = now.getTime();
         const effectMap = getEffectMap(RecordTypes);
+        const allowed = new Set(configuredRecordTypes);
 
         records.forEach(record => {
+            if (
+                record.record_type_id == null ||
+                !allowed.has(record.record_type_id)
+            ) {
+                return;
+            }
             if (!isMonthlyCashRecord(record)) return;
             const ownAmount = record.own_amount_cents ?? record.amount;
             const sharedSnapshot = record.shared_amount_cents ?? 0;
@@ -319,7 +326,10 @@ export const useResumesStore = (
                 resume.total = sumBuckets(resume.totalPerRecordType, 'total');
                 resume.paid = sumBuckets(resume.totalPerRecordType, 'paid');
                 resume.cash = reduceBuckets(resume.totalPerRecordType, 'cash');
-                resume.balance = resume.own;
+                resume.balance = reduceBuckets(
+                    resume.totalPerRecordType,
+                    'own'
+                );
             }
         });
 
