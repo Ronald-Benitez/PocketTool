@@ -10,9 +10,9 @@ ahorros, personas y vehículo.
 
 ## Estado actual
 
-Todas las fases 0–14 están finalizadas (2026-11-17). El estado vigente, la fase
-activa y el histórico viven en [`docs/phases.md`](docs/phases.md). No repitas el
-estado de las fases en este archivo.
+El estado vigente, la fase activa y el histórico viven en
+[`docs/phases.md`](docs/phases.md). No repitas el estado de las fases en este
+archivo.
 
 ## Flujo de trabajo
 

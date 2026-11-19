@@ -1,6 +1,6 @@
 # Plan de fases
 
-**Última actualización:** 2026-11-17
+**Última actualización:** 2026-11-18
 
 ## Estado
 
@@ -21,6 +21,7 @@
 | Fase 12 — Compras compartidas, saldo por persona y doble balance | ✅ Finalizada | 2026-11-11 |
 | Fase 13 — Pendientes de Fase 12 y ajustes de Registros/Vehículo | ✅ Finalizada | 2026-11-17 |
 | Fase 14 — “Qué hay de nuevo” acumulado | ✅ Finalizada | 2026-11-17 |
+| Fase 15 — Fechas de pagos pendientes de tarjeta y fijos | ✅ Finalizada | 2026-11-18 |
 
 ## Fase activa
 
@@ -111,9 +112,6 @@ Plan completo en [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md).
   preferencias de unidades por vehículo.
 - Resumen, estadísticas, históricos y gráficos Mermaid responsivos.
 - Verificación: typecheck, 84 tests, `test:db`, lint, doctor y export Android.
-- Commits principales: `d1e7e13`, `1fbb2ec`, `8e51999`, `918bf45`, `e926413`,
-  `2d7280b`, `a8ee207`, `099c3b4`, `5158797`, `e6069af`, `8b30c42`, `e7de4de`,
-  `f54963d`, `70aa777`, `6a27346`, `0f61fb2`.
 
 ## Fase 9 — Gastos fijos y Créditos (✅ 2026-11-03)
 
@@ -139,8 +137,6 @@ Plan completo en [`legacy/next-version-plan.md`](legacy/next-version-plan.md).
 - Compartidos ilimitados, snapshot propio/compartido en `Records` y modos de
   importe propio/total/compartido.
 - Temas de ayuda de Personas y “Tu parte / Total / Compartido”.
-- Commits principales: `1f77b6a`, `3cc8dc8`, `6de9ff7`, `745f052`, `cf50c0b`,
-  `4a3afaf`, `d454e75`, `f651333`, `7e03428`, `892875d`.
 
 ## Fase 11 — Ahorros compartidos y metas (✅ 2026-11-04)
 
@@ -201,6 +197,18 @@ Plan completo en [`legacy/whats-new-plan.md`](legacy/whats-new-plan.md).
 - `/notas-version` queda a cargo de las notas de Play, el catálogo in-app y el
   bump de versión.
 - Commits principales: `1eb2061`, `7b59c00`, `0dbc416`, `eedaaf1`, `ce01b8e`.
+
+## Fase 15 — Fechas de pagos pendientes de tarjeta y fijos (✅ 2026-11-18)
+
+Plan completo en
+[`legacy/fase-15-pending-dates-plan.md`](legacy/fase-15-pending-dates-plan.md).
+
+- `next_payment_date` para tarjeta; `pendingFixedDateMode` y
+  `pendingFixedDedupeMode` para fijos, con `usePendingFixeds` compartido entre
+  Registros e Inicio y aviso de fecha editable.
+- Ayuda bilingüe, pruebas de dominio y DB; sin cambios de esquema.
+- Verificación: typecheck, 205 tests, `test:db`, lint, doctor, `docs:audit` y
+  export Android.
 
 ## Decisiones vigentes
 

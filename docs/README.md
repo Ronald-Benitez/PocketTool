@@ -60,6 +60,8 @@ arquitectura y enlaces. La documentación se lee **por secciones**, no completa.
   compartidos por monto y ajustes de Registros/Vehículo (Fase 13).
 - [`legacy/whats-new-plan.md`](legacy/whats-new-plan.md): plan de “Qué hay de
   nuevo” acumulado (Fase 14).
+- [`legacy/fase-15-pending-dates-plan.md`](legacy/fase-15-pending-dates-plan.md):
+  fechas de pagos pendientes de tarjeta y fijos (Fase 15).
 - [`legacy/db-summary.md`](legacy/db-summary.md): resumen anterior de base de
   datos.
 
@@ -97,6 +99,7 @@ arquitectura y enlaces. La documentación se lee **por secciones**, no completa.
 | Fase 12 — Compras compartidas, saldo por persona y doble balance | ✅ Finalizada (2026-11-11) |
 | Fase 13 — Pendientes de Fase 12 y ajustes de Registros/Vehículo | ✅ Finalizada (2026-11-17) |
 | Fase 14 — “Qué hay de nuevo” acumulado | ✅ Finalizada (2026-11-17) |
+| Fase 15 — Fechas de pagos pendientes de tarjeta y fijos | ✅ Finalizada (2026-11-18) |
 
 ## Regla de mantenimiento
 

@@ -35,6 +35,9 @@ detalle, usa `**Secciones:**` y busca el encabezado con
   validado y archivado.
 - [`whats-new-plan.md`](whats-new-plan.md): plan de “Qué hay de nuevo”
   acumulado (Fase 14), implementado, validado y archivado.
+- [`fase-15-pending-dates-plan.md`](fase-15-pending-dates-plan.md): plan de
+  fechas de pagos pendientes de tarjeta y fijos (Fase 15), implementado,
+  validado y archivado.
 - [`db-summary.md`](db-summary.md): resumen anterior de la base de datos,
   reemplazado por [`../database.md`](../database.md).
 
