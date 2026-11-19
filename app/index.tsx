@@ -12,21 +12,18 @@ import useResumesStore from '@/src/stores/ResumesStore';
 import { useDataStore } from '@/src/stores';
 import type {
   FinancingWithRelations,
-  FixedView,
   RecordFormEntry,
-  SharedExpenseParticipant,
 } from '@/src/interfaces/schema';
 import type { FinancingScheduleRow } from '@/src/domain/credits/types';
 import {
   summarizeFinancing,
   type FinancingSummary,
 } from '@/src/domain/credits/summary';
-import { computeParticipantShares } from '@/src/domain/shared/split';
 import {
     useFinancingsRepository,
     useFixeds,
-    useSharedParticipantsRepository,
 } from '@/src/db';
+import { usePendingFixeds, type PendingFixed } from '@/src/hooks/usePendingFixeds';
 import { mapDatabaseError } from '@/src/db/errors';
 import { FinancingPaymentForm } from '@/src/components/credits/FinancingPaymentForm';
 import { useConfigs } from '@/src/hooks/useConfigs';
@@ -63,18 +60,14 @@ const Index = () => {
     const { initializeColors } = useColorStore()
     const { colors } = useTheme()
     const { group } = useRecordsStore()
-    const [pendingFixeds, setPendingFixeds] = useState<
-        { fixed: FixedView; date: number }[]
-    >([])
+    const { pendingFixeds } = usePendingFixeds({ onlyDueToday: true })
     const { balance, cashBalance, todayBalanceByRecordType } = useResumesStore()
     const [fixedToSave, setFixedToSave] = useState<RecordFormEntry>()
     const { loadConfigs } = useConfigs()
     const [open, setOpen] = useState(false)
-    const { records } = useRecordsStore()
-    const { Fixeds, setFixeds } = useDataStore()
+    const { setFixeds } = useDataStore()
     const { fetchFixeds } = useFixeds();
     const financingsRepository = useFinancingsRepository();
-    const participantsRepository = useSharedParticipantsRepository();
     const { refreshGroupData } = useGroupRefresh();
     const groupId = group?.id;
 
@@ -86,7 +79,6 @@ const Index = () => {
             });
         }, [groupId, refreshGroupData])
     );
-    const [participants, setParticipants] = useState<SharedExpenseParticipant[]>([]);
     const [financings, setFinancings] = useState<FinancingWithRelations[]>([]);
     const [financingsRefreshKey, setFinancingsRefreshKey] = useState(0);
     const [selectedFinancing, setSelectedFinancing] =
@@ -118,19 +110,6 @@ const Index = () => {
 
     useEffect(() => {
         let active = true;
-        participantsRepository.fetchAll().then((rows) => {
-            if (active) setParticipants(rows);
-        }).catch((cause) => {
-            if (!active) return;
-            if (__DEV__) console.warn('[home] participants load failed', cause);
-            const mapped = mapDatabaseError(cause, t('toast.error'));
-            showToast({ message: t(`dbErrors.${mapped.code}` as never), type: 'error' });
-        });
-        return () => { active = false; };
-    }, []);
-
-    useEffect(() => {
-        let active = true;
         financingsRepository.fetchFinancings().then((rows) => {
             if (active) setFinancings(rows);
         }).catch((cause) => {
@@ -141,41 +120,6 @@ const Index = () => {
         });
         return () => { active = false; };
     }, [financingsRefreshKey]);
-
-    const splitFixed = (fixed: FixedView) => {
-        const split = computeParticipantShares(
-            fixed.fixed_amount,
-            participants
-                .filter(
-                    (participant) =>
-                        participant.owner_type === 'fixed' &&
-                        participant.owner_id === fixed.id
-                )
-                .map((participant) => ({
-                    personId: participant.person_id,
-                    shareMode: participant.share_mode as 'percent' | 'amount',
-                    sharePercent: participant.share_percent,
-                    shareAmountCents: participant.share_amount_cents ?? null,
-                }))
-        );
-        return { own: split.ownCents, shared: split.sharedCents };
-    };
-
-    const buildPendingFixeds = () => {
-        const today = new Date()
-        const day = today.getDate()
-        const list = Fixeds.flatMap((fixed) => {
-            if (fixed.fixed_day !== day) return []
-            const record = records.find(record => record.fixed_id === fixed.id)
-            if (record) return []
-            const date = new Date()
-            date.setHours(0, 0, 0, 0)
-            return [{ fixed, date: date.getTime() }]
-        })
-        setPendingFixeds(list)
-    }
-
-    useEffect(buildPendingFixeds, [records, Fixeds, participants])
 
     const pendingFinancings = useMemo<Obligation[]>(() => {
         const today = new Date()
@@ -223,12 +167,11 @@ const Index = () => {
         return [message, icon]
     }
 
-    const onFixedPress = (obligation: { fixed: FixedView; date: number }) => {
-        const split = splitFixed(obligation.fixed)
+    const onFixedPress = (obligation: PendingFixed) => {
         setFixedToSave({
-            amount: split.own,
-            own_amount_cents: split.own,
-            shared_amount_cents: split.shared,
+            amount: obligation.ownCents,
+            own_amount_cents: obligation.ownCents,
+            shared_amount_cents: obligation.sharedCents,
             date: obligation.date,
             group_id: group?.id ?? null,
             record_name: obligation.fixed.fixed_name,
@@ -263,7 +206,6 @@ const Index = () => {
                             <AppText variant='label'>{t("index.obligations")}</AppText>
                             {pendingFixeds.map((obligation) => {
                                 const item = obligation.fixed;
-                                const split = splitFixed(item);
                                 return (
                                     <Pressable key={`fixed-${item.id}`} onPress={() => onFixedPress(obligation)}>
                                         <Row justify='space-between' align='center' style={{ minHeight: 40, gap: 12 }}>
@@ -283,16 +225,16 @@ const Index = () => {
                                                     <AppText variant='caption' color='muted'>
                                                         {new Date(obligation.date).toLocaleDateString()}
                                                     </AppText>
-                                                    {split.shared > 0 ? (
+                                                    {obligation.sharedCents > 0 ? (
                                                         <AppText variant='caption' color='muted'>
-                                                            {t('shared.total')}: {formatMoneyWithSymbol(split.own + split.shared)} · {t('shared.totalShared')}: {formatMoneyWithSymbol(split.shared)}
+                                                            {t('shared.total')}: {formatMoneyWithSymbol(obligation.ownCents + obligation.sharedCents)} · {t('shared.totalShared')}: {formatMoneyWithSymbol(obligation.sharedCents)}
                                                         </AppText>
                                                     ) : null}
                                                 </View>
                                             </Row>
                                             <View style={{ alignItems: 'flex-end' }}>
-                                                <FinanceValue cents={split.own} size='md' color={colors.text} />
-                                                {split.shared > 0 ? (
+                                                <FinanceValue cents={obligation.ownCents} size='md' color={colors.text} />
+                                                {obligation.sharedCents > 0 ? (
                                                     <AppText variant='caption' color='muted'>{t('shared.own')}</AppText>
                                                 ) : null}
                                             </View>

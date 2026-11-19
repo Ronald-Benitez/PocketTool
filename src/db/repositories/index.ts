@@ -466,6 +466,20 @@ export const useRecordsRepository = () => {
     return rows.map(flattenRecord);
   };
 
+  /**
+   * Returns the minimal data needed to detect whether a fixed transaction was
+   * already recorded in another group. Used by pending fixed deduplication.
+   */
+  const fetchFixedRecords = async (
+    fixedIds: number[]
+  ): Promise<Pick<RecordEntry, 'id' | 'fixed_id' | 'date' | 'group_id'>[]> => {
+    if (fixedIds.length === 0) return [];
+    const rows = await recordsOrm
+      .where('fixed_id', fixedIds, 'IN')
+      .getAll();
+    return rows as Pick<RecordEntry, 'id' | 'fixed_id' | 'date' | 'group_id'>[];
+  };
+
   const fetchCredits = async (
     payment_method_id: number,
     startLimit: number,
@@ -579,6 +593,7 @@ export const useRecordsRepository = () => {
     fetchRecordsPage,
     countRecords,
     fetchRecordsWithMultipleWhere,
+    fetchFixedRecords,
     fetchCredits,
     fetchPaidCredits,
     fetchPaidCreditsByGroup,

@@ -9,6 +9,11 @@ import { SettingsSection } from '@/src/components/settings/SettingsSection';
 import { useDBExport } from '@/src/db/utils';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useConfigs } from '@/src/hooks/useConfigs';
+import type { PendingPaymentDateMode } from '@/src/domain/credits/pending';
+import type {
+    FixedPendingDateMode,
+    FixedPendingDedupeMode,
+} from '@/src/domain/records/fixedPending';
 import { useDataStore } from '@/src/stores';
 import { Button } from '@/src/ui/actions/Button';
 import { IconButton } from '@/src/ui/actions/IconButton';
@@ -73,6 +78,14 @@ const SettingsScreen = () => {
         saveConfigs({ ...configs, paymentCreditType: id })
     }
 
+    const onPendingFixedDateChange = (mode: FixedPendingDateMode) => {
+        saveConfigs({ ...configs, pendingFixedDateMode: mode })
+    }
+
+    const onPendingFixedDedupeChange = (mode: FixedPendingDedupeMode) => {
+        saveConfigs({ ...configs, pendingFixedDedupeMode: mode })
+    }
+
     return (
         <Screen scroll edges={['left', 'right']}>
             <Stack gap='lg'>
@@ -107,7 +120,7 @@ const SettingsScreen = () => {
                 <SettingsSection
                     title={t('settings.sections.records')}
                     description={t('settings.sections.recordsDescription')}
-                    keywords={['records', 'record type', 'credit', 'registros', 'crédito', 'card payment', 'pago de tarjeta']}
+                    keywords={['records', 'record type', 'credit', 'registros', 'crédito', 'card payment', 'pago de tarjeta', 'fixed date', 'fecha fija', 'period', 'periodo', 'group month', 'mes del grupo']}
                     search={search}
                 >
                     <MultiSelectField<number>
@@ -144,7 +157,7 @@ const SettingsScreen = () => {
                         closeLabel={t('cancel')}
                     />
 
-                    <SelectField<'today' | 'payment_date'>
+                    <SelectField<PendingPaymentDateMode>
                         label={t('settings.pendingPaymentDate')}
                         hint={t('settings.pendingPaymentDateHint')}
                         title={t('settings.pendingPaymentDate')}
@@ -158,10 +171,52 @@ const SettingsScreen = () => {
                                 label: t('settings.pendingPaymentDateCard'),
                                 value: 'payment_date',
                             },
+                            {
+                                label: t('settings.pendingPaymentDateNext'),
+                                value: 'next_payment_date',
+                            },
                         ]}
                         onChange={(pendingPaymentDateMode) =>
                             saveConfigs({ ...configs, pendingPaymentDateMode })
                         }
+                        closeLabel={t('cancel')}
+                    />
+
+                    <SelectField<FixedPendingDateMode>
+                        label={t('settings.pendingFixedDate')}
+                        hint={t('settings.pendingFixedDateHint')}
+                        title={t('settings.pendingFixedDate')}
+                        value={configs?.pendingFixedDateMode ?? 'next_occurrence'}
+                        options={[
+                            {
+                                label: t('settings.pendingFixedDateGroupMonth'),
+                                value: 'group_month',
+                            },
+                            {
+                                label: t('settings.pendingFixedDateNext'),
+                                value: 'next_occurrence',
+                            },
+                        ]}
+                        onChange={onPendingFixedDateChange}
+                        closeLabel={t('cancel')}
+                    />
+
+                    <SelectField<FixedPendingDedupeMode>
+                        label={t('settings.pendingFixedDedupe')}
+                        hint={t('settings.pendingFixedDedupeHint')}
+                        title={t('settings.pendingFixedDedupe')}
+                        value={configs?.pendingFixedDedupeMode ?? 'period'}
+                        options={[
+                            {
+                                label: t('settings.pendingFixedDedupeGroup'),
+                                value: 'group',
+                            },
+                            {
+                                label: t('settings.pendingFixedDedupePeriod'),
+                                value: 'period',
+                            },
+                        ]}
+                        onChange={onPendingFixedDedupeChange}
                         closeLabel={t('cancel')}
                     />
                 </SettingsSection>

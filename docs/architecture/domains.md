@@ -53,6 +53,10 @@ compartidos, resúmenes o reglas de dinero.
   tarjeta; su saldo pendiente reduce el crédito disponible.
 - `src/stores/CreditsStore.ts`: totales por ciclo y uso de tarjeta. No dupliques
   una compra como gasto de tarjeta y financiamiento.
+- Fecha de pagos pendientes de tarjeta (`pendingPaymentDateMode`): `today` usa
+  hoy; `payment_date` usa el día de pago dentro del mes del grupo; y
+  `next_payment_date` usa la próxima ocurrencia desde hoy, igual que Créditos.
+  El helper compartido vive en `src/domain/shared/recurrence.ts`.
 - Detalle en `docs/legacy/credits-fixed-plan.md` (histórico).
 
 ## Ahorros
@@ -133,6 +137,15 @@ compartidos, resúmenes o reglas de dinero.
 - `src/stores/FixedsResumesStore.ts`: resumen de compromisos; suma gastos fijos
   y cuotas mensuales de financiamientos activos por tipo, pago, método y
   categoría.
+- `src/domain/records/fixedPending.ts`: fecha propuesta y deduplicación de fijos
+  pendientes. `pendingFixedDateMode` permite `group_month` (día del fijo en el
+  mes del grupo, con `group.month` cero-based) o `next_occurrence` (próxima
+  ocurrencia desde hoy). `pendingFixedDedupeMode` permite `group` (registro en
+  el grupo seleccionado) o `period` (registro del mismo fijo con fecha en el mes
+  propuesto, aunque esté en otro grupo).
+- `src/hooks/usePendingFixeds.ts`: fuente única para Registros e Inicio; aplica
+  las dos configuraciones anteriores y calcula monto propio/compartido.
+- Inicio muestra un fijo cuando la fecha resuelta es hoy.
 - `src/components/groups/group-selector.tsx`: una sola selección de grupo; las
   cargas asíncronas no deben pisar una selección del usuario.
 - Detalle en `docs/legacy/next-version-plan.md` (histórico).

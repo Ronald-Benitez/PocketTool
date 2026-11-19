@@ -19,8 +19,8 @@ import useColorStore from "@/src/stores/ColorsStore";
 import useResumesStore from "@/src/stores/ResumesStore";
 import { useCreditStore } from "@/src/stores/CreditsStore";
 import { useConfigs } from "@/src/hooks/useConfigs";
+import { usePendingFixeds } from "@/src/hooks/usePendingFixeds";
 import { resolvePendingPaymentDate } from "@/src/domain/credits/pending";
-import { computeParticipantShares } from "@/src/domain/shared/split";
 import { useDataStore } from "@/src/stores";
 import { useThemedStyles } from "@/src/styles/useThemedStyles";
 import RecordsGroup from "./RecordsGroup";
@@ -31,14 +31,13 @@ import {
   useFinancingsRepository,
   useFixeds,
   useRecords,
-  useSharedParticipantsRepository,
 } from "@/src/db";
 import { mapDatabaseError } from "@/src/db/errors";
 import { summarizeFinancing, type FinancingSummary } from "@/src/domain/credits/summary";
 import type { FinancingWithRelations } from "@/src/interfaces/schema";
 import { FinancingPaymentForm } from "@/src/components/credits/FinancingPaymentForm";
 import type { OrderCondition } from "@/src/orm";
-import type { RecordFormEntry, RecordType, RecordWithRelations, SharedExpenseParticipant } from "@/src/interfaces/schema";
+import type { RecordFormEntry, RecordType, RecordWithRelations } from "@/src/interfaces/schema";
 import { formatMoney } from "@/src/utils";
 import RecordsFilterModal, { RECORDS_ORDER_STORAGE_KEY } from "./RecordsFilterModal";
 import type { RecordFilter } from "./RecordsFilterModal";
@@ -67,12 +66,12 @@ const ItemsTable = () => {
   const { records, group, setRecords } = useRecordsStore();
   const { colors } = useColorStore();
   const { credits } = useCreditStore();
-  const { RecordTypes, Fixeds, setFixeds } = useDataStore();
+  const { RecordTypes, setFixeds } = useDataStore();
   const [creditRecords, setCreditRecords] = useState<RecordFormEntry[]>();
   const {
     configs: { paymentCreditType, pendingPaymentDateMode },
   } = useConfigs();
-  const [fixedsToShow, setFixedsToShow] = useState<RecordFormEntry[]>([]);
+  const { pendingFixeds } = usePendingFixeds();
   const [financings, setFinancings] = useState<FinancingWithRelations[]>([]);
   const [financingsRefreshKey, setFinancingsRefreshKey] = useState(0);
   const [selectedFinancing, setSelectedFinancing] =
@@ -90,8 +89,6 @@ const ItemsTable = () => {
   const { fetchRecords, deleteRecordWithCredit, handler: recordsRepository } = useRecords();
   const { fetchFixeds } = useFixeds();
   const financingsRepository = useFinancingsRepository();
-  const participantsRepository = useSharedParticipantsRepository();
-  const [fixedParticipants, setFixedParticipants] = useState<SharedExpenseParticipant[]>([]);
 
   useEffect(() => {
     let isMounted = true
@@ -263,52 +260,25 @@ const ItemsTable = () => {
     pendingPaymentDateMode,
   ]);
 
-  const generateFixedsToShow = () => {
-    const list: RecordFormEntry[] = [];
-    const now = new Date()
-    const baseYear = group?.year ?? now.getFullYear()
-    const baseMonth = group?.month ?? now.getMonth() + 1
-    Fixeds.map((fixed) => {
-      const alreadyAdded = records.find(
-        (records) => records.fixed_id == fixed.id
-      );
-      if (!alreadyAdded) {
-        // Use the selected group month so an unpaid fixed whose day already
-        // passed is still listed as pending instead of jumping to next month.
-        const date = new Date(baseYear, baseMonth - 1, fixed.fixed_day);
-
-        const split = computeParticipantShares(
-          fixed.fixed_amount,
-          fixedParticipants
-            .filter((participant) => participant.owner_id === fixed.id)
-            .map((participant) => ({
-              personId: participant.person_id,
-              shareMode: participant.share_mode as 'percent' | 'amount',
-              sharePercent: participant.share_percent,
-              shareAmountCents: participant.share_amount_cents ?? null,
-            }))
-        );
-        const sharedAmount = split.sharedCents
-        const ownAmount = split.ownCents
-        list.push({
-          id: undefined,
-          fixed_id: fixed.id,
-          amount: ownAmount,
-          own_amount_cents: ownAmount,
-          shared_amount_cents: sharedAmount,
-          date: date.getTime(),
-          group_id: group?.id || 0,
-          record_name: fixed.fixed_name,
-          record_type_id: fixed.record_type_id,
-          category_id: fixed.category_id,
-          payment_method_id: fixed.payment_method_id,
-          RecordTypes: fixed.RecordTypes,
-          PaymentMethods: fixed.PaymentMethods,
-        });
-      }
-    });
-    setFixedsToShow(list);
-  };
+  const fixedsToShow = useMemo<RecordFormEntry[]>(
+    () =>
+      pendingFixeds.map(({ fixed, date, ownCents, sharedCents }) => ({
+        id: undefined,
+        fixed_id: fixed.id,
+        amount: ownCents,
+        own_amount_cents: ownCents,
+        shared_amount_cents: sharedCents,
+        date,
+        group_id: group?.id || 0,
+        record_name: fixed.fixed_name,
+        record_type_id: fixed.record_type_id,
+        category_id: fixed.category_id,
+        payment_method_id: fixed.payment_method_id,
+        RecordTypes: fixed.RecordTypes,
+        PaymentMethods: fixed.PaymentMethods,
+      })),
+    [pendingFixeds, group?.id]
+  );
 
   useEffect(() => {
     let active = true
@@ -327,33 +297,6 @@ const ItemsTable = () => {
       })
     return () => { active = false }
   }, [])
-
-  useEffect(() => {
-    let active = true
-    participantsRepository
-      .fetchAll('fixed')
-      .then((rows) => {
-        if (active) setFixedParticipants(rows)
-      })
-      .catch((cause) => {
-        if (!active) return
-        if (__DEV__) console.warn("[records] participants load failed", cause)
-        const mapped = mapDatabaseError(cause, t("toast.error"))
-        showToast({
-          message: t(`dbErrors.${mapped.code}` as never),
-          type: "error",
-        })
-      })
-    return () => { active = false }
-  }, [Fixeds])
-
-  useEffect(generateFixedsToShow, [
-    records,
-    Fixeds,
-    fixedParticipants,
-    group?.year,
-    group?.month,
-  ]);
 
   const onCreditPayment = (item: RecordFormEntry) => {
     setSelected(item);

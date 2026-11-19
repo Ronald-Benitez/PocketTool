@@ -24,9 +24,20 @@ export const settingsEn = {
         "selectCreditPaymentType": "Credit payments type",
         "pendingPaymentDate": "Pending card payment date",
         "pendingPaymentDateToday": "Today",
-        "pendingPaymentDateCard": "Card payment date",
+        "pendingPaymentDateCard": "Card payment day in the group month",
+        "pendingPaymentDateNext": "Next card payment day",
         "pendingPaymentDateHint":
-            "Date used when pending card payments appear in Records.",
+            "Date used when pending card payments appear in Records. The next payment day is calculated from today, like in Credits.",
+        "pendingFixedDate": "Pending fixed transaction date",
+        "pendingFixedDateGroupMonth": "Fixed day in the group month",
+        "pendingFixedDateNext": "Next occurrence from today",
+        "pendingFixedDateHint":
+            "Date proposed for pending fixed transactions in Records and Home.",
+        "pendingFixedDedupe": "Fixed transaction payment detection",
+        "pendingFixedDedupeGroup": "Only in the selected group",
+        "pendingFixedDedupePeriod": "By period (month of the proposed date)",
+        "pendingFixedDedupeHint":
+            "Choose whether a fixed is considered paid when it has a record in the group or in the same period.",
         "export": "Export database",
         "import": "Import database",
         "languages": {
@@ -131,9 +142,20 @@ export const settingsEs: MessageShape<typeof settingsEn> = {
         "selectCreditPaymentType": "Tipo de pagos a crédito",
         "pendingPaymentDate": "Fecha de pagos pendientes de tarjeta",
         "pendingPaymentDateToday": "Hoy",
-        "pendingPaymentDateCard": "Fecha de pago de la tarjeta",
+        "pendingPaymentDateCard": "Día de pago en el mes del grupo",
+        "pendingPaymentDateNext": "Próximo día de pago de la tarjeta",
         "pendingPaymentDateHint":
-            "Fecha que se usa cuando aparecen pagos pendientes de tarjeta en Registros.",
+            "Fecha que se usa cuando aparecen pagos pendientes de tarjeta en Registros. El próximo día de pago se calcula desde hoy, como en Créditos.",
+        "pendingFixedDate": "Fecha de gastos fijos pendientes",
+        "pendingFixedDateGroupMonth": "Día del fijo en el mes del grupo",
+        "pendingFixedDateNext": "Próxima ocurrencia desde hoy",
+        "pendingFixedDateHint":
+            "Fecha propuesta para los gastos fijos pendientes en Registros e Inicio.",
+        "pendingFixedDedupe": "Detección de gastos fijos pagados",
+        "pendingFixedDedupeGroup": "Solo en el grupo seleccionado",
+        "pendingFixedDedupePeriod": "Por periodo (mes de la fecha propuesta)",
+        "pendingFixedDedupeHint":
+            "Elige si un fijo se considera pagado cuando tiene un registro en el grupo o en el mismo periodo.",
         "export": "Exportar base de datos",
         "import": "Importar base de datos",
         "languages": {

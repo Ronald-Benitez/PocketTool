@@ -90,7 +90,7 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "The selected group drives the whole app. Switching groups changes the visible records and totals. The pin action remembers your favorite group."
+                "body": "The selected group drives the whole app. Switching groups changes the visible records and totals. The pin action remembers your favorite group. The group month is a container; it only determines pending fixed dates when that mode is selected in Settings."
             },
             "steps": {
                 "title": "Step by step",
@@ -120,7 +120,7 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "Income adds to the balance, expense subtracts, and transfer moves money between payment methods. Amounts are stored as integer cents. A shared record keeps your own amount in the record and the shared portion separately, so personal balances only use what you really pay. Pending card payments can use today's date or the card payment day; choose it in Settings."
+                "body": "Income adds to the balance, expense subtracts, and transfer moves money between payment methods. Amounts are stored as integer cents. A shared record keeps your own amount in the record and the shared portion separately, so personal balances only use what you really pay. Pending card payments can use today's date, the card payment day inside the group month, or the next card payment day calculated from today; choose it in Settings."
             },
             "steps": {
                 "title": "Step by step",
@@ -150,7 +150,7 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "On the configured day, PocketTool reminds you to confirm it. Confirming creates the corresponding record for the selected group. Pending credit and loan payments also appear in Records; opening one loads the payment form with its amount, date and expense data. A fixed expense can be split among several people registered in the People section. When it is shared, the record stores your own amount and the shared portion separately, and each person's share appears in their payment history."
+                "body": "On the configured day, PocketTool reminds you to confirm it. Confirming creates the corresponding record for the selected group. The proposed date can follow the group month or the next occurrence of the fixed day from today; Settings also decides whether a fixed is considered paid by the selected group or by the period of the proposed date. Home uses the same settings and shows the reminder when the resolved date is today. Pending credit and loan payments also appear in Records; opening one loads the payment form with its amount, date and expense data. A fixed expense can be split among several people registered in the People section. When it is shared, the record stores your own amount and the shared portion separately, and each person's share appears in their payment history."
             },
             "steps": {
                 "title": "Step by step",
@@ -160,7 +160,7 @@ export const helpEn = {
             },
             "example": {
                 "title": "Example",
-                "body": "Rent of 3,000 on day 5. On October 5 it appears as a reminder; confirming it creates the October expense."
+                "body": "Rent of 3,000 on day 5. On October 5 it appears as a reminder; confirming it creates the October expense. If today is October 25 and the next occurrence mode is active, the proposed date is November 5."
             },
             "tips": {
                 "title": "Tips",
@@ -744,7 +744,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "El grupo seleccionado controla toda la app. Cambiar de grupo cambia los registros y totales visibles. La acción de fijar recuerda tu grupo favorito."
+                "body": "El grupo seleccionado controla toda la app. Cambiar de grupo cambia los registros y totales visibles. La acción de fijar recuerda tu grupo favorito. El mes del grupo es un contenedor; solo determina las fechas de fijos pendientes cuando ese modo está seleccionado en Configuraciones."
             },
             "steps": {
                 "title": "Paso a paso",
@@ -774,7 +774,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "El ingreso suma al balance, el gasto resta y la transferencia mueve dinero entre métodos de pago. Los montos se guardan en centavos enteros. Un registro compartido guarda tu monto propio y separa la parte compartida, para que los balances personales solo usen lo que realmente pagas. Los pagos pendientes de tarjeta pueden usar la fecha de hoy o el día de pago de la tarjeta; se elige en Configuraciones."
+                "body": "El ingreso suma al balance, el gasto resta y la transferencia mueve dinero entre métodos de pago. Los montos se guardan en centavos enteros. Un registro compartido guarda tu monto propio y separa la parte compartida, para que los balances personales solo usen lo que realmente pagas. Los pagos pendientes de tarjeta pueden usar la fecha de hoy, el día de pago dentro del mes del grupo o el próximo día de pago calculado desde hoy; se elige en Configuraciones."
             },
             "steps": {
                 "title": "Paso a paso",
@@ -804,7 +804,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "En el día configurado, PocketTool te recuerda confirmarla. Al confirmar se crea el registro correspondiente en el grupo seleccionado. Los pagos pendientes de créditos y préstamos también aparecen en Registros; al abrirlos se carga el formulario de pago con su monto, fecha y datos del gasto. Un gasto fijo puede dividirse entre varias personas registradas en la sección Personas. Cuando es compartido, el registro guarda tu monto propio y la parte compartida por separado, y la parte de cada persona aparece en su historial de pagos."
+                "body": "En el día configurado, PocketTool te recuerda confirmarla. Al confirmar se crea el registro correspondiente en el grupo seleccionado. La fecha propuesta puede seguir el mes del grupo o la próxima ocurrencia del día del fijo desde hoy; Configuraciones también decide si un fijo se considera pagado por el grupo seleccionado o por el periodo de la fecha propuesta. Inicio usa las mismas configuraciones y muestra el recordatorio cuando la fecha resuelta es hoy. Los pagos pendientes de créditos y préstamos también aparecen en Registros; al abrirlos se carga el formulario de pago con su monto, fecha y datos del gasto. Un gasto fijo puede dividirse entre varias personas registradas en la sección Personas. Cuando es compartido, el registro guarda tu monto propio y la parte compartida por separado, y la parte de cada persona aparece en su historial de pagos."
             },
             "steps": {
                 "title": "Paso a paso",
@@ -814,7 +814,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "example": {
                 "title": "Ejemplo",
-                "body": "Renta de 3,000 el día 5. El 5 de octubre aparece como recordatorio; al confirmar se crea el gasto de octubre."
+                "body": "Renta de 3,000 el día 5. El 5 de octubre aparece como recordatorio; al confirmar se crea el gasto de octubre. Si hoy es 25 de octubre y el modo de próxima ocurrencia está activo, la fecha propuesta es el 5 de noviembre."
             },
             "tips": {
                 "title": "Consejos",

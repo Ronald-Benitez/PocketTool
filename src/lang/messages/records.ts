@@ -43,7 +43,9 @@ export const recordsEn = {
         "selectCategory": "Select a category",
         "selectPayment": "Select a payment method",
         "selectToPay": "Select the payment method to pay",
-        "dayHint": "Day of month (1-31)"
+        "dayHint": "Day of month (1-31)",
+        "fixedPendingDateHint":
+            "The proposed date is calculated from the fixed day and the configured mode. Adjust it if this payment belongs to another period."
     },
     "totals": {
         "incomeCredit": "Total Income (Credit)",
@@ -105,7 +107,9 @@ export const recordsEs: MessageShape<typeof recordsEn> = {
         "selectCategory": "Seleccione una categoria",
         "selectPayment": "Seleccione un método de pago",
         "selectToPay": "Seleccione el método de pago a pagar",
-        "dayHint": "Día del mes (1-31)"
+        "dayHint": "Día del mes (1-31)",
+        "fixedPendingDateHint":
+            "La fecha propuesta se calcula con el día del fijo y el modo configurado. Ajústala si este pago corresponde a otro periodo."
     },
     "totals": {
         "incomeCredit": "Total de Ingresos (Crédito)",

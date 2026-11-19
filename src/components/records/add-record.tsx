@@ -669,6 +669,12 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                         value={date}
                         onChange={setDate}
                     />
+                    {item?.fixed_id != null && item?.id == null ? (
+                        <InlineMessage
+                            variant='info'
+                            message={t('item.fixedPendingDateHint')}
+                        />
+                    ) : null}
                 </View>
             </Modal>
         </>

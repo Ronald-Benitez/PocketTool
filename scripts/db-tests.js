@@ -321,6 +321,34 @@ async function testLegacyMigration() {
   assert.strictEqual(page.length, 2);
   assert.ok(page[0].id > 1);
 
+  // Pending fixed deduplication reads records by fixed_id across groups.
+  const fixedId = await new ORM(db, 'Fixed').insert({
+    fixed_amount: 1000,
+    fixed_name: 'Pending fixed check',
+    fixed_day: 5,
+  });
+  const fixedRecordId = await new ORM(db, 'Records').insert({
+    amount: 1000,
+    record_name: 'Fixed record',
+    date: Date.now(),
+    group_id: 1,
+    fixed_id: fixedId,
+  });
+  const deletedFixedRecordId = await new ORM(db, 'Records').insert({
+    amount: 1000,
+    record_name: 'Deleted fixed record',
+    date: Date.now(),
+    group_id: 1,
+    fixed_id: fixedId,
+  });
+  await new ORM(db, 'Records').delete(deletedFixedRecordId);
+  const fixedRecords = await new ORM(db, 'Records')
+    .where('fixed_id', [fixedId], 'IN')
+    .getAll();
+  assert.strictEqual(fixedRecords.length, 1);
+  assert.strictEqual(fixedRecords[0].id, fixedRecordId);
+  assert.strictEqual(fixedRecords[0].fixed_id, fixedId);
+
   await recordsOrm.delete(999);
   const visible = await new ORM(db, 'Records').getAll();
   assert.ok(!visible.some(r => r.id === 999), 'soft deleted row should be hidden');

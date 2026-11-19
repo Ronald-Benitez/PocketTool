@@ -58,4 +58,48 @@ describe('resolvePendingPaymentDate', () => {
       })
     ).toBe(new Date(2026, 10, 5, 12, 0, 0, 0).getTime());
   });
+
+  it('uses the next card payment day from today', () => {
+    expect(
+      resolvePendingPaymentDate({
+        mode: 'next_payment_date',
+        now,
+        groupYear: 2026,
+        groupMonth: 10,
+        paymentDay: 20,
+      })
+    ).toBe(new Date(2026, 10, 20, 12, 0, 0, 0).getTime());
+
+    expect(
+      resolvePendingPaymentDate({
+        mode: 'next_payment_date',
+        now,
+        groupYear: 2026,
+        groupMonth: 10,
+        paymentDay: 5,
+      })
+    ).toBe(new Date(2026, 11, 5, 12, 0, 0, 0).getTime());
+
+    expect(
+      resolvePendingPaymentDate({
+        mode: 'next_payment_date',
+        now,
+        paymentDay: 17,
+      })
+    ).toBe(new Date(2026, 10, 17, 12, 0, 0, 0).getTime());
+  });
+
+  it('ignores the group month in next_payment_date mode', () => {
+    const result = resolvePendingPaymentDate({
+      mode: 'next_payment_date',
+      now,
+      groupYear: 2020,
+      groupMonth: 0,
+      paymentDay: 20,
+    });
+
+    expect(result).toBe(
+      new Date(2026, 10, 20, 12, 0, 0, 0).getTime()
+    );
+  });
 });

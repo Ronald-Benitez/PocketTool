@@ -10,6 +10,7 @@ import { useFinancingsRepository, usePaymentMethods } from '@/src/db';
 import { PaymentMethodVisual } from '@/src/components/payments/PaymentMethodVisual';
 import { SummaryModeToggle } from '@/src/components/summaries/SummaryModeToggle';
 import { cardUtilization } from '@/src/domain/credits/amortization';
+import { resolveNextMonthlyDay } from '@/src/domain/shared/recurrence';
 import { useSummaryMode } from '@/src/hooks/useSummaryMode';
 import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock';
 
@@ -108,14 +109,8 @@ const Index = () => {
         return getStringDate(closingDate.getTime());
     }
 
-    const nextPaymentDateToShow = (day: number) => {
-        const today = new Date();
-        let paymentDate = dateForDay(today.getFullYear(), today.getMonth(), day);
-        if (paymentDate < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
-            paymentDate = dateForDay(today.getFullYear(), today.getMonth() + 1, day);
-        }
-        return getStringDate(paymentDate.getTime());
-    }
+    const nextPaymentDateToShow = (day: number) =>
+        getStringDate(resolveNextMonthlyDay({ now: new Date().getTime(), day }));
 
     return (
         <View style={styles.container}>
