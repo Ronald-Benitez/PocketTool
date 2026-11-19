@@ -38,6 +38,9 @@ detalle, usa `**Secciones:**` y busca el encabezado con
 - [`fase-15-pending-dates-plan.md`](fase-15-pending-dates-plan.md): plan de
   fechas de pagos pendientes de tarjeta y fijos (Fase 15), implementado,
   validado y archivado.
+- [`fase-16-group-closing-plan.md`](fase-16-group-closing-plan.md): plan del
+  cierre informativo de periodo configurable (Fase 16), implementado, validado
+  y archivado.
 - [`db-summary.md`](db-summary.md): resumen anterior de la base de datos,
   reemplazado por [`../database.md`](../database.md).
 

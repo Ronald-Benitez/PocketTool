@@ -33,6 +33,7 @@ arquitectura y enlaces. La documentación se lee **por secciones**, no completa.
   créditos, ahorros, vehículo, personas y compartidos.
 - [`plans/futuro-borrador.md`](plans/futuro-borrador.md): pendientes futuros,
   principalmente el criterio del plan mensual en Presupuestos.
+
 - [`release-notes/4.0.5-google-play.md`](release-notes/4.0.5-google-play.md):
   notas de Google Play 4.0.5 en inglés y español.
 - [`release-notes/4.0.4-google-play.md`](release-notes/4.0.4-google-play.md):
@@ -62,6 +63,8 @@ arquitectura y enlaces. La documentación se lee **por secciones**, no completa.
   nuevo” acumulado (Fase 14).
 - [`legacy/fase-15-pending-dates-plan.md`](legacy/fase-15-pending-dates-plan.md):
   fechas de pagos pendientes de tarjeta y fijos (Fase 15).
+- [`legacy/fase-16-group-closing-plan.md`](legacy/fase-16-group-closing-plan.md):
+  cierre informativo de periodo configurable (Fase 16).
 - [`legacy/db-summary.md`](legacy/db-summary.md): resumen anterior de base de
   datos.
 
@@ -100,6 +103,7 @@ arquitectura y enlaces. La documentación se lee **por secciones**, no completa.
 | Fase 13 — Pendientes de Fase 12 y ajustes de Registros/Vehículo | ✅ Finalizada (2026-11-17) |
 | Fase 14 — “Qué hay de nuevo” acumulado | ✅ Finalizada (2026-11-17) |
 | Fase 15 — Fechas de pagos pendientes de tarjeta y fijos | ✅ Finalizada (2026-11-18) |
+| Fase 16 — Cierre informativo de periodo configurable | ✅ Finalizada (2026-11-18) |
 
 ## Regla de mantenimiento
 

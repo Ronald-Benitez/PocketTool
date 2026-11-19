@@ -22,6 +22,7 @@
 | Fase 13 — Pendientes de Fase 12 y ajustes de Registros/Vehículo | ✅ Finalizada | 2026-11-17 |
 | Fase 14 — “Qué hay de nuevo” acumulado | ✅ Finalizada | 2026-11-17 |
 | Fase 15 — Fechas de pagos pendientes de tarjeta y fijos | ✅ Finalizada | 2026-11-18 |
+| Fase 16 — Cierre informativo de periodo | ✅ Finalizada | 2026-11-18 |
 
 ## Fase activa
 
@@ -38,7 +39,7 @@ se detiene y pide cuál cerrar.
 - **Dinero/fechas:** centavos enteros y timestamps Unix en milisegundos.
 - **Auditoría:** `created_at`/`updated_at` con triggers; soft delete con
   `deleted_at`.
-- **Migraciones:** `0001` a `0023`; `SCHEMA_VERSION = 23`.
+- **Migraciones:** `0001` a `0024`; `SCHEMA_VERSION = 24`.
 - **Acceso a datos:** ORM tipado + repositorios; la UI no usa `useORM` ni SQL.
 - **Backups:** dump SQL con metadatos versionados y compatibilidad legacy.
 - **Calidad:** `test:db` con `node:sqlite`, Jest, typecheck, lint bloqueante y
@@ -152,8 +153,6 @@ Plan completo en [`legacy/savings-plan.md`](legacy/savings-plan.md).
   excluyen del gasto del mes.
 - Personas con aportes y saldo en ahorros; pruebas de migración, movimientos,
   saldo insuficiente y vínculo/desvínculo.
-- Commits principales: `e3e6a7a`, `b7be5c4`, `2dc3bd8`, `17cdc4f`, `cf21572`,
-  `e1a281c`, `789a125`, `e5a1fc0`, `5cc9684`, `b33df55`, `7dc8c1b`.
 
 ## Fase 12 — Compras compartidas, saldo por persona y doble balance (✅ 2026-11-11)
 
@@ -196,19 +195,25 @@ Plan completo en [`legacy/whats-new-plan.md`](legacy/whats-new-plan.md).
   ni bloquea el arranque.
 - `/notas-version` queda a cargo de las notas de Play, el catálogo in-app y el
   bump de versión.
-- Commits principales: `1eb2061`, `7b59c00`, `0dbc416`, `eedaaf1`, `ce01b8e`.
 
 ## Fase 15 — Fechas de pagos pendientes de tarjeta y fijos (✅ 2026-11-18)
 
-Plan completo en
+Plan en
 [`legacy/fase-15-pending-dates-plan.md`](legacy/fase-15-pending-dates-plan.md).
 
-- `next_payment_date` para tarjeta; `pendingFixedDateMode` y
-  `pendingFixedDedupeMode` para fijos, con `usePendingFixeds` compartido entre
-  Registros e Inicio y aviso de fecha editable.
-- Ayuda bilingüe, pruebas de dominio y DB; sin cambios de esquema.
-- Verificación: typecheck, 205 tests, `test:db`, lint, doctor, `docs:audit` y
-  export Android.
+- `next_payment_date`, modos de fijos y `usePendingFixeds` para Registros e
+  Inicio; ayuda bilingüe y pruebas. Sin cambios de esquema.
+
+## Fase 16 — Cierre informativo de periodo configurable (✅ 2026-11-18)
+
+Plan en
+[`legacy/fase-16-group-closing-plan.md`](legacy/fase-16-group-closing-plan.md).
+
+- Migración `0024`: cierres con periodo y vencimiento configurables, varios
+  borradores y un final por grupo.
+- Datos registrados sin duplicados, balance configurable, edición manual,
+  validación tarjeta + ahorro y backups con configuraciones.
+- Resúmenes con efectos, grupo estable y verificación completa.
 
 ## Decisiones vigentes
 
