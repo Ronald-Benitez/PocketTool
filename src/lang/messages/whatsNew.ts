@@ -13,6 +13,38 @@ export const whatsNewEn = {
     manualSubtitle: 'Review the changes included in recent updates.',
   },
   items: {
+    closing: {
+      title: 'Closing',
+      body: 'A new section calculates what you have and what you must pay for a period without changing records, debts or savings. Compare each card with your statement, autofill cards, fixed expenses and financings, attach registered data without duplicates, choose the balance to use and add your own lines. If money is short, choose where it comes from; if it is left over, choose where it goes.',
+    },
+    closingPeriod: {
+      title: 'Configurable closing period',
+      body: 'Use a calendar month, a cutoff day, a start day or a custom range, with grace days and its own deadline. Keep several drafts or a single final with history; expired closings are read-only.',
+    },
+    pendingCardDate: {
+      title: 'Next card payment date',
+      body: 'Pending card payments can use the next card payment day as their date, in addition to today or the payment day of the group month.',
+    },
+    pendingFixedDates: {
+      title: 'Pending fixed expenses',
+      body: 'Choose whether a pending fixed expense uses the fixed day of the group month or the next occurrence from today, and whether already-paid ones are detected only in the selected group or by period. Applies to Records and Home.',
+    },
+    cardSavingRule: {
+      title: 'Card and savings',
+      body: 'A new record can no longer combine a credit card with savings. Historical records keep their data and are only flagged in the closing.',
+    },
+    summaryEffects: {
+      title: 'Summaries with correct effects',
+      body: 'Summaries now apply the effect of each record type, including gross paid: income adds and expenses subtract. The general balance and the summaries use the same selected record types.',
+    },
+    stableGroup: {
+      title: 'Stable selected group',
+      body: 'Changing views no longer resets the selected group to the last registered group.',
+    },
+    backupSettings: {
+      title: 'Settings in backups',
+      body: 'Backups now include app settings such as selected record types, language, theme, balance modes and closing rules.',
+    },
     sharedPurchases: {
       title: 'Shared purchases',
       body: 'Split records and fixed expenses with one or more people and choose who paid. Each person keeps their own share and payment history.',
@@ -69,6 +101,38 @@ export const whatsNewEs = {
     manualSubtitle: 'Revisa los cambios incluidos en las actualizaciones recientes.',
   },
   items: {
+    closing: {
+      title: 'Cierre',
+      body: 'Una sección nueva calcula lo que tienes y lo que debes pagar en un periodo sin modificar registros, deudas ni ahorros. Compara cada tarjeta con tu estado de cuenta, autocompleta tarjetas, gastos fijos y financiamientos, vincula datos registrados sin repetirlos, elige el balance a usar y agrega tus propias líneas. Si falta dinero, elige de dónde sale; si sobra, elige a dónde va.',
+    },
+    closingPeriod: {
+      title: 'Periodo del cierre configurable',
+      body: 'Usa mes calendario, día de corte, día de inicio o un rango personalizado, con días de gracia y su propia fecha límite. Guarda varios borradores o un solo final con historial; los cierres vencidos son de solo lectura.',
+    },
+    pendingCardDate: {
+      title: 'Próxima fecha de pago de tarjeta',
+      body: 'Los pagos pendientes de tarjeta pueden usar el próximo día de pago como fecha, además de hoy o el día de pago del mes del grupo.',
+    },
+    pendingFixedDates: {
+      title: 'Gastos fijos pendientes',
+      body: 'Elige si un gasto fijo pendiente usa el día del fijo en el mes del grupo o la próxima ocurrencia desde hoy, y si los ya pagados se detectan solo en el grupo seleccionado o por periodo. Aplica en Registros e Inicio.',
+    },
+    cardSavingRule: {
+      title: 'Tarjeta y ahorros',
+      body: 'Un registro nuevo ya no puede combinar una tarjeta de crédito con ahorros. Los registros históricos conservan sus datos y solo se advierten en el cierre.',
+    },
+    summaryEffects: {
+      title: 'Resúmenes con efectos correctos',
+      body: 'Los resúmenes ahora aplican el efecto de cada tipo de registro, incluido el propio bruto: los ingresos suman y los gastos restan. El balance general y los resúmenes usan los mismos tipos seleccionados.',
+    },
+    stableGroup: {
+      title: 'Grupo seleccionado estable',
+      body: 'Cambiar de vista ya no reinicia el grupo seleccionado al último grupo registrado.',
+    },
+    backupSettings: {
+      title: 'Configuraciones en el respaldo',
+      body: 'Los respaldos ahora incluyen configuraciones como tipos de registro seleccionados, idioma, tema, modos de balance y reglas de cierre.',
+    },
     sharedPurchases: {
       title: 'Compras compartidas',
       body: 'Reparte registros y gastos fijos con una o varias personas y elige quién pagó. Cada persona conserva su parte y su historial de pagos.',

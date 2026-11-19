@@ -47,4 +47,18 @@ export const RELEASE_NOTES: ReleaseNote[] = [
       whatsNewItem('whatsNewRelease', 'feature'),
     ],
   },
+  {
+    version: '4.0.6',
+    date: '2026-11-18',
+    items: [
+      whatsNewItem('closing', 'feature'),
+      whatsNewItem('closingPeriod', 'improvement'),
+      whatsNewItem('pendingCardDate', 'improvement'),
+      whatsNewItem('pendingFixedDates', 'improvement'),
+      whatsNewItem('cardSavingRule', 'fix'),
+      whatsNewItem('summaryEffects', 'fix'),
+      whatsNewItem('stableGroup', 'fix'),
+      whatsNewItem('backupSettings', 'improvement'),
+    ],
+  },
 ];
