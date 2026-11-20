@@ -190,7 +190,7 @@ describe('budget comparison', () => {
     ).toBe(true);
   });
 
-  it('builds charts and sanitizes labels', () => {
+  it('builds structured chart specs without altering labels', () => {
     const input = baseInput();
     input.categories[0].category_name = 'Food "and" [drinks]';
     const view = calculateBudgetPlanView(input);
@@ -200,13 +200,22 @@ describe('budget comparison', () => {
     const comparison = buildBudgetComparisonChart(view, labels);
     const projection = buildBudgetProjectionChart(view, labels);
 
-    expect(health).toContain('pie showData');
-    expect(distribution).toContain('Food and drinks');
-    expect(distribution).not.toContain('"and"');
-    expect(comparison).toContain('xychart-beta');
-    expect(comparison).toContain('bar [');
-    expect(projection).toContain('xychart-beta');
-    expect(projection).toContain('Projection');
+    expect(health?.kind).toBe('pie');
+    expect(health?.series[0].points.length).toBeGreaterThan(0);
+    expect(distribution?.kind).toBe('pie');
+    expect(distribution?.series[0].points[0].x).toBe('Food "and" [drinks]');
+    expect(comparison?.kind).toBe('grouped_bar');
+    expect(comparison?.series.map((series) => series.key)).toEqual([
+      'planned',
+      'actual',
+    ]);
+    expect(
+      comparison?.series[0].points.every(
+        (point) => typeof point.y === 'number' && point.y > 0
+      )
+    ).toBe(true);
+    expect(projection?.kind).toBe('grouped_bar');
+    expect(projection?.series[1].key).toBe('projected');
   });
 
   it('returns null charts when there is no expense data', () => {
