@@ -35,6 +35,8 @@ import {
   useTheme,
   useToast,
 } from '@/src/ui';
+import { Chart, ChartCard } from '@/src/ui/charts';
+import type { ChartSpec } from '@/src/domain/charts/types';
 
 const GalleryScreen = () => {
   const { colors, mode, resolvedMode, palettes, setMode } = useTheme();
@@ -49,6 +51,80 @@ const GalleryScreen = () => {
   const [enabled, setEnabled] = useState(true);
   const [color, setColor] = useState(colors.primary);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const lineSpec: ChartSpec = {
+    kind: 'line',
+    title: 'Line',
+    xAxis: { type: 'time', format: 'date' },
+    yAxis: { format: 'money' },
+    series: [
+      {
+        key: 'own',
+        label: 'Own',
+        tone: 'primary',
+        points: [
+          { x: new Date(2026, 0, 1).getTime(), y: 12000 },
+          { x: new Date(2026, 1, 1).getTime(), y: 18000 },
+          { x: new Date(2026, 2, 1).getTime(), y: 15000 },
+          { x: new Date(2026, 3, 1).getTime(), y: 24000 },
+        ],
+      },
+      {
+        key: 'shared',
+        label: 'Shared',
+        tone: 'muted',
+        points: [
+          { x: new Date(2026, 0, 1).getTime(), y: 4000 },
+          { x: new Date(2026, 1, 1).getTime(), y: 5000 },
+          { x: new Date(2026, 2, 1).getTime(), y: 4500 },
+          { x: new Date(2026, 3, 1).getTime(), y: 6000 },
+        ],
+      },
+    ],
+  };
+  const groupedSpec: ChartSpec = {
+    kind: 'grouped_bar',
+    title: 'Grouped',
+    xAxis: { type: 'category' },
+    yAxis: { format: 'money' },
+    series: [
+      {
+        key: 'planned',
+        label: 'Planned',
+        tone: 'planned',
+        points: [
+          { x: 'Food', y: 20000 },
+          { x: 'Rent', y: 50000 },
+        ],
+      },
+      {
+        key: 'actual',
+        label: 'Actual',
+        tone: 'actual',
+        points: [
+          { x: 'Food', y: 17000 },
+          { x: 'Rent', y: 52000 },
+        ],
+      },
+    ],
+  };
+  const pieSpec: ChartSpec = {
+    kind: 'donut',
+    title: 'Donut',
+    yAxis: { format: 'money' },
+    showValues: true,
+    series: [
+      {
+        key: 'distribution',
+        label: 'Distribution',
+        tone: 'primary',
+        points: [
+          { x: 'Food', y: 20000, tone: 'planned' },
+          { x: 'Rent', y: 50000, tone: 'actual' },
+          { x: 'Transport', y: 12000, tone: 'projected' },
+        ],
+      },
+    ],
+  };
 
   return (
     <Screen scroll>
@@ -382,6 +458,36 @@ const GalleryScreen = () => {
             </Column>
           </Surface>
         </Stack>
+
+        <ChartCard
+          chartKey='gallery.line'
+          title='Line chart'
+          spec={lineSpec}
+          height={240}
+        />
+        <ChartCard
+          chartKey='gallery.grouped'
+          title='Grouped bars'
+          spec={groupedSpec}
+          height={240}
+        />
+        <ChartCard
+          chartKey='gallery.donut'
+          title='Donut'
+          spec={pieSpec}
+          height={240}
+        />
+        <Surface variant='outlined'>
+          <Stack gap='sm'>
+            <AppText variant='title'>Chart (standalone)</AppText>
+            <Chart
+              spec={lineSpec}
+              height={200}
+              accessibilityLabel='Line chart'
+              showDataToggle={false}
+            />
+          </Stack>
+        </Surface>
 
         <Surface variant='muted'>
           <Stack gap='xs'>
