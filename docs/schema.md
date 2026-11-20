@@ -3,7 +3,7 @@
 > Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.
 > Fuente de verdad: `src/db/schema/tables.ts`.
 
-Versión de esquema: **25**
+Versión de esquema: **26**
 
 ## Convenciones
 
@@ -20,38 +20,39 @@ completo.
 
 | Tabla | Física | Entidad | Columnas | Índices | Línea |
 | --- | --- | --- | ---: | ---: | ---: |
-| `Groups` | `groups` | `Group` | 11 | 2 | 56 |
-| `PaymentTypes` | `payment_types` | `PaymentType` | 6 | 0 | 80 |
-| `PaymentMethods` | `payment_methods` | `PaymentMethod` | 17 | 1 | 95 |
-| `Categories` | `categories` | `Category` | 5 | 0 | 126 |
-| `RecordTypes` | `record_types` | `RecordType` | 7 | 0 | 140 |
-| `Fixed` | `fixed_records` | `FixedRecord` | 10 | 4 | 156 |
-| `People` | `people` | `Person` | 7 | 1 | 183 |
-| `Records` | `records` | `RecordEntry` | 18 | 7 | 202 |
-| `PaidCredits` | `paid_credits` | `PaidCredit` | 8 | 3 | 240 |
-| `Financings` | `financings` | `Financing` | 27 | 2 | 264 |
-| `FinancingPayments` | `financing_payments` | `FinancingPayment` | 19 | 2 | 306 |
-| `FinancingAdjustments` | `financing_adjustments` | `FinancingAdjustment` | 13 | 1 | 340 |
-| `PersonSettlements` | `person_settlements` | `PersonSettlement` | 10 | 2 | 367 |
-| `SharedExpenseParticipants` | `shared_expense_participants` | `SharedExpenseParticipant` | 11 | 2 | 392 |
-| `SharedPaymentAllocations` | `shared_payment_allocations` | `SharedPaymentAllocation` | 13 | 3 | 418 |
-| `BudgetTemplates` | `budget_templates` | `BudgetTemplate` | 8 | 0 | 447 |
-| `BudgetTemplateItems` | `budget_template_items` | `BudgetTemplateItem` | 13 | 4 | 464 |
-| `BudgetPlans` | `budget_plans` | `BudgetPlan` | 10 | 2 | 494 |
-| `BudgetLines` | `budget_lines` | `BudgetLine` | 15 | 6 | 519 |
-| `Savings` | `savings` | `Saving` | 21 | 1 | 553 |
-| `SavingsHistory` | `savings_history` | `SavingsHistoryEntry` | 17 | 4 | 586 |
-| `SavingsSettings` | `savings_settings` | `SavingsSetting` | 9 | 0 | 620 |
-| `GroupClosings` | `group_closings` | `GroupClosing` | 18 | 2 | 640 |
-| `GroupClosingLines` | `group_closing_lines` | `GroupClosingLine` | 20 | 9 | 673 |
-| `Migrations` | `migrations` | `Migration` | 3 | 0 | 715 |
-| `Vehicles` | `vehicles` | `Vehicle` | 19 | 1 | 725 |
-| `VehicleFuelEntries` | `vehicle_fuel_entries` | `VehicleFuelEntry` | 19 | 2 | 756 |
-| `VehicleMaintenance` | `vehicle_maintenance` | `VehicleMaintenanceEntry` | 13 | 2 | 790 |
-| `VehicleMaintenanceItems` | `vehicle_maintenance_items` | `VehicleMaintenanceItem` | 10 | 1 | 818 |
-| `VehicleReminders` | `vehicle_reminders` | `VehicleReminder` | 17 | 1 | 842 |
-| `VehicleSettings` | `vehicle_settings` | `VehicleSetting` | 7 | 0 | 873 |
-| `VehicleExpenseLinks` | `vehicle_expense_links` | `VehicleExpenseLink` | 6 | 3 | 891 |
+| `Groups` | `groups` | `Group` | 11 | 2 | 57 |
+| `PaymentTypes` | `payment_types` | `PaymentType` | 6 | 0 | 81 |
+| `PaymentMethods` | `payment_methods` | `PaymentMethod` | 17 | 1 | 96 |
+| `Categories` | `categories` | `Category` | 5 | 0 | 127 |
+| `RecordTypes` | `record_types` | `RecordType` | 7 | 0 | 141 |
+| `Fixed` | `fixed_records` | `FixedRecord` | 10 | 4 | 157 |
+| `People` | `people` | `Person` | 7 | 1 | 184 |
+| `Records` | `records` | `RecordEntry` | 18 | 7 | 203 |
+| `PaidCredits` | `paid_credits` | `PaidCredit` | 8 | 3 | 241 |
+| `Financings` | `financings` | `Financing` | 27 | 2 | 265 |
+| `FinancingPayments` | `financing_payments` | `FinancingPayment` | 19 | 2 | 307 |
+| `FinancingAdjustments` | `financing_adjustments` | `FinancingAdjustment` | 13 | 1 | 341 |
+| `PersonSettlements` | `person_settlements` | `PersonSettlement` | 10 | 2 | 368 |
+| `SharedExpenseParticipants` | `shared_expense_participants` | `SharedExpenseParticipant` | 11 | 2 | 393 |
+| `SharedPaymentAllocations` | `shared_payment_allocations` | `SharedPaymentAllocation` | 13 | 3 | 419 |
+| `BudgetTemplates` | `budget_templates` | `BudgetTemplate` | 8 | 0 | 448 |
+| `BudgetTemplateItems` | `budget_template_items` | `BudgetTemplateItem` | 13 | 4 | 465 |
+| `BudgetPlans` | `budget_plans` | `BudgetPlan` | 10 | 2 | 495 |
+| `BudgetLines` | `budget_lines` | `BudgetLine` | 15 | 6 | 520 |
+| `Savings` | `savings` | `Saving` | 21 | 1 | 554 |
+| `SavingsHistory` | `savings_history` | `SavingsHistoryEntry` | 17 | 4 | 587 |
+| `SavingsSettings` | `savings_settings` | `SavingsSetting` | 9 | 0 | 621 |
+| `GroupClosings` | `group_closings` | `GroupClosing` | 18 | 2 | 641 |
+| `GroupClosingLines` | `group_closing_lines` | `GroupClosingLine` | 20 | 9 | 674 |
+| `ChartPreferences` | `chart_preferences` | `ChartPreference` | 11 | 1 | 716 |
+| `Migrations` | `migrations` | `Migration` | 3 | 0 | 739 |
+| `Vehicles` | `vehicles` | `Vehicle` | 19 | 1 | 749 |
+| `VehicleFuelEntries` | `vehicle_fuel_entries` | `VehicleFuelEntry` | 19 | 2 | 780 |
+| `VehicleMaintenance` | `vehicle_maintenance` | `VehicleMaintenanceEntry` | 13 | 2 | 814 |
+| `VehicleMaintenanceItems` | `vehicle_maintenance_items` | `VehicleMaintenanceItem` | 10 | 1 | 842 |
+| `VehicleReminders` | `vehicle_reminders` | `VehicleReminder` | 17 | 1 | 866 |
+| `VehicleSettings` | `vehicle_settings` | `VehicleSetting` | 7 | 0 | 897 |
+| `VehicleExpenseLinks` | `vehicle_expense_links` | `VehicleExpenseLink` | 6 | 3 | 915 |
 
 ## Groups (`groups`)
 
@@ -709,6 +710,29 @@ Relaciones navegables: `GroupClosings`, `GroupClosings.Groups`, `PaymentMethods`
 - `idx_group_closing_lines_saving_unique` (closing_id, saving_id) UNIQUE WHERE deleted_at IS NULL AND saving_id IS NOT NULL
 - `idx_group_closing_lines_fixed_unique` (closing_id, fixed_id) UNIQUE WHERE deleted_at IS NULL AND fixed_id IS NOT NULL
 - `idx_group_closing_lines_financing_unique` (closing_id, financing_id) UNIQUE WHERE deleted_at IS NULL AND financing_id IS NOT NULL
+
+Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
+
+## ChartPreferences (`chart_preferences`)
+
+Entidad TypeScript: `ChartPreference`
+
+| Columna | SQL | TS | Notas |
+| --- | --- | --- | --- |
+| `id` | `INTEGER` | `number` | PK, autoincrement |
+| `chart_key` | `TEXT` | `string` | NOT NULL |
+| `collapsed` | `INTEGER` | `boolean | number` | NOT NULL, kind=boolean, default=0 |
+| `mode` | `TEXT` | `string` | default=null |
+| `hidden_series` | `TEXT` | `string` | default=null |
+| `data_limit` | `INTEGER` | `number` | default=null |
+| `limit_from_end` | `INTEGER` | `boolean | number` | NOT NULL, kind=boolean, default=1 |
+| `zoom` | `REAL` | `number` | default=null |
+| `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+
+Índices:
+- `idx_chart_preferences_key` (chart_key) UNIQUE WHERE deleted_at IS NULL
 
 Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
 

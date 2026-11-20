@@ -352,6 +352,18 @@ export interface GroupClosingLine extends Entity, SoftDeletable {
   updated_at?: TimestampMs | null;
 }
 
+export interface ChartPreference extends Entity, SoftDeletable {
+  chart_key: string;
+  collapsed: boolean | number;
+  mode?: string | null;
+  hidden_series?: string | null;
+  data_limit?: number | null;
+  limit_from_end: boolean | number;
+  zoom?: number | null;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
 export interface Migration extends Entity {
   migration_name: string;
   applied_at: TimestampMs;

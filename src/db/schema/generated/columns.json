@@ -1825,6 +1825,19 @@
     "Groups.updated_at": "Groups.updated_at",
     "Groups.deleted_at": "Groups.deleted_at"
   },
+  "ChartPreferences": {
+    "id": "id",
+    "chart_key": "chart_key",
+    "collapsed": "collapsed",
+    "mode": "mode",
+    "hidden_series": "hidden_series",
+    "data_limit": "data_limit",
+    "limit_from_end": "limit_from_end",
+    "zoom": "zoom",
+    "created_at": "created_at",
+    "updated_at": "updated_at",
+    "deleted_at": "deleted_at"
+  },
   "Migrations": {
     "id": "id",
     "migration_name": "migration_name",

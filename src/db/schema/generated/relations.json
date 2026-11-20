@@ -182,6 +182,7 @@
     "Financings.RecordTypes": "Financings.RecordTypes",
     "Groups": "Groups"
   },
+  "ChartPreferences": {},
   "Migrations": {},
   "Vehicles": {},
   "VehicleFuelEntries": {
