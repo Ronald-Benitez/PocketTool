@@ -51,6 +51,7 @@ export type {
   BudgetTemplateItem,
   Category,
   Cents,
+  ChartPreference,
   Entity,
   Financing,
   FinancingAdjustment,

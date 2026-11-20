@@ -57,6 +57,14 @@ export {
   useBudgetTemplatesRepository,
 } from './budgets';
 export {
+  useChartPreferencesRepository,
+} from './chartPreferences';
+export type {
+  ChartPreferencePatch,
+  ChartPreferenceSave,
+  ChartPreferenceView,
+} from './chartPreferences';
+export {
   useVehiclesRepository,
   useVehicleFuelRepository,
   useVehicleMaintenanceRepository,

@@ -9,6 +9,7 @@ import {
 } from './errors';
 import type {
   Group,
+  ChartPreference,
   PaymentType,
   PaymentMethod,
   PaymentMethodWithRelations,
@@ -65,6 +66,7 @@ import type {
 
 export type BaseSchemaMap = {
   Groups: Group;
+  ChartPreferences: ChartPreference;
   PaymentTypes: PaymentType;
   PaymentMethods: PaymentMethod;
   Categories: Category;
@@ -102,6 +104,7 @@ export type TableOption = TableName;
 
 export type RelationsSchemaMap = {
   Groups: Group;
+  ChartPreferences: ChartPreference;
   PaymentTypes: PaymentType;
   PaymentMethods: PaymentMethodWithRelations;
   Categories: Category;

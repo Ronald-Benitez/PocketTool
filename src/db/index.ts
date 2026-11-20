@@ -18,6 +18,7 @@ export {
   useVehicleExpenseLinksRepository,
   useFinancingsRepository,
   useGroupClosingsRepository,
+  useChartPreferencesRepository,
 } from './repositories';
 
 export { useRecordsRepository as useRecords } from './repositories';
@@ -31,6 +32,11 @@ export { useBudgetTemplatesRepository as useBudgetTemplates } from './repositori
 export { useGroupClosingsRepository as useGroupClosings } from './repositories';
 export { usePaymentMethodsRepository as usePaymentMethods } from './repositories';
 export { usePaidCreditsRepository as usePaidCredits } from './repositories';
+export type {
+  ChartPreferencePatch,
+  ChartPreferenceSave,
+  ChartPreferenceView,
+} from './repositories';
 
 
 export interface ResumeByCreditCards {

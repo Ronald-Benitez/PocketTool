@@ -60,6 +60,19 @@ export const groupUpdateSchema = groupBaseSchema
     path: ['period_end'],
   });
 
+export const chartPreferenceInputSchema = z
+  .object({
+    chart_key: z.string().min(1),
+    collapsed: z.boolean().optional().default(false),
+    mode: z.string().nullable().optional(),
+    hidden_series: z.array(z.string()).nullable().optional(),
+    data_limit: z.number().int().nonnegative().nullable().optional(),
+    limit_from_end: z.boolean().optional().default(true),
+    zoom: z.number().positive().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
 export const closingStatus = z.enum(['draft', 'final']);
 export const closingSection = z.enum([
   'available',
