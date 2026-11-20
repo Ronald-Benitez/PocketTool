@@ -12,17 +12,53 @@ const updateMeta = {
   deleted_at: timestamp.nullable().optional(),
 };
 
-export const groupInputSchema = z
+const groupBaseSchema = z
   .object({
     group_name: z.string().min(1),
     goal: cents,
     year: z.number().int().min(1970).max(9999),
-    month: z.number().int(),
+    /** Zero-based month. */
+    month: z.number().int().min(0).max(11),
+    period_start: timestamp.nullable().optional(),
+    period_end: timestamp.nullable().optional(),
+    period_mode: z
+      .enum(['calendar_month', 'start_day', 'cutoff_day', 'custom_range'])
+      .default('calendar_month'),
     ...auditTimestamps,
   })
   .strict();
 
-export const groupUpdateSchema = groupInputSchema.partial().extend(updateMeta);
+const hasCompleteGroupPeriod = (value: {
+  period_start?: number | null;
+  period_end?: number | null;
+}) => {
+  const hasStart = value.period_start != null;
+  const hasEnd = value.period_end != null;
+  if (hasStart !== hasEnd) return false;
+  if (hasStart && hasEnd) return value.period_end! >= value.period_start!;
+  return true;
+};
+
+const hasValidGroupPeriodWhenPresent = (value: {
+  period_start?: number | null;
+  period_end?: number | null;
+}) => {
+  if (value.period_start == null || value.period_end == null) return true;
+  return value.period_end >= value.period_start;
+};
+
+export const groupInputSchema = groupBaseSchema.refine(hasCompleteGroupPeriod, {
+  message: 'GROUP_PERIOD_INVALID',
+  path: ['period_end'],
+});
+
+export const groupUpdateSchema = groupBaseSchema
+  .partial()
+  .extend(updateMeta)
+  .refine(hasValidGroupPeriodWhenPresent, {
+    message: 'GROUP_PERIOD_INVALID',
+    path: ['period_end'],
+  });
 
 export const closingStatus = z.enum(['draft', 'final']);
 export const closingSection = z.enum([

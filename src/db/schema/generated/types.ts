@@ -20,6 +20,9 @@ export interface Group extends Entity, SoftDeletable {
   goal: Cents;
   year: number;
   month: number;
+  period_start?: TimestampMs | null;
+  period_end?: TimestampMs | null;
+  period_mode: string;
   created_at?: TimestampMs | null;
   updated_at?: TimestampMs | null;
 }

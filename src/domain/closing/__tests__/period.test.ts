@@ -64,10 +64,10 @@ describe('resolveClosingPeriod', () => {
       new Date(2026, 9, 18, 0, 0, 0, 0).getTime()
     );
     expect(period.end).toBe(
-      new Date(2026, 10, 18, 23, 59, 59, 999).getTime()
+      new Date(2026, 10, 17, 23, 59, 59, 999).getTime()
     );
     expect(period.editableUntil).toBe(
-      new Date(2026, 10, 23, 23, 59, 59, 999).getTime()
+      new Date(2026, 10, 22, 23, 59, 59, 999).getTime()
     );
   });
 
@@ -84,7 +84,7 @@ describe('resolveClosingPeriod', () => {
       new Date(2026, 0, 31, 0, 0, 0, 0).getTime()
     );
     expect(period.end).toBe(
-      new Date(2026, 1, 28, 23, 59, 59, 999).getTime()
+      new Date(2026, 1, 27, 23, 59, 59, 999).getTime()
     );
   });
 

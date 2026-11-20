@@ -1,6 +1,6 @@
 import type { TableDefinition, TableSchema } from '../types';
 
-export const SCHEMA_VERSION = 24;
+export const SCHEMA_VERSION = 25;
 
 export type TableName =
   | 'Groups'
@@ -52,11 +52,19 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
       { name: 'goal', type: 'INTEGER', kind: 'money', notNull: true },
       { name: 'year', type: 'INTEGER', notNull: true },
       { name: 'month', type: 'INTEGER', notNull: true },
+      { name: 'period_start', type: 'INTEGER', kind: 'timestamp', defaultValue: null },
+      { name: 'period_end', type: 'INTEGER', kind: 'timestamp', defaultValue: null },
+      { name: 'period_mode', type: 'TEXT', notNull: true, defaultValue: 'calendar_month' },
       ...timestamps,
       softDelete,
     ],
     indexes: [
       { name: 'idx_groups_active', columns: ['year', 'month'], where: 'deleted_at IS NULL' },
+      {
+        name: 'idx_groups_period',
+        columns: ['period_start', 'period_end'],
+        where: 'deleted_at IS NULL',
+      },
     ],
   },
   PaymentTypes: {

@@ -2,6 +2,7 @@ import {
   lastDayOfMonth,
   resolveNextMonthlyDay,
 } from '../shared/recurrence';
+import { resolveDayInPeriod } from '../periods/period';
 
 export type PendingPaymentDateMode =
   | 'today'
@@ -17,14 +18,18 @@ export type PendingPaymentDateInput = {
   groupMonth?: number | null;
   /** Day of the month configured on the card. */
   paymentDay?: number | null;
+  /** Resolved group period. Takes precedence over `groupYear`/`groupMonth`. */
+  periodStart?: number | null;
+  periodEnd?: number | null;
 };
 
 /**
  * Resolves the date proposed for a pending card payment in Records.
  *
  * - `today` keeps the current behavior.
- * - `payment_date` uses the card's payment day within the selected group's
- *   month, clamped to that month's last day.
+ * - `payment_date` uses the card's payment day inside the selected group's
+ *   period and clamps it to the month's last day. Legacy groups without an
+ *   explicit period fall back to the calendar month.
  * - `next_payment_date` uses the next occurrence of the card's payment day from
  *   today, matching the date shown in the Credits section.
  * - A missing payment day falls back to `today`.
@@ -35,12 +40,22 @@ export const resolvePendingPaymentDate = ({
   groupYear,
   groupMonth,
   paymentDay,
+  periodStart,
+  periodEnd,
 }: PendingPaymentDateInput): number => {
   if (mode === 'today') return now;
   if (paymentDay == null || paymentDay <= 0) return now;
 
   if (mode === 'next_payment_date') {
     return resolveNextMonthlyDay({ now, day: paymentDay });
+  }
+
+  if (periodStart != null && periodEnd != null) {
+    const date = resolveDayInPeriod(
+      { start: periodStart, end: periodEnd },
+      paymentDay
+    );
+    return date ?? now;
   }
 
   const reference = new Date(now);

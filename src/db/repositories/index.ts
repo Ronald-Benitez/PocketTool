@@ -5,6 +5,13 @@ import { ORM, useORM } from '@/src/orm';
 import { isMonthlyCashRecord } from '@/src/domain/summaries/monthly';
 import { hasCreditCardSavingConflict } from '@/src/domain/credits/cards';
 import { computeParticipantShares } from '@/src/domain/shared/split';
+import {
+  anchorMonthForGroupPeriod,
+  groupPeriodFromRow,
+} from '@/src/domain/groups/period';
+import { planCurrentGroup } from '@/src/domain/groups/auto';
+import type { GroupPeriodMode } from '@/src/domain/groups/types';
+import { mapDatabaseError } from '@/src/db/errors';
 import { withExclusiveTransaction } from '@/src/db/transaction';
 import {
   clearOwnerParticipants,
@@ -678,20 +685,92 @@ export const useFixedsRepository = () => {
   };
 };
 
+export type EnsureCurrentGroupInput = {
+  mode: GroupPeriodMode;
+  startDay?: number | null;
+  cutoffDay?: number | null;
+  name: string;
+  goal: number;
+  now?: number;
+};
+
 export const useGroupsRepository = () => {
   const db = useSQLiteContext();
   const groupsOrm = useORM('Groups');
 
   const fetchGroups = async (): Promise<Group[]> => groupsOrm.getAll();
 
-  const fetchGroupsByYear = async (year: string | number): Promise<Group[]> =>
-    groupsOrm.where('year', Number(year)).getAll();
+  const fetchGroupsIncludingDeleted = async (): Promise<Group[]> =>
+    groupsOrm.getAll({ includeDeleted: true });
+
+  const fetchGroupsByYear = async (year: string | number): Promise<Group[]> => {
+    const numericYear = Number(year);
+    const yearStart = new Date(numericYear, 0, 1).getTime();
+    const yearEnd = new Date(
+      numericYear,
+      11,
+      31,
+      23,
+      59,
+      59,
+      999
+    ).getTime();
+    const groups = await groupsOrm.getAll();
+    return groups.filter((group) => {
+      const period = groupPeriodFromRow(group);
+      return period.start <= yearEnd && period.end >= yearStart;
+    });
+  };
 
   const fetchGroupsById = async (id: number): Promise<Group | null> =>
     groupsOrm.where('id', id).first();
 
   const fetchLastGroup = async (): Promise<Group | null> =>
     groupsOrm.order('id', 'DESC').first();
+
+  /**
+   * Creates the recurring group for the period that contains `now`, but only
+   * when no group (active or soft-deleted) already covers that date. This makes
+   * the automation idempotent and respects a group the user deleted on purpose.
+   */
+  const ensureCurrentGroup = async (
+    input: EnsureCurrentGroupInput
+  ): Promise<Group | null> => {
+    const now = input.now ?? Date.now();
+
+    try {
+      return await withExclusiveTransaction(db, async (txn) => {
+        const groups = new ORM(txn, 'Groups');
+        const all = (await groups.getAll({
+          includeDeleted: true,
+        })) as Group[];
+        const target = planCurrentGroup({
+          mode: input.mode,
+          startDay: input.startDay,
+          cutoffDay: input.cutoffDay,
+          now,
+          groups: all,
+        });
+        if (!target) return null;
+
+        const anchor = anchorMonthForGroupPeriod(target, input.mode);
+        const id = await groups.insert(
+          groupInputSchema.parse({
+            group_name: input.name,
+            goal: input.goal,
+            year: anchor.year,
+            month: anchor.month,
+            period_start: target.start,
+            period_end: target.end,
+            period_mode: input.mode,
+          })
+        );
+        return (await groups.getById(id)) as Group | null;
+      });
+    } catch (error) {
+      throw mapDatabaseError(error, 'Could not ensure current group');
+    }
+  };
 
   const addGroup = async (newGroup: Insertable<Group>) => {
     return groupsOrm.insert(groupInputSchema.parse(newGroup));
@@ -733,7 +812,9 @@ export const useGroupsRepository = () => {
     addGroup,
     deleteGroup,
     editGroup,
+    ensureCurrentGroup,
     fetchGroups,
+    fetchGroupsIncludingDeleted,
     fetchGroupsByYear,
     fetchGroupsById,
     fetchLastGroup,

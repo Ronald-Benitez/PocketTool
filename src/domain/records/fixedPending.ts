@@ -2,6 +2,7 @@ import {
   lastDayOfMonth,
   resolveNextMonthlyDay,
 } from '../shared/recurrence';
+import { periodContains, resolveDayInPeriod } from '../periods/period';
 
 export type FixedPendingDateMode = 'group_month' | 'next_occurrence';
 
@@ -16,15 +17,19 @@ export type PendingFixedDateInput = {
   /** Group year; the group month is zero-based. */
   groupYear?: number | null;
   groupMonth?: number | null;
+  /** Resolved group period. Takes precedence over `groupYear`/`groupMonth`. */
+  periodStart?: number | null;
+  periodEnd?: number | null;
 };
 
 /**
  * Resolves the date proposed for a pending fixed transaction.
  *
- * - `group_month` uses the fixed day inside the selected group's month and
- *   clamps it to that month's last day.
+ * - `group_month` uses the fixed day inside the selected group's period and
+ *   clamps it to the month's last day. Legacy groups without an explicit
+ *   period fall back to the calendar month of `groupYear`/`groupMonth`.
  * - `next_occurrence` uses the next occurrence of the fixed day from today,
- *   ignoring the group month.
+ *   ignoring the group period.
  * - A missing fixed day falls back to `now`.
  */
 export const resolvePendingFixedDate = ({
@@ -33,12 +38,22 @@ export const resolvePendingFixedDate = ({
   fixedDay,
   groupYear,
   groupMonth,
+  periodStart,
+  periodEnd,
 }: PendingFixedDateInput): number => {
   if (mode === 'next_occurrence') {
     return resolveNextMonthlyDay({ now, day: fixedDay });
   }
 
   if (fixedDay == null || fixedDay <= 0) return now;
+
+  if (periodStart != null && periodEnd != null) {
+    const date = resolveDayInPeriod(
+      { start: periodStart, end: periodEnd },
+      fixedDay
+    );
+    return date ?? now;
+  }
 
   const reference = new Date(now);
   const year = groupYear ?? reference.getFullYear();
@@ -65,6 +80,9 @@ export type PendingFixedPaidInput = {
   targetDate: number;
   /** Selected group id. Required for `group` deduplication. */
   groupId?: number | null;
+  /** Resolved group period. When present, `period` dedupe uses it. */
+  periodStart?: number | null;
+  periodEnd?: number | null;
   records: readonly FixedPendingRecordRef[];
 };
 
@@ -73,13 +91,16 @@ export type PendingFixedPaidInput = {
  *
  * - `group` checks for a record linked to the fixed in the selected group.
  * - `period` checks for a record linked to the fixed whose date falls inside
- *   the month of the proposed date, even when it belongs to another group.
+ *   the selected group period. Legacy calls without a period fall back to the
+ *   calendar month of the proposed date.
  */
 export const isFixedPendingPaid = ({
   mode,
   fixedId,
   targetDate,
   groupId,
+  periodStart,
+  periodEnd,
   records,
 }: PendingFixedPaidInput): boolean => {
   const matching = records.filter((record) => record.fixed_id === fixedId);
@@ -87,6 +108,12 @@ export const isFixedPendingPaid = ({
   if (mode === 'group') {
     if (groupId == null) return false;
     return matching.some((record) => record.group_id === groupId);
+  }
+
+  if (periodStart != null && periodEnd != null) {
+    return matching.some((record) =>
+      periodContains({ start: periodStart, end: periodEnd }, record.date)
+    );
   }
 
   const target = new Date(targetDate);

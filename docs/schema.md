@@ -3,7 +3,7 @@
 > Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.
 > Fuente de verdad: `src/db/schema/tables.ts`.
 
-Versión de esquema: **24**
+Versión de esquema: **25**
 
 ## Convenciones
 
@@ -20,38 +20,38 @@ completo.
 
 | Tabla | Física | Entidad | Columnas | Índices | Línea |
 | --- | --- | --- | ---: | ---: | ---: |
-| `Groups` | `groups` | `Group` | 8 | 1 | 56 |
-| `PaymentTypes` | `payment_types` | `PaymentType` | 6 | 0 | 76 |
-| `PaymentMethods` | `payment_methods` | `PaymentMethod` | 17 | 1 | 91 |
-| `Categories` | `categories` | `Category` | 5 | 0 | 122 |
-| `RecordTypes` | `record_types` | `RecordType` | 7 | 0 | 136 |
-| `Fixed` | `fixed_records` | `FixedRecord` | 10 | 4 | 152 |
-| `People` | `people` | `Person` | 7 | 1 | 179 |
-| `Records` | `records` | `RecordEntry` | 18 | 7 | 198 |
-| `PaidCredits` | `paid_credits` | `PaidCredit` | 8 | 3 | 236 |
-| `Financings` | `financings` | `Financing` | 27 | 2 | 260 |
-| `FinancingPayments` | `financing_payments` | `FinancingPayment` | 19 | 2 | 302 |
-| `FinancingAdjustments` | `financing_adjustments` | `FinancingAdjustment` | 13 | 1 | 336 |
-| `PersonSettlements` | `person_settlements` | `PersonSettlement` | 10 | 2 | 363 |
-| `SharedExpenseParticipants` | `shared_expense_participants` | `SharedExpenseParticipant` | 11 | 2 | 388 |
-| `SharedPaymentAllocations` | `shared_payment_allocations` | `SharedPaymentAllocation` | 13 | 3 | 414 |
-| `BudgetTemplates` | `budget_templates` | `BudgetTemplate` | 8 | 0 | 443 |
-| `BudgetTemplateItems` | `budget_template_items` | `BudgetTemplateItem` | 13 | 4 | 460 |
-| `BudgetPlans` | `budget_plans` | `BudgetPlan` | 10 | 2 | 490 |
-| `BudgetLines` | `budget_lines` | `BudgetLine` | 15 | 6 | 515 |
-| `Savings` | `savings` | `Saving` | 21 | 1 | 549 |
-| `SavingsHistory` | `savings_history` | `SavingsHistoryEntry` | 17 | 4 | 582 |
-| `SavingsSettings` | `savings_settings` | `SavingsSetting` | 9 | 0 | 616 |
-| `GroupClosings` | `group_closings` | `GroupClosing` | 18 | 2 | 636 |
-| `GroupClosingLines` | `group_closing_lines` | `GroupClosingLine` | 20 | 9 | 669 |
-| `Migrations` | `migrations` | `Migration` | 3 | 0 | 711 |
-| `Vehicles` | `vehicles` | `Vehicle` | 19 | 1 | 721 |
-| `VehicleFuelEntries` | `vehicle_fuel_entries` | `VehicleFuelEntry` | 19 | 2 | 752 |
-| `VehicleMaintenance` | `vehicle_maintenance` | `VehicleMaintenanceEntry` | 13 | 2 | 786 |
-| `VehicleMaintenanceItems` | `vehicle_maintenance_items` | `VehicleMaintenanceItem` | 10 | 1 | 814 |
-| `VehicleReminders` | `vehicle_reminders` | `VehicleReminder` | 17 | 1 | 838 |
-| `VehicleSettings` | `vehicle_settings` | `VehicleSetting` | 7 | 0 | 869 |
-| `VehicleExpenseLinks` | `vehicle_expense_links` | `VehicleExpenseLink` | 6 | 3 | 887 |
+| `Groups` | `groups` | `Group` | 11 | 2 | 56 |
+| `PaymentTypes` | `payment_types` | `PaymentType` | 6 | 0 | 80 |
+| `PaymentMethods` | `payment_methods` | `PaymentMethod` | 17 | 1 | 95 |
+| `Categories` | `categories` | `Category` | 5 | 0 | 126 |
+| `RecordTypes` | `record_types` | `RecordType` | 7 | 0 | 140 |
+| `Fixed` | `fixed_records` | `FixedRecord` | 10 | 4 | 156 |
+| `People` | `people` | `Person` | 7 | 1 | 183 |
+| `Records` | `records` | `RecordEntry` | 18 | 7 | 202 |
+| `PaidCredits` | `paid_credits` | `PaidCredit` | 8 | 3 | 240 |
+| `Financings` | `financings` | `Financing` | 27 | 2 | 264 |
+| `FinancingPayments` | `financing_payments` | `FinancingPayment` | 19 | 2 | 306 |
+| `FinancingAdjustments` | `financing_adjustments` | `FinancingAdjustment` | 13 | 1 | 340 |
+| `PersonSettlements` | `person_settlements` | `PersonSettlement` | 10 | 2 | 367 |
+| `SharedExpenseParticipants` | `shared_expense_participants` | `SharedExpenseParticipant` | 11 | 2 | 392 |
+| `SharedPaymentAllocations` | `shared_payment_allocations` | `SharedPaymentAllocation` | 13 | 3 | 418 |
+| `BudgetTemplates` | `budget_templates` | `BudgetTemplate` | 8 | 0 | 447 |
+| `BudgetTemplateItems` | `budget_template_items` | `BudgetTemplateItem` | 13 | 4 | 464 |
+| `BudgetPlans` | `budget_plans` | `BudgetPlan` | 10 | 2 | 494 |
+| `BudgetLines` | `budget_lines` | `BudgetLine` | 15 | 6 | 519 |
+| `Savings` | `savings` | `Saving` | 21 | 1 | 553 |
+| `SavingsHistory` | `savings_history` | `SavingsHistoryEntry` | 17 | 4 | 586 |
+| `SavingsSettings` | `savings_settings` | `SavingsSetting` | 9 | 0 | 620 |
+| `GroupClosings` | `group_closings` | `GroupClosing` | 18 | 2 | 640 |
+| `GroupClosingLines` | `group_closing_lines` | `GroupClosingLine` | 20 | 9 | 673 |
+| `Migrations` | `migrations` | `Migration` | 3 | 0 | 715 |
+| `Vehicles` | `vehicles` | `Vehicle` | 19 | 1 | 725 |
+| `VehicleFuelEntries` | `vehicle_fuel_entries` | `VehicleFuelEntry` | 19 | 2 | 756 |
+| `VehicleMaintenance` | `vehicle_maintenance` | `VehicleMaintenanceEntry` | 13 | 2 | 790 |
+| `VehicleMaintenanceItems` | `vehicle_maintenance_items` | `VehicleMaintenanceItem` | 10 | 1 | 818 |
+| `VehicleReminders` | `vehicle_reminders` | `VehicleReminder` | 17 | 1 | 842 |
+| `VehicleSettings` | `vehicle_settings` | `VehicleSetting` | 7 | 0 | 873 |
+| `VehicleExpenseLinks` | `vehicle_expense_links` | `VehicleExpenseLink` | 6 | 3 | 891 |
 
 ## Groups (`groups`)
 
@@ -64,12 +64,16 @@ Entidad TypeScript: `Group`
 | `goal` | `INTEGER` | `Cents` | NOT NULL, kind=money |
 | `year` | `INTEGER` | `number` | NOT NULL |
 | `month` | `INTEGER` | `number` | NOT NULL |
+| `period_start` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `period_end` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
+| `period_mode` | `TEXT` | `string` | NOT NULL, default="calendar_month" |
 | `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `updated_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 | `deleted_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |
 
 Índices:
 - `idx_groups_active` (year, month) WHERE deleted_at IS NULL
+- `idx_groups_period` (period_start, period_end) WHERE deleted_at IS NULL
 
 Triggers de auditoría: `created_at`/`updated_at` gestionados automáticamente.
 

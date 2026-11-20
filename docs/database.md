@@ -50,7 +50,7 @@ No editar esos archivos a mano.
 
 | Tabla lógica | Tabla física | Propósito |
 | --- | --- | --- |
-| `Groups` | `groups` | Periodos/grupos con meta. |
+| `Groups` | `groups` | Periodos/grupos con meta. `year`/`month` son el mes ancla (`month` 0-based); `period_start`/`period_end` guardan el periodo local inclusivo y `period_mode` su regla. Los grupos viejos sin periodo resuelven por fallback a mes calendario. |
 | `PaymentTypes` | `payment_types` | Tipos de pago. |
 | `PaymentMethods` | `payment_methods` | Métodos/tarjetas y fechas de corte. |
 | `Categories` | `categories` | Categorías de movimientos. |
@@ -136,6 +136,7 @@ Las rutas navegables se generan en `relations.json` a partir de las FKs.
 | 22 | `0022_person_settlements` | Crea `person_settlements` para las liquidaciones por persona y su grupo de caja. |
 | 23 | `0023_shared_participant_amounts` | Agrega `share_mode` y `share_amount_cents` a `shared_expense_participants`; backfill `percent`. |
 | 24 | `0024_group_closings` | Crea `group_closings` y `group_closing_lines`; índice único de un final por grupo. |
+| 25 | `0025_group_periods` | Agrega `period_start`, `period_end` y `period_mode` a `groups`; normaliza `month = 12` a 11 y crea `idx_groups_period`. |
 
 Reglas:
 

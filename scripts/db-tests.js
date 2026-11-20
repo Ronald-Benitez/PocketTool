@@ -115,6 +115,7 @@ INSERT INTO PaymentMethods (method_name, closing_date, payment_type_id) VALUES (
 INSERT INTO RecordTypes (type_name, effect, record_color) VALUES ('Income', '+', '#4CAF50'), ('Expense', '-', '#F44336'), ('Transfer', '=', '#FF9800'), ('Credit expenses', '=', '#9C27B0'), ('Payments', '-', '#F44376');
 INSERT INTO Categories (category_name) VALUES ('Salary'), ('Groceries');
 INSERT INTO Groups (group_name, goal, year, month) VALUES ('Legacy Group', 5000.50, 2024, 3);
+INSERT INTO Groups (group_name, goal, year, month) VALUES ('Legacy December', 1000, 2024, 12);
 INSERT INTO Records (amount, record_name, date, record_type_id, group_id, category_id, payment_method_id) VALUES (1000.25, 'Salary', 1700000000000, 1, 1, 1, 1), (200.75, 'Groceries', 1700000001000, 2, 1, 2, 2);
 INSERT INTO PaidCredits (amount, date, group_id, payment_method_id) VALUES (50.50, '2024-01-15 10:00:00', 1, 1);
 INSERT INTO Fixed (fixed_amount, fixed_name, fixed_day, record_type_id, category_id, payment_method_id) VALUES (99.99, 'Rent', 5, 2, 2, 2);
@@ -163,6 +164,13 @@ async function testLegacyMigration() {
   const group = q(raw, 'SELECT * FROM groups')[0];
   assert.strictEqual(group.goal, 500050, 'goal should be cents');
   assert.strictEqual(group.deleted_at, null);
+  assert.strictEqual(group.period_mode, 'calendar_month');
+  assert.ok(
+    q(raw, 'PRAGMA table_info(groups)').some((column) => column.name === 'period_start'),
+    'groups should have period_start'
+  );
+  const december = q(raw, "SELECT * FROM groups WHERE group_name = 'Legacy December'")[0];
+  assert.strictEqual(december.month, 11, '1-based December should become zero-based');
 
   const records = q(raw, 'SELECT * FROM records ORDER BY id');
   assert.strictEqual(records.length, 2);
@@ -240,7 +248,7 @@ async function testLegacyMigration() {
   for (const t of tables) {
     assert.strictEqual(q(raw, `SELECT COUNT(*) AS c FROM "${t}"`)[0].c, counts[t], `second run duplicated ${t}`);
   }
-  assert.strictEqual(q(raw, 'SELECT COUNT(*) AS c FROM groups')[0].c, 1);
+  assert.strictEqual(q(raw, 'SELECT COUNT(*) AS c FROM groups')[0].c, 2);
   assert.strictEqual(q(raw, 'SELECT COUNT(*) AS c FROM categories')[0].c, 6);
 
   const fk = q(raw, 'PRAGMA foreign_key_list(records)');
@@ -440,7 +448,14 @@ async function testEmptyDatabase() {
   assert.strictEqual(q(raw, 'SELECT goal FROM groups')[0].goal, 500000);
   assert.strictEqual(q(raw, 'SELECT amount FROM records ORDER BY id')[0].amount, 100000);
   assert.strictEqual(q(raw, 'SELECT migration_name FROM migrations')[0].migration_name, '0001_baseline');
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 24);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 25);
+  const seededGroup = q(raw, 'SELECT month, period_start, period_end, period_mode FROM groups')[0];
+  assert.strictEqual(seededGroup.month, new Date().getMonth());
+  assert.ok(seededGroup.period_start != null, 'seed group should have a period start');
+  assert.ok(seededGroup.period_end != null, 'seed group should have a period end');
+  assert.strictEqual(seededGroup.period_mode, 'calendar_month');
+  const groupIndexes = q(raw, "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='groups'").map(r => r.name);
+  assert.ok(groupIndexes.includes('idx_groups_period'), 'groups should have a period index');
   const recordColumns = q(raw, 'PRAGMA table_info(records)').map(c => c.name);
   assert.ok(recordColumns.includes('created_at'));
   assert.ok(recordColumns.includes('updated_at'));
@@ -477,7 +492,7 @@ async function testExportImport() {
   assert.ok(metadata);
   assert.strictEqual(metadata.formatVersion, BACKUP_FORMAT_VERSION);
   assert.strictEqual(metadata.appVersion, 'test-version');
-  assert.strictEqual(metadata.schemaVersion, 24);
+  assert.strictEqual(metadata.schemaVersion, 25);
   assert.ok(metadata.tables.includes('records'));
   assert.doesNotThrow(() => validateSqlDump(backupSql));
   assert.strictEqual(parseBackupMetadata(dump), null);
@@ -540,7 +555,7 @@ async function testAuditTimestampMigration() {
   const backfilled = q(raw, 'SELECT created_at, updated_at FROM records LIMIT 1')[0];
   assert.ok(backfilled.created_at > 0);
   assert.ok(backfilled.updated_at > 0);
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 24);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 25);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,
     1
@@ -622,6 +637,42 @@ async function testValidationSchemas() {
       goal: 100,
       year: 2026,
       month: 1,
+    })
+  );
+  const groupWithPeriod = groupInputSchema.parse({
+    group_name: 'Period group',
+    goal: 100,
+    year: 2026,
+    month: 1,
+    period_start: new Date(2026, 1, 15).getTime(),
+    period_end: new Date(2026, 2, 14, 23, 59, 59, 999).getTime(),
+  });
+  assert.strictEqual(groupWithPeriod.period_mode, 'calendar_month');
+  assert.throws(() =>
+    groupInputSchema.parse({
+      group_name: 'Incomplete period',
+      goal: 100,
+      year: 2026,
+      month: 1,
+      period_start: new Date(2026, 1, 15).getTime(),
+    })
+  );
+  assert.throws(() =>
+    groupInputSchema.parse({
+      group_name: 'Reversed period',
+      goal: 100,
+      year: 2026,
+      month: 1,
+      period_start: new Date(2026, 2, 15).getTime(),
+      period_end: new Date(2026, 1, 14).getTime(),
+    })
+  );
+  assert.throws(() =>
+    groupInputSchema.parse({
+      group_name: 'Invalid month',
+      goal: 100,
+      year: 2026,
+      month: 12,
     })
   );
   const plan = budgetPlanInputSchema.parse({

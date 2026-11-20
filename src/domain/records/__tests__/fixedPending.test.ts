@@ -155,3 +155,47 @@ describe('isFixedPendingPaid', () => {
     ).toBe(false);
   });
 });
+
+describe('period-aware pending fixed dates', () => {
+  const periodStart = new Date(2026, 9, 15).getTime();
+  const periodEnd = new Date(2026, 10, 14, 23, 59, 59, 999).getTime();
+
+  it('picks the fixed day inside the group period', () => {
+    const now = new Date(2026, 9, 20, 9).getTime();
+    expect(
+      resolvePendingFixedDate({
+        mode: 'group_month',
+        now,
+        fixedDay: 20,
+        periodStart,
+        periodEnd,
+      })
+    ).toBe(new Date(2026, 9, 20, 12).getTime());
+    expect(
+      resolvePendingFixedDate({
+        mode: 'group_month',
+        now,
+        fixedDay: 5,
+        periodStart,
+        periodEnd,
+      })
+    ).toBe(new Date(2026, 10, 5, 12).getTime());
+  });
+
+  it('deduplicates inside the group period instead of the calendar month', () => {
+    const records = [
+      { fixed_id: 7, date: new Date(2026, 9, 20).getTime(), group_id: 1 },
+    ];
+    expect(
+      isFixedPendingPaid({
+        mode: 'period',
+        fixedId: 7,
+        targetDate: new Date(2026, 10, 5).getTime(),
+        groupId: 1,
+        periodStart,
+        periodEnd,
+        records,
+      })
+    ).toBe(true);
+  });
+});

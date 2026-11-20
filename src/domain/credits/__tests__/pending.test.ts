@@ -102,4 +102,29 @@ describe('resolvePendingPaymentDate', () => {
       new Date(2026, 10, 20, 12, 0, 0, 0).getTime()
     );
   });
+
+  it('uses the card payment day inside the group period', () => {
+    const periodStart = new Date(2026, 9, 15).getTime();
+    const periodEnd = new Date(2026, 10, 14, 23, 59, 59, 999).getTime();
+
+    expect(
+      resolvePendingPaymentDate({
+        mode: 'payment_date',
+        now,
+        paymentDay: 20,
+        periodStart,
+        periodEnd,
+      })
+    ).toBe(new Date(2026, 9, 20, 12, 0, 0, 0).getTime());
+
+    expect(
+      resolvePendingPaymentDate({
+        mode: 'payment_date',
+        now,
+        paymentDay: 5,
+        periodStart,
+        periodEnd,
+      })
+    ).toBe(new Date(2026, 10, 5, 12, 0, 0, 0).getTime());
+  });
 });
