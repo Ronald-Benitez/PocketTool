@@ -17,6 +17,7 @@ import {
   buildPriceChart,
   buildTotalSpendChart,
   buildVolumeChart,
+  type MobilityChartMode,
 } from '@/src/domain/vehicle/charts';
 import {
   consumptionUnits,
@@ -25,7 +26,7 @@ import {
   selectConsumption,
   volumeUnitOf,
 } from '@/src/domain/vehicle/units';
-import { MermaidChart } from '@/src/ui/charts/MermaidChart';
+import { ChartCard, ChartSection, useChartPreferences } from '@/src/ui/charts';
 import type { VehicleFuelEntryView } from '@/src/db/repositories/vehicle';
 import { useVehicle } from '@/src/hooks/useVehicle';
 import { useGroupRefresh } from '@/src/hooks/useGroupRefresh';
@@ -63,6 +64,7 @@ const FuelScreen = () => {
   const { group } = useRecordsStore();
   const { refreshGroupData } = useGroupRefresh();
   const repository = useVehicleFuelRepository();
+  const chartPreferences = useChartPreferences();
   const [entries, setEntries] = useState<VehicleFuelEntryView[]>([]);
   const [formVisible, setFormVisible] = useState(false);
   const [selected, setSelected] = useState<VehicleFuelEntryView | null>(null);
@@ -178,24 +180,38 @@ const FuelScreen = () => {
     [stats.entries, displayVolumeUnit, t]
   );
   const displayDistanceUnit = vehicle?.distance_unit === 'km' ? 'km' : 'mi';
+  const mobilityMode: MobilityChartMode =
+    chartPreferences.get('vehicle.fuel.comparison').mode === 'real'
+      ? 'real'
+      : 'index';
+  const setMobilityMode = (mode: MobilityChartMode) =>
+    chartPreferences.setMode('vehicle.fuel.comparison', mode);
   const comparisonChart = useMemo(
     () =>
       buildMobilityComparisonChart(
         stats.entries,
         displayVolumeUnit,
         displayDistanceUnit,
-        t('vehicle.chart.comparison')
+        t('vehicle.chart.comparison'),
+        {
+          volume: t('vehicle.chart.volume'),
+          distance: t('vehicle.chart.distance'),
+          total: t('vehicle.chart.totalSpent'),
+        },
+        mobilityMode
       ),
-    [stats.entries, displayVolumeUnit, displayDistanceUnit, t]
+    [
+      stats.entries,
+      displayVolumeUnit,
+      displayDistanceUnit,
+      mobilityMode,
+      t,
+    ]
   );
   const displayVolumeLabel =
     displayVolumeUnit === 'L'
       ? t('vehicle.vehicle.liters')
       : t('vehicle.vehicle.gallons');
-  const displayDistanceLabel =
-    displayDistanceUnit === 'km'
-      ? t('vehicle.vehicle.kilometers')
-      : t('vehicle.vehicle.miles');
 
   if (!vehicle) {
     return (
@@ -259,97 +275,92 @@ const FuelScreen = () => {
           </Stack>
         </Surface>
 
-        {consumptionChart ? (
-          <MermaidChart
-            definition={consumptionChart}
-            height={260}
-            accessibilityLabel={t('vehicle.chart.consumption')}
-            palette={[colors.chartConsumption]}
-            legend={[
-              {
-                label: `${t('vehicle.chart.consumption')} (${consumptionUnits(format)})`,
-                color: colors.chartConsumption,
-              },
-            ]}
-            fallback={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
-          />
-        ) : null}
+        <ChartSection
+          title={t('vehicle.chart.title')}
+          chartKeys={[
+            'vehicle.fuel.consumption',
+            'vehicle.fuel.volume',
+            'vehicle.fuel.price',
+            'vehicle.fuel.totalSpend',
+            'vehicle.fuel.comparison',
+          ]}
+        >
+          {consumptionChart ? (
+            <ChartCard
+              chartKey='vehicle.fuel.consumption'
+              title={`${t('vehicle.chart.consumption')} (${consumptionUnits(format)})`}
+              spec={consumptionChart}
+              height={260}
+              defaultCollapsed
+              empty={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
+            />
+          ) : null}
 
-        {volumeChart ? (
-          <MermaidChart
-            definition={volumeChart}
-            height={240}
-            accessibilityLabel={t('vehicle.chart.volume')}
-            palette={[colors.chartDistance]}
-            legend={[
-              {
-                label: `${t('vehicle.chart.volume')} (${displayVolumeLabel})`,
-                color: colors.chartDistance,
-              },
-            ]}
-            fallback={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
-          />
-        ) : null}
+          {volumeChart ? (
+            <ChartCard
+              chartKey='vehicle.fuel.volume'
+              title={`${t('vehicle.chart.volume')} (${displayVolumeLabel})`}
+              spec={volumeChart}
+              height={240}
+              defaultCollapsed
+              empty={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
+            />
+          ) : null}
 
-        {priceChart ? (
-          <MermaidChart
-            definition={priceChart}
-            height={240}
-            accessibilityLabel={t('vehicle.chart.price')}
-            palette={[colors.chartFuelCost]}
-            legend={[
-              {
-                label: `${t('vehicle.chart.price')} ($/${displayVolumeUnit})`,
-                color: colors.chartFuelCost,
-              },
-            ]}
-            fallback={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
-          />
-        ) : null}
+          {priceChart ? (
+            <ChartCard
+              chartKey='vehicle.fuel.price'
+              title={`${t('vehicle.chart.price')} ($/${displayVolumeUnit})`}
+              spec={priceChart}
+              height={240}
+              defaultCollapsed
+              empty={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
+            />
+          ) : null}
 
-        {totalSpendChart ? (
-          <MermaidChart
-            definition={totalSpendChart}
-            height={240}
-            accessibilityLabel={t('vehicle.chart.totalSpent')}
-            palette={[colors.chartFuelCost]}
-            legend={[
-              {
-                label: t('vehicle.chart.totalSpent'),
-                color: colors.chartFuelCost,
-              },
-            ]}
-            fallback={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
-          />
-        ) : null}
+          {totalSpendChart ? (
+            <ChartCard
+              chartKey='vehicle.fuel.totalSpend'
+              title={t('vehicle.chart.totalSpent')}
+              spec={totalSpendChart}
+              height={240}
+              defaultCollapsed
+              empty={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
+            />
+          ) : null}
 
-        {comparisonChart ? (
-          <MermaidChart
-            definition={comparisonChart}
-            height={260}
-            accessibilityLabel={t('vehicle.chart.comparison')}
-            palette={[
-              colors.chartConsumption,
-              colors.chartDistance,
-              colors.chartFuelCost,
-            ]}
-            legend={[
-              {
-                label: `${t('vehicle.chart.volume')} (${displayVolumeLabel})`,
-                color: colors.chartConsumption,
-              },
-              {
-                label: `${t('vehicle.chart.distance')} (${displayDistanceLabel})`,
-                color: colors.chartDistance,
-              },
-              {
-                label: t('vehicle.chart.totalSpent'),
-                color: colors.chartFuelCost,
-              },
-            ]}
-            fallback={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
-          />
-        ) : null}
+          {comparisonChart ? (
+            <ChartCard
+              chartKey='vehicle.fuel.comparison'
+              title={t('vehicle.chart.comparison')}
+              subtitle={
+                mobilityMode === 'real'
+                  ? t('vehicle.chart.realHint')
+                  : t('vehicle.chart.indexHint')
+              }
+              spec={comparisonChart}
+              height={260}
+              defaultCollapsed
+              actions={
+                <Row gap='sm' wrap>
+                  <Button
+                    label={t('vehicle.chart.modeIndex')}
+                    size='sm'
+                    variant={mobilityMode === 'index' ? 'primary' : 'outline'}
+                    onPress={() => setMobilityMode('index')}
+                  />
+                  <Button
+                    label={t('vehicle.chart.modeReal')}
+                    size='sm'
+                    variant={mobilityMode === 'real' ? 'primary' : 'outline'}
+                    onPress={() => setMobilityMode('real')}
+                  />
+                </Row>
+              }
+              empty={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
+            />
+          ) : null}
+        </ChartSection>
 
         {loading && entries.length === 0 ? (
           <LoadingState message={t('vehicle.fuel.title')} />
