@@ -61,4 +61,16 @@ export const RELEASE_NOTES: ReleaseNote[] = [
       whatsNewItem('backupSettings', 'improvement'),
     ],
   },
+  {
+    version: '4.0.7',
+    date: '2026-11-19',
+    items: [
+      whatsNewItem('groupPeriods', 'feature'),
+      whatsNewItem('autoGroup', 'feature'),
+      whatsNewItem('periodSuggestion', 'improvement'),
+      whatsNewItem('nativeCharts', 'feature'),
+      whatsNewItem('chartPreferences', 'improvement'),
+      whatsNewItem('androidAvailability', 'fix'),
+    ],
+  },
 ];

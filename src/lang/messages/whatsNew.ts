@@ -81,6 +81,30 @@ export const whatsNewEn = {
       title: 'This summary',
       body: 'After each update, PocketTool shows a single summary of everything new. You can also open it from Help.',
     },
+    groupPeriods: {
+      title: 'Groups with their own period',
+      body: 'Settings now define when each group starts and ends: a calendar month or a start day of the month. Groups and closings share that period, and existing groups keep the one they already have.',
+    },
+    autoGroup: {
+      title: 'Current group, ready',
+      body: 'Turn on automatic creation and PocketTool creates the group of the current period when you open the app, only if no group covers today. You can also create it from Settings, and new groups show their period before saving.',
+    },
+    periodSuggestion: {
+      title: 'Records outside the period',
+      body: "If a record's date falls outside the period of the selected group, PocketTool points to the group it belongs to so you can switch in the selector. Nothing moves on its own.",
+    },
+    nativeCharts: {
+      title: 'New charts',
+      body: "Budget, Vehicle, Fuel, Credits and Savings now use PocketTool's own charts: line, bar, grouped, stacked, pie, donut and area. Tap a point, bar or slice for details, hide series, limit points, zoom and open the data table for exact values.",
+    },
+    chartPreferences: {
+      title: 'Charts as you left them',
+      body: 'Expand or collapse charts and keep series, limit, zoom and comparison mode for each chart; PocketTool remembers it. Fuel charts start collapsed so your records stay in view, and some charts switch between indexed comparison and real data.',
+    },
+    androidAvailability: {
+      title: 'More Android devices',
+      body: 'PocketTool no longer requires portrait support on Android, so it can be installed on more devices such as tablets and foldables. The app still opens in portrait.',
+    },
   },
 } as const;
 
@@ -168,6 +192,30 @@ export const whatsNewEs = {
     whatsNewRelease: {
       title: 'Este resumen',
       body: 'Después de cada actualización, PocketTool muestra un solo resumen con todo lo nuevo. También puedes abrirlo desde Ayuda.',
+    },
+    groupPeriods: {
+      title: 'Grupos con su propio periodo',
+      body: 'Ajustes ahora define cuándo empieza y termina cada grupo: mes calendario o un día de inicio del mes. Grupos y cierres comparten ese periodo, y los grupos existentes conservan el que ya tenían.',
+    },
+    autoGroup: {
+      title: 'Grupo actual listo',
+      body: 'Activa la creación automática y PocketTool crea el grupo del periodo actual al abrir la app, solo si ningún grupo cubre hoy. También puedes crearlo desde Ajustes, y los grupos nuevos muestran su periodo antes de guardar.',
+    },
+    periodSuggestion: {
+      title: 'Registros fuera del periodo',
+      body: 'Si la fecha de un registro cae fuera del periodo del grupo seleccionado, PocketTool señala el grupo al que pertenece para que cambies en el selector. Nada se mueve solo.',
+    },
+    nativeCharts: {
+      title: 'Gráficos nuevos',
+      body: 'Presupuesto, Vehículo, Combustible, Créditos y Ahorros usan ahora los gráficos propios de PocketTool: línea, barra, agrupada, apilada, pastel, dona y área. Toca un punto, barra o porción para ver el detalle, oculta series, limita puntos, haz zoom y abre la tabla de datos para valores exactos.',
+    },
+    chartPreferences: {
+      title: 'Gráficos como los dejaste',
+      body: 'Expande o colapsa gráficos y conserva series, límite, zoom y modo de comparación de cada uno; PocketTool lo recuerda. En Combustible empiezan colapsados para dejar los registros a la vista, y algunos gráficos alternan entre comparación indexada y datos reales.',
+    },
+    androidAvailability: {
+      title: 'Más dispositivos Android',
+      body: 'PocketTool ya no exige compatibilidad con pantalla vertical en Android, así que se puede instalar en más dispositivos, como tablets y plegables. La app sigue abriéndose en vertical.',
     },
   },
 } as const;

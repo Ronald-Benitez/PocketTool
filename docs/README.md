@@ -34,6 +34,8 @@ arquitectura y enlaces. La documentación se lee **por secciones**, no completa.
 - [`plans/futuro-borrador.md`](plans/futuro-borrador.md): pendientes futuros,
   principalmente el criterio del plan mensual en Presupuestos.
 
+- [`release-notes/4.0.7-google-play.md`](release-notes/4.0.7-google-play.md):
+  notas de Google Play 4.0.7 en inglés y español.
 - [`release-notes/4.0.6-google-play.md`](release-notes/4.0.6-google-play.md):
   notas de Google Play 4.0.6 en inglés y español.
 - [`release-notes/4.0.5-google-play.md`](release-notes/4.0.5-google-play.md):
