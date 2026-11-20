@@ -46,7 +46,7 @@ import { ListItem } from '@/src/ui/data-display/ListItem';
 import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock';
 import { EmptyState } from '@/src/ui/feedback/EmptyState';
 import { LoadingState } from '@/src/ui/feedback/LoadingState';
-import { MermaidChart } from '@/src/ui/charts/MermaidChart';
+import { ChartCard, ChartSection } from '@/src/ui/charts';
 import { SelectField } from '@/src/ui/forms/SelectField';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Screen } from '@/src/ui/primitives/Screen';
@@ -694,56 +694,43 @@ const Index = () => {
           </Stack>
         </Surface>
 
-        {spendChart ? (
-          <MermaidChart
-            definition={spendChart}
-            height={260}
-            accessibilityLabel={t('vehicle.chart.spendByPeriod')}
-            palette={[colors.chartFuelCost]}
-            legend={[
-              {
-                label: t('vehicle.chart.spendByPeriod'),
-                color: colors.chartFuelCost,
-              },
-            ]}
-            fallback={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
-          />
-        ) : null}
+        <ChartSection
+          chartKeys={[
+            'vehicle.summary.spend',
+            'vehicle.summary.consumption',
+            'vehicle.summary.comparison',
+          ]}
+        >
+          {spendChart ? (
+            <ChartCard
+              chartKey='vehicle.summary.spend'
+              title={t('vehicle.chart.spendByPeriod')}
+              spec={spendChart}
+              height={260}
+              empty={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
+            />
+          ) : null}
 
-        {consumptionChart ? (
-          <MermaidChart
-            definition={consumptionChart}
-            height={260}
-            accessibilityLabel={t('vehicle.chart.consumptionProgress')}
-            palette={[colors.chartConsumption]}
-            legend={[
-              {
-                label: `${t('vehicle.chart.consumption')} (${consumptionUnits(
-                  format
-                )})`,
-                color: colors.chartConsumption,
-              },
-            ]}
-            fallback={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
-          />
-        ) : null}
+          {consumptionChart ? (
+            <ChartCard
+              chartKey='vehicle.summary.consumption'
+              title={`${t('vehicle.chart.consumption')} (${consumptionUnits(format)})`}
+              spec={consumptionChart}
+              height={260}
+              empty={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
+            />
+          ) : null}
 
-        {comparisonChart ? (
-          <MermaidChart
-            definition={comparisonChart}
-            height={260}
-            accessibilityLabel={t('vehicle.chart.fuelVsMaintenance')}
-            palette={[colors.chartFuelCost, colors.chartMaintenanceCost]}
-            legend={[
-              { label: t('vehicle.fuel.title'), color: colors.chartFuelCost },
-              {
-                label: t('vehicle.maintenance.title'),
-                color: colors.chartMaintenanceCost,
-              },
-            ]}
-            fallback={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
-          />
-        ) : null}
+          {comparisonChart ? (
+            <ChartCard
+              chartKey='vehicle.summary.comparison'
+              title={t('vehicle.chart.fuelVsMaintenance')}
+              spec={comparisonChart}
+              height={260}
+              empty={<AppText color='muted'>{t('vehicle.chart.noData')}</AppText>}
+            />
+          ) : null}
+        </ChartSection>
 
         <Stack gap='sm'>
           <AppText variant='subtitle'>{t('vehicle.fuel.title')}</AppText>
