@@ -41,6 +41,9 @@ detalle, usa `**Secciones:**` y busca el encabezado con
 - [`fase-16-group-closing-plan.md`](fase-16-group-closing-plan.md): plan del
   cierre informativo de periodo configurable (Fase 16), implementado, validado
   y archivado.
+- [`fase-17-group-periods-plan.md`](fase-17-group-periods-plan.md): plan de
+  grupos automáticos y periodos unificados (Fase 17), implementado, validado y
+  archivado.
 - [`db-summary.md`](db-summary.md): resumen anterior de la base de datos,
   reemplazado por [`../database.md`](../database.md).
 

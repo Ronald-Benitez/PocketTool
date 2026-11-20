@@ -1,6 +1,6 @@
 # Plan de fases
 
-**Última actualización:** 2026-11-18
+**Última actualización:** 2026-11-19
 
 ## Estado
 
@@ -23,6 +23,7 @@
 | Fase 14 — “Qué hay de nuevo” acumulado | ✅ Finalizada | 2026-11-17 |
 | Fase 15 — Fechas de pagos pendientes de tarjeta y fijos | ✅ Finalizada | 2026-11-18 |
 | Fase 16 — Cierre informativo de periodo | ✅ Finalizada | 2026-11-18 |
+| Fase 17 — Grupos automáticos y periodos unificados | ✅ Finalizada | 2026-11-19 |
 
 ## Fase activa
 
@@ -39,7 +40,7 @@ se detiene y pide cuál cerrar.
 - **Dinero/fechas:** centavos enteros y timestamps Unix en milisegundos.
 - **Auditoría:** `created_at`/`updated_at` con triggers; soft delete con
   `deleted_at`.
-- **Migraciones:** `0001` a `0024`; `SCHEMA_VERSION = 24`.
+- **Migraciones:** `0001` a `0025`; `SCHEMA_VERSION = 25`.
 - **Acceso a datos:** ORM tipado + repositorios; la UI no usa `useORM` ni SQL.
 - **Backups:** dump SQL con metadatos versionados y compatibilidad legacy.
 - **Calidad:** `test:db` con `node:sqlite`, Jest, typecheck, lint bloqueante y
@@ -213,7 +214,17 @@ Plan en
   borradores y un final por grupo.
 - Datos registrados sin duplicados, balance configurable, edición manual,
   validación tarjeta + ahorro y backups con configuraciones.
-- Resúmenes con efectos, grupo estable y verificación completa.
+
+## Fase 17 — Grupos automáticos y periodos unificados (✅ 2026-11-19)
+
+Plan en
+[`legacy/fase-17-group-periods-plan.md`](legacy/fase-17-group-periods-plan.md).
+
+- Migración `0025`: periodo por grupo y motor compartido con cierres.
+- Creación automática del periodo actual; registros con sugerencia de fecha.
+- Fijos, tarjeta y vehículo por periodo; presupuesto en
+  [`plans/futuro-borrador.md`](plans/futuro-borrador.md).
+- Commits `635945a`, `af2337a`; verificación completa.
 
 ## Decisiones vigentes
 
@@ -238,13 +249,3 @@ Plan en
   el balance de caja es el único que incluye liquidaciones.
 - Las novedades in-app son un catálogo manual versionado; `/notas-version`
   actualiza notas de Play, catálogo y versión en la misma entrega.
-
-## Documentación
-
-- [`README.md`](README.md): índice y contrato de documentación.
-- [`database.md`](database.md): base de datos y reglas de lectura.
-- [`schema.md`](schema.md): esquema generado.
-- [`architecture/ui.md`](architecture/ui.md): sistema de UI.
-- [`architecture/domains.md`](architecture/domains.md): reglas de negocio.
-- [`legacy/README.md`](legacy/README.md): índice del archivo histórico.
-- [`../AGENTS.md`](../AGENTS.md): reglas para agentes.
