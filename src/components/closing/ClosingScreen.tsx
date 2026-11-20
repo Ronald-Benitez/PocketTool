@@ -1,16 +1,12 @@
-import React, { useCallback, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import React, { useCallback, useState } from 'react';import { Pressable, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 
 import {
-  DAY_MS,
   deadlineFromPeriodEnd,
-  endOfLocalDay,
   isClosingEditable,
-  resolveClosingPeriod,
-  startOfLocalDay,
 } from '@/src/domain/closing/period';
+import { groupPeriodFromRow } from '@/src/domain/groups/period';
 import type { ClosingStatus } from '@/src/domain/closing/types';
 import { ClosingEditor } from '@/src/components/closing/ClosingEditor';
 import GroupSelector from '@/src/components/groups/group-selector';
@@ -57,10 +53,12 @@ export const ClosingScreen = () => {
   >(null);
   const [loadingClosing, setLoadingClosing] = useState(false);
   const [toDelete, setToDelete] = useState<number | null>(null);
+  const [now, setNow] = useState(0);
   const groupId = group?.id;
 
   useFocusEffect(
     useCallback(() => {
+      setNow(Date.now());
       if (!groupId) return;
       refreshGroupData(groupId).catch((cause) => {
         if (__DEV__) console.warn('[closing] group refresh failed', cause);
@@ -68,37 +66,25 @@ export const ClosingScreen = () => {
     }, [groupId, refreshGroupData])
   );
 
-  const defaultPeriod = group
-    ? configs.closingPeriodMode === 'custom_range'
-      ? (() => {
-          const now = new Date().getTime();
-          const end = endOfLocalDay(now);
-          return {
-            start: startOfLocalDay(now - 29 * DAY_MS),
-            end,
-            editableUntil: deadlineFromPeriodEnd(
-              end,
-              configs.closingGraceDays
-            ),
-          };
-        })()
-      : resolveClosingPeriod({
-          mode: configs.closingPeriodMode,
-          groupYear: group.year,
-          groupMonth: group.month,
-          cutoffDay: configs.closingCutoffDay,
-          startDay: configs.closingStartDay,
-          graceDays: configs.closingGraceDays,
-        })
+  const groupPeriod = group ? groupPeriodFromRow(group) : null;
+  const defaultPeriod = groupPeriod
+    ? {
+        start: groupPeriod.start,
+        end: groupPeriod.end,
+        editableUntil: deadlineFromPeriodEnd(
+          groupPeriod.end,
+          configs.closingGraceDays
+        ),
+      }
     : null;
   const defaultExpired = defaultPeriod
     ? !isClosingEditable(defaultPeriod.editableUntil)
     : false;
+  const periodNotFinished =
+    groupPeriod != null && now > 0 && now < groupPeriod.end;
   const canCreate =
     Boolean(group) &&
-    (configs.closingAllowPeriodOverride ||
-      configs.closingPeriodMode === 'custom_range' ||
-      !defaultExpired);
+    (configs.closingAllowPeriodOverride || !defaultExpired);
 
   const openNew = () => {
     if (!group?.id) return;
@@ -176,6 +162,11 @@ export const ClosingScreen = () => {
         <InlineMessage
           variant='info'
           message={t('closing.period.defaultExpiredHint')}
+        />
+      ) : periodNotFinished ? (
+        <InlineMessage
+          variant='info'
+          message={t('closing.period.beforeEnd')}
         />
       ) : null}
 

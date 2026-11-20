@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from 'react'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
 import { monthKey } from '@/src/lang/keys'
+import { isCalendarMonthPeriod } from '@/src/domain/periods/period'
+import { groupPeriodFromRow } from '@/src/domain/groups/period'
+import { formatPeriodRange } from '@/src/utils'
 import useRecordsStore from '@/src/stores/RecordsStore'
 import { useToast } from '@/src/ui/feedback/ToastProvider'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -24,7 +27,7 @@ import { SelectField } from '@/src/ui/forms/SelectField'
 import { TextField } from '@/src/ui/forms/TextField'
 
 const GroupSelector = () => {
-    const { t } = useLanguage()
+    const { t, language } = useLanguage()
     const { showToast } = useToast()
     const [year, setYear] = useState<string>(
         (useRecordsStore.getState().group?.year ?? new Date().getFullYear()).toString()
@@ -104,7 +107,12 @@ const GroupSelector = () => {
 
     const getPlaceHolder = (group: Group | null) => {
         if (!group) return ""
-        return group.group_name?.substring(0, 20) + (group.group_name?.length > 20 ? "..." : "") + " (" + t(monthKey(Number(group.month))) + " " + group.year + ")"
+        const name = group.group_name?.substring(0, 20) + (group.group_name?.length > 20 ? "..." : "")
+        const period = groupPeriodFromRow(group)
+        const label = isCalendarMonthPeriod(period)
+            ? `${t(monthKey(Number(group.month)))} ${group.year}`
+            : formatPeriodRange(period, language)
+        return `${name} (${label})`
     }
 
     const getPinned = async () => {
@@ -189,7 +197,7 @@ const GroupSelector = () => {
             </SwipeAction>
             <AddGroup
                 openUpdate={openUpdate}
-                isEditing={true}
+                mode='edit'
             >
             </AddGroup>
         </>

@@ -83,32 +83,32 @@ export const helpEn = {
         },
         "groups": {
             "title": "Groups",
-            "summary": "Understand the monthly container that holds all your data.",
+            "summary": "Understand the period container that holds all your data.",
             "what": {
                 "title": "What it is",
-                "body": "A group represents one month and year. It stores the goal, the balance, and the data used by records, budgets, and summaries."
+                "body": "A group represents a period. It stores the goal, the balance, and the data used by records, budgets, and summaries. By default the period is a calendar month, but it can start on a specific day, such as the 18th."
             },
             "how": {
                 "title": "How it works",
-                "body": "The selected group drives the whole app. Switching groups changes the visible records and totals. The pin action remembers your favorite group. The group month is a container; it only determines pending fixed dates when that mode is selected in Settings."
+                "body": "The selected group drives the whole app. Switching groups changes the visible records and totals. In Settings → Groups you can enable automatic creation: when the app opens it creates the group for the current period, but only if no group already covers today. Groups and closings share the same period. Pending fixed and card dates use the group period, not a fixed calendar month."
             },
             "steps": {
                 "title": "Step by step",
-                "step1": "Open the group selector.",
-                "step2": "Create a group with month, year, and goal.",
-                "step3": "Select it or pin it for quick access."
+                "step1": "Open Settings → Groups and choose the period.",
+                "step2": "Turn on automatic creation or create a group from Records.",
+                "step3": "Select or pin the group you want to use."
             },
             "example": {
                 "title": "Example",
-                "body": "October 2026 is one group and November 2026 is another. Each has its own goal and balance."
+                "body": "With start day 18, the October group runs from October 18 to November 17. November 18 starts the next group."
             },
             "tips": {
                 "title": "Tips",
-                "body": "Use one group per month to keep summaries and budgets comparable."
+                "body": "Use automatic creation so a new period never starts without a group."
             },
             "warning": {
                 "title": "Common mistake",
-                "body": "Deleting a group also deletes its associated records. Review the confirmation before deleting."
+                "body": "Deleting a group also deletes its associated records. Changing the period does not move existing records; review them after saving."
             }
         },
         "records": {
@@ -180,7 +180,7 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "You can autofill the balance, cards, fixed payments and financings, or add manual lines with add and subtract. When adding a line, attach a registered card, account, fixed payment or financing, or leave it manual; items already added are hidden to avoid duplicates. Choose which balance to use (consumption, total, cash, paid or payment methods) before autofilling. Cards store an expected amount and an editable statement amount, so discounts, cashback and returns can explain the difference. The period can be a calendar month, a cutoff day, a start day (for example 18 October to 18 November), a custom range, or a range with grace days; expired closings become read-only. You can keep several drafts but only one final closing per group. Savings are not included automatically; add them as manual lines only if you use them in the calculation."
+                "body": "You can autofill the balance, cards, fixed payments and financings, or add manual lines with add and subtract. When adding a line, attach a registered card, account, fixed payment or financing, or leave it manual; items already added are hidden to avoid duplicates. Choose which balance to use (consumption, total, cash, paid or payment methods) before autofilling. Cards store an expected amount and an editable statement amount, so discounts, cashback and returns can explain the difference. The period comes from the group and is shared with closings; you can adjust it per closing when allowed, with grace days. Closings are usually created when the period ends, but you can create one earlier. Expired closings become read-only. You can keep several drafts but only one final closing per group. Savings are not included automatically; add them as manual lines only if you use them in the calculation."
             },
             "steps": {
                 "title": "Step by step",
@@ -767,32 +767,32 @@ export const helpEs: MessageShape<typeof helpEn> = {
         },
         "groups": {
             "title": "Grupos",
-            "summary": "Entiende el contenedor mensual que guarda todos tus datos.",
+            "summary": "Entiende el contenedor de periodo que guarda todos tus datos.",
             "what": {
                 "title": "Qué es",
-                "body": "Un grupo representa un mes y un año. Guarda la meta, el balance y los datos que usan registros, presupuestos y resúmenes."
+                "body": "Un grupo representa un periodo. Guarda la meta, el balance y los datos que usan registros, presupuestos y resúmenes. Por defecto el periodo es un mes calendario, pero puede empezar en un día específico, por ejemplo el 18."
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "El grupo seleccionado controla toda la app. Cambiar de grupo cambia los registros y totales visibles. La acción de fijar recuerda tu grupo favorito. El mes del grupo es un contenedor; solo determina las fechas de fijos pendientes cuando ese modo está seleccionado en Configuraciones."
+                "body": "El grupo seleccionado controla toda la app. Cambiar de grupo cambia los registros y totales visibles. En Ajustes → Grupos puedes activar la creación automática: al abrir la app se crea el grupo del periodo actual, pero solo si ningún grupo cubre hoy. Los grupos y los cierres comparten el mismo periodo. Las fechas de fijos y tarjetas pendientes usan el periodo del grupo, no un mes calendario fijo."
             },
             "steps": {
                 "title": "Paso a paso",
-                "step1": "Abre el selector de grupos.",
-                "step2": "Crea un grupo con mes, año y meta.",
-                "step3": "Selecciónalo o fíjalo para acceder rápido."
+                "step1": "Abre Ajustes → Grupos y elige el periodo.",
+                "step2": "Activa la creación automática o crea un grupo desde Registros.",
+                "step3": "Selecciona o fija el grupo que quieres usar."
             },
             "example": {
                 "title": "Ejemplo",
-                "body": "Octubre 2026 es un grupo y Noviembre 2026 es otro. Cada uno tiene su propia meta y balance."
+                "body": "Con día de inicio 18, el grupo de octubre va del 18 de octubre al 17 de noviembre. El 18 de noviembre empieza el siguiente grupo."
             },
             "tips": {
                 "title": "Consejos",
-                "body": "Usa un grupo por mes para comparar resúmenes y presupuestos de forma consistente."
+                "body": "Usa la creación automática para que un periodo nuevo nunca empiece sin grupo."
             },
             "warning": {
                 "title": "Error común",
-                "body": "Eliminar un grupo también elimina sus registros asociados. Revisa la confirmación antes de borrar."
+                "body": "Eliminar un grupo también elimina sus registros asociados. Cambiar el periodo no mueve los registros existentes; revísalos al guardar."
             }
         },
         "records": {
@@ -864,7 +864,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "Puedes autocompletar el balance, tarjetas, pagos fijos y financiamientos, o agregar líneas manuales con suma y resta. Al agregar una línea, puedes vincular una tarjeta, cuenta, pago fijo o financiamiento registrado, o dejarla manual; los datos ya agregados se ocultan para evitar repetirlos. Elige qué balance usar (consumo, total, caja, pagado o métodos de pago) antes de autocompletar. Las tarjetas guardan un monto esperado y un monto real editable, para explicar diferencias por descuentos, cashback o devoluciones. El periodo puede ser un mes calendario, un día de corte, un día de inicio (por ejemplo 18 de octubre a 18 de noviembre), un rango personalizado o un rango con días de gracia; los cierres vencidos pasan a solo lectura. Puedes tener varios borradores, pero solo un cierre final por grupo. Los ahorros no se incluyen automáticamente; agrégalos como líneas manuales solo si los usas en el cálculo."
+                "body": "Puedes autocompletar el balance, tarjetas, pagos fijos y financiamientos, o agregar líneas manuales con suma y resta. Al agregar una línea, puedes vincular una tarjeta, cuenta, pago fijo o financiamiento registrado, o dejarla manual; los datos ya agregados se ocultan para evitar repetirlos. Elige qué balance usar (consumo, total, caja, pagado o métodos de pago) antes de autocompletar. Las tarjetas guardan un monto esperado y un monto real editable, para explicar diferencias por descuentos, cashback o devoluciones. El periodo viene del grupo y se comparte con los cierres; puedes ajustarlo por cierre si está permitido, con días de gracia. Lo normal es crear el cierre cuando el periodo termina, pero también puedes crearlo antes. Los cierres vencidos pasan a solo lectura. Puedes tener varios borradores, pero solo un cierre final por grupo. Los ahorros no se incluyen automáticamente; agrégalos como líneas manuales solo si los usas en el cálculo."
             },
             "steps": {
                 "title": "Paso a paso",

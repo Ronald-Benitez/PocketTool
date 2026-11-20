@@ -10,7 +10,9 @@ export const settingsEn = {
             "records": "Summaries and records",
             "recordsDescription": "Record types used by summaries and credits",
             "closing": "Closing rules",
-            "closingDescription": "Period definition and edit deadlines for closings",
+            "closingDescription": "Edit deadlines for closings",
+            "groups": "Groups and periods",
+            "groupsDescription": "Automatic creation and the period shared with closings",
             "backup": "Backup",
             "backupDescription": "Export or import the database",
             "savings": "Savings defaults",
@@ -26,33 +28,34 @@ export const settingsEn = {
         "selectCreditPaymentType": "Credit payments type",
         "pendingPaymentDate": "Pending card payment date",
         "pendingPaymentDateToday": "Today",
-        "pendingPaymentDateCard": "Card payment day in the group month",
+        "pendingPaymentDateCard": "Card payment day inside the group period",
         "pendingPaymentDateNext": "Next card payment day",
         "pendingPaymentDateHint":
             "Date used when pending card payments appear in Records. The next payment day is calculated from today, like in Credits.",
         "pendingFixedDate": "Pending fixed transaction date",
-        "pendingFixedDateGroupMonth": "Fixed day in the group month",
+        "pendingFixedDateGroupMonth": "Fixed day inside the group period",
         "pendingFixedDateNext": "Next occurrence from today",
         "pendingFixedDateHint":
             "Date proposed for pending fixed transactions in Records and Home.",
         "pendingFixedDedupe": "Fixed transaction payment detection",
         "pendingFixedDedupeGroup": "Only in the selected group",
-        "pendingFixedDedupePeriod": "By period (month of the proposed date)",
+        "pendingFixedDedupePeriod": "By period (group period)",
         "pendingFixedDedupeHint":
             "Choose whether a fixed is considered paid when it has a record in the group or in the same period.",
-        "closingPeriod": "Closing period",
-        "closingPeriodCalendar": "Calendar month",
-        "closingPeriodCutoff": "Cutoff day",
-        "closingPeriodStartDay": "Start day",
-        "closingPeriodCustom": "Custom range per closing",
-        "closingPeriodHint":
-            "Defines how the period of a closing is calculated. You can still adjust each closing if allowed.",
-        "closingCutoffDay": "Cutoff day",
-        "closingCutoffDayHint":
-            "Day of the month when the period ends. The next period starts the following day.",
-        "closingStartDay": "Period start day",
-        "closingStartDayHint":
-            "Day of the group month when the period starts. It ends on the same day of the next month.",
+        "groupAutoCreate": "Create groups automatically",
+        "groupAutoCreateHint":
+            "Creates the group for the current period when the app opens, only if no group already covers today.",
+        "groupPeriod": "Group and closing period",
+        "groupPeriodCalendar": "Calendar month",
+        "groupPeriodStartDay": "Start day of the month",
+        "groupPeriodHint":
+            "Defines when each group and closing period starts and ends. Existing groups keep the period they already have.",
+        "groupStartDay": "Period start day",
+        "groupStartDayHint":
+            "Each period starts on this day and ends the day before the same day of the next month.",
+        "groupPeriodExample":
+            "Example: with start day 18, the October group runs from October 18 to November 17.",
+        "groupCreateNow": "Create the current group now",
         "closingGraceDays": "Grace days",
         "closingGraceDaysHint":
             "Extra days after the period ends to edit the closing.",
@@ -60,7 +63,7 @@ export const settingsEn = {
         "closingAllowPeriodOverrideHint":
             "Lets you change the start, end and deadline before saving a closing.",
         "closingPeriodExample":
-            "Example: with start day 18, the October group runs from October 18 to November 18. With 5 grace days you can edit until November 23.",
+            "Grace days are counted from the group period end. With 5 grace days you can edit the closing until 5 days after the period ends.",
         "export": "Export database",
         "import": "Import database",
         "languages": {
@@ -151,7 +154,9 @@ export const settingsEs: MessageShape<typeof settingsEn> = {
             "records": "Resúmenes y registros",
             "recordsDescription": "Tipos de registro usados por resúmenes y créditos",
             "closing": "Reglas de cierre",
-            "closingDescription": "Definición de periodo y fechas límite de edición",
+            "closingDescription": "Fechas límite de edición de los cierres",
+            "groups": "Grupos y periodos",
+            "groupsDescription": "Creación automática y periodo compartido con los cierres",
             "backup": "Respaldo",
             "backupDescription": "Exportar o importar la base de datos",
             "savings": "Datos de ahorros",
@@ -167,33 +172,34 @@ export const settingsEs: MessageShape<typeof settingsEn> = {
         "selectCreditPaymentType": "Tipo de pagos a crédito",
         "pendingPaymentDate": "Fecha de pagos pendientes de tarjeta",
         "pendingPaymentDateToday": "Hoy",
-        "pendingPaymentDateCard": "Día de pago en el mes del grupo",
+        "pendingPaymentDateCard": "Día de pago dentro del periodo del grupo",
         "pendingPaymentDateNext": "Próximo día de pago de la tarjeta",
         "pendingPaymentDateHint":
             "Fecha que se usa cuando aparecen pagos pendientes de tarjeta en Registros. El próximo día de pago se calcula desde hoy, como en Créditos.",
         "pendingFixedDate": "Fecha de gastos fijos pendientes",
-        "pendingFixedDateGroupMonth": "Día del fijo en el mes del grupo",
+        "pendingFixedDateGroupMonth": "Día del fijo dentro del periodo del grupo",
         "pendingFixedDateNext": "Próxima ocurrencia desde hoy",
         "pendingFixedDateHint":
             "Fecha propuesta para los gastos fijos pendientes en Registros e Inicio.",
         "pendingFixedDedupe": "Detección de gastos fijos pagados",
         "pendingFixedDedupeGroup": "Solo en el grupo seleccionado",
-        "pendingFixedDedupePeriod": "Por periodo (mes de la fecha propuesta)",
+        "pendingFixedDedupePeriod": "Por periodo (periodo del grupo)",
         "pendingFixedDedupeHint":
             "Elige si un fijo se considera pagado cuando tiene un registro en el grupo o en el mismo periodo.",
-        "closingPeriod": "Periodo de cierre",
-        "closingPeriodCalendar": "Mes calendario",
-        "closingPeriodCutoff": "Día de corte",
-        "closingPeriodStartDay": "Día de inicio",
-        "closingPeriodCustom": "Rango personalizado por cierre",
-        "closingPeriodHint":
-            "Define cómo se calcula el periodo de un cierre. Aún puedes ajustar cada cierre si está permitido.",
-        "closingCutoffDay": "Día de corte",
-        "closingCutoffDayHint":
-            "Día del mes en que termina el periodo. El siguiente periodo empieza al día siguiente.",
-        "closingStartDay": "Día de inicio del periodo",
-        "closingStartDayHint":
-            "Día del mes del grupo en que empieza el periodo. Termina el mismo día del mes siguiente.",
+        "groupAutoCreate": "Crear grupos automáticamente",
+        "groupAutoCreateHint":
+            "Crea el grupo del periodo actual al abrir la app, solo si ningún grupo cubre hoy.",
+        "groupPeriod": "Periodo de grupos y cierres",
+        "groupPeriodCalendar": "Mes calendario",
+        "groupPeriodStartDay": "Día de inicio del mes",
+        "groupPeriodHint":
+            "Define cuándo empieza y termina cada grupo y cierre. Los grupos existentes conservan el periodo que ya tienen.",
+        "groupStartDay": "Día de inicio del periodo",
+        "groupStartDayHint":
+            "Cada periodo empieza este día y termina el día anterior al mismo día del mes siguiente.",
+        "groupPeriodExample":
+            "Ejemplo: con día de inicio 18, el grupo de octubre va del 18 de octubre al 17 de noviembre.",
+        "groupCreateNow": "Crear el grupo actual ahora",
         "closingGraceDays": "Días de gracia",
         "closingGraceDaysHint":
             "Días extra después del fin del periodo para editar el cierre.",
@@ -201,7 +207,7 @@ export const settingsEs: MessageShape<typeof settingsEn> = {
         "closingAllowPeriodOverrideHint":
             "Permite cambiar inicio, fin y fecha límite antes de guardar un cierre.",
         "closingPeriodExample":
-            "Ejemplo: con día de inicio 18, el grupo de octubre va del 18 de octubre al 18 de noviembre. Con 5 días de gracia puedes editar hasta el 23 de noviembre.",
+            "Los días de gracia se cuentan desde el fin del periodo del grupo. Con 5 días de gracia puedes editar el cierre hasta 5 días después de que termine.",
         "export": "Exportar base de datos",
         "import": "Importar base de datos",
         "languages": {

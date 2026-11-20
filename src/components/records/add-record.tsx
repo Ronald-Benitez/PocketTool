@@ -10,12 +10,14 @@ import {
     usePaymentMethods,
     usePeopleRepository,
     useRecords,
+    useGroups,
     useSavings,
     useSharedParticipantsRepository,
     useTableRepository,
 } from "@/src/db";
 import type {
     Category,
+    Group,
     Insertable,
     PaidCredit,
     PaymentMethodWithRelations,
@@ -28,8 +30,11 @@ import type {
 import type { ParticipantDraft } from "@/src/db";
 import { computeRecordShares } from "@/src/domain/shared/split";
 import { hasCreditCardSavingConflict } from "@/src/domain/credits/cards";
+import { groupPeriodFromRow } from "@/src/domain/groups/period";
+import { periodContains } from "@/src/domain/periods/period";
+import type { Period } from "@/src/domain/periods/types";
 import { useConfigs } from "@/src/hooks/useConfigs";
-import { formatMoneyWithSymbol } from "@/src/utils";
+import { formatMoneyWithSymbol, formatPeriodRange } from "@/src/utils";
 import { SharedParticipantsField } from "@/src/components/shared/SharedParticipantsField";
 import { Button } from "@/src/ui/actions/Button";
 import { ColoredSelectOption } from "@/src/ui/forms/ColoredSelectOption";
@@ -55,7 +60,7 @@ type FixedPaidMode = 'me_full' | 'me_own' | 'person_full';
 const AddItem = ({ item, children, open }: AddItemProps) => {
     const { setRecords, group, setPaidCredits } = useRecordsStore()
     const dateH = useDate()
-    const { t } = useLanguage()
+    const { t, language } = useLanguage()
     const [visible, setVisible] = useState(false)
     const [name, setName] = useState<string>("")
     const [date, setDate] = useState(new Date().getTime())
@@ -80,6 +85,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     const [savings, setSavings] = useState<Saving[]>([])
     const [savingId, setSavingId] = useState<number | null>(null)
     const savingsRepository = useSavings()
+    const groupsRepository = useGroups()
     const peopleRepository = usePeopleRepository()
     const participantsRepository = useSharedParticipantsRepository()
     const { fetchRecords, saveRecord, fetchPaidCreditsByGroup, getSharingSource } = useRecords()
@@ -89,6 +95,53 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     const categoriesRepository = useTableRepository("Categories")
     const { configs: { paymentCreditType } } = useConfigs()
     const firstOpenEffect = useRef(true)
+    const [periodSuggestion, setPeriodSuggestion] = useState<{
+        group: Group
+        period: Period
+    } | null>(null)
+    const groupsRef = useRef(groupsRepository)
+    groupsRef.current = groupsRepository
+
+    useEffect(() => {
+        let active = true
+
+        const resolveSuggestion = async () => {
+            if (!group?.id || !group_id) {
+                setPeriodSuggestion(null)
+                return
+            }
+
+            try {
+                const groups = await groupsRef.current.fetchGroups()
+                if (!active) return
+
+                const selected = groups.find((candidate) => candidate.id === group_id) ?? group
+                if (periodContains(groupPeriodFromRow(selected), date)) {
+                    setPeriodSuggestion(null)
+                    return
+                }
+
+                const match = groups
+                    .filter((candidate) => candidate.id !== selected.id)
+                    .map((candidate) => ({
+                        group: candidate,
+                        period: groupPeriodFromRow(candidate),
+                    }))
+                    .filter(({ period }) => periodContains(period, date))
+                    .sort((left, right) => right.period.start - left.period.start)[0]
+
+                setPeriodSuggestion(match ?? null)
+            } catch (cause) {
+                if (__DEV__) console.warn('[records] period suggestion failed', cause)
+                if (active) setPeriodSuggestion(null)
+            }
+        }
+
+        void resolveSuggestion()
+        return () => {
+            active = false
+        }
+    }, [date, group, group_id])
 
     useEffect(() => {
         if (firstOpenEffect.current) {
@@ -691,6 +744,18 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                         value={date}
                         onChange={setDate}
                     />
+                    {periodSuggestion ? (
+                        <InlineMessage
+                            variant='info'
+                            message={t('records.periodSuggestion', {
+                                group: periodSuggestion.group.group_name,
+                                period: formatPeriodRange(
+                                    periodSuggestion.period,
+                                    language
+                                ),
+                            })}
+                        />
+                    ) : null}
                     {item?.fixed_id != null && item?.id == null ? (
                         <InlineMessage
                             variant='info'

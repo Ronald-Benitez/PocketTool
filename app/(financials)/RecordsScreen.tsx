@@ -72,7 +72,7 @@ const Index = () => {
                 <View style={{ paddingBottom: 5 }}>
                     <GroupSelector />
                 </View>
-                <AddGroup>
+                <AddGroup mode='create'>
                     <View style={styles.button}>
                         <AntDesign name="folder-add" size={20} color={colors.text} />
                     </View>

@@ -17,7 +17,12 @@ export const groupsEn = {
         "select-group": "Select group",
         "added": "Added group",
         "edited": "Edited group",
-        "deleted": "Deleted group"
+        "deleted": "Deleted group",
+        "autoCreated": "Group {name} was created automatically",
+        "createdNow": "Group {name} was created",
+        "currentExists": "The current period already has a group",
+        "periodPreview": "Period: {range}",
+        "periodChangeWarning": "Changing the period does not move existing records. Review this group's records after saving."
     }
 } as const;
 
@@ -38,6 +43,11 @@ export const groupsEs: MessageShape<typeof groupsEn> = {
         "select-group": "Selecciona un grupo",
         "added": "Grupo agregado",
         "edited": "Grupo editado",
-        "deleted": "Grupo eliminado"
+        "deleted": "Grupo eliminado",
+        "autoCreated": "El grupo {name} se creó automáticamente",
+        "createdNow": "El grupo {name} se creó",
+        "currentExists": "El periodo actual ya tiene un grupo",
+        "periodPreview": "Periodo: {range}",
+        "periodChangeWarning": "Cambiar el periodo no mueve los registros existentes. Revisa los registros de este grupo al guardar."
     }
 };

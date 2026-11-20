@@ -16,6 +16,7 @@ import {
   resolvePendingFixedDate,
   type FixedPendingRecordRef,
 } from '@/src/domain/records/fixedPending';
+import { groupPeriodFromRow } from '@/src/domain/groups/period';
 import type { FixedView, SharedExpenseParticipant } from '@/src/interfaces/schema';
 
 export type PendingFixed = {
@@ -125,6 +126,7 @@ export const usePendingFixeds = ({
 
   const pendingFixeds = useMemo(() => {
     const now = new Date().getTime();
+    const period = group ? groupPeriodFromRow(group) : null;
 
     return Fixeds.flatMap<PendingFixed>((fixed) => {
       if (typeof fixed.id !== 'number') return [];
@@ -135,6 +137,8 @@ export const usePendingFixeds = ({
         fixedDay: fixed.fixed_day,
         groupYear: group?.year,
         groupMonth: group?.month,
+        periodStart: period?.start,
+        periodEnd: period?.end,
       });
 
       const paid = isFixedPendingPaid({
@@ -142,6 +146,8 @@ export const usePendingFixeds = ({
         fixedId: fixed.id,
         targetDate: date,
         groupId: group?.id ?? null,
+        periodStart: period?.start,
+        periodEnd: period?.end,
         records:
           configs.pendingFixedDedupeMode === 'period' ? fixedRecords : records,
       });
@@ -172,9 +178,7 @@ export const usePendingFixeds = ({
     }).sort((a, b) => a.date - b.date);
   }, [
     Fixeds,
-    group?.id,
-    group?.year,
-    group?.month,
+    group,
     records,
     fixedRecords,
     participants,

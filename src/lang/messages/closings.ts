@@ -23,13 +23,15 @@ export const closingEn = {
       start: 'Start',
       end: 'End',
       editableUntil: 'Editable until',
-      reset: 'Reset from settings',
+      reset: 'Reset to group period',
       recalculateDeadline: 'Recalculate deadline',
       expired: 'This closing is expired and can only be viewed.',
       adjustToContinue:
         'Adjust the period so the edit deadline is in the future.',
       defaultExpiredHint:
-        'The default period has ended. Change the period rule in Settings, or adjust the range when creating the closing if allowed.',
+        'The group period has ended. Adjust the range when creating the closing if allowed.',
+      beforeEnd:
+        'This period has not ended yet. You can create the closing now; it is usually done when the period ends.',
       editable: 'Editable until {date}',
     },
     sections: {
@@ -219,13 +221,15 @@ export const closingEs: MessageShape<typeof closingEn> = {
       start: 'Inicio',
       end: 'Fin',
       editableUntil: 'Editable hasta',
-      reset: 'Restablecer según configuración',
+      reset: 'Restablecer al periodo del grupo',
       recalculateDeadline: 'Recalcular fecha límite',
       expired: 'Este cierre venció y solo se puede consultar.',
       adjustToContinue:
         'Ajusta el periodo para que la fecha límite quede en el futuro.',
       defaultExpiredHint:
-        'El periodo por defecto ya terminó. Cambia la regla de periodo en Ajustes, o ajusta el rango al crear el cierre si está permitido.',
+        'El periodo del grupo ya terminó. Ajusta el rango al crear el cierre si está permitido.',
+      beforeEnd:
+        'Este periodo aún no termina. Puedes crear el cierre ahora; lo habitual es hacerlo cuando termine.',
       editable: 'Editable hasta {date}',
     },
     sections: {

@@ -9,12 +9,13 @@ import { SettingsSection } from '@/src/components/settings/SettingsSection';
 import { useDBExport } from '@/src/db/utils';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useConfigs } from '@/src/hooks/useConfigs';
+import { useCreateCurrentGroup } from '@/src/hooks/useCreateCurrentGroup';
 import type { PendingPaymentDateMode } from '@/src/domain/credits/pending';
 import type {
     FixedPendingDateMode,
     FixedPendingDedupeMode,
 } from '@/src/domain/records/fixedPending';
-import type { ClosingPeriodMode } from '@/src/domain/closing/types';
+import type { GroupPeriodMode } from '@/src/domain/groups/types';
 import { useDataStore } from '@/src/stores';
 import { Button } from '@/src/ui/actions/Button';
 import { IconButton } from '@/src/ui/actions/IconButton';
@@ -32,6 +33,7 @@ import type { RecordType } from '@/src/interfaces/schema';
 const SettingsScreen = () => {
     const { language, changeLanguage, t } = useLanguage();
     const { configs, saveConfigs, loadConfigs } = useConfigs();
+    const { createCurrentGroup } = useCreateCurrentGroup();
     const exportHook = useDBExport()
     const { RecordTypes } = useDataStore()
     const { colors } = useTheme()
@@ -88,16 +90,17 @@ const SettingsScreen = () => {
         saveConfigs({ ...configs, pendingFixedDedupeMode: mode })
     }
 
-    const onClosingPeriodModeChange = (mode: ClosingPeriodMode) => {
-        saveConfigs({ ...configs, closingPeriodMode: mode })
+    const onGroupAutoCreateChange = (value: boolean) => {
+        saveConfigs({ ...configs, groupAutoCreate: value })
+        if (value) void createCurrentGroup({ automatic: true })
     }
 
-    const onClosingCutoffDayChange = (day: number) => {
-        saveConfigs({ ...configs, closingCutoffDay: day })
+    const onGroupPeriodModeChange = (mode: GroupPeriodMode) => {
+        saveConfigs({ ...configs, groupPeriodMode: mode })
     }
 
-    const onClosingStartDayChange = (day: number) => {
-        saveConfigs({ ...configs, closingStartDay: day })
+    const onGroupStartDayChange = (day: number) => {
+        saveConfigs({ ...configs, groupStartDay: day })
     }
 
     const onClosingGraceDaysChange = (days: number) => {
@@ -244,68 +247,69 @@ const SettingsScreen = () => {
                 </SettingsSection>
 
                 <SettingsSection
-                    title={t('settings.sections.closing')}
-                    description={t('settings.sections.closingDescription')}
-                    keywords={['closing', 'period', 'cierre', 'periodo', 'cutoff', 'corte', 'grace', 'gracia']}
+                    title={t('settings.sections.groups')}
+                    description={t('settings.sections.groupsDescription')}
+                    keywords={['groups', 'grupos', 'period', 'periodo', 'automatic', 'automático', 'start day', 'día de inicio']}
                     search={search}
                 >
-                    <SelectField<ClosingPeriodMode>
-                        label={t('settings.closingPeriod')}
-                        hint={t('settings.closingPeriodHint')}
-                        title={t('settings.closingPeriod')}
-                        value={configs?.closingPeriodMode ?? 'calendar_month'}
+                    <SwitchField
+                        label={t('settings.groupAutoCreate')}
+                        description={t('settings.groupAutoCreateHint')}
+                        value={configs?.groupAutoCreate ?? false}
+                        onChange={onGroupAutoCreateChange}
+                    />
+
+                    <SelectField<GroupPeriodMode>
+                        label={t('settings.groupPeriod')}
+                        hint={t('settings.groupPeriodHint')}
+                        title={t('settings.groupPeriod')}
+                        value={configs?.groupPeriodMode ?? 'calendar_month'}
                         options={[
                             {
-                                label: t('settings.closingPeriodCalendar'),
+                                label: t('settings.groupPeriodCalendar'),
                                 value: 'calendar_month',
                             },
                             {
-                                label: t('settings.closingPeriodCutoff'),
-                                value: 'cutoff_day',
-                            },
-                            {
-                                label: t('settings.closingPeriodStartDay'),
+                                label: t('settings.groupPeriodStartDay'),
                                 value: 'start_day',
                             },
-                            {
-                                label: t('settings.closingPeriodCustom'),
-                                value: 'custom_range',
-                            },
                         ]}
-                        onChange={onClosingPeriodModeChange}
+                        onChange={onGroupPeriodModeChange}
                         closeLabel={t('cancel')}
                     />
 
-                    {configs?.closingPeriodMode === 'cutoff_day' ? (
+                    {configs?.groupPeriodMode === 'start_day' ? (
                         <SelectField<number>
-                            label={t('settings.closingCutoffDay')}
-                            hint={t('settings.closingCutoffDayHint')}
-                            title={t('settings.closingCutoffDay')}
-                            value={configs?.closingCutoffDay ?? 31}
+                            label={t('settings.groupStartDay')}
+                            hint={t('settings.groupStartDayHint')}
+                            title={t('settings.groupStartDay')}
+                            value={configs?.groupStartDay ?? 1}
                             options={Array.from({ length: 31 }, (_, index) => ({
                                 label: String(index + 1),
                                 value: index + 1,
                             }))}
-                            onChange={onClosingCutoffDayChange}
+                            onChange={onGroupStartDayChange}
                             closeLabel={t('cancel')}
                         />
                     ) : null}
 
-                    {configs?.closingPeriodMode === 'start_day' ? (
-                        <SelectField<number>
-                            label={t('settings.closingStartDay')}
-                            hint={t('settings.closingStartDayHint')}
-                            title={t('settings.closingStartDay')}
-                            value={configs?.closingStartDay ?? 1}
-                            options={Array.from({ length: 31 }, (_, index) => ({
-                                label: String(index + 1),
-                                value: index + 1,
-                            }))}
-                            onChange={onClosingStartDayChange}
-                            closeLabel={t('cancel')}
-                        />
-                    ) : null}
+                    <AppText variant='caption' color='muted'>
+                        {t('settings.groupPeriodExample')}
+                    </AppText>
 
+                    <Button
+                        label={t('settings.groupCreateNow')}
+                        variant='outline'
+                        onPress={() => void createCurrentGroup()}
+                    />
+                </SettingsSection>
+
+                <SettingsSection
+                    title={t('settings.sections.closing')}
+                    description={t('settings.sections.closingDescription')}
+                    keywords={['closing', 'cierre', 'grace', 'gracia', 'deadline', 'límite', 'override', 'ajustar']}
+                    search={search}
+                >
                     <SelectField<number>
                         label={t('settings.closingGraceDays')}
                         hint={t('settings.closingGraceDaysHint')}

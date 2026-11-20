@@ -3,13 +3,12 @@ import { View } from 'react-native';
 
 import { calculateClosingTotals, validateClosing } from '@/src/domain/closing/calculator';
 import {
-  DAY_MS,
   deadlineFromPeriodEnd,
   endOfLocalDay,
   isClosingEditable,
-  resolveClosingPeriod,
   startOfLocalDay,
 } from '@/src/domain/closing/period';
+import { groupPeriodFromRow } from '@/src/domain/groups/period';
 import type {
   ClosingLineDraft,
   ClosingSection as ClosingSectionType,
@@ -113,35 +112,16 @@ export const ClosingEditor = ({
   const [saving, setSaving] = useState(false);
 
   const defaultPeriod = useMemo(() => {
-    if (configs.closingPeriodMode === 'custom_range') {
-      const now = new Date().getTime();
-      const end = endOfLocalDay(now);
-      return {
-        start: startOfLocalDay(now - 29 * DAY_MS),
-        end,
-        editableUntil: deadlineFromPeriodEnd(
-          end,
-          configs.closingGraceDays
-        ),
-      };
-    }
-    return resolveClosingPeriod({
-      mode: configs.closingPeriodMode,
-      groupYear: group.year,
-      groupMonth: group.month,
-      cutoffDay: configs.closingCutoffDay,
-      startDay: configs.closingStartDay,
-      graceDays: configs.closingGraceDays,
-    });
-  }, [
-      configs.closingCutoffDay,
-      configs.closingGraceDays,
-      configs.closingPeriodMode,
-      configs.closingStartDay,
-      group.month,
-      group.year,
-    ]
-  );
+    const period = groupPeriodFromRow(group);
+    return {
+      start: period.start,
+      end: period.end,
+      editableUntil: deadlineFromPeriodEnd(
+        period.end,
+        configs.closingGraceDays
+      ),
+    };
+  }, [configs.closingGraceDays, group]);
 
   useEffect(() => {
     if (closing || initialized.current) return;
@@ -173,9 +153,7 @@ export const ClosingEditor = ({
     ? isClosingEditable(closing.editable_until)
     : true;
   const readOnlyLines = status === 'final' || !persistedEditable;
-  const canEditPeriod =
-    configs.closingAllowPeriodOverride ||
-    configs.closingPeriodMode === 'custom_range';
+  const canEditPeriod = configs.closingAllowPeriodOverride;
   const totals = calculateClosingTotals(lines);
   const validation = validateClosing({
     lines,

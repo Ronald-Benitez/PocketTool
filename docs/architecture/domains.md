@@ -150,6 +150,25 @@ compartidos, resúmenes o reglas de dinero.
   cargas asíncronas no deben pisar una selección del usuario.
 - Detalle en `docs/legacy/next-version-plan.md` (histórico).
 
+## Periodos y grupos
+
+- `src/domain/periods/`: motor compartido por grupos y cierres.
+  `resolvePeriod` genera periodos locales inclusivos y contiguos; el fin de un
+  periodo `start_day` es el día anterior al siguiente inicio, con clamp en meses
+  cortos.
+- Modos: `calendar_month`, `start_day`, `cutoff_day` y `custom_range`. Los
+  grupos recurrentes usan los tres primeros; `custom_range` queda como override
+  manual de un cierre.
+- `src/domain/groups/`: `groupPeriodFromRow` resuelve el periodo guardado o cae
+  al mes calendario de `year`/`month`; `planCurrentGroup` decide si falta el
+  grupo del periodo actual.
+- `month` es 0-based. El mes ancla es el mes de inicio, salvo `cutoff_day`, que
+  se etiqueta por el mes donde termina.
+- `ensureCurrentGroup` crea solo el periodo que contiene hoy, no duplica y
+  respeta grupos borrados. No crea periodos futuros.
+- Los grupos existentes conservan su periodo; cambiar la configuración solo
+  afecta a los grupos nuevos.
+
 ## Cierre de periodo
 
 - `src/domain/closing/`: cálculo de totales, validaciones, periodo configurable
@@ -159,10 +178,11 @@ compartidos, resúmenes o reglas de dinero.
 - Secciones: `available`, `obligation` y `resolution`. Los ahorros no se
   incluyen automáticamente; se pueden agregar como líneas manuales si el
   usuario decide usarlos.
-- El periodo se configura globalmente (`closingPeriodMode`, `closingCutoffDay`,
-  `closingStartDay`, `closingGraceDays`, `closingAllowPeriodOverride`) y cada
-  cierre guarda `period_start`, `period_end` y `editable_until`. Los modos
-  incluyen mes calendario, día de corte, día de inicio y rango personalizado.
+- El periodo del cierre sale del periodo del grupo. `closingGraceDays` y
+  `closingAllowPeriodOverride` siguen siendo propios del cierre; cada cierre
+  guarda `period_start`, `period_end` y `editable_until`.
+- Lo normal es crear el cierre cuando el periodo termina, pero la app no bloquea
+  crearlo antes; solo muestra una sugerencia.
 - Un cierre vencido es inmutable. Los cambios globales no reactivan cierres
   existentes.
 - Varios borradores y un único final por grupo, reforzado con índice único.

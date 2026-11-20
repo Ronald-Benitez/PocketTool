@@ -13,6 +13,7 @@ import { Drawer } from 'expo-router/drawer';
 import CustomDrawer from '@/src/components/navigation/custom-drawer';
 import { WhatsNewGate } from '@/src/components/whats-new/WhatsNewGate';
 import migrateDb from '@/src/db/migration';
+import { useAutoGroup } from '@/src/hooks/useAutoGroup';
 import { LanguageProvider, useLanguage } from '@/src/lang/LanguageContext';
 import { ToastProvider } from '@/src/ui/feedback/ToastProvider';
 import { ThemeProvider, useTheme } from '@/src/ui/theme/ThemeProvider';
@@ -60,6 +61,7 @@ export default function RootLayout() {
 
 const AppShell = () => {
   const { colors, resolvedMode, isReady } = useTheme();
+  useAutoGroup();
 
   useEffect(() => {
     if (!isReady) return;

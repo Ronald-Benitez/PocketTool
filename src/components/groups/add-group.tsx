@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, View } from 'react-native'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
 import { useToast } from '@/src/ui/feedback/ToastProvider'
@@ -10,32 +10,40 @@ import {
     usePersonSettlementsRepository,
     useSharedLedgerRepository,
 } from '@/src/db'
+import { useConfigs } from '@/src/hooks/useConfigs'
 import type { Group, Insertable } from '@/src/interfaces/schema'
 import { buildSettlementForBalance } from '@/src/domain/shared/statement'
+import {
+    groupPeriodFromRow,
+    resolveGroupPeriod,
+} from '@/src/domain/groups/period'
+import type { Period } from '@/src/domain/periods/types'
 import {
     PendingBalancesDialog,
     type PendingBalanceItem,
 } from './PendingBalancesDialog'
+import { GroupPeriodPreview } from './group-period-preview'
 import { Button } from '@/src/ui/actions/Button'
+import { InlineMessage } from '@/src/ui/feedback/InlineMessage'
 import { MoneyField } from '@/src/ui/forms/MoneyField'
 import { MonthField } from '@/src/ui/forms/MonthField'
 import { TextField } from '@/src/ui/forms/TextField'
 import { Modal } from '@/src/ui/overlays/Modal'
 
+type GroupFormMode = 'create' | 'edit'
+
 interface AddGroupProps {
     children?: React.ReactNode
     openUpdate?: boolean
-    isEditing?: boolean
+    mode?: GroupFormMode
 }
 
-const groupDate = (group: Pick<Group, 'year' | 'month'>) =>
-    new Date(group.year, group.month, 1).getTime()
+const groupDate = (group: Group) => groupPeriodFromRow(group).start
+const groupEnd = (group: Group) => groupPeriodFromRow(group).end
 
-const groupEnd = (group: Pick<Group, 'year' | 'month'>) =>
-    new Date(group.year, group.month + 1, 0, 23, 59, 59, 999).getTime()
-
-const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) => {
+const AddGroup = ({ children, openUpdate, mode = 'create' }: AddGroupProps) => {
     const { t } = useLanguage()
+    const { configs } = useConfigs()
     const [visible, setVisible] = useState(false)
     const [name, setName] = useState<string>('')
     const [goalCents, setGoalCents] = useState<number>(0)
@@ -53,7 +61,51 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
     const [pendingPrevious, setPendingPrevious] = useState<Group | null>(null)
     const firstOpenEffect = useRef(true)
 
+    const previewPeriod = useMemo<Period | null>(() => {
+        const unchangedMonth =
+            mode === 'edit' &&
+            group != null &&
+            group.month === month &&
+            group.year === year;
+
+        if (unchangedMonth && group) {
+            if (group.period_start != null && group.period_end != null) {
+                return { start: group.period_start, end: group.period_end }
+            }
+            // Legacy groups without explicit columns keep their calendar month
+            // when the user only edits the name or goal.
+            return resolveGroupPeriod({
+                mode: 'calendar_month',
+                year: group.year,
+                month: group.month,
+            })
+        }
+
+        return resolveGroupPeriod({
+            mode: configs.groupPeriodMode,
+            year,
+            month,
+            startDay: configs.groupStartDay,
+        })
+    }, [
+        configs.groupPeriodMode,
+        configs.groupStartDay,
+        group,
+        mode,
+        month,
+        year,
+    ])
+
+    const periodChanged =
+        mode === 'edit' &&
+        group?.period_start != null &&
+        group.period_end != null &&
+        previewPeriod != null &&
+        (group.period_start !== previewPeriod.start ||
+            group.period_end !== previewPeriod.end)
+
     useEffect(() => {
+        if (openUpdate === undefined) return
         if (firstOpenEffect.current) {
             firstOpenEffect.current = false
             return
@@ -62,15 +114,15 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
     }, [openUpdate])
 
     useEffect(() => {
-        if (!group) return
+        if (!visible) return
         cleanData()
-        if (isEditing) {
+        if (mode === 'edit' && group) {
             setName(group.group_name)
             setGoalCents(group.goal)
             setMonth(group.month)
             setYear(group.year)
         }
-    }, [openUpdate])
+    }, [visible, mode, group])
 
     const getGroups = async () => {
         const groups = await fetchGroupsByYear(year)
@@ -165,7 +217,7 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
     }
 
     const onSave = async () => {
-        if (!name.trim() || goalCents <= 0 || !year) {
+        if (!name.trim() || goalCents <= 0 || !year || !previewPeriod) {
             showToast({ message: t('toast.empty'), type: 'warning' })
             return
         }
@@ -179,9 +231,15 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
             group_name: name.trim(),
             goal: goalCents,
             month,
-            year
+            year,
+            period_start: previewPeriod.start,
+            period_end: previewPeriod.end,
+            period_mode:
+                mode === 'edit'
+                    ? group?.period_mode ?? configs.groupPeriodMode
+                    : configs.groupPeriodMode,
         }
-        if (group?.id && isEditing) {
+        if (group?.id && mode === 'edit') {
             const updateGroup = { ...group, ...newGroup }
             await editGroup(group.id, updateGroup)
             setGroup && setGroup(updateGroup)
@@ -213,7 +271,7 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
             <Modal
                 visible={visible}
                 onClose={closeModal}
-                title={group ? t('group.edit') : t('group.add')}
+                title={mode === 'edit' ? t('group.edit') : t('group.add')}
                 closeLabel={t('cancel')}
                 scrollable
                 footer={
@@ -261,6 +319,13 @@ const AddGroup = ({ children, openUpdate, isEditing = false }: AddGroupProps) =>
                         maxLength={4}
                         placeholder={t('group.year')}
                     />
+                    <GroupPeriodPreview period={previewPeriod} />
+                    {periodChanged ? (
+                        <InlineMessage
+                            variant='warning'
+                            message={t('group.periodChangeWarning')}
+                        />
+                    ) : null}
                 </View>
             </Modal>
             <PendingBalancesDialog

@@ -7,6 +7,7 @@ import type {
     FixedPendingDedupeMode,
 } from '@/src/domain/records/fixedPending';
 import type { ClosingPeriodMode } from '@/src/domain/closing/types';
+import type { GroupPeriodMode } from '@/src/domain/groups/types';
 
 export interface Configs {
     recordTypes: number[];
@@ -15,8 +16,14 @@ export interface Configs {
     pendingPaymentDateMode: PendingPaymentDateMode;
     pendingFixedDateMode: FixedPendingDateMode;
     pendingFixedDedupeMode: FixedPendingDedupeMode;
+    groupAutoCreate: boolean;
+    groupPeriodMode: GroupPeriodMode;
+    groupStartDay: number;
+    /** @deprecated Period settings moved to the group configuration. */
     closingPeriodMode: ClosingPeriodMode;
+    /** @deprecated Use `groupStartDay`. */
     closingCutoffDay: number;
+    /** @deprecated Use `groupStartDay`. */
     closingStartDay: number;
     closingGraceDays: number;
     closingAllowPeriodOverride: boolean;
@@ -28,6 +35,9 @@ const DEFAULT_PAYMENT_CREDIT_TYPE = 'Payments';
 const DEFAULT_PENDING_PAYMENT_DATE_MODE: PendingPaymentDateMode = 'today';
 const DEFAULT_PENDING_FIXED_DATE_MODE: FixedPendingDateMode = 'next_occurrence';
 const DEFAULT_PENDING_FIXED_DEDUPE_MODE: FixedPendingDedupeMode = 'period';
+const DEFAULT_GROUP_AUTO_CREATE = false;
+const DEFAULT_GROUP_PERIOD_MODE: GroupPeriodMode = 'calendar_month';
+const DEFAULT_GROUP_START_DAY = 1;
 const DEFAULT_CLOSING_PERIOD_MODE: ClosingPeriodMode = 'calendar_month';
 const DEFAULT_CLOSING_CUTOFF_DAY = 31;
 const DEFAULT_CLOSING_START_DAY = 1;
@@ -56,6 +66,55 @@ const isClosingPeriodMode = (value: unknown): value is ClosingPeriodMode =>
     value === 'cutoff_day' ||
     value === 'start_day' ||
     value === 'custom_range';
+
+const isGroupPeriodMode = (value: unknown): value is GroupPeriodMode =>
+    value === 'calendar_month' || value === 'start_day';
+
+const isGroupStartDay = (value: unknown): value is number =>
+    typeof value === 'number' &&
+    Number.isInteger(value) &&
+    value >= 1 &&
+    value <= 31;
+
+/**
+ * Legacy closings configured a start/cutoff day. The new shared period keeps a
+ * single start day. A cutoff of 31 is equivalent to starting on day 1.
+ */
+const migrateLegacyGroupPeriod = (
+    parsed: Partial<Configs>,
+    defaults: Configs
+): { mode: GroupPeriodMode; startDay: number } => {
+    if (isGroupPeriodMode(parsed.groupPeriodMode)) {
+        return {
+            mode: parsed.groupPeriodMode,
+            startDay: isGroupStartDay(parsed.groupStartDay)
+                ? parsed.groupStartDay
+                : defaults.groupStartDay,
+        };
+    }
+
+    if (isClosingPeriodMode(parsed.closingPeriodMode)) {
+        if (parsed.closingPeriodMode === 'start_day') {
+            return {
+                mode: 'start_day',
+                startDay: isClosingDay(parsed.closingStartDay)
+                    ? parsed.closingStartDay
+                    : defaults.groupStartDay,
+            };
+        }
+        if (parsed.closingPeriodMode === 'cutoff_day') {
+            const cutoff = isClosingDay(parsed.closingCutoffDay)
+                ? parsed.closingCutoffDay
+                : DEFAULT_CLOSING_CUTOFF_DAY;
+            return {
+                mode: 'start_day',
+                startDay: cutoff >= 31 ? 1 : cutoff + 1,
+            };
+        }
+    }
+
+    return { mode: defaults.groupPeriodMode, startDay: defaults.groupStartDay };
+};
 
 const isClosingDay = (value: unknown): value is number =>
     typeof value === 'number' &&
@@ -94,6 +153,9 @@ export const resolveDefaultConfigs = (recordTypes: RecordType[]): Configs => {
         pendingPaymentDateMode: DEFAULT_PENDING_PAYMENT_DATE_MODE,
         pendingFixedDateMode: DEFAULT_PENDING_FIXED_DATE_MODE,
         pendingFixedDedupeMode: DEFAULT_PENDING_FIXED_DEDUPE_MODE,
+        groupAutoCreate: DEFAULT_GROUP_AUTO_CREATE,
+        groupPeriodMode: DEFAULT_GROUP_PERIOD_MODE,
+        groupStartDay: DEFAULT_GROUP_START_DAY,
         closingPeriodMode: DEFAULT_CLOSING_PERIOD_MODE,
         closingCutoffDay: DEFAULT_CLOSING_CUTOFF_DAY,
         closingStartDay: DEFAULT_CLOSING_START_DAY,
@@ -116,6 +178,9 @@ export const useConfigs = create<ConfigsStore>((set) => ({
         pendingPaymentDateMode: DEFAULT_PENDING_PAYMENT_DATE_MODE,
         pendingFixedDateMode: DEFAULT_PENDING_FIXED_DATE_MODE,
         pendingFixedDedupeMode: DEFAULT_PENDING_FIXED_DEDUPE_MODE,
+        groupAutoCreate: DEFAULT_GROUP_AUTO_CREATE,
+        groupPeriodMode: DEFAULT_GROUP_PERIOD_MODE,
+        groupStartDay: DEFAULT_GROUP_START_DAY,
         closingPeriodMode: DEFAULT_CLOSING_PERIOD_MODE,
         closingCutoffDay: DEFAULT_CLOSING_CUTOFF_DAY,
         closingStartDay: DEFAULT_CLOSING_START_DAY,
@@ -134,6 +199,9 @@ export const useConfigs = create<ConfigsStore>((set) => ({
                     pendingPaymentDateMode: DEFAULT_PENDING_PAYMENT_DATE_MODE,
                     pendingFixedDateMode: DEFAULT_PENDING_FIXED_DATE_MODE,
                     pendingFixedDedupeMode: DEFAULT_PENDING_FIXED_DEDUPE_MODE,
+                    groupAutoCreate: DEFAULT_GROUP_AUTO_CREATE,
+                    groupPeriodMode: DEFAULT_GROUP_PERIOD_MODE,
+                    groupStartDay: DEFAULT_GROUP_START_DAY,
                     closingPeriodMode: DEFAULT_CLOSING_PERIOD_MODE,
                     closingCutoffDay: DEFAULT_CLOSING_CUTOFF_DAY,
                     closingStartDay: DEFAULT_CLOSING_START_DAY,
@@ -149,6 +217,7 @@ export const useConfigs = create<ConfigsStore>((set) => ({
 
             const parsed = JSON.parse(storedConfigs) as Partial<Configs>;
             const parsedRecordTypes = Array.isArray(parsed.recordTypes) ? parsed.recordTypes : [];
+            const groupPeriod = migrateLegacyGroupPeriod(parsed, defaults);
             const merged: Configs = {
                 recordTypes: parsedRecordTypes.length > 0 ? parsedRecordTypes : defaults.recordTypes,
                 creditType:
@@ -174,6 +243,11 @@ export const useConfigs = create<ConfigsStore>((set) => ({
                 )
                     ? parsed.pendingFixedDedupeMode
                     : defaults.pendingFixedDedupeMode,
+                groupAutoCreate: isBoolean(parsed.groupAutoCreate)
+                    ? parsed.groupAutoCreate
+                    : defaults.groupAutoCreate,
+                groupPeriodMode: groupPeriod.mode,
+                groupStartDay: groupPeriod.startDay,
                 closingPeriodMode: isClosingPeriodMode(parsed.closingPeriodMode)
                     ? parsed.closingPeriodMode
                     : defaults.closingPeriodMode,
@@ -202,9 +276,9 @@ export const useConfigs = create<ConfigsStore>((set) => ({
                 !isPendingPaymentDateMode(parsed.pendingPaymentDateMode) ||
                 !isPendingFixedDateMode(parsed.pendingFixedDateMode) ||
                 !isPendingFixedDedupeMode(parsed.pendingFixedDedupeMode) ||
-                !isClosingPeriodMode(parsed.closingPeriodMode) ||
-                !isClosingDay(parsed.closingCutoffDay) ||
-                !isClosingDay(parsed.closingStartDay) ||
+                !isBoolean(parsed.groupAutoCreate) ||
+                !isGroupPeriodMode(parsed.groupPeriodMode) ||
+                !isGroupStartDay(parsed.groupStartDay) ||
                 !isClosingGraceDays(parsed.closingGraceDays) ||
                 !isBoolean(parsed.closingAllowPeriodOverride);
             if (wasIncomplete && recordTypes?.length) {

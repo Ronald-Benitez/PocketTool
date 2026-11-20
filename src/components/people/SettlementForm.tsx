@@ -3,7 +3,10 @@ import { StyleSheet, View } from 'react-native';
 
 import { useGroups, usePersonSettlementsRepository } from '@/src/db';
 import type { Group, Person } from '@/src/interfaces/schema';
+import { groupPeriodFromRow } from '@/src/domain/groups/period';
+import { isCalendarMonthPeriod } from '@/src/domain/periods/period';
 import { useLanguage } from '@/src/lang/LanguageContext';
+import { formatPeriodRange } from '@/src/utils';
 import { useToast } from '@/src/ui/feedback/ToastProvider';
 import { Button } from '@/src/ui/actions/Button';
 import { DateField } from '@/src/ui/forms/DateField';
@@ -33,7 +36,7 @@ export const SettlementForm = ({
   onClose,
   onSaved,
 }: SettlementFormProps) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { showToast } = useToast();
   const settlementsRepository = usePersonSettlementsRepository();
   const groupsRepository = useGroups();
@@ -106,16 +109,19 @@ export const SettlementForm = ({
 
   const groupOptions = [
     { label: t('shared.noGroup'), value: 0 },
-    ...groups.flatMap((group) =>
-      group.id === undefined
-        ? []
-        : [
-            {
-              label: `${group.group_name} (${group.year})`,
-              value: group.id,
-            },
-          ]
-    ),
+    ...groups.flatMap((group) => {
+      if (group.id === undefined) return [];
+      const period = groupPeriodFromRow(group);
+      const periodLabel = isCalendarMonthPeriod(period)
+        ? group.year
+        : formatPeriodRange(period, language);
+      return [
+        {
+          label: `${group.group_name} (${periodLabel})`,
+          value: group.id,
+        },
+      ];
+    }),
   ];
 
   return (

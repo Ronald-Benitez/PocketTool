@@ -4,6 +4,9 @@ import { StyleSheet, View } from 'react-native';
 import type { Group } from '@/src/interfaces/schema';
 import { monthKey } from '@/src/lang/keys';
 import { useLanguage } from '@/src/lang/LanguageContext';
+import { groupPeriodFromRow } from '@/src/domain/groups/period';
+import { isCalendarMonthPeriod } from '@/src/domain/periods/period';
+import { formatPeriodRange } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
 import { InlineMessage } from '@/src/ui/feedback/InlineMessage';
 import { MultiSelectField } from '@/src/ui/forms/MultiSelectField';
@@ -24,24 +27,27 @@ export const BudgetGroupAverageDialog = ({
   onClose,
   onApply,
 }: BudgetGroupAverageDialogProps) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [selected, setSelected] = useState<number[]>([]);
   const [applying, setApplying] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const options = useMemo(
     () =>
-      groups.flatMap((group) =>
-        group.id === undefined || group.id === currentGroupId
-          ? []
-          : [
-              {
-                label: `${group.group_name} · ${t(monthKey(group.month))} ${group.year}`,
-                value: group.id,
-              },
-            ]
-      ),
-    [groups, currentGroupId, t]
+      groups.flatMap((group) => {
+        if (group.id === undefined || group.id === currentGroupId) return [];
+        const period = groupPeriodFromRow(group);
+        const periodLabel = isCalendarMonthPeriod(period)
+          ? `${t(monthKey(group.month))} ${group.year}`
+          : formatPeriodRange(period, language);
+        return [
+          {
+            label: `${group.group_name} · ${periodLabel}`,
+            value: group.id,
+          },
+        ];
+      }),
+    [groups, currentGroupId, t, language]
   );
 
   useEffect(() => {

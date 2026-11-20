@@ -143,6 +143,7 @@ const GroupViewer = ({ group, setGroup, recordsI }: GroupViewerProps) => {
             </View>
             <AddGroup
                 openUpdate={openUpdate}
+                mode='edit'
             />
         </>
     )

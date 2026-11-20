@@ -21,6 +21,7 @@ import { useCreditStore } from "@/src/stores/CreditsStore";
 import { useConfigs } from "@/src/hooks/useConfigs";
 import { usePendingFixeds } from "@/src/hooks/usePendingFixeds";
 import { resolvePendingPaymentDate } from "@/src/domain/credits/pending";
+import { groupPeriodFromRow } from "@/src/domain/groups/period";
 import { useDataStore } from "@/src/stores";
 import { useThemedStyles } from "@/src/styles/useThemedStyles";
 import RecordsGroup from "./RecordsGroup";
@@ -225,6 +226,7 @@ const ItemsTable = () => {
   const generateCreditRecords = () => {
     const list: RecordFormEntry[] = [];
     const now = Date.now();
+    const period = group ? groupPeriodFromRow(group) : null;
     credits?.map((credit) => {
       if (!credit.totalPrevious) return;
       if ((credit?.totalCurrentPayments || 0) >= (credit?.totalPrevious || 0))
@@ -236,6 +238,8 @@ const ItemsTable = () => {
         groupYear: group?.year,
         groupMonth: group?.month,
         paymentDay: credit.payment_date ?? null,
+        periodStart: period?.start,
+        periodEnd: period?.end,
       });
 
       const newJoined: RecordFormEntry = {
@@ -257,6 +261,8 @@ const ItemsTable = () => {
     credits,
     group?.year,
     group?.month,
+    group?.period_start,
+    group?.period_end,
     pendingPaymentDateMode,
   ]);
 
