@@ -14,6 +14,7 @@ import CustomDrawer from '@/src/components/navigation/custom-drawer';
 import { WhatsNewGate } from '@/src/components/whats-new/WhatsNewGate';
 import migrateDb from '@/src/db/migration';
 import { useAutoGroup } from '@/src/hooks/useAutoGroup';
+import { ChartPreferencesProvider } from '@/src/ui/charts';
 import { LanguageProvider, useLanguage } from '@/src/lang/LanguageContext';
 import { ToastProvider } from '@/src/ui/feedback/ToastProvider';
 import { ThemeProvider, useTheme } from '@/src/ui/theme/ThemeProvider';
@@ -73,7 +74,9 @@ const AppShell = () => {
   return (
     <>
       <StatusBar style={resolvedMode === 'dark' ? 'light' : 'dark'} />
-      <AppDrawer />
+      <ChartPreferencesProvider>
+        <AppDrawer />
+      </ChartPreferencesProvider>
     </>
   );
 };

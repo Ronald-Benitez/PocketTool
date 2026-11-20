@@ -1,4 +1,5 @@
 export * from './actions';
+export * from './charts';
 export * from './data-display';
 export * from './feedback';
 export * from './filters';
