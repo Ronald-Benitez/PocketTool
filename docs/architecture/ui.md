@@ -105,11 +105,28 @@ relaciones y columnas avanzadas.
 
 ## Gráficos
 
-- `src/ui/charts/MermaidChart.tsx`: WebView offline con Mermaid vendorizado,
-  tema y fallback accesible.
-- `assets/vendor/mermaid/`: bundle offline generado con
-  `npm run vendor:mermaid`. No uses CDN.
-- Cada gráfico debe incluir una leyenda visible que relacione color y serie.
+- `src/domain/charts/`: tipos (`ChartSpec`, `ChartKind`, `ChartTone`), escalas,
+  ticks y validación pura. Los builders devuelven centavos, timestamps y tonos
+  semánticos; nunca colores, formato de moneda ni fechas formateadas.
+- `src/ui/charts/`: motor de renderizado.
+  - `Chart`: renderiza un spec, tooltip, leyenda, “ver datos”, toggles, límite
+    y zoom.
+  - `ChartCard`: título, leyenda compacta y colapso persistente.
+  - `ChartSection`: grupo de gráficos con “expandir/colapsar todo”.
+  - `renderers/`: línea, barra, agrupada, apilada, pastel, dona y área sobre
+    `react-native-svg`.
+  - `ChartPreferencesProvider`: preferencias en SQLite (`chart_preferences`).
+- `ChartTone` se resuelve con tokens existentes (`chartPlanned`, `chartActual`,
+  `chartProjected`, `chartFuelCost`, `chartMaintenanceCost`,
+  `chartConsumption`, `chartDistance`, `primary`, etc.). No hay colores nuevos.
+- Todo gráfico incluye leyenda visible que relaciona color y serie.
+- En Combustible los gráficos se abren colapsados; el usuario puede expandirlos
+  y la elección se recuerda.
+- Algunos gráficos ofrecen modos de datos (por ejemplo índice base 100 o datos
+  reales). El modo se guarda en `chart_preferences` y el tooltip puede mostrar
+  el valor real aunque la línea esté normalizada.
+- No uses `MermaidChart`, WebView ni `gifted-charts`: fueron reemplazados por el
+  motor.
 
 ## Estilos legacy
 

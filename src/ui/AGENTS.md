@@ -18,9 +18,12 @@ Reglas locales del sistema de UI. El procedimiento completo está en la skill
 - Filtros: `src/ui/filters/`; `RecordsFilterModal` es el wrapper de Records.
 - Tema: usa `useTheme()` y tokens. No leas `useColorStore` ni claves legacy.
   `src/stores/ColorsStore.ts` es solo un adaptador de compatibilidad.
-- No hardcodees colores en componentes, gráficos, Mermaid ni estilos. Un token
+- No hardcodees colores en componentes, gráficos ni estilos. Un token
   nuevo se registra en `ThemeColorTokens`, `bright.base.json`, `dark.base.json`,
   `COLOR_GROUPS` y `COLOR_LABELS_ES`.
+- Gráficos: `src/ui/charts` (`Chart`, `ChartCard`, `ChartSection`). Los builders
+  devuelven `ChartSpec`; la UI resuelve tokens y leyenda. No uses Mermaid,
+  WebView ni `gifted-charts`.
 - Los gráficos deben incluir leyenda visible y tomar los colores de `useTheme()`.
 - **Footer de modales:** el contenedor interno debe tener `flex: 1` cuando los
   botones usan `flex: 1`; si usas `Row`, pásale `style={{ flex: 1 }}`.

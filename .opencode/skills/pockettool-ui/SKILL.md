@@ -39,8 +39,8 @@ description: Crea o modifica pantallas, componentes, formularios, modales, filtr
 9. Tema: `useTheme()` y tokens. No leas `useColorStore`. Si agregas un color,
    actualiza `ThemeColorTokens`, `bright.base.json`, `dark.base.json`,
    `COLOR_GROUPS` y `COLOR_LABELS_ES`.
-10. Gráficos: `MermaidChart` o wrappers existentes; colores desde tokens y
-    leyenda visible que relacione color y serie.
+10. Gráficos: usa `Chart`/`ChartCard` de `src/ui/charts`; los builders
+    devuelven `ChartSpec` y la UI decide tokens y leyenda.
 11. Navegación: `StackBase` + `Tabs.Screen`; no crees un `Stack` interno dentro
     de una sección del drawer. Para editores, usa estado local y componentes.
 12. Textos: todo pasa por `t()` con `TranslationKey`; actualiza la ayuda con

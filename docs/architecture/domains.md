@@ -23,6 +23,17 @@ compartidos, resúmenes o reglas de dinero.
 - Todo flujo que mueva dinero evalúa la integración con `Records` mediante la
   skill `pockettool-records`.
 
+## Gráficos
+
+- `src/domain/charts/`: `ChartSpec`, `ChartKind`, `ChartTone`, escalas, ticks y
+  validación pura.
+- Los builders de presupuestos, créditos, vehículo y ahorros devuelven specs con
+  centavos, timestamps y tonos semánticos; no formatean moneda/fechas ni
+  devuelven colores.
+- `src/ui/charts/` resuelve tema, leyenda, tooltip, tabla de datos y renderers
+  SVG. `ChartCard` añade colapso persistente y `ChartSection` acciones de grupo.
+- Las preferencias de gráficos viven en `chart_preferences` (SQLite).
+
 ## Presupuestos
 
 - `BudgetPlans`: un plan por grupo. `BudgetLines`: líneas `category` o `fixed`.
