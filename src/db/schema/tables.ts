@@ -1,6 +1,6 @@
 import type { TableDefinition, TableSchema } from '../types';
 
-export const SCHEMA_VERSION = 25;
+export const SCHEMA_VERSION = 26;
 
 export type TableName =
   | 'Groups'
@@ -27,6 +27,7 @@ export type TableName =
   | 'SavingsSettings'
   | 'GroupClosings'
   | 'GroupClosingLines'
+  | 'ChartPreferences'
   | 'Vehicles'
   | 'VehicleFuelEntries'
   | 'VehicleMaintenance'
@@ -933,6 +934,31 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
         columns: ['closing_id', 'financing_id'],
         unique: true,
         where: 'deleted_at IS NULL AND financing_id IS NOT NULL',
+      },
+    ],
+  },
+  ChartPreferences: {
+    name: 'ChartPreferences',
+    sqlName: 'chart_preferences',
+    entity: 'ChartPreference',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      { name: 'chart_key', type: 'TEXT', notNull: true },
+      { name: 'collapsed', type: 'INTEGER', kind: 'boolean', notNull: true, defaultValue: 0 },
+      { name: 'mode', type: 'TEXT', defaultValue: null },
+      { name: 'hidden_series', type: 'TEXT', defaultValue: null },
+      { name: 'data_limit', type: 'INTEGER', defaultValue: null },
+      { name: 'limit_from_end', type: 'INTEGER', kind: 'boolean', notNull: true, defaultValue: 1 },
+      { name: 'zoom', type: 'REAL', defaultValue: null },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      {
+        name: 'idx_chart_preferences_key',
+        columns: ['chart_key'],
+        unique: true,
+        where: 'deleted_at IS NULL',
       },
     ],
   },

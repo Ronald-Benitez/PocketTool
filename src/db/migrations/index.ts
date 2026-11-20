@@ -25,6 +25,7 @@ import personSettlements from './0022_person_settlements';
 import sharedParticipantAmounts from './0023_shared_participant_amounts';
 import groupClosings from './0024_group_closings';
 import groupPeriods from './0025_group_periods';
+import chartPreferences from './0026_chart_preferences';
 
 export interface Migration {
   version: number;
@@ -62,4 +63,5 @@ export const migrations: Migration[] = [
   sharedParticipantAmounts,
   groupClosings,
   groupPeriods,
+  chartPreferences,
 ];

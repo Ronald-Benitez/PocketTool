@@ -54,6 +54,7 @@ const {
 const {
   recordInputSchema,
   groupInputSchema,
+  chartPreferenceInputSchema,
   budgetLineInputSchema,
   budgetPlanInputSchema,
   personSettlementInputSchema,
@@ -135,7 +136,7 @@ async function testLegacyMigration() {
   await migrateDb(db);
 
   const tables = q(raw, "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").map(r => r.name);
-  for (const expected of ['groups', 'payment_types', 'payment_methods', 'categories', 'record_types', 'fixed_records', 'records', 'paid_credits', 'budget_templates', 'budget_template_items', 'budget_plans', 'budget_lines', 'savings', 'savings_history', 'migrations', 'financings', 'financing_payments', 'financing_adjustments', 'group_closings', 'group_closing_lines', 'vehicles', 'vehicle_fuel_entries', 'vehicle_maintenance', 'vehicle_maintenance_items', 'vehicle_reminders', 'vehicle_settings', 'vehicle_expense_links', 'fuel_refills_legacy', 'trip_logs_legacy']) {
+  for (const expected of ['groups', 'payment_types', 'payment_methods', 'categories', 'record_types', 'fixed_records', 'records', 'paid_credits', 'budget_templates', 'budget_template_items', 'budget_plans', 'budget_lines', 'savings', 'savings_history', 'migrations', 'financings', 'financing_payments', 'financing_adjustments', 'group_closings', 'group_closing_lines', 'chart_preferences', 'vehicles', 'vehicle_fuel_entries', 'vehicle_maintenance', 'vehicle_maintenance_items', 'vehicle_reminders', 'vehicle_settings', 'vehicle_expense_links', 'fuel_refills_legacy', 'trip_logs_legacy']) {
     assert.ok(tables.includes(expected), `missing table ${expected}`);
   }
   assert.ok(!tables.includes('Groups'), 'legacy Groups should be gone');
@@ -440,7 +441,7 @@ async function testEmptyDatabase() {
   await migrateDb(db);
 
   const tables = q(raw, "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").map(r => r.name);
-  for (const expected of ['groups', 'records', 'payment_types', 'record_types', 'categories', 'payment_methods', 'group_closings', 'group_closing_lines', 'migrations']) {
+  for (const expected of ['groups', 'records', 'payment_types', 'record_types', 'categories', 'payment_methods', 'group_closings', 'group_closing_lines', 'chart_preferences', 'migrations']) {
     assert.ok(tables.includes(expected), `fresh database missing ${expected}`);
   }
   assert.strictEqual(q(raw, 'SELECT COUNT(*) AS c FROM groups')[0].c, 1);
@@ -448,7 +449,7 @@ async function testEmptyDatabase() {
   assert.strictEqual(q(raw, 'SELECT goal FROM groups')[0].goal, 500000);
   assert.strictEqual(q(raw, 'SELECT amount FROM records ORDER BY id')[0].amount, 100000);
   assert.strictEqual(q(raw, 'SELECT migration_name FROM migrations')[0].migration_name, '0001_baseline');
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 25);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 26);
   const seededGroup = q(raw, 'SELECT month, period_start, period_end, period_mode FROM groups')[0];
   assert.strictEqual(seededGroup.month, new Date().getMonth());
   assert.ok(seededGroup.period_start != null, 'seed group should have a period start');
@@ -492,7 +493,7 @@ async function testExportImport() {
   assert.ok(metadata);
   assert.strictEqual(metadata.formatVersion, BACKUP_FORMAT_VERSION);
   assert.strictEqual(metadata.appVersion, 'test-version');
-  assert.strictEqual(metadata.schemaVersion, 25);
+  assert.strictEqual(metadata.schemaVersion, 26);
   assert.ok(metadata.tables.includes('records'));
   assert.doesNotThrow(() => validateSqlDump(backupSql));
   assert.strictEqual(parseBackupMetadata(dump), null);
@@ -555,7 +556,7 @@ async function testAuditTimestampMigration() {
   const backfilled = q(raw, 'SELECT created_at, updated_at FROM records LIMIT 1')[0];
   assert.ok(backfilled.created_at > 0);
   assert.ok(backfilled.updated_at > 0);
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 25);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 26);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,
     1
@@ -673,6 +674,27 @@ async function testValidationSchemas() {
       goal: 100,
       year: 2026,
       month: 12,
+    })
+  );
+  const chartPreference = chartPreferenceInputSchema.parse({
+    chart_key: 'vehicle.fuel.consumption',
+    collapsed: true,
+    hidden_series: ['shared'],
+    data_limit: 20,
+    zoom: 1.5,
+  });
+  assert.strictEqual(chartPreference.collapsed, true);
+  assert.deepStrictEqual(chartPreference.hidden_series, ['shared']);
+  assert.throws(() =>
+    chartPreferenceInputSchema.parse({
+      chart_key: '',
+      collapsed: false,
+    })
+  );
+  assert.throws(() =>
+    chartPreferenceInputSchema.parse({
+      chart_key: 'chart',
+      zoom: 0,
     })
   );
   const plan = budgetPlanInputSchema.parse({
