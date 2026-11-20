@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
-import { LineChart } from 'react-native-gifted-charts';
 
 import AddSaving from '@/src/components/savings/add-savings';
 import { SavingMovementDetails } from '@/src/components/savings/SavingMovementDetails';
@@ -10,15 +9,17 @@ import { SavingMovementForm } from '@/src/components/savings/SavingMovementForm'
 import { SavingsGoalTrophy } from '@/src/components/savings/SavingsGoalTrophy';
 import { usePeopleRepository, useSavings } from '@/src/db';
 import { mapDatabaseError } from '@/src/db/errors';
+import { buildSavingChartSpec } from '@/src/domain/savings/charts';
 import type { SavingMovementView, SavingView } from '@/src/db/repositories/savings';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import useRecordsStore from '@/src/stores/RecordsStore';
 import { useGroupRefresh } from '@/src/hooks/useGroupRefresh';
 import useSavingsStore from '@/src/stores/SavingsStore';
-import { formatMoney, formatMoneyWithSymbol } from '@/src/utils';
+import { formatMoneyWithSymbol } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
 import { IconButton } from '@/src/ui/actions/IconButton';
 import { Badge } from '@/src/ui/data-display/Badge';
+import { ChartCard } from '@/src/ui/charts';
 import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock';
 import { EmptyState } from '@/src/ui/feedback/EmptyState';
 import { useToast } from '@/src/ui/feedback/ToastProvider';
@@ -183,15 +184,17 @@ const Index = () => {
     };
   }, [saving?.id, group?.id, scope, refreshKey]);
 
-  const chart = useMemo(() => {
-    if (!view) return { data: [], data2: [], data3: [] };
-    const toItem = (cents: number) => ({ value: Number(formatMoney(cents)) });
-    return {
-      data: view.chart.map((point) => toItem(point.totalCents)),
-      data2: view.chart.map((point) => toItem(point.ownCents)),
-      data3: view.chart.map((point) => toItem(point.sharedCents)),
-    };
-  }, [view]);
+  const chart = useMemo(
+    () =>
+      view
+        ? buildSavingChartSpec(view.chart, {
+            total: t('savings.chart.total'),
+            own: t('savings.chart.own'),
+            shared: t('savings.chart.shared'),
+          })
+        : null,
+    [view, t]
+  );
 
   const orderedMovements = useMemo(() => {
     const rows = view?.movements ?? [];
@@ -523,55 +526,15 @@ const Index = () => {
                 </Surface>
               ) : null}
 
-              <Surface variant='outlined' padding='md'>
-                <Stack gap='sm'>
-                  <Row justify='space-between' align='center'>
-                    <AppText weight='600'>{t('savings.chart.title')}</AppText>
-                    <Row gap='sm' wrap>
-                      {[
-                        { label: t('savings.chart.total'), color: colors.chartPlanned },
-                        { label: t('savings.chart.own'), color: colors.primary },
-                        { label: t('savings.chart.shared'), color: colors.textMuted },
-                      ].map((series) => (
-                        <Row key={series.label} gap='xxs' align='center'>
-                          <View
-                            style={[styles.legendDot, { backgroundColor: series.color }]}
-                          />
-                          <AppText variant='caption' color='muted'>
-                            {series.label}
-                          </AppText>
-                        </Row>
-                      ))}
-                    </Row>
-                  </Row>
-                  {view.chart.length > 0 ? (
-                    <LineChart
-                      data={chart.data}
-                      data2={chart.data2}
-                      data3={chart.data3}
-                      color={colors.chartPlanned}
-                      color2={colors.primary}
-                      color3={colors.textMuted}
-                      thickness={2}
-                      thickness2={2}
-                      thickness3={2}
-                      dataPointsColor={colors.chartPlanned}
-                      dataPointsColor2={colors.primary}
-                      dataPointsColor3={colors.textMuted}
-                      yAxisTextStyle={{ color: colors.textMuted }}
-                      yAxisLabelPrefix='$'
-                      yAxisColor={colors.border}
-                      xAxisColor={colors.border}
-                      width={300}
-                      height={240}
-                      adjustToWidth
-                      hideDataPoints
-                    />
-                  ) : (
-                    <AppText color='muted'>{t('savings.chart.empty')}</AppText>
-                  )}
-                </Stack>
-              </Surface>
+              <ChartCard
+                chartKey='savings.balance'
+                title={t('savings.chart.title')}
+                spec={chart}
+                height={240}
+                empty={
+                  <AppText color='muted'>{t('savings.chart.empty')}</AppText>
+                }
+              />
 
               <Button
                 label={t('savings.movement.add')}
