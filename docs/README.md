@@ -69,6 +69,8 @@ arquitectura y enlaces. La documentación se lee **por secciones**, no completa.
   cierre informativo de periodo configurable (Fase 16).
 - [`legacy/fase-17-group-periods-plan.md`](legacy/fase-17-group-periods-plan.md):
   grupos automáticos y periodos unificados (Fase 17).
+- [`legacy/fase-18-chart-engine-plan.md`](legacy/fase-18-chart-engine-plan.md):
+  motor de gráficos nativo (Fase 18).
 - [`legacy/db-summary.md`](legacy/db-summary.md): resumen anterior de base de
   datos.
 
@@ -109,6 +111,7 @@ arquitectura y enlaces. La documentación se lee **por secciones**, no completa.
 | Fase 15 — Fechas de pagos pendientes de tarjeta y fijos | ✅ Finalizada (2026-11-18) |
 | Fase 16 — Cierre informativo de periodo configurable | ✅ Finalizada (2026-11-18) |
 | Fase 17 — Grupos automáticos y periodos unificados | ✅ Finalizada (2026-11-19) |
+| Fase 18 — Motor de gráficos nativo | ✅ Finalizada (2026-11-19) |
 
 ## Regla de mantenimiento
 

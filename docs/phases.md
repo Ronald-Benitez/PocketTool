@@ -24,6 +24,7 @@
 | Fase 15 — Fechas de pagos pendientes de tarjeta y fijos | ✅ Finalizada | 2026-11-18 |
 | Fase 16 — Cierre informativo de periodo | ✅ Finalizada | 2026-11-18 |
 | Fase 17 — Grupos automáticos y periodos unificados | ✅ Finalizada | 2026-11-19 |
+| Fase 18 — Motor de gráficos nativo | ✅ Finalizada | 2026-11-19 |
 
 ## Fase activa
 
@@ -40,7 +41,7 @@ se detiene y pide cuál cerrar.
 - **Dinero/fechas:** centavos enteros y timestamps Unix en milisegundos.
 - **Auditoría:** `created_at`/`updated_at` con triggers; soft delete con
   `deleted_at`.
-- **Migraciones:** `0001` a `0025`; `SCHEMA_VERSION = 25`.
+- **Migraciones:** `0001` a `0026`; `SCHEMA_VERSION = 26`.
 - **Acceso a datos:** ORM tipado + repositorios; la UI no usa `useORM` ni SQL.
 - **Backups:** dump SQL con metadatos versionados y compatibilidad legacy.
 - **Calidad:** `test:db` con `node:sqlite`, Jest, typecheck, lint bloqueante y
@@ -210,21 +211,23 @@ Plan en
 Plan en
 [`legacy/fase-16-group-closing-plan.md`](legacy/fase-16-group-closing-plan.md).
 
-- Migración `0024`: cierres con periodo y vencimiento configurables, varios
-  borradores y un final por grupo.
-- Datos registrados sin duplicados, balance configurable, edición manual,
-  validación tarjeta + ahorro y backups con configuraciones.
+- Migración `0024`: cierres configurables, balances, validación y backups.
 
 ## Fase 17 — Grupos automáticos y periodos unificados (✅ 2026-11-19)
 
 Plan en
 [`legacy/fase-17-group-periods-plan.md`](legacy/fase-17-group-periods-plan.md).
 
-- Migración `0025`: periodo por grupo y motor compartido con cierres.
-- Creación automática del periodo actual; registros con sugerencia de fecha.
-- Fijos, tarjeta y vehículo por periodo; presupuesto en
-  [`plans/futuro-borrador.md`](plans/futuro-borrador.md).
-- Commits `635945a`, `af2337a`; verificación completa.
+- Migración `0025`: periodo por grupo, creación automática y cierre unificado.
+
+## Fase 18 — Motor de gráficos nativo (✅ 2026-11-19)
+
+Plan en
+[`legacy/fase-18-chart-engine-plan.md`](legacy/fase-18-chart-engine-plan.md).
+
+- Migración `0026`: preferencias de gráficos en SQLite.
+- Motor SVG con specs, tooltips multi-serie, colapsables y zoom.
+- Migración total y eliminación de Mermaid/WebView/`gifted-charts`.
 
 ## Decisiones vigentes
 
