@@ -231,6 +231,36 @@ export const helpEn = {
                 "body": "A credit balance is not the same as available cash. Check the credit summary before making decisions."
             }
         },
+        "charts": {
+            "title": "Charts",
+            "summary": "Read the native charts and keep them out of the way.",
+            "what": {
+                "title": "What it is",
+                "body": "A chart turns the selected period into lines, bars, pies or areas. It only reads data; it never changes records, balances or goals."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "Each chart has a visible legend, axes and a tap detail. You can hide series, limit points, zoom, or open the data table for exact values. Some charts let you switch between an indexed comparison and raw values. Charts can be collapsed and the choice is remembered. In Fuel, charts start collapsed so records stay close."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Open a section with charts.",
+                "step2": "Expand the chart you need and tap a point, bar or slice.",
+                "step3": "Use View data for exact values or collapse it again."
+            },
+            "example": {
+                "title": "Example",
+                "body": "In Budget, the comparison chart shows planned vs actual by category. Tap a bar to see its value; open View data to read all numbers."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Collapse charts you do not need; the app remembers it. Use the data table for exact amounts."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "A projection is an estimate, not a commitment. Charts never modify your data."
+            }
+        },
         "budgets": {
             "title": "Budgets",
             "summary": "Plan the month, compare it with real records and detect deviations early.",
@@ -913,6 +943,36 @@ export const helpEs: MessageShape<typeof helpEn> = {
             "warning": {
                 "title": "Error común",
                 "body": "El balance de crédito no es lo mismo que el efectivo disponible. Revisa el resumen de créditos antes de decidir."
+            }
+        },
+        "charts": {
+            "title": "Gráficos",
+            "summary": "Lee los gráficos nativos y mantenlos fuera del camino.",
+            "what": {
+                "title": "Qué es",
+                "body": "Un gráfico convierte el periodo seleccionado en líneas, barras, porciones o áreas. Solo lee datos; nunca cambia registros, saldos ni metas."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "Cada gráfico tiene leyenda visible, ejes y detalle al tocar. Puedes ocultar series, limitar puntos, hacer zoom o abrir la tabla de datos para ver valores exactos. Algunos gráficos permiten cambiar entre comparación indexada y datos reales. Los gráficos se pueden colapsar y la elección se recuerda. En Combustible empiezan colapsados para dejar los registros a la vista."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Abre una sección con gráficos.",
+                "step2": "Expande el gráfico que necesites y toca un punto, barra o porción.",
+                "step3": "Usa Ver datos para valores exactos o vuelve a colapsarlo."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "En Presupuesto, el gráfico de comparación muestra planificado vs real por categoría. Toca una barra para ver su valor; abre Ver datos para leer todos los números."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Colapsa los gráficos que no necesites; la app lo recuerda. Usa la tabla de datos para montos exactos."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "Una proyección es una estimación, no un compromiso. Los gráficos nunca modifican tus datos."
             }
         },
         "budgets": {

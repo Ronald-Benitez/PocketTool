@@ -12,6 +12,7 @@ export type HelpTopicId =
   | 'records'
   | 'fixeds'
   | 'summaries'
+  | 'charts'
   | 'budgets'
   | 'budgetTemplates'
   | 'vehicle'

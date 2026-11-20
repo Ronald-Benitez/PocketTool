@@ -1,5 +1,6 @@
 import { budgetEn, budgetEs } from './budget';
 import { catalogsEn, catalogsEs } from './catalogs';
+import { chartsEn, chartsEs } from './charts';
 import { closingEn, closingEs } from './closings';
 import { commonEn, commonEs } from './common';
 import { datesEn, datesEs } from './dates';
@@ -19,6 +20,7 @@ import type { Language, Leaves, MessageShape } from './types';
 
 export const en = {
   ...commonEn,
+  ...chartsEn,
   ...closingEn,
   ...datesEn,
   ...headersEn,
@@ -39,6 +41,7 @@ export const en = {
 
 export const es: MessageShape<typeof en> = {
   ...commonEs,
+  ...chartsEs,
   ...closingEs,
   ...datesEs,
   ...headersEs,
@@ -76,6 +79,7 @@ export type HelpTranslationKey =
 
 export type TranslationKey =
   | Leaves<typeof commonEn>
+  | Leaves<typeof chartsEn>
   | Leaves<typeof closingEn>
   | Leaves<typeof datesEn>
   | Leaves<typeof headersEn>
