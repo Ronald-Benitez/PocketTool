@@ -1,5 +1,6 @@
 import React, {
     forwardRef,
+    useEffect,
     useImperativeHandle,
     useMemo,
     useState,
@@ -11,6 +12,7 @@ import useDate from '@/src/hooks/useDate';
 import { pickSummaryAmount, useSummaryMode } from '@/src/hooks/useSummaryMode';
 import { useBalanceMode } from '@/src/hooks/useBalanceMode';
 import { getRecordPaidByMeCents, getRecordReceivableCents } from '@/src/domain/summaries/cash';
+import { useFeature } from '@/src/features';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import type { OrderCondition } from '@/src/orm';
 import type { RecordView } from '@/src/interfaces/schema';
@@ -46,7 +48,17 @@ export const RecordsModal = forwardRef<RecordsModalRef, Record<string, unknown>>
         const { colors } = useTheme()
         const { mode } = useSummaryMode()
         const { mode: balanceMode } = useBalanceMode()
+        const showFilters = useFeature('filters')
+        const showSavings = useFeature('savings')
+        const effectiveBalanceMode = showSavings ? balanceMode : 'consumption'
         const dateh = useDate()
+
+        useEffect(() => {
+            if (showFilters) return;
+            setFilters([]);
+            setOrder([]);
+            setFilterVisible(false);
+        }, [showFilters]);
 
         const handleClose = () => {
             setVisible(false);
@@ -74,7 +86,7 @@ export const RecordsModal = forwardRef<RecordsModalRef, Record<string, unknown>>
         }, [records, filters, order])
 
         const amountLabel =
-            balanceMode === 'cash'
+            effectiveBalanceMode === 'cash'
                 ? t('resume.modeCash')
                 : mode === 'total'
                     ? t('shared.totalPurchase')
@@ -104,19 +116,21 @@ export const RecordsModal = forwardRef<RecordsModalRef, Record<string, unknown>>
                     <Stack gap='md'>
                         <Row justify='space-between' align='center'>
                             <Row gap='sm' align='center'>
-                                <Button
-                                    label={t('recordsFilters.title')}
-                                    variant='outline'
-                                    size='sm'
-                                    leftIcon={<MaterialIcons name='filter-list' size={18} color={colors.primary} />}
-                                    onPress={() => setFilterVisible(true)}
-                                />
+                                {showFilters ? (
+                                    <Button
+                                        label={t('recordsFilters.title')}
+                                        variant='outline'
+                                        size='sm'
+                                        leftIcon={<MaterialIcons name='filter-list' size={18} color={colors.primary} />}
+                                        onPress={() => setFilterVisible(true)}
+                                    />
+                                ) : null}
                                 <Badge label={amountLabel} tone='neutral' size='sm' />
-                                {filters.length > 0 ? (
+                                {showFilters && filters.length > 0 ? (
                                     <Badge label={String(filters.length)} tone='primary' />
                                 ) : null}
                             </Row>
-                            {filters.length > 0 ? (
+                            {showFilters && filters.length > 0 ? (
                                 <LinkButton
                                     label={t('recordsFilters.clearFilters')}
                                     onPress={() => setFilters([])}
@@ -170,7 +184,7 @@ export const RecordsModal = forwardRef<RecordsModalRef, Record<string, unknown>>
                                         }
                                         trailing={<FinanceValue
                                             cents={
-                                                balanceMode === 'cash'
+                                                effectiveBalanceMode === 'cash'
                                                     ? cash
                                                     : pickSummaryAmount(mode, {
                                                         own,
@@ -191,20 +205,22 @@ export const RecordsModal = forwardRef<RecordsModalRef, Record<string, unknown>>
                     </Stack>
                 </Modal>
 
-                <RecordsFilterModal
-                    visible={filterVisible}
-                    filters={filters}
-                    order={order}
-                    title={t('recordsFilters.filterTitle')}
-                    onClose={() => setFilterVisible(false)}
-                    onApply={async (nextFilters, nextOrder) => {
-                        setFilters(nextFilters)
-                        setOrder(nextOrder)
-                        setFilterVisible(false)
-                    }}
-                    allowOrder={false}
-                    storageKey={null}
-                />
+                {showFilters ? (
+                    <RecordsFilterModal
+                        visible={filterVisible}
+                        filters={filters}
+                        order={order}
+                        title={t('recordsFilters.filterTitle')}
+                        onClose={() => setFilterVisible(false)}
+                        onApply={async (nextFilters, nextOrder) => {
+                            setFilters(nextFilters)
+                            setOrder(nextOrder)
+                            setFilterVisible(false)
+                        }}
+                        allowOrder={false}
+                        storageKey={null}
+                    />
+                ) : null}
             </>
         )
     }

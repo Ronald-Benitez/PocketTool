@@ -22,6 +22,7 @@ import {
 import { ClosingLineForm } from '@/src/components/closing/ClosingLineForm';
 import { ClosingSection } from '@/src/components/closing/ClosingSection';
 import type { ClosingInput } from '@/src/db';
+import { useFeature } from '@/src/features';
 import { useBalanceMode } from '@/src/hooks/useBalanceMode';
 import { useClosingSources } from '@/src/hooks/useClosingSources';
 import { useClosingSuggestions } from '@/src/hooks/useClosingSuggestions';
@@ -77,7 +78,11 @@ export const ClosingEditor = ({
   const { colors } = useTheme();
   const { showToast } = useToast();
   const { configs } = useConfigs();
+  const showSavings = useFeature('savings');
   const { mode: defaultBalanceMode } = useBalanceMode();
+  const effectiveDefaultBalanceMode = showSavings
+    ? defaultBalanceMode
+    : 'consumption';
   const { buildSuggestions, conflictRecordIds } = useClosingSuggestions();
   const { sources } = useClosingSources();
   const initialized = useRef(false);
@@ -104,7 +109,7 @@ export const ClosingEditor = ({
   const [includeReceivables, setIncludeReceivables] = useState(false);
   const [balanceMode, setBalanceMode] = useState<
     'consumption' | 'total' | 'cash' | 'paid' | 'methods'
-  >(defaultBalanceMode);
+  >(effectiveDefaultBalanceMode);
   const balanceModeInitialized = useRef(false);
   const [deadlineTouched, setDeadlineTouched] = useState(Boolean(closing));
   const [confirmFinalize, setConfirmFinalize] = useState(false);
@@ -141,8 +146,8 @@ export const ClosingEditor = ({
   useEffect(() => {
     if (balanceModeInitialized.current) return;
     balanceModeInitialized.current = true;
-    setBalanceMode(defaultBalanceMode);
-  }, [defaultBalanceMode]);
+    setBalanceMode(effectiveDefaultBalanceMode);
+  }, [effectiveDefaultBalanceMode]);
 
   const normalizedEditableUntil =
     editableUntil > 0 ? endOfLocalDay(editableUntil) : 0;

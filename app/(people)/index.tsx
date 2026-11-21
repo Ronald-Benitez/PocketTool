@@ -4,6 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 
 import { usePeopleRepository, usePersonSettlementsRepository, useSavings, useSharedLedgerRepository } from '@/src/db';
+import { useFeature } from '@/src/features';
 import type { PersonStatement } from '@/src/db';
 import { mapDatabaseError } from '@/src/db/errors';
 import type { Person } from '@/src/interfaces/schema';
@@ -29,6 +30,7 @@ import { useTheme } from '@/src/ui/theme/ThemeProvider';
 
 const PeopleScreen = () => {
   const { t } = useLanguage();
+  const showSavings = useFeature('savings');
   const { colors } = useTheme();
   const { showToast } = useToast();
   const repository = usePeopleRepository();
@@ -279,7 +281,7 @@ const PeopleScreen = () => {
                       </Surface>
                     ) : null}
 
-                    {savings ? (
+                    {showSavings && savings ? (
                       <Row justify='space-between' align='center' gap='sm'>
                         <Stack gap='xxs' style={{ flex: 1 }}>
                           <AppText variant='caption' color='muted'>

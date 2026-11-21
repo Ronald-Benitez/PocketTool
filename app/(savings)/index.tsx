@@ -11,6 +11,7 @@ import { usePeopleRepository, useSavings } from '@/src/db';
 import { mapDatabaseError } from '@/src/db/errors';
 import { buildSavingChartSpec } from '@/src/domain/savings/charts';
 import type { SavingMovementView, SavingView } from '@/src/db/repositories/savings';
+import { FeatureGate } from '@/src/features';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import useRecordsStore from '@/src/stores/RecordsStore';
 import { useGroupRefresh } from '@/src/hooks/useGroupRefresh';
@@ -526,15 +527,17 @@ const Index = () => {
                 </Surface>
               ) : null}
 
-              <ChartCard
-                chartKey='savings.balance'
-                title={t('savings.chart.title')}
-                spec={chart}
-                height={240}
-                empty={
-                  <AppText color='muted'>{t('savings.chart.empty')}</AppText>
-                }
-              />
+              <FeatureGate feature='charts'>
+                <ChartCard
+                  chartKey='savings.balance'
+                  title={t('savings.chart.title')}
+                  spec={chart}
+                  height={240}
+                  empty={
+                    <AppText color='muted'>{t('savings.chart.empty')}</AppText>
+                  }
+                />
+              </FeatureGate>
 
               <Button
                 label={t('savings.movement.add')}

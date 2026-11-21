@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { isCreditCardPaymentMethod } from '@/src/domain/credits/cards';
+import { useFeature } from '@/src/features';
 import { summarizeFinancing } from '@/src/domain/credits/summary';
 import type { ClosingKind, ClosingSection } from '@/src/domain/closing/types';
 import { useFinancingsRepository } from '@/src/db';
@@ -26,6 +27,9 @@ export type ClosingSourceOption = {
  * Sources already used by another line are filtered by the editor.
  */
 export const useClosingSources = () => {
+  const showCredits = useFeature('credits');
+  const showFixeds = useFeature('fixeds');
+  const showFinancings = useFeature('financings');
   const { PaymentMethods, Fixeds } = useDataStore();
   const { credits } = useCreditStore();
   const financingsRepository = useFinancingsRepository();
@@ -65,6 +69,7 @@ export const useClosingSources = () => {
     PaymentMethods.forEach((method) => {
       if (method.id === undefined) return;
       if (isCreditCardPaymentMethod(method)) {
+        if (!showCredits) return;
         const credit = creditsById.get(method.id);
         const expected = Math.max(
           0,
@@ -93,43 +98,55 @@ export const useClosingSources = () => {
       });
     });
 
-    Fixeds.forEach((fixed) => {
-      if (fixed.id === undefined) return;
-      options.push({
-        key: `fixed:${fixed.id}`,
-        kind: 'fixed',
-        label: fixed.fixed_name,
-        section: 'obligation',
-        amountCents: fixed.fixed_amount,
-        fixedId: fixed.id,
-      });
-    });
-
-    financings
-      .filter((financing) => financing.status === 'active')
-      .forEach((financing) => {
-        if (financing.id === undefined) return;
-        const summary = summarizeFinancing(
-          financing,
-          financing.FinancingPayments ?? [],
-          financing.FinancingAdjustments ?? []
-        );
-        const own = Math.max(
-          0,
-          summary.monthlyPaymentCents - summary.sharedPaymentCents
-        );
+    if (showFixeds) {
+      Fixeds.forEach((fixed) => {
+        if (fixed.id === undefined) return;
         options.push({
-          key: `financing:${financing.id}`,
-          kind: 'financing',
-          label: financing.name,
+          key: `fixed:${fixed.id}`,
+          kind: 'fixed',
+          label: fixed.fixed_name,
           section: 'obligation',
-          amountCents: own,
-          financingId: financing.id,
+          amountCents: fixed.fixed_amount,
+          fixedId: fixed.id,
         });
       });
+    }
+
+    if (showFinancings) {
+      financings
+        .filter((financing) => financing.status === 'active')
+        .forEach((financing) => {
+          if (financing.id === undefined) return;
+          const summary = summarizeFinancing(
+            financing,
+            financing.FinancingPayments ?? [],
+            financing.FinancingAdjustments ?? []
+          );
+          const own = Math.max(
+            0,
+            summary.monthlyPaymentCents - summary.sharedPaymentCents
+          );
+          options.push({
+            key: `financing:${financing.id}`,
+            kind: 'financing',
+            label: financing.name,
+            section: 'obligation',
+            amountCents: own,
+            financingId: financing.id,
+          });
+        });
+    }
 
     return options;
-  }, [Fixeds, PaymentMethods, creditsById, financings]);
+  }, [
+    Fixeds,
+    PaymentMethods,
+    creditsById,
+    financings,
+    showCredits,
+    showFinancings,
+    showFixeds,
+  ]);
 
   return { sources };
 };

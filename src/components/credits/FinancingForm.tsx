@@ -18,6 +18,7 @@ import type {
 } from '@/src/interfaces/schema';
 import type { ParticipantDraft } from '@/src/db/repositories/people';
 import { SharedParticipantsField } from '@/src/components/shared/SharedParticipantsField';
+import { useFeature } from '@/src/features';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { formatMoneyWithSymbol } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
@@ -63,6 +64,7 @@ export const FinancingForm = ({
   onSaved,
 }: FinancingFormProps) => {
   const { t } = useLanguage();
+  const showShared = useFeature('shared');
   const { showToast } = useToast();
   const repository = useFinancingsRepository();
   const paymentsRepository = usePaymentMethods();
@@ -471,12 +473,14 @@ export const FinancingForm = ({
           value={capitalPaid}
           onChangeCents={setCapitalPaid}
         />
-        <SharedParticipantsField
-          people={people}
-          value={participants}
-          onChange={setParticipants}
-          totalCents={payment > 0 ? payment : estimatedPayment}
-        />
+        {showShared || financing ? (
+          <SharedParticipantsField
+            people={people}
+            value={participants}
+            onChange={setParticipants}
+            totalCents={payment > 0 ? payment : estimatedPayment}
+          />
+        ) : null}
         <SelectField
           label={t('financings.paymentMethod')}
           value={paymentMethodId}

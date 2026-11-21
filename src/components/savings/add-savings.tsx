@@ -6,6 +6,7 @@ import { mapDatabaseError } from '@/src/db/errors';
 import type { ParticipantDraft } from '@/src/db/repositories/people';
 import type { SavingInput } from '@/src/db/repositories/savings';
 import type { Person } from '@/src/interfaces/schema';
+import { useFeature } from '@/src/features';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import useSavingsStore from '@/src/stores/SavingsStore';
 import { SharedParticipantsField } from '@/src/components/shared/SharedParticipantsField';
@@ -39,6 +40,7 @@ export const AddSaving = ({
   onSaved,
 }: SavingFormProps) => {
   const { t } = useLanguage();
+  const showPeople = useFeature('people');
   const { showToast } = useToast();
   const repository = useSavings();
   const peopleRepository = usePeopleRepository();
@@ -292,14 +294,18 @@ export const AddSaving = ({
             keyboardType='decimal-pad'
             hint={t('savings.form.interestHint')}
           />
-          <AppText variant='label'>{t('savings.form.participants')}</AppText>
-          <SharedParticipantsField
-            people={people}
-            value={participants}
-            onChange={setParticipants}
-            totalCents={hasGoal ? targetAmountCents : amountCents}
-            allowAmount={false}
-          />
+          {showPeople || isEditing ? (
+            <>
+              <AppText variant='label'>{t('savings.form.participants')}</AppText>
+              <SharedParticipantsField
+                people={people}
+                value={participants}
+                onChange={setParticipants}
+                totalCents={hasGoal ? targetAmountCents : amountCents}
+                allowAmount={false}
+              />
+            </>
+          ) : null}
           {error ? <AppText color='danger'>{error}</AppText> : null}
         </Stack>
       </Modal>

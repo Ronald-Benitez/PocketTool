@@ -30,6 +30,7 @@ import { ChartCard, ChartSection, useChartPreferences } from '@/src/ui/charts';
 import type { VehicleFuelEntryView } from '@/src/db/repositories/vehicle';
 import { useVehicle } from '@/src/hooks/useVehicle';
 import { useGroupRefresh } from '@/src/hooks/useGroupRefresh';
+import { FeatureGate } from '@/src/features';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import useRecordsStore from '@/src/stores/RecordsStore';
 import { formatMoneyWithSymbol } from '@/src/utils';
@@ -275,6 +276,7 @@ const FuelScreen = () => {
           </Stack>
         </Surface>
 
+        <FeatureGate feature='charts'>
         <ChartSection
           title={t('vehicle.chart.title')}
           chartKeys={[
@@ -361,6 +363,7 @@ const FuelScreen = () => {
             />
           ) : null}
         </ChartSection>
+        </FeatureGate>
 
         {loading && entries.length === 0 ? (
           <LoadingState message={t('vehicle.fuel.title')} />

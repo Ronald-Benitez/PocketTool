@@ -6,6 +6,7 @@ import {
   buildBalanceChart,
   buildPaymentCompositionChart,
 } from '@/src/domain/credits/charts';
+import { FeatureGate } from '@/src/features';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { formatMoneyWithSymbol } from '@/src/utils';
 import { ChartCard } from '@/src/ui/charts';
@@ -126,24 +127,26 @@ export const FinancingScheduleModal = ({
             </Stack>
           </Surface>
         ) : null}
-        {balanceChart ? (
-          <ChartCard
-            chartKey='credits.schedule.balance'
-            title={t('financings.balanceChart')}
-            spec={balanceChart}
-            height={220}
-            empty={<AppText color='muted'>{t('financings.chartNoData')}</AppText>}
-          />
-        ) : null}
-        {compositionChart ? (
-          <ChartCard
-            chartKey='credits.schedule.composition'
-            title={t('financings.paymentCompositionChart')}
-            spec={compositionChart}
-            height={240}
-            empty={<AppText color='muted'>{t('financings.chartNoData')}</AppText>}
-          />
-        ) : null}
+        <FeatureGate feature='charts'>
+          {balanceChart ? (
+            <ChartCard
+              chartKey='credits.schedule.balance'
+              title={t('financings.balanceChart')}
+              spec={balanceChart}
+              height={220}
+              empty={<AppText color='muted'>{t('financings.chartNoData')}</AppText>}
+            />
+          ) : null}
+          {compositionChart ? (
+            <ChartCard
+              chartKey='credits.schedule.composition'
+              title={t('financings.paymentCompositionChart')}
+              spec={compositionChart}
+              height={240}
+              empty={<AppText color='muted'>{t('financings.chartNoData')}</AppText>}
+            />
+          ) : null}
+        </FeatureGate>
       </Stack>
     </Modal>
   );

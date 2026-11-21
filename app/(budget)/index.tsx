@@ -19,6 +19,7 @@ import type {
 import { buildBudgetCharts } from '@/src/domain/budgets/charts';
 import { budgetLineStatusKey } from '@/src/lang/keys';
 import type { Group } from '@/src/interfaces/schema';
+import { FeatureGate, useFeature } from '@/src/features';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { formatMoneyWithSymbol } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
@@ -75,6 +76,15 @@ const Index = () => {
   const { group } = useRecordsStore();
   const { mode } = useSummaryMode();
   const { plan, loading, refresh, repository } = useBudgetPlan(group?.id, mode);
+  const showFixeds = useFeature('fixeds');
+  const visibleInsights = plan
+    ? showFixeds
+      ? plan.insights
+      : plan.insights.filter(
+          (insight) =>
+            insight.kind !== 'fixed_uncovered' && insight.kind !== 'fixed_pending'
+        )
+    : [];
   const { templates, refresh: refreshTemplates } = useBudgetTemplates();
   const [lineFormVisible, setLineFormVisible] = useState(false);
   const [selectedLine, setSelectedLine] = useState<BudgetLineComparison | null>(null);
@@ -423,7 +433,9 @@ const Index = () => {
               <Stack gap='sm'>
                 <Button label={t('budget.createFromScratch')} onPress={() => start('blank')} loading={busy} />
                 <Button label={t('budget.fromPrevious')} variant='outline' onPress={() => start('previous')} />
-                <Button label={t('budget.fromFixeds')} variant='outline' onPress={() => start('fixeds')} />
+                {showFixeds ? (
+                  <Button label={t('budget.fromFixeds')} variant='outline' onPress={() => start('fixeds')} />
+                ) : null}
                 <Button label={t('budget.fromActuals')} variant='outline' onPress={() => start('actuals')} />
                 <Button
                   label={t('budget.fromAverage')}
@@ -486,13 +498,15 @@ const Index = () => {
                     accentColor={colors.goal}
                     style={{ flex: 1 }}
                   />
-                  <SummaryBlock
-                    label={t('budget.totals.pendingFixed')}
-                    cents={plan.totals.pendingFixedCents}
-                    size='md'
-                    accentColor={colors.info}
-                    style={{ flex: 1 }}
-                  />
+                  {showFixeds ? (
+                    <SummaryBlock
+                      label={t('budget.totals.pendingFixed')}
+                      cents={plan.totals.pendingFixedCents}
+                      size='md'
+                      accentColor={colors.info}
+                      style={{ flex: 1 }}
+                    />
+                  ) : null}
                 </Row>
                 <Stack gap='sm'>
                   <Button
@@ -537,10 +551,10 @@ const Index = () => {
               </Stack>
             </Surface>
 
-            {plan.insights.length > 0 ? (
+            {visibleInsights.length > 0 ? (
               <Stack gap='sm'>
                 <AppText variant='subtitle'>{t('budget.insights.title')}</AppText>
-                {plan.insights.slice(0, 4).map((insight, index) => (
+                {visibleInsights.slice(0, 4).map((insight, index) => (
                   <InlineMessage
                     key={`${insight.kind}-${index}`}
                     variant={
@@ -554,6 +568,7 @@ const Index = () => {
               </Stack>
             ) : null}
 
+            <FeatureGate feature='charts'>
             <Stack gap='sm'>
               <AppText variant='subtitle'>{t('budget.chart.title')}</AppText>
               <Row gap='xs' wrap>
@@ -590,6 +605,7 @@ const Index = () => {
                 empty={chartFallback}
               />
             </Stack>
+            </FeatureGate>
 
             <Stack gap='sm'>
               <Row justify='space-between' align='center'>
@@ -675,6 +691,7 @@ const Index = () => {
               )}
             </Stack>
 
+            {showFixeds ? (
             <Stack gap='sm'>
               <AppText variant='subtitle'>{t('budget.fixed.title')}</AppText>
               <AppText color='muted'>{t('budget.fixed.subtitle')}</AppText>
@@ -743,6 +760,7 @@ const Index = () => {
                 </Surface>
               )}
             </Stack>
+            ) : null}
           </>
         )}
       </Stack>

@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 
 import { isCreditCardPaymentMethod } from '@/src/domain/credits/cards';
+import { useFeature } from '@/src/features';
 import { summarizeFinancing } from '@/src/domain/credits/summary';
 import { suggestClosingLines } from '@/src/domain/closing/suggestions';
 import type { ClosingSuggestionResult } from '@/src/domain/closing/types';
@@ -27,6 +28,9 @@ export const useClosingSuggestions = () => {
   } = useResumesStore();
   const { credits } = useCreditStore();
   const { pendingFixeds } = usePendingFixeds();
+  const showCredits = useFeature('credits');
+  const showFixeds = useFeature('fixeds');
+  const showFinancings = useFeature('financings');
   const financingsRepository = useFinancingsRepository();
 
   const conflictRecordIds = useMemo(
@@ -48,59 +52,65 @@ export const useClosingSuggestions = () => {
     try {
       const financings = await financingsRepository.fetchFinancings();
 
-      const cards = (credits ?? []).flatMap((credit) => {
-        if (typeof credit.id !== 'number') return [];
-        const expected = Math.max(
-          0,
-          (credit.totalPreviousCombined ?? credit.totalPrevious ?? 0) -
-            (credit.totalCurrentPayments ?? 0)
-        );
-        return [
-          {
-            id: credit.id,
-            name: credit.method_name,
-            expectedCents: expected,
-          },
-        ];
-      });
-
-      const fixeds = pendingFixeds.flatMap((pending) =>
-        typeof pending.fixed.id === 'number'
-          ? [
+      const cards = showCredits
+        ? (credits ?? []).flatMap((credit) => {
+            if (typeof credit.id !== 'number') return [];
+            const expected = Math.max(
+              0,
+              (credit.totalPreviousCombined ?? credit.totalPrevious ?? 0) -
+                (credit.totalCurrentPayments ?? 0)
+            );
+            return [
               {
-                id: pending.fixed.id,
-                name: pending.fixed.fixed_name,
-                amountCents: pending.ownCents,
-                date: pending.date,
+                id: credit.id,
+                name: credit.method_name,
+                expectedCents: expected,
               },
-            ]
-          : []
-      );
+            ];
+          })
+        : [];
 
-      const financingPayments = financings
-        .filter((financing) => financing.status === 'active')
-        .flatMap((financing) => {
-          if (typeof financing.id !== 'number') return [];
-          const summary = summarizeFinancing(
-            financing,
-            financing.FinancingPayments ?? [],
-            financing.FinancingAdjustments ?? []
-          );
-          const next = summary.schedule.rows[0];
-          if (!next) return [];
-          const own = Math.max(
-            0,
-            summary.monthlyPaymentCents - summary.sharedPaymentCents
-          );
-          return [
-            {
-              id: financing.id,
-              name: financing.name,
-              amountCents: own,
-              date: next.date,
-            },
-          ];
-        });
+      const fixeds = showFixeds
+        ? pendingFixeds.flatMap((pending) =>
+            typeof pending.fixed.id === 'number'
+              ? [
+                  {
+                    id: pending.fixed.id,
+                    name: pending.fixed.fixed_name,
+                    amountCents: pending.ownCents,
+                    date: pending.date,
+                  },
+                ]
+              : []
+          )
+        : [];
+
+      const financingPayments = showFinancings
+        ? financings
+            .filter((financing) => financing.status === 'active')
+            .flatMap((financing) => {
+              if (typeof financing.id !== 'number') return [];
+              const summary = summarizeFinancing(
+                financing,
+                financing.FinancingPayments ?? [],
+                financing.FinancingAdjustments ?? []
+              );
+              const next = summary.schedule.rows[0];
+              if (!next) return [];
+              const own = Math.max(
+                0,
+                summary.monthlyPaymentCents - summary.sharedPaymentCents
+              );
+              return [
+                {
+                  id: financing.id,
+                  name: financing.name,
+                  amountCents: own,
+                  date: next.date,
+                },
+              ];
+            })
+        : [];
 
       const balanceMode = options?.balanceMode ?? 'consumption';
       const balanceCents =
@@ -153,6 +163,9 @@ export const useClosingSuggestions = () => {
     pendingFixeds,
     receivableCents,
     showToast,
+    showCredits,
+    showFinancings,
+    showFixeds,
     t,
   ]);
 

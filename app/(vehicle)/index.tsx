@@ -38,6 +38,7 @@ import type {
 } from '@/src/db/repositories/vehicle';
 import { useVehicle } from '@/src/hooks/useVehicle';
 import type { Group, Vehicle, VehicleReminder } from '@/src/interfaces/schema';
+import { FeatureGate } from '@/src/features';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { formatMoneyWithSymbol } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
@@ -694,6 +695,7 @@ const Index = () => {
           </Stack>
         </Surface>
 
+        <FeatureGate feature='charts'>
         <ChartSection
           chartKeys={[
             'vehicle.summary.spend',
@@ -731,6 +733,7 @@ const Index = () => {
             />
           ) : null}
         </ChartSection>
+        </FeatureGate>
 
         <Stack gap='sm'>
           <AppText variant='subtitle'>{t('vehicle.fuel.title')}</AppText>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
+import { useFeature } from "@/src/features";
 import { useLanguage } from "@/src/lang/LanguageContext";
 import { useToast } from "@/src/ui/feedback/ToastProvider";
 import useRecordsStore from '@/src/stores/RecordsStore';
@@ -35,6 +36,7 @@ interface AddItemProps {
 const AddFixed = ({ item, children, open }: AddItemProps) => {
     const { group } = useRecordsStore()
     const { t } = useLanguage()
+    const showShared = useFeature('shared')
     const [visible, setVisible] = useState(false)
     const [name, setName] = useState<string>("")
     const [day, setDay] = useState(1)
@@ -276,12 +278,14 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
                         value={amountCents}
                         onChangeCents={setAmountCents}
                     />
-                    <SharedParticipantsField
-                        people={people}
-                        value={participants}
-                        onChange={setParticipants}
-                        totalCents={amountCents}
-                    />
+                    {showShared || item ? (
+                        <SharedParticipantsField
+                            people={people}
+                            value={participants}
+                            onChange={setParticipants}
+                            totalCents={amountCents}
+                        />
+                    ) : null}
                     <TextField
                         label={t('item.date')}
                         value={String(day)}

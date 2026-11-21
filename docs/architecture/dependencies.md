@@ -73,6 +73,10 @@ Hooks y stores · Dominio · Registros · Ayuda · Reglas de decisión.
 | `FinanceTableBlock` | `summaries` + `shared` | La tabla sigue; el toggle interno desaparece. |
 | `records-table` | `filters`, `credits`, `fixeds`, `financings` | Botón de filtros, orden, pills y grupos de pendientes. |
 | `add-record` | `shared`, `savings`, `quickAdd`, `smartDefaults` | Participantes/pagador, origen en ahorros, campos avanzados y precarga. |
+| `AddFixed` | `fixeds`, `shared` | Participantes compartidos al crear; al editar se conservan. |
+| `FinancingForm` | `financings`, `shared` | Participantes compartidos al crear; al editar se conservan. |
+| `AddSaving` | `savings`, `people` | Participantes al crear; al editar se conservan. |
+| `FinancingPaymentForm` | `financings`, `shared` | El desglose compartido de un financiamiento existente se mantiene visible. |
 | `BudgetSummaryBlock` | `budget` | El bloque completo. |
 | `Chart` / `ChartCard` | `charts` | Las tarjetas de gráfico, no el módulo. |
 | `ExperienceSettings` | Todos | Nada: es el panel de control. |
@@ -95,7 +99,8 @@ Hooks y stores · Dominio · Registros · Ayuda · Reglas de decisión.
 | `CreditsStore` | Tarjetas, pagos y `Records` | `credits`. |
 | `SavingsStore` | `Savings`, `SavingsHistory`, `People` | `savings`; lo compartido depende de `people`. |
 | `VehicleStore` | `Vehicles`, `Records` | `vehicle`. |
-| `useClosings` / `useClosingSuggestions` | `GroupClosings`, `Fixed`, `Financings`, `Savings`, `People`, `Records` | `closing`. |
+| `useClosings` / `useClosingSuggestions` | `GroupClosings`, `Fixed`, `Financings`, `Savings`, `People`, `Records` | `closing`; las fuentes de créditos/fijos/financiamientos se filtran por sus flags. |
+| `useClosingSources` | `PaymentMethods`, `Fixed`, `Financings`, `Credits` | `closing`; no ofrece fuentes de módulos apagados. |
 
 ## Dominio
 
