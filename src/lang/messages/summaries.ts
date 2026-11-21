@@ -245,7 +245,7 @@ export const summariesEs: MessageShape<typeof summariesEn> = {
         "savingsPaid": "Pagado con ahorros",
         "credit": "Credito",
         "balanceWithout": "Balance sin crédito",
-        "summaryByCategories": "Resumen por categorias",
+        "summaryByCategories": "Resumen por categorías",
         "summaryByPayments": "Resumen por método de pago",
         "summaryByTypes": "Resumen por tipo de pago",
         "summaryByRecordType": "Resumen por tipo de registro",

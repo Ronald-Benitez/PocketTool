@@ -28,7 +28,7 @@ export default function Layout() {
             <Tabs.Screen
                 name="RecordTypeScreen"
                 options={{
-                    title: t("headers.financialsIndex"),
+                    title: t("headers.byRecordType"),
                     tabBarIcon: ({ color, size }) => (
                         <MaterialCommunityIcons name="format-list-bulleted" size={size} color={color as string | undefined} />
                     )
@@ -36,7 +36,7 @@ export default function Layout() {
             <Tabs.Screen
                 name="PaymentMethodsScreen"
                 options={{
-                    title: t("headers.payments"),
+                    title: t("headers.byPaymentMethod"),
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons name="cash-outline" size={size} color={color as string | undefined} />
                     )
@@ -44,7 +44,7 @@ export default function Layout() {
             <Tabs.Screen
                 name="CategoriesScreen"
                 options={{
-                    title: t("headers.categories"),
+                    title: t("headers.byCategory"),
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons name="options" size={size} color={color as string | undefined} />
                     )
@@ -52,7 +52,7 @@ export default function Layout() {
             <Tabs.Screen
                 name="PaymentTypesScreen"
                 options={{
-                    title: t("headers.paymentTypes"),
+                    title: t("headers.byPaymentType"),
                     tabBarIcon: ({ color, size }) => (
                         <MaterialCommunityIcons name="cash-multiple" size={size} color={color as string | undefined} />
                     )
