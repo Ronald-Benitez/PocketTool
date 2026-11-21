@@ -32,11 +32,15 @@ Decisiones.
 | Fase 16 — Cierre informativo de periodo | ✅ Finalizada | 2026-11-18 |
 | Fase 17 — Grupos automáticos y periodos unificados | ✅ Finalizada | 2026-11-19 |
 | Fase 18 — Motor de gráficos nativo | ✅ Finalizada | 2026-11-19 |
+| Fase 19 — Experiencia configurable y simplificación | 🚧 En proceso | — |
 
 ## Fase activa
 
-**No hay fase activa.** Plan registrado para la Fase 19:
-[`plans/fase-19-experiencia.md`](plans/fase-19-experiencia.md).
+**Fase 19 — Experiencia configurable y simplificación**
+
+- **Inicio:** 2026-11-20.
+- **Plan:** [`plans/fase-19-experiencia.md`](plans/fase-19-experiencia.md).
+- **Estado:** en proceso.
 
 `/cerrar-fase` busca este encabezado para saber qué fase cerrar. Si no existe,
 se detiene y pide cuál cerrar.

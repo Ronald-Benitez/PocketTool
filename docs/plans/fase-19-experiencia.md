@@ -13,7 +13,7 @@ las tabs analíticas.
 [Registros](#registros-decisión) · [Archivos](#archivos) · [Pruebas](#pruebas) ·
 [Ayuda](#ayuda-e-i18n) · [Documentación](#documentación) · [Riesgos](#riesgos) ·
 [Verificación](#verificación) · [Fases](#fases-de-ejecución)
-**Estado:** Plan registrado; pendiente de aprobación para ejecución.
+**Estado:** En proceso desde 2026-11-20.
 **Fecha:** 2026-11-20
 
 ## Objetivo
