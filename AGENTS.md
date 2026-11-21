@@ -120,6 +120,7 @@ npm run ci
 | Traducciones y centro de ayuda | `src/lang/AGENTS.md` | `pockettool-help` |
 | Registros y operaciones con dinero | `src/db/AGENTS.md` | `pockettool-records` |
 | Notas de Play y novedades in-app | `src/release-notes/AGENTS.md` | `pockettool-release` |
+| Experiencia, flags y dependencias entre módulos | `docs/architecture/features.md`, `docs/architecture/dependencies.md` | `pockettool-ui` |
 | Histórico de fases | `docs/legacy/AGENTS.md` | — |
 
 ## Documentación

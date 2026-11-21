@@ -4,7 +4,8 @@
 experiencia, captura rápida o valores recordados.
 **Resumen:** PocketTool puede mostrar todos sus módulos o solo los que el usuario
 necesita. Los flags son visibilidad, no datos: ocultar un módulo no borra nada ni
-cambia cálculos.
+cambia cálculos. El mapa detallado de pantallas, componentes y hooks vive en
+[`dependencies.md`](dependencies.md).
 **Secciones:** Catálogo · Presets · Storage · Normalización · Navegación ·
 Pantallas · Captura · Agregar una feature · Pruebas.
 
