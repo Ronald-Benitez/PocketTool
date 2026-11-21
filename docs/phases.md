@@ -33,10 +33,15 @@ Decisiones.
 | Fase 17 — Grupos automáticos y periodos unificados | ✅ Finalizada | 2026-11-19 |
 | Fase 18 — Motor de gráficos nativo | ✅ Finalizada | 2026-11-19 |
 | Fase 19 — Experiencia configurable y simplificación | ✅ Finalizada | 2026-11-20 |
+| Fase 20 — Presupuestos con saldo esperado | 🚧 En proceso | — |
 
 ## Fase activa
 
-**No hay fase activa.**
+**Fase 20 — Presupuestos con saldo esperado**
+
+- **Inicio:** 2026-11-20.
+- **Plan:** [`plans/fase-20-presupuestos.md`](plans/fase-20-presupuestos.md).
+- **Estado:** en proceso.
 
 `/cerrar-fase` busca este encabezado para saber qué fase cerrar. Si no existe,
 se detiene y pide cuál cerrar.
