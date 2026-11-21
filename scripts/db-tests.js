@@ -501,11 +501,15 @@ async function testExportImport() {
   const backupWithSettings = await createBackupSql(source, 'test-version', {
     configs: '{"recordTypes":[1,2]}',
     appLanguage: 'es',
+    experienceSettings:
+      '{"version":1,"presetId":"essential","enabled":{"summaries":true,"quickAdd":true,"smartDefaults":true}}',
   });
   const settingsMetadata = parseBackupMetadata(backupWithSettings);
   assert.deepStrictEqual(settingsMetadata.settings, {
     configs: '{"recordTypes":[1,2]}',
     appLanguage: 'es',
+    experienceSettings:
+      '{"version":1,"presetId":"essential","enabled":{"summaries":true,"quickAdd":true,"smartDefaults":true}}',
   });
 
   const targetRaw = new DatabaseSync(':memory:');
