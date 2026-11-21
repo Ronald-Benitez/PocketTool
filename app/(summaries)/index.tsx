@@ -107,12 +107,14 @@ const Index = () => {
                                 cents: cashBalance,
                                 color: colors.transfer,
                             },
-                            {
-                                key: 'paid',
-                                label: t('resume.paid'),
-                                cents: paidBalanceCents,
-                                color: colors.textMuted,
-                            },
+                            ...(showShared
+                                ? [{
+                                    key: 'paid',
+                                    label: t('resume.paid'),
+                                    cents: paidBalanceCents,
+                                    color: colors.textMuted,
+                                }]
+                                : []),
                         ].map((item, index) => (
                             <React.Fragment key={item.key}>
                                 {index > 0 ? <Divider /> : null}

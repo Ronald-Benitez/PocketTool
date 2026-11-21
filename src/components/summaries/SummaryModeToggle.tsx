@@ -29,6 +29,8 @@ export const SummaryModeToggle = () => {
     if (!showShared && mode === 'shared') setMode('own');
   }, [mode, setMode, showShared]);
 
+  if (!showShared) return null;
+
   const modes = MODES.filter(
     (option) => option.value !== 'shared' || showShared
   );
