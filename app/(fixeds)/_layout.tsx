@@ -2,10 +2,12 @@ import { Tabs } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 import StackBase from "@/src/components/navigation/stack-base";
+import { useFeatures } from "@/src/features";
 import { useLanguage } from "@/src/lang/LanguageContext";
 
 export default function Layout() {
     const { t } = useLanguage()
+    const enabled = useFeatures((state) => state.enabled)
 
     return (
         <StackBase>
@@ -21,6 +23,7 @@ export default function Layout() {
                 name="FinancingsScreen"
                 options={{
                     title: t("headers.financings"),
+                    href: enabled.financings ? undefined : null,
                     tabBarIcon: ({ color, size }) => (
                         <MaterialCommunityIcons name="bank-outline" size={size} color={color as string | undefined} />
                     )

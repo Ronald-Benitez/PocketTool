@@ -26,6 +26,7 @@ import {
 import { usePendingFixeds, type PendingFixed } from '@/src/hooks/usePendingFixeds';
 import { mapDatabaseError } from '@/src/db/errors';
 import { FinancingPaymentForm } from '@/src/components/credits/FinancingPaymentForm';
+import { useFeature } from '@/src/features';
 import { useConfigs } from '@/src/hooks/useConfigs';
 import { useGroupRefresh } from '@/src/hooks/useGroupRefresh';
 import { formatMoneyWithSymbol } from '@/src/utils';
@@ -60,6 +61,8 @@ const Index = () => {
     const { initializeColors } = useColorStore()
     const { colors } = useTheme()
     const { group } = useRecordsStore()
+    const showFixeds = useFeature('fixeds')
+    const showFinancings = useFeature('financings')
     const { pendingFixeds } = usePendingFixeds({ onlyDueToday: true })
     const { balance, cashBalance, todayBalanceByRecordType } = useResumesStore()
     const [fixedToSave, setFixedToSave] = useState<RecordFormEntry>()
@@ -200,11 +203,12 @@ const Index = () => {
                     <GroupSelector />
                 </Row>
 
-                {pendingFixeds.length > 0 || pendingFinancings.length > 0 ? (
+                {(showFixeds && pendingFixeds.length > 0) ||
+                (showFinancings && pendingFinancings.length > 0) ? (
                     <Surface variant='outlined' padding='md'>
                         <Stack gap='sm'>
                             <AppText variant='label'>{t("index.obligations")}</AppText>
-                            {pendingFixeds.map((obligation) => {
+                            {showFixeds ? pendingFixeds.map((obligation) => {
                                 const item = obligation.fixed;
                                 return (
                                     <Pressable key={`fixed-${item.id}`} onPress={() => onFixedPress(obligation)}>
@@ -241,8 +245,8 @@ const Index = () => {
                                         </Row>
                                     </Pressable>
                                 );
-                            })}
-                            {pendingFinancings.map((obligation) => {
+                            }) : null}
+                            {showFinancings ? pendingFinancings.map((obligation) => {
                                 const own =
                                     obligation.summary.monthlyPaymentCents -
                                     obligation.summary.sharedPaymentCents;
@@ -281,7 +285,7 @@ const Index = () => {
                                         </Row>
                                     </Pressable>
                                 );
-                            })}
+                            }) : null}
                         </Stack>
                     </Surface>
                 ) : null}

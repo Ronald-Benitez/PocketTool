@@ -2,10 +2,12 @@ import { Tabs } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 import StackBase from "@/src/components/navigation/stack-base";
+import { useFeatures } from "@/src/features";
 import { useLanguage } from "@/src/lang/LanguageContext";
 
 export default function Layout() {
     const { t } = useLanguage()
+    const enabled = useFeatures((state) => state.enabled)
 
     return (
         <StackBase>
@@ -37,6 +39,7 @@ export default function Layout() {
                 name="PaymentTypesScreen"
                 options={{
                     title: t("headers.paymentTypes"),
+                    href: enabled.advancedCatalogs ? undefined : null,
                     tabBarIcon: ({ color, size }) => (
                         <MaterialCommunityIcons name="cash-multiple" size={size} color={color as string | undefined} />
                     )
@@ -45,6 +48,7 @@ export default function Layout() {
                 name="RecordTypesScreen"
                 options={{
                     title: t("headers.recordTypes"),
+                    href: enabled.advancedCatalogs ? undefined : null,
                     tabBarIcon: ({ color, size }) => (
                         <MaterialCommunityIcons name="format-list-bulleted" size={size} color={color as string | undefined} />
                     )

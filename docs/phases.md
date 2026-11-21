@@ -54,6 +54,8 @@ se detiene y pide cuál cerrar.
   con `deleted_at`. Reglas en [`../AGENTS.md`](../AGENTS.md).
 - **UI e i18n:** sistema propio en `src/ui`, tema por tokens y textos con `t()`.
   Ver [`architecture/ui.md`](architecture/ui.md).
+- **Experiencia:** niveles, flags por módulo y captura en
+  [`architecture/features.md`](architecture/features.md).
 - **Dominio y Registros:** lógica pura por área y create/link/omit de `Records`
   en la misma transacción. Ver [`architecture/domains.md`](architecture/domains.md)
   y la skill `pockettool-records`.

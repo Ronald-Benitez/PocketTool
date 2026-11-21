@@ -311,12 +311,12 @@ Manual:
 
 ## Fases de ejecución
 
-| Fase | Contenido |
-| --- | --- |
-| A — Núcleo | `src/features/*`, store, normalización, provider, guarda de rutas, backup reload y pruebas. |
-| B — Navegación y Ajustes | Drawer, tabs, Experiencia, onboarding, split de Ajustes, etiquetas y ayuda. |
-| C — Captura | Alta rápida, valores recordados y gating dentro de Inicio/Resumen/Registros. |
-| D — Cierre | i18n final, documentación, notas de versión, QA y verificación completa. |
+| Fase | Contenido | Estado |
+| --- | --- | --- |
+| A — Núcleo | `src/features/*`, store, normalización, provider, guarda de rutas, backup reload y pruebas. | ✅ |
+| B — Navegación y Ajustes | Drawer, tabs, Experiencia, onboarding, split de Ajustes, etiquetas y ayuda. | ✅ |
+| C — Captura | Alta rápida, valores recordados y gating dentro de Inicio/Resumen/Registros. | ✅ |
+| D — Cierre | i18n final, documentación, notas de versión, QA y verificación completa. | Pendiente |
 
 ## Estado del renombrado
 

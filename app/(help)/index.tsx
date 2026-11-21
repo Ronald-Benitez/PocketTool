@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { HelpTopicView } from '@/src/components/help/HelpTopicView';
+import { isHelpTopicEnabled, useFeatures } from '@/src/features';
 import { HELP_CATEGORIES, HELP_TOPICS } from '@/src/help/registry';
 import { useWhatsNew } from '@/src/hooks/useWhatsNew';
 import type { HelpTopic } from '@/src/help/types';
@@ -27,6 +28,7 @@ const normalize = (value: string) =>
 const Index = () => {
   const { t, language } = useLanguage();
   const { colors } = useTheme();
+  const enabled = useFeatures((state) => state.enabled);
   const [search, setSearch] = useState('');
   const [selectedTopic, setSelectedTopic] = useState<HelpTopic | null>(null);
   const openWhatsNew = useWhatsNew((state) => state.openManual);
@@ -34,6 +36,7 @@ const Index = () => {
   const filteredTopics = useMemo(() => {
     const term = normalize(search);
     return HELP_TOPICS.filter((topic) => {
+      if (!isHelpTopicEnabled(topic.id, enabled)) return false;
       const text = [
         t(topic.titleKey),
         t(topic.summaryKey),
@@ -48,7 +51,7 @@ const Index = () => {
       ].join(' ');
       return normalize(text).includes(term);
     });
-  }, [search, language, t]);
+  }, [enabled, search, language, t]);
 
   if (selectedTopic) {
     return (

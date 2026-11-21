@@ -8,7 +8,9 @@ import { Platform } from 'react-native';
 
 import migrateDb from '@/src/db/migration';
 import { withExclusiveTransaction } from '@/src/db/transaction';
+import { useFeatures } from '@/src/features';
 import { useBalanceMode } from '@/src/hooks/useBalanceMode';
+import { useRecordDefaults } from '@/src/hooks/useRecordDefaults';
 import { useConfigs } from '@/src/hooks/useConfigs';
 import { useSummaryMode } from '@/src/hooks/useSummaryMode';
 import { useToast } from '@/src/ui/feedback/ToastProvider';
@@ -67,6 +69,8 @@ const applySettings = async (settings?: BackupSettings) => {
   await useConfigs.getState().loadConfigs();
   await useSummaryMode.getState().load();
   await useBalanceMode.getState().load();
+  await useFeatures.getState().reload();
+  await useRecordDefaults.getState().reload();
 };
 
 const createBackup = async (db: SQLite.SQLiteDatabase): Promise<string> => {

@@ -10,6 +10,7 @@ import RecordsModal, {
 } from '@/src/components/records/RecordsModal';
 import { useRecords } from '@/src/db';
 import useRecordsStore from '@/src/stores/RecordsStore';
+import { useFeature } from '@/src/features';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { pickSummaryAmount, useSummaryMode } from '@/src/hooks/useSummaryMode';
 import { useBalanceMode } from '@/src/hooks/useBalanceMode';
@@ -44,6 +45,9 @@ const Index = () => {
         paidBalanceCents,
     } = useResumesStore()
     const { mode } = useSummaryMode()
+    const showBudget = useFeature('budget')
+    const showSavings = useFeature('savings')
+    const showShared = useFeature('shared')
     const { mode: balanceMode, loaded, load } = useBalanceMode()
     const { group: selectedGroup } = useRecordsStore()
     const { fetchRecordsWithMultipleWhere } = useRecords()
@@ -152,53 +156,57 @@ const Index = () => {
                         accentColor={colors.primary}
                         style={{ flex: 1 }}
                     />
-                    <SummaryBlock
-                        label={
-                            balanceMode === 'cash'
-                                ? t('resume.cashReceived')
-                                : t('resume.shared')
-                        }
-                        cents={
-                            balanceMode === 'cash'
-                                ? cashReceived
-                                : receivableCents
-                        }
-                        size='md'
-                        valueColorOverride={colors.textMuted}
-                        accentColor={colors.textMuted}
-                        style={{ flex: 1 }}
-                    />
+                    {showShared ? (
+                        <SummaryBlock
+                            label={
+                                balanceMode === 'cash'
+                                    ? t('resume.cashReceived')
+                                    : t('resume.shared')
+                            }
+                            cents={
+                                balanceMode === 'cash'
+                                    ? cashReceived
+                                    : receivableCents
+                            }
+                            size='md'
+                            valueColorOverride={colors.textMuted}
+                            accentColor={colors.textMuted}
+                            style={{ flex: 1 }}
+                        />
+                    ) : null}
                 </Row>
 
-                {balanceMode === 'cash' ? (
-                    <Surface variant='outlined' padding='md'>
-                        <Stack gap='xs'>
-                            <Row justify='space-between'>
-                                <AppText color='muted'>{t('resume.settlementsPaid')}</AppText>
-                                <AppText weight='600'>
-                                    {formatMoneyWithSymbol(settlementsPaidCents)}
-                                </AppText>
-                            </Row>
-                            <Row justify='space-between'>
-                                <AppText color='muted'>{t('resume.settlementsReceived')}</AppText>
-                                <AppText weight='600'>
-                                    {formatMoneyWithSymbol(settlementsReceivedCents)}
-                                </AppText>
-                            </Row>
-                        </Stack>
-                    </Surface>
-                ) : (
-                    <Surface variant='outlined' padding='md'>
-                        <SummaryBlock
-                            label={t('resume.savingsPaid')}
-                            cents={savingsPaidCents}
-                            size='md'
-                            accentColor={colors.chartPlanned}
-                        />
-                    </Surface>
-                )}
+                {balanceMode === 'cash'
+                    ? showShared ? (
+                        <Surface variant='outlined' padding='md'>
+                            <Stack gap='xs'>
+                                <Row justify='space-between'>
+                                    <AppText color='muted'>{t('resume.settlementsPaid')}</AppText>
+                                    <AppText weight='600'>
+                                        {formatMoneyWithSymbol(settlementsPaidCents)}
+                                    </AppText>
+                                </Row>
+                                <Row justify='space-between'>
+                                    <AppText color='muted'>{t('resume.settlementsReceived')}</AppText>
+                                    <AppText weight='600'>
+                                        {formatMoneyWithSymbol(settlementsReceivedCents)}
+                                    </AppText>
+                                </Row>
+                            </Stack>
+                        </Surface>
+                    ) : null
+                    : showSavings ? (
+                        <Surface variant='outlined' padding='md'>
+                            <SummaryBlock
+                                label={t('resume.savingsPaid')}
+                                cents={savingsPaidCents}
+                                size='md'
+                                accentColor={colors.chartPlanned}
+                            />
+                        </Surface>
+                    ) : null}
 
-                <BudgetSummaryBlock />
+                {showBudget ? <BudgetSummaryBlock /> : null}
 
                 <Stack gap='sm'>
                     <AppText variant='subtitle'>{t('resume.summaryByRecordType')}</AppText>

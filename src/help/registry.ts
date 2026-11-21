@@ -184,6 +184,12 @@ const seeds: HelpTopicSeed[] = [
     category: 'tools',
     related: ['gettingStarted'],
   },
+  {
+    id: 'experience',
+    icon: 'tune',
+    category: 'tools',
+    related: ['gettingStarted', 'records', 'theme'],
+  },
 ];
 
 export const HELP_TOPICS: HelpTopic[] = seeds.map((seed) => ({

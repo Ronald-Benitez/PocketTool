@@ -16,6 +16,8 @@ vive en una sola capa. El procedimiento y los límites están en la skill
 - [`schema.md`](schema.md): esquema generado; no editar ni leer completo.
 - [`architecture/ui.md`](architecture/ui.md): sistema de UI y tema.
 - [`architecture/domains.md`](architecture/domains.md): reglas de dominio.
+- [`architecture/features.md`](architecture/features.md): experiencia, flags,
+  presets, captura rápida y ayuda por módulo.
 - [`plans/futuro-borrador.md`](plans/futuro-borrador.md): pendientes futuros.
 - [`plans/fase-19-experiencia.md`](plans/fase-19-experiencia.md): plan registrado
   de experiencia, flags y simplificación.

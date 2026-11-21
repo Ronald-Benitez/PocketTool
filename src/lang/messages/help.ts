@@ -710,6 +710,36 @@ export const helpEn = {
                 "title": "Common mistake",
                 "body": "Very low contrast can make labels unreadable. Use Reset or the base palette if that happens."
             }
+        },
+        "experience": {
+            "title": "Experience levels",
+            "summary": "Choose how many sections and options you see, and hide modules without deleting data.",
+            "what": {
+                "title": "What it is",
+                "body": "The experience level controls which sections appear in the drawer and which advanced blocks are visible. It never changes calculations, records, or balances."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "Essential shows the day-to-day basics. Balanced adds commitments, budget, and credits. Complete shows every module. You can also turn each module on or off, and the app adjusts dependencies automatically."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Open Settings → Experience and choose Essential, Balanced, or Complete.",
+                "step2": "Expand the modules to turn individual sections or capture improvements on or off.",
+                "step3": "Use Restore complete experience to show everything again."
+            },
+            "example": {
+                "title": "Example",
+                "body": "A user who only logs income and expenses chooses Essential. Later they enable Credits and Budget without losing any data."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Start simple. Enable a module when you need it; hidden modules keep their records."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "Hiding a module does not delete data. If you import a backup, the saved experience is applied automatically."
+            }
         }
     }
 } as const;
@@ -1423,6 +1453,36 @@ export const helpEs: MessageShape<typeof helpEn> = {
             "warning": {
                 "title": "Error común",
                 "body": "Un contraste muy bajo puede volver ilegibles las etiquetas. Usa Restablecer o la paleta base si ocurre."
+            }
+        },
+        "experience": {
+            "title": "Niveles de experiencia",
+            "summary": "Elige cuántas secciones y opciones ves, y oculta módulos sin borrar datos.",
+            "what": {
+                "title": "Qué es",
+                "body": "El nivel de experiencia controla qué secciones aparecen en el menú y qué bloques avanzados se muestran. Nunca cambia cálculos, registros ni saldos."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "Esencial muestra lo básico del día a día. Equilibrado añade compromisos, presupuestos y créditos. Completo muestra todos los módulos. También puedes activar o desactivar cada módulo, y la app ajusta las dependencias automáticamente."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Abre Ajustes → Experiencia y elige Esencial, Equilibrado o Completo.",
+                "step2": "Despliega los módulos para activar o desactivar secciones o mejoras de captura.",
+                "step3": "Usa Restaurar experiencia completa para volver a mostrar todo."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "Un usuario que solo registra ingresos y gastos elige Esencial. Más adelante activa Créditos y Presupuestos sin perder ningún dato."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Empieza simple. Activa un módulo cuando lo necesites; los módulos ocultos conservan sus registros."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "Ocultar un módulo no borra datos. Si importas un backup, la experiencia guardada se aplica automáticamente."
             }
         }
     }

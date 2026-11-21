@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 
+import { useFeature } from '@/src/features';
 import { useSummaryMode, type SummaryMode } from '@/src/hooks/useSummaryMode';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { Button } from '@/src/ui/actions/Button';
@@ -17,15 +18,24 @@ const MODES: {
 
 export const SummaryModeToggle = () => {
   const { t } = useLanguage();
+  const showShared = useFeature('shared');
   const { mode, loaded, setMode, load } = useSummaryMode();
 
   useEffect(() => {
     if (!loaded) void load();
   }, [loaded, load]);
 
+  useEffect(() => {
+    if (!showShared && mode === 'shared') setMode('own');
+  }, [mode, setMode, showShared]);
+
+  const modes = MODES.filter(
+    (option) => option.value !== 'shared' || showShared
+  );
+
   return (
     <Row gap='xs' wrap>
-      {MODES.map((option) => (
+      {modes.map((option) => (
         <Button
           key={option.value}
           label={t(option.labelKey)}

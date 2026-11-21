@@ -28,15 +28,21 @@ import type {
     Saving
 } from "@/src/interfaces/schema";
 import type { ParticipantDraft } from "@/src/db";
+import { useFeature } from "@/src/features";
 import { computeRecordShares } from "@/src/domain/shared/split";
 import { hasCreditCardSavingConflict } from "@/src/domain/credits/cards";
 import { groupPeriodFromRow } from "@/src/domain/groups/period";
 import { periodContains } from "@/src/domain/periods/period";
 import type { Period } from "@/src/domain/periods/types";
 import { useConfigs } from "@/src/hooks/useConfigs";
+import {
+    useRecordDefaults,
+    type RecordDefaultValues,
+} from "@/src/hooks/useRecordDefaults";
 import { formatMoneyWithSymbol, formatPeriodRange } from "@/src/utils";
 import { SharedParticipantsField } from "@/src/components/shared/SharedParticipantsField";
 import { Button } from "@/src/ui/actions/Button";
+import { LinkButton } from "@/src/ui/actions/LinkButton";
 import { ColoredSelectOption } from "@/src/ui/forms/ColoredSelectOption";
 import { DateField } from "@/src/ui/forms/DateField";
 import { MoneyField } from "@/src/ui/forms/MoneyField";
@@ -94,6 +100,14 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     const recordTypesRepository = useTableRepository("RecordTypes")
     const categoriesRepository = useTableRepository("Categories")
     const { configs: { paymentCreditType } } = useConfigs()
+    const showShared = useFeature('shared')
+    const showSavings = useFeature('savings')
+    const quickAdd = useFeature('quickAdd')
+    const smartDefaults = useFeature('smartDefaults')
+    const [showMore, setShowMore] = useState(false)
+    const compact = quickAdd && !item && !showMore
+    const rememberDefaults = useRecordDefaults((state) => state.remember)
+    const defaultsApplied = useRef(false)
     const firstOpenEffect = useRef(true)
     const [periodSuggestion, setPeriodSuggestion] = useState<{
         group: Group
@@ -174,6 +188,55 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     }, [])
 
     useEffect(() => {
+        if (!visible) {
+            defaultsApplied.current = false
+            return
+        }
+        setShowMore(Boolean(item))
+    }, [item, visible])
+
+    useEffect(() => {
+        if (!visible || item || !smartDefaults || defaultsApplied.current) return
+        if (
+            recordTypes.length === 0 &&
+            categories.length === 0 &&
+            paymentMethods.length === 0
+        ) {
+            return
+        }
+
+        defaultsApplied.current = true
+        const applyDefaults = async () => {
+            await useRecordDefaults.getState().load()
+            const defaults = useRecordDefaults.getState()
+
+            const nextType = defaults.lastTypeId
+                ? recordTypes.find((value) => value.id === defaults.lastTypeId)
+                : undefined
+            const nextCategory = defaults.lastCategoryId
+                ? categories.find((value) => value.id === defaults.lastCategoryId)
+                : undefined
+            const nextPayment = defaults.lastPaymentMethodId
+                ? paymentMethods.find(
+                      (value) => value.id === defaults.lastPaymentMethodId
+                  )
+                : undefined
+            const nextToPay = defaults.lastToPayMethodId
+                ? paymentMethods.find(
+                      (value) => value.id === defaults.lastToPayMethodId
+                  )
+                : undefined
+
+            if (nextType) setType(nextType)
+            if (nextCategory) setCategory(nextCategory)
+            if (nextPayment) setPaymentMethod(nextPayment)
+            if (nextToPay) setToPayMethod(nextToPay)
+        }
+
+        void applyDefaults()
+    }, [categories, item, paymentMethods, recordTypes, smartDefaults, visible])
+
+    useEffect(() => {
         if (!group?.id) return
         setGroupId(group.id)
     }, [group])
@@ -186,6 +249,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
             setFixedPaidMode('me_full')
             setSharingSource(null)
             setSharingLoaded(true)
+            setSavingId(null)
             return
         }
 
@@ -304,6 +368,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     const sharingLocked = sharingSource === 'financing' || sharingSource === 'saving';
     const isFixed = sharingSource === 'fixed' || fixed_id !== undefined;
     const sharingAvailable =
+        showShared &&
         !sharingLocked &&
         type?.effect === '-' &&
         type?.id !== paymentCreditType;
@@ -431,7 +496,8 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
             const newItem: Insertable<RecordEntry> = {
                 date,
                 group_id,
-                record_name: name.length < 1 ? category.category_name : name,
+                record_name:
+                    !compact && name.length > 0 ? name : category.category_name,
                 record_type_id: type.id,
                 amount: ownCents,
                 own_amount_cents: ownCents,
@@ -455,6 +521,17 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                         ? undefined
                         : participants,
             })
+
+            if (smartDefaults) {
+                const values: Partial<RecordDefaultValues> = {}
+                if (type?.id) values.lastTypeId = type.id
+                if (category?.id) values.lastCategoryId = category.id
+                if (payment_method?.id) values.lastPaymentMethodId = payment_method.id
+                if (to_pay_method?.id) values.lastToPayMethodId = to_pay_method.id
+                if (Object.keys(values).length > 0) {
+                    await rememberDefaults(values)
+                }
+            }
 
             if (item?.id) {
                 showToast({ message: t('toast.edited'), type: 'success' })
@@ -523,12 +600,14 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                 }
             >
                 <View style={styles.form}>
-                    <TextField
-                        label={t('item.name')}
-                        value={name}
-                        onChangeText={setName}
-                        placeholder={t('item.name')}
-                    />
+                    {!compact ? (
+                        <TextField
+                            label={t('item.name')}
+                            value={name}
+                            onChangeText={setName}
+                            placeholder={t('item.name')}
+                        />
+                    ) : null}
                     <SelectField<number>
                         label={t('item.type')}
                         required
@@ -608,9 +687,20 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                         onChangeCents={setTotalCents}
                     />
 
+                    {quickAdd && !item ? (
+                        <LinkButton
+                            label={
+                                showMore
+                                    ? t('features.modules.quickAdd.less')
+                                    : t('features.modules.quickAdd.more')
+                            }
+                            onPress={() => setShowMore((value) => !value)}
+                        />
+                    ) : null}
+
                     {sharingLocked ? (
                         <InlineMessage variant='info' message={t('shared.managedRecordHint')} />
-                    ) : sharingAvailable ? (
+                    ) : sharingAvailable && !compact ? (
                         <>
                             {isFixed ? (
                                 <Surface variant='muted' padding='md'>
@@ -707,7 +797,9 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                             {t('savings.records.paidWith')}: {item.saving_name ?? ''}
                         </AppText>
                     ) : null}
-                    {!item?.id &&
+                    {showSavings &&
+                    !compact &&
+                    !item?.id &&
                     type?.effect === '-' &&
                     type.id !== paymentCreditType &&
                     participants.length === 0 &&
@@ -744,7 +836,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                         value={date}
                         onChange={setDate}
                     />
-                    {periodSuggestion ? (
+                    {!compact && periodSuggestion ? (
                         <InlineMessage
                             variant='info'
                             message={t('records.periodSuggestion', {

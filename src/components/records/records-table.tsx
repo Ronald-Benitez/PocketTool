@@ -10,6 +10,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import { useFeature } from "@/src/features";
 import { useLanguage } from "@/src/lang/LanguageContext";
 import { ScrollView } from "react-native-gesture-handler";
 import { useToast } from "@/src/ui/feedback/ToastProvider";
@@ -82,6 +83,16 @@ const ItemsTable = () => {
   const [pendingFinancingDate, setPendingFinancingDate] = useState<number>();
   const [financingPaymentVisible, setFinancingPaymentVisible] = useState(false);
   const [showActual, setShowActual] = useState<SHOW_OPTIONS>(SHOW_OPTIONS.ALL);
+  const showFilters = useFeature('filters');
+  const showCredits = useFeature('credits');
+  const showFixeds = useFeature('fixeds');
+  const showFinancings = useFeature('financings');
+  const activeShow =
+    (showActual === SHOW_OPTIONS.CREDITS && !showCredits) ||
+    (showActual === SHOW_OPTIONS.FIXEDS && !showFixeds) ||
+    (showActual === SHOW_OPTIONS.FINANCINGS && !showFinancings)
+      ? SHOW_OPTIONS.ALL
+      : showActual;
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [filters, setFilters] = useState<RecordFilter[]>([]);
   const [recordOrder, setRecordOrder] = useState<OrderCondition<"Records">[]>([
@@ -90,6 +101,12 @@ const ItemsTable = () => {
   const { fetchRecords, deleteRecordWithCredit, handler: recordsRepository } = useRecords();
   const { fetchFixeds } = useFixeds();
   const financingsRepository = useFinancingsRepository();
+
+  useEffect(() => {
+    if (showFilters) return;
+    setFilters([]);
+    setRecordOrder([{ column: "date", direction: "ASC" }]);
+  }, [showFilters]);
 
   useEffect(() => {
     let isMounted = true
@@ -328,20 +345,24 @@ const ItemsTable = () => {
             </Text>
           </View>
           <View style={[{ position: "absolute", right: 0, top: 0, flexDirection: "row", gap: 2, alignItems: "center" }]}>
-            <AppIconButton
-              label={t("recordsFilters.title")}
-              variant="surface"
-              icon={
-                <MaterialIcons
-                  name="filter-list"
-                  size={20}
-                  color={filters.length > 0 ? colors.primary : colors.text}
+            {showFilters ? (
+              <>
+                <AppIconButton
+                  label={t("recordsFilters.title")}
+                  variant="surface"
+                  icon={
+                    <MaterialIcons
+                      name="filter-list"
+                      size={20}
+                      color={filters.length > 0 ? colors.primary : colors.text}
+                    />
+                  }
+                  onPress={() => setFilterModalVisible(true)}
                 />
-              }
-              onPress={() => setFilterModalVisible(true)}
-            />
-            {filters.length > 0 ? (
-              <Badge label={String(filters.length)} tone="primary" size="sm" />
+                {filters.length > 0 ? (
+                  <Badge label={String(filters.length)} tone="primary" size="sm" />
+                ) : null}
+              </>
             ) : null}
             {group && (
               <AddItem>
@@ -368,14 +389,23 @@ const ItemsTable = () => {
             {[
               { value: SHOW_OPTIONS.ALL, label: t("records.all") },
               { value: SHOW_OPTIONS.RECORDS, label: t("records.records") },
-              { value: SHOW_OPTIONS.CREDITS, label: t("records.creditPayments") },
-              { value: SHOW_OPTIONS.FIXEDS, label: t("records.fixeds") },
-              {
-                value: SHOW_OPTIONS.FINANCINGS,
-                label: t("records.financingPayments"),
-              },
+              ...(showCredits
+                ? [{
+                    value: SHOW_OPTIONS.CREDITS,
+                    label: t("records.creditPayments"),
+                  }]
+                : []),
+              ...(showFixeds
+                ? [{ value: SHOW_OPTIONS.FIXEDS, label: t("records.fixeds") }]
+                : []),
+              ...(showFinancings
+                ? [{
+                    value: SHOW_OPTIONS.FINANCINGS,
+                    label: t("records.financingPayments"),
+                  }]
+                : []),
             ].map((option) => {
-              const selected = showActual === option.value;
+              const selected = activeShow === option.value;
               return (
                 <Pressable key={option.value} onPress={() => setShowActual(option.value)}>
                   <View
@@ -402,49 +432,55 @@ const ItemsTable = () => {
       </View>
 
       <ScrollView style={{ flex: 1 }}>
-        {showActual === SHOW_OPTIONS.ALL && (
+        {activeShow === SHOW_OPTIONS.ALL && (
           <>
             <RecordsGroup
               records={visibleRecords}
               handleDelete={handleDelete}
               handleUpdate={handleUpdate}
             />
-            <FixedsGroup
-              fixeds={fixedsToShow}
-              onCreditPayment={onCreditPayment}
-            />
-            <FinancingsGroup
-              payments={pendingFinancings}
-              onPress={openFinancingPayment}
-            />
-            <CreditsGroups
-              credits={creditRecords || []}
-              selectedPaymentCreditType={selectePaymentCreditType}
-              onCreditPayment={onCreditPayment}
-            />
+            {showFixeds ? (
+              <FixedsGroup
+                fixeds={fixedsToShow}
+                onCreditPayment={onCreditPayment}
+              />
+            ) : null}
+            {showFinancings ? (
+              <FinancingsGroup
+                payments={pendingFinancings}
+                onPress={openFinancingPayment}
+              />
+            ) : null}
+            {showCredits ? (
+              <CreditsGroups
+                credits={creditRecords || []}
+                selectedPaymentCreditType={selectePaymentCreditType}
+                onCreditPayment={onCreditPayment}
+              />
+            ) : null}
           </>
         )}
-        {showActual === SHOW_OPTIONS.RECORDS && (
+        {activeShow === SHOW_OPTIONS.RECORDS && (
           <RecordsGroup
             records={visibleRecords}
             handleDelete={handleDelete}
             handleUpdate={handleUpdate}
           />
         )}
-        {showActual === SHOW_OPTIONS.CREDITS && (
+        {activeShow === SHOW_OPTIONS.CREDITS && showCredits && (
           <CreditsGroups
             credits={creditRecords || []}
             selectedPaymentCreditType={selectePaymentCreditType}
             onCreditPayment={onCreditPayment}
           />
         )}
-        {showActual === SHOW_OPTIONS.FIXEDS && (
+        {activeShow === SHOW_OPTIONS.FIXEDS && showFixeds && (
           <FixedsGroup
             fixeds={fixedsToShow}
             onCreditPayment={onCreditPayment}
           />
         )}
-        {showActual === SHOW_OPTIONS.FINANCINGS && (
+        {activeShow === SHOW_OPTIONS.FINANCINGS && showFinancings && (
           <FinancingsGroup
             payments={pendingFinancings}
             onPress={openFinancingPayment}
@@ -467,13 +503,15 @@ const ItemsTable = () => {
           }
         }}
       />
-      <RecordsFilterModal
-        visible={filterModalVisible}
-        filters={filters}
-        order={recordOrder}
-        onClose={() => setFilterModalVisible(false)}
-        onApply={applyFiltersAndOrder}
-      />
+      {showFilters ? (
+        <RecordsFilterModal
+          visible={filterModalVisible}
+          filters={filters}
+          order={recordOrder}
+          onClose={() => setFilterModalVisible(false)}
+          onApply={applyFiltersAndOrder}
+        />
+      ) : null}
     </>
   );
 };

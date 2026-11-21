@@ -11,8 +11,15 @@ import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-ic
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Drawer } from 'expo-router/drawer';
 import CustomDrawer from '@/src/components/navigation/custom-drawer';
+import { ExperienceOnboardingGate } from '@/src/components/features/ExperienceOnboardingGate';
 import { WhatsNewGate } from '@/src/components/whats-new/WhatsNewGate';
 import migrateDb from '@/src/db/migration';
+import {
+  FeatureProvider,
+  useFeatureRouteGuard,
+  useFeatures,
+  type FeatureId,
+} from '@/src/features';
 import { useAutoGroup } from '@/src/hooks/useAutoGroup';
 import { ChartPreferencesProvider } from '@/src/ui/charts';
 import { LanguageProvider, useLanguage } from '@/src/lang/LanguageContext';
@@ -75,8 +82,21 @@ const AppShell = () => {
     <>
       <StatusBar style={resolvedMode === 'dark' ? 'light' : 'dark'} />
       <ChartPreferencesProvider>
-        <AppDrawer />
+        <FeatureProvider>
+          <FeatureShell />
+        </FeatureProvider>
       </ChartPreferencesProvider>
+    </>
+  );
+};
+
+const FeatureShell = () => {
+  useFeatureRouteGuard();
+
+  return (
+    <>
+      <AppDrawer />
+      <ExperienceOnboardingGate />
     </>
   );
 };
@@ -84,6 +104,9 @@ const AppShell = () => {
 const AppDrawer = () => {
   const { t } = useLanguage();
   const { colors } = useTheme();
+  const enabled = useFeatures((state) => state.enabled);
+  const drawerItemStyle = (feature: FeatureId) =>
+    enabled[feature] ? undefined : { display: 'none' as const };
 
   return (
     <Drawer
@@ -121,6 +144,7 @@ const AppDrawer = () => {
         options={{
           title: t('headers.commitments'),
           headerShown: false,
+          drawerItemStyle: drawerItemStyle('fixeds'),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="repeat" size={size} color={color as string | undefined} />
           ),
@@ -131,6 +155,7 @@ const AppDrawer = () => {
         options={{
           title: t('headers.people'),
           headerShown: false,
+          drawerItemStyle: drawerItemStyle('people'),
           drawerIcon: ({ color, size }) => (
             <MaterialCommunityIcons
               name="account-group-outline"
@@ -145,6 +170,7 @@ const AppDrawer = () => {
         options={{
           title: t('headers.financialsIndex'),
           headerShown: false,
+          drawerItemStyle: drawerItemStyle('summaries'),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="stats-chart-outline" size={size} color={color as string | undefined} />
           ),
@@ -155,6 +181,7 @@ const AppDrawer = () => {
         options={{
           title: t('headers.credits'),
           headerShown: true,
+          drawerItemStyle: drawerItemStyle('credits'),
           drawerIcon: ({ color, size }) => (
             <MaterialCommunityIcons
               name="bank-off-outline"
@@ -169,6 +196,7 @@ const AppDrawer = () => {
         options={{
           title: t('headers.savings'),
           headerShown: true,
+          drawerItemStyle: drawerItemStyle('savings'),
           drawerIcon: ({ color, size }) => (
             <MaterialCommunityIcons
               name="piggy-bank-outline"
@@ -183,6 +211,7 @@ const AppDrawer = () => {
         options={{
           title: t('headers.budget'),
           headerShown: false,
+          drawerItemStyle: drawerItemStyle('budget'),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="pie-chart-outline" size={size} color={color as string | undefined} />
           ),
@@ -193,6 +222,7 @@ const AppDrawer = () => {
         options={{
           title: t('headers.vehicle'),
           headerShown: false,
+          drawerItemStyle: drawerItemStyle('vehicle'),
           drawerIcon: ({ color, size }) => (
             <Ionicons name="car-outline" size={size} color={color as string | undefined} />
           ),
@@ -203,6 +233,7 @@ const AppDrawer = () => {
         options={{
           title: t('headers.closing'),
           headerShown: false,
+          drawerItemStyle: drawerItemStyle('closing'),
           drawerIcon: ({ color, size }) => (
             <MaterialIcons
               name="calculate"

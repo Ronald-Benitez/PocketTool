@@ -3,9 +3,11 @@ import { View } from 'react-native';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
 import ColorSettings from "@/src/components/settings/colors-settings"
+import { ExperienceSettings } from '@/src/components/settings/ExperienceSettings';
 import { VehicleSettingsPanel } from '@/src/components/vehicle/VehicleSettingsPanel';
 import { SavingsSettingsPanel } from '@/src/components/savings/SavingsSettingsPanel';
 import { SettingsSection } from '@/src/components/settings/SettingsSection';
+import { useFeatures } from '@/src/features';
 import { useDBExport } from '@/src/db/utils';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useConfigs } from '@/src/hooks/useConfigs';
@@ -37,6 +39,7 @@ const SettingsScreen = () => {
     const exportHook = useDBExport()
     const { RecordTypes } = useDataStore()
     const { colors } = useTheme()
+    const enabled = useFeatures((state) => state.enabled)
     const [search, setSearch] = useState('')
 
     const recordTypes = RecordTypes ?? []
@@ -123,6 +126,16 @@ const SettingsScreen = () => {
                 />
 
                 <SettingsSection
+                    title={t('features.sectionTitle')}
+                    description={t('features.sectionDescription')}
+                    keywords={['experience', 'experiencia', 'simple', 'esencial', 'essential', 'balanced', 'equilibrado', 'complete', 'completo', 'modules', 'módulos', 'flags']}
+                    search={search}
+                    defaultOpen
+                >
+                    <ExperienceSettings />
+                </SettingsSection>
+
+                <SettingsSection
                     title={t('settings.sections.general')}
                     description={t('settings.sections.generalDescription')}
                     keywords={['language', 'idioma', 'general']}
@@ -142,109 +155,121 @@ const SettingsScreen = () => {
                     </Row>
                 </SettingsSection>
 
-                <SettingsSection
-                    title={t('settings.sections.records')}
-                    description={t('settings.sections.recordsDescription')}
-                    keywords={['records', 'record type', 'credit', 'registros', 'crédito', 'card payment', 'pago de tarjeta', 'fixed date', 'fecha fija', 'period', 'periodo', 'group month', 'mes del grupo']}
-                    search={search}
-                >
-                    <MultiSelectField<number>
-                        label={t('settings.selectRecordType')}
-                        title={t('settings.selectRecordType')}
-                        placeholder={t('settings.selectRecordType')}
-                        values={configs?.recordTypes || []}
-                        options={recordTypeOptions}
-                        onChange={onRecordTypesChange}
-                        doneLabel={t('confirm')}
-                        closeLabel={t('cancel')}
-                        renderOption={renderTypeOption}
-                    />
+                {enabled.advancedCatalogs || enabled.credits || enabled.fixeds ? (
+                    <SettingsSection
+                        title={t('settings.sections.records')}
+                        description={t('settings.sections.recordsDescription')}
+                        keywords={['records', 'record type', 'credit', 'registros', 'crédito', 'card payment', 'pago de tarjeta', 'fixed date', 'fecha fija', 'period', 'periodo', 'group month', 'mes del grupo']}
+                        search={search}
+                    >
+                        {enabled.advancedCatalogs ? (
+                            <>
+                                <MultiSelectField<number>
+                                    label={t('settings.selectRecordType')}
+                                    title={t('settings.selectRecordType')}
+                                    placeholder={t('settings.selectRecordType')}
+                                    values={configs?.recordTypes || []}
+                                    options={recordTypeOptions}
+                                    onChange={onRecordTypesChange}
+                                    doneLabel={t('confirm')}
+                                    closeLabel={t('cancel')}
+                                    renderOption={renderTypeOption}
+                                />
 
-                    <SelectField<number>
-                        label={t('settings.selectCreditExpenseType')}
-                        title={t('settings.selectCreditExpenseType')}
-                        placeholder={t('settings.selectRecordType')}
-                        value={configs?.creditType}
-                        options={recordTypeOptions}
-                        onChange={onCreditTypeChange}
-                        renderOption={renderTypeOption}
-                        closeLabel={t('cancel')}
-                    />
+                                <SelectField<number>
+                                    label={t('settings.selectCreditExpenseType')}
+                                    title={t('settings.selectCreditExpenseType')}
+                                    placeholder={t('settings.selectRecordType')}
+                                    value={configs?.creditType}
+                                    options={recordTypeOptions}
+                                    onChange={onCreditTypeChange}
+                                    renderOption={renderTypeOption}
+                                    closeLabel={t('cancel')}
+                                />
 
-                    <SelectField<number>
-                        label={t('settings.selectCreditPaymentType')}
-                        title={t('settings.selectCreditPaymentType')}
-                        placeholder={t('settings.selectRecordType')}
-                        value={configs?.paymentCreditType}
-                        options={recordTypeOptions}
-                        onChange={onCreditPaymentChange}
-                        renderOption={renderTypeOption}
-                        closeLabel={t('cancel')}
-                    />
+                                <SelectField<number>
+                                    label={t('settings.selectCreditPaymentType')}
+                                    title={t('settings.selectCreditPaymentType')}
+                                    placeholder={t('settings.selectRecordType')}
+                                    value={configs?.paymentCreditType}
+                                    options={recordTypeOptions}
+                                    onChange={onCreditPaymentChange}
+                                    renderOption={renderTypeOption}
+                                    closeLabel={t('cancel')}
+                                />
+                            </>
+                        ) : null}
 
-                    <SelectField<PendingPaymentDateMode>
-                        label={t('settings.pendingPaymentDate')}
-                        hint={t('settings.pendingPaymentDateHint')}
-                        title={t('settings.pendingPaymentDate')}
-                        value={configs?.pendingPaymentDateMode ?? 'today'}
-                        options={[
-                            {
-                                label: t('settings.pendingPaymentDateToday'),
-                                value: 'today',
-                            },
-                            {
-                                label: t('settings.pendingPaymentDateCard'),
-                                value: 'payment_date',
-                            },
-                            {
-                                label: t('settings.pendingPaymentDateNext'),
-                                value: 'next_payment_date',
-                            },
-                        ]}
-                        onChange={(pendingPaymentDateMode) =>
-                            saveConfigs({ ...configs, pendingPaymentDateMode })
-                        }
-                        closeLabel={t('cancel')}
-                    />
+                        {enabled.credits ? (
+                            <SelectField<PendingPaymentDateMode>
+                                label={t('settings.pendingPaymentDate')}
+                                hint={t('settings.pendingPaymentDateHint')}
+                                title={t('settings.pendingPaymentDate')}
+                                value={configs?.pendingPaymentDateMode ?? 'today'}
+                                options={[
+                                    {
+                                        label: t('settings.pendingPaymentDateToday'),
+                                        value: 'today',
+                                    },
+                                    {
+                                        label: t('settings.pendingPaymentDateCard'),
+                                        value: 'payment_date',
+                                    },
+                                    {
+                                        label: t('settings.pendingPaymentDateNext'),
+                                        value: 'next_payment_date',
+                                    },
+                                ]}
+                                onChange={(pendingPaymentDateMode) =>
+                                    saveConfigs({ ...configs, pendingPaymentDateMode })
+                                }
+                                closeLabel={t('cancel')}
+                            />
+                        ) : null}
 
-                    <SelectField<FixedPendingDateMode>
-                        label={t('settings.pendingFixedDate')}
-                        hint={t('settings.pendingFixedDateHint')}
-                        title={t('settings.pendingFixedDate')}
-                        value={configs?.pendingFixedDateMode ?? 'next_occurrence'}
-                        options={[
-                            {
-                                label: t('settings.pendingFixedDateGroupMonth'),
-                                value: 'group_month',
-                            },
-                            {
-                                label: t('settings.pendingFixedDateNext'),
-                                value: 'next_occurrence',
-                            },
-                        ]}
-                        onChange={onPendingFixedDateChange}
-                        closeLabel={t('cancel')}
-                    />
+                        {enabled.fixeds ? (
+                            <>
+                                <SelectField<FixedPendingDateMode>
+                                    label={t('settings.pendingFixedDate')}
+                                    hint={t('settings.pendingFixedDateHint')}
+                                    title={t('settings.pendingFixedDate')}
+                                    value={configs?.pendingFixedDateMode ?? 'next_occurrence'}
+                                    options={[
+                                        {
+                                            label: t('settings.pendingFixedDateGroupMonth'),
+                                            value: 'group_month',
+                                        },
+                                        {
+                                            label: t('settings.pendingFixedDateNext'),
+                                            value: 'next_occurrence',
+                                        },
+                                    ]}
+                                    onChange={onPendingFixedDateChange}
+                                    closeLabel={t('cancel')}
+                                />
 
-                    <SelectField<FixedPendingDedupeMode>
-                        label={t('settings.pendingFixedDedupe')}
-                        hint={t('settings.pendingFixedDedupeHint')}
-                        title={t('settings.pendingFixedDedupe')}
-                        value={configs?.pendingFixedDedupeMode ?? 'period'}
-                        options={[
-                            {
-                                label: t('settings.pendingFixedDedupeGroup'),
-                                value: 'group',
-                            },
-                            {
-                                label: t('settings.pendingFixedDedupePeriod'),
-                                value: 'period',
-                            },
-                        ]}
-                        onChange={onPendingFixedDedupeChange}
-                        closeLabel={t('cancel')}
-                    />
-                </SettingsSection>
+                                <SelectField<FixedPendingDedupeMode>
+                                    label={t('settings.pendingFixedDedupe')}
+                                    hint={t('settings.pendingFixedDedupeHint')}
+                                    title={t('settings.pendingFixedDedupe')}
+                                    value={configs?.pendingFixedDedupeMode ?? 'period'}
+                                    options={[
+                                        {
+                                            label: t('settings.pendingFixedDedupeGroup'),
+                                            value: 'group',
+                                        },
+                                        {
+                                            label: t('settings.pendingFixedDedupePeriod'),
+                                            value: 'period',
+                                        },
+                                    ]}
+                                    onChange={onPendingFixedDedupeChange}
+                                    closeLabel={t('cancel')}
+                                />
+                            </>
+                        ) : null}
+                    </SettingsSection>
+                ) : null}
 
                 <SettingsSection
                     title={t('settings.sections.groups')}
@@ -304,8 +329,9 @@ const SettingsScreen = () => {
                     />
                 </SettingsSection>
 
-                <SettingsSection
-                    title={t('settings.sections.closing')}
+                {enabled.closing ? (
+                    <SettingsSection
+                        title={t('settings.sections.closing')}
                     description={t('settings.sections.closingDescription')}
                     keywords={['closing', 'cierre', 'grace', 'gracia', 'deadline', 'límite', 'override', 'ajustar']}
                     search={search}
@@ -333,7 +359,8 @@ const SettingsScreen = () => {
                     <AppText variant='caption' color='muted'>
                         {t('settings.closingPeriodExample')}
                     </AppText>
-                </SettingsSection>
+                    </SettingsSection>
+                ) : null}
 
                 <SettingsSection
                     title={t('settings.sections.backup')}
@@ -357,23 +384,27 @@ const SettingsScreen = () => {
                     </View>
                 </SettingsSection>
 
-                <SettingsSection
-                    title={t('settings.sections.savings')}
+                {enabled.savings ? (
+                    <SettingsSection
+                        title={t('settings.sections.savings')}
                     description={t('settings.sections.savingsDescription')}
                     keywords={['savings', 'ahorros', 'trophy', 'trofeo', 'record']}
                     search={search}
                 >
-                    <SavingsSettingsPanel />
-                </SettingsSection>
+                        <SavingsSettingsPanel />
+                    </SettingsSection>
+                ) : null}
 
-                <SettingsSection
-                    title={t('settings.sections.vehicle')}
+                {enabled.vehicle ? (
+                    <SettingsSection
+                        title={t('settings.sections.vehicle')}
                     description={t('settings.sections.vehicleDescription')}
                     keywords={['vehicle', 'vehículo', 'fuel', 'combustible', 'maintenance']}
                     search={search}
                 >
-                    <VehicleSettingsPanel />
-                </SettingsSection>
+                        <VehicleSettingsPanel />
+                    </SettingsSection>
+                ) : null}
 
                 <SettingsSection
                     title={t('settings.sections.colors')}

@@ -28,7 +28,8 @@ export type HelpTopicId =
   | 'savings'
   | 'closing'
   | 'filters'
-  | 'theme';
+  | 'theme'
+  | 'experience';
 
 export type HelpTopicSection = {
   titleKey: TranslationKey;
