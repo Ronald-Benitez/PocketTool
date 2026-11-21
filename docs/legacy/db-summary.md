@@ -8,10 +8,10 @@ migraciones; fue reemplazado por [`../database.md`](../database.md).
 principales · Relaciones principales · Migraciones · Resumen conceptual.
 
 
-Basado en el esquema declarativo de [src/db/schema/tables.ts](src/db/schema/tables.ts)
-y en el motor de normalización/migración [src/db/migration.ts](src/db/migration.ts).
+Basado en el esquema declarativo de [src/db/schema/tables.ts](../../src/db/schema/tables.ts)
+y en el motor de normalización/migración [src/db/migration.ts](../../src/db/migration.ts).
 La versión generada y detallada del esquema está en
-[docs/schema.md](docs/schema.md).
+[docs/schema.md](../schema.md).
 
 ## Artefactos generados
 

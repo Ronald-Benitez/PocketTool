@@ -5,6 +5,8 @@ modales, filtros o gráficos.
 **Resumen:** PocketTool usa un sistema propio en `src/ui`, con tokens, tema
 claro/oscuro, primitivas, acciones, formularios, overlays, feedback y filtros.
 **Skill:** `pockettool-ui`.
+**Secciones:** Tema y tokens · Componentes · Footers · Filtros · Gráficos ·
+Estilos legacy · Barrel y lint.
 
 ## Tema y tokens
 
@@ -31,35 +33,24 @@ Un color semántico nuevo que no elige el usuario se agrega a:
 3. `COLOR_GROUPS` y `COLOR_LABELS_ES` en `src/ui/theme/colors.ts`.
 
 Con eso aparece en Settings → Colors, porque el editor recorre `COLOR_GROUPS`.
-No hardcodees colores en componentes, gráficos, Mermaid ni estilos. Si un
+No hardcodees colores en componentes, gráficos ni estilos. Si un
 gráfico necesita una serie nueva, crea un token (`chartPlanned`, `chartActual`,
 `chartProjected`) y pásalo desde `useTheme()`.
 
-## Primitivas
+## Componentes
 
-`src/ui/primitives/`: `AppText`, `Surface`, `Divider`, `Screen`, `Stack`, `Row`,
-`Column`.
+El catálogo y las reglas de uso viven en
+[`../../src/ui/AGENTS.md`](../../src/ui/AGENTS.md) y en el barrel
+`src/ui/index.ts`. Puntos de arquitectura:
 
-## Acciones
+- Primitivas: `AppText`, `Surface`, `Divider`, `Screen`, `Stack`, `Row`, `Column`.
+- Formularios: `SelectField` y `MultiSelectField` aceptan `searchable`.
+- Overlays: `Modal` maneja teclado, insets y auto-scroll; `Dialog` y
+  `ConfirmDialog` cubren confirmaciones.
+- Feedback: un único `ToastProvider`; no crees toasts o modales locales.
+- Datos: `FinanceValue` recibe centavos; `SummaryGroup` agrupa totales.
 
-`src/ui/actions/`: `Button`, `IconButton`, `LinkButton` y `SwipeAction` con
-variantes y estados.
-
-## Formularios
-
-`src/ui/forms/`: `FormField`, `TextField`, `MoneyField`, `SelectField`,
-`MultiSelectField`, `DateField`, `MonthField`, `SwitchField`, `ColorField` y
-`ColorPicker`, con label, required, hint y error.
-
-`SelectField` y `MultiSelectField` aceptan `searchable` para buscar opciones.
-
-## Overlays
-
-`src/ui/overlays/`: `Modal` (center/bottom), `BottomSheet`, `Dialog` y
-`ConfirmDialog`. `Modal` maneja el teclado con `KeyboardAvoidingView`, insets y
-auto-scroll al `TextField` enfocado.
-
-### Footers de modales
+## Footers de modales
 
 El contenedor interno del `footer` debe tener `flex: 1` cuando los botones usan
 `flex: 1`. Sin ese `flex`, el contenedor queda con ancho automático, los botones
@@ -75,23 +66,6 @@ footer={
 // styles.footer = { flex: 1, flexDirection: 'row', gap: 8 }
 // styles.footerButton = { flex: 1 }
 ```
-
-Si usas `Row` como footer, pásale `style={{ flex: 1 }}`.
-
-## Feedback
-
-`src/ui/feedback/`: `ToastProvider` único, `InlineMessage`, `EmptyState`,
-`LoadingState` y `ToastViewport` para modales. No crees toasts o modales locales;
-usa `ToastProvider` y `src/ui`.
-
-## Datos y resúmenes
-
-`src/ui/data-display/`: `Card`, `ListItem`, `Badge`, `FinanceValue`,
-`SummaryBlock`, `SummaryGroup` y `AccentRow`. `FinanceValue` recibe centavos y
-usa el tema.
-
-`src/components/summaries/`: `FinanceTableBlock` y `FinanceTableChart` con
-`SummaryGroup`.
 
 ## Filtros
 

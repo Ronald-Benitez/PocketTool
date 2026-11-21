@@ -5,10 +5,15 @@ compartidos, resúmenes o reglas de dinero.
 **Resumen:** cada dominio tiene lógica pura en `src/domain`, repositorios en
 `src/db/repositories` y UI en `app/` + `src/components`. La UI no calcula dinero.
 **Skills:** `pockettool-domain`, `pockettool-records`, `pockettool-db`.
+**Secciones:** Reglas transversales · Gráficos · Presupuestos · Créditos ·
+Ahorros · Vehículo · Personas y compartidos · Compromisos · Periodos · Cierre.
 
 ## Reglas transversales
 
-- Dinero en centavos enteros; fechas en milisegundos Unix.
+Dinero en centavos, fechas en ms, dominio puro y UI sin cálculos: ver
+[`../../AGENTS.md`](../../AGENTS.md) y
+[`../../src/domain/AGENTS.md`](../../src/domain/AGENTS.md).
+
 - `Records.amount` guarda el monto propio del usuario; `own_amount_cents` lo
   replica y `shared_amount_cents` es el snapshot de la parte compartida. El
   total es `own + shared`; los resúmenes personales usan el monto propio.
@@ -20,8 +25,8 @@ compartidos, resúmenes o reglas de dinero.
   `SavingsHistory.record_id` solo indica el vínculo.
 - Las reglas de efecto, gasto y balance viven en `src/domain/summaries/` y las
   usan resúmenes y presupuestos.
-- Todo flujo que mueva dinero evalúa la integración con `Records` mediante la
-  skill `pockettool-records`.
+- Todo flujo que mueva dinero evalúa la integración con `Records` mediante
+  `pockettool-records`; el procedimiento vive en la skill.
 
 ## Gráficos
 
@@ -41,7 +46,7 @@ compartidos, resúmenes o reglas de dinero.
   guarda.
 - Plantillas reutilizables en `BudgetTemplates`/`BudgetTemplateItems`.
 - Dominio en `src/domain/budgets/`: comparación, estados de línea, proyección,
-  insights y builders Mermaid.
+  insights y builders de gráficos (`ChartSpec`).
 - Repositorios en `src/db/repositories/budgets.ts`; entregan `BudgetPlanView`.
 - Detalle en `docs/legacy/budget-plan.md` (histórico).
 

@@ -10,7 +10,7 @@ en segmentos de gasolina y memoria de “Use odometer”. El criterio del plan m
 de Presupuestos queda fuera y sigue en `docs/plans/futuro-borrador.md`.
 **Secciones:** [Alcance](#alcance) · [Sub-fases](#sub-fases) · [Modelo](#modelo) ·
 [Reglas](#reglas) · [UI](#ui) · [Registros](#registros) · [Pruebas](#pruebas) ·
-[Riesgos](#riesgos) · [Verificación](#verificación) · [Preguntas](#preguntas)
+[Riesgos](#riesgos) · [Verificación](#verificación) · [Pendiente de definir](#pendiente-de-definir)
 
 ## Alcance
 

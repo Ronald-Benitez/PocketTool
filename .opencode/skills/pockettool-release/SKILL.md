@@ -32,12 +32,10 @@ un borrador, no edites archivos ni subas la versión.
    `titleKey` y `bodyKey`.
 5. Agrega los textos EN/ES en `src/lang/messages/whatsNew.ts` y registra las
    claves en `src/lang/messages/index.ts` si hace falta.
-6. Mantén paridad EN/ES y los mismos hechos entre Play y la app. No incluyas
-   detalles internos, tablas, commits ni datos reales.
-7. Actualiza `docs/README.md` con el archivo de notas nuevo.
-8. Ejecuta `npm run typecheck`, `npm test` y `npm run docs:audit`.
-9. No generes novedades en tiempo de ejecución: el catálogo se escribe a mano
-   en cada entrega. Sigue las reglas de `src/release-notes/AGENTS.md`.
+6. Actualiza `docs/README.md` con el archivo de notas nuevo.
+7. Ejecuta `npm run typecheck`, `npm test` y `npm run docs:audit`.
+8. Sigue las reglas de paridad, hechos y catálogo manual de
+   `src/release-notes/AGENTS.md`; no las dupliques aquí.
 
 ## Referencias
 

@@ -3,10 +3,13 @@
 /**
  * Audita el tamaño y la estructura de la documentación de PocketTool.
  *
- * - Falla si AGENTS.md, docs/phases.md, docs/architecture/*.md, skills o
- *   comandos exceden su presupuesto.
+ * - Falla si AGENTS.md (raíz o de área), docs/phases.md,
+ *   docs/architecture/*.md, skills o comandos exceden su presupuesto.
  * - Advierte si un documento normal supera 20 KB.
  * - Advierte si un plan de docs/legacy no empieza con **Resumen:**.
+ * - Advierte si un documento largo no tiene **Resumen:** o **Secciones:**.
+ * - Advierte si falta un documento en docs/README.md o docs/legacy/README.md.
+ * - Advierte si un enlace relativo o un ancla no resuelven.
  * - docs/schema.md está exento por ser generado.
  *
  * Uso:
@@ -24,6 +27,11 @@ const KB = 1024;
 
 const budgets = [
   { match: (file) => file === 'AGENTS.md', limit: 8 * KB, label: 'AGENTS.md' },
+  {
+    match: (file) => file.endsWith('AGENTS.md') && file !== 'AGENTS.md',
+    limit: 4 * KB,
+    label: 'AGENTS de área',
+  },
   { match: (file) => file === 'docs/phases.md', limit: 12 * KB, label: 'phases' },
   {
     match: (file) => file.startsWith('docs/architecture/') && file.endsWith('.md'),
@@ -71,7 +79,12 @@ const walk = (directory) => {
   return files;
 };
 
-const targets = new Set(['AGENTS.md', ...walk('docs')]);
+const targets = new Set([
+  'AGENTS.md',
+  ...walk('docs'),
+  ...walk('src').filter((file) => file.endsWith('AGENTS.md')),
+  ...walk('app').filter((file) => file.endsWith('AGENTS.md')),
+]);
 
 for (const directory of ['.opencode/skills', '.opencode/commands']) {
   const absolute = path.join(ROOT, directory);
@@ -86,6 +99,84 @@ for (const directory of ['.opencode/skills', '.opencode/commands']) {
     }
   }
 }
+
+const warningsList = [];
+
+const stripCode = (content) => content.replace(/```[\s\S]*?```/g, ' ');
+
+const normalizeLink = (raw, fromFile) => {
+  let target = raw.trim();
+  if (!target) return null;
+  if (/^(https?:|mailto:|tel:)/i.test(target)) return null;
+
+  const hashIndex = target.indexOf('#');
+  let anchor = null;
+  if (hashIndex >= 0) {
+    anchor = target.slice(hashIndex + 1);
+    target = target.slice(0, hashIndex);
+  }
+
+  if (!target) return { path: fromFile, anchor };
+  if (target.startsWith('/')) target = target.slice(1);
+
+  return {
+    path: path.posix.normalize(
+      path.posix.join(path.posix.dirname(fromFile), target)
+    ),
+    anchor,
+  };
+};
+
+const extractLinks = (content, file) => {
+  const links = [];
+  const re = /\[[^\]]*\]\(([^)]+)\)/g;
+  let match;
+  while ((match = re.exec(stripCode(content)))) {
+    const normalized = normalizeLink(match[1], file);
+    if (normalized) links.push(normalized);
+  }
+  return links;
+};
+
+const slugify = (value) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[`*_~]/g, '')
+    .replace(/[^\p{L}\p{N}\s-]/gu, '')
+    .replace(/\s+/g, '-');
+
+const collectHeadings = (content) => {
+  const headings = new Set();
+  const re = /^#{1,6}\s+(.+)$/gm;
+  let match;
+  while ((match = re.exec(content))) {
+    headings.add(slugify(match[1]));
+  }
+  return headings;
+};
+
+const checkIndex = (indexFile, scopePrefix, excludePrefix = null) => {
+  const indexPath = path.join(ROOT, indexFile);
+  if (!fs.existsSync(indexPath)) return;
+
+  const content = fs.readFileSync(indexPath, 'utf8');
+  const linked = new Set(
+    extractLinks(content, indexFile)
+      .map((link) => link.path)
+      .filter((file) => file.endsWith('.md'))
+  );
+
+  for (const file of targets) {
+    if (!file.startsWith(scopePrefix) || !file.endsWith('.md')) continue;
+    if (file === indexFile) continue;
+    if (file.endsWith('/AGENTS.md') || file.endsWith('/README.md')) continue;
+    if (excludePrefix && file.startsWith(excludePrefix)) continue;
+    if (!linked.has(file)) {
+      warningsList.push(`índice: ${indexFile} no enlaza ${file}`);
+    }
+  }
+};
 
 const rows = [];
 let failures = 0;
@@ -134,6 +225,53 @@ for (const file of [...targets].sort()) {
   rows.push({ file, bytes, tokens, status, note });
 }
 
+checkIndex('docs/README.md', 'docs/', 'docs/legacy/');
+checkIndex('docs/legacy/README.md', 'docs/legacy/');
+
+for (const file of targets) {
+  const absolute = path.join(ROOT, file);
+  if (!fs.existsSync(absolute)) continue;
+
+  const content = fs.readFileSync(absolute, 'utf8');
+
+  if (
+    file.startsWith('docs/') &&
+    !file.startsWith('docs/legacy/') &&
+    file !== 'docs/schema.md' &&
+    Buffer.byteLength(content, 'utf8') >= 5 * KB
+  ) {
+    if (!content.includes('**Cuándo leer:**')) {
+      warningsList.push(`cabecera: ${file} sin **Cuándo leer:**`);
+    }
+    if (!content.includes('**Resumen:**')) {
+      warningsList.push(`cabecera: ${file} sin **Resumen:**`);
+    }
+    if (!content.includes('**Secciones:**')) {
+      warningsList.push(`cabecera: ${file} sin **Secciones:**`);
+    }
+  }
+
+  for (const link of extractLinks(content, file)) {
+    const linkPath = path.join(ROOT, link.path);
+    if (!fs.existsSync(linkPath)) {
+      warningsList.push(`enlace: ${file} → ${link.path}`);
+      continue;
+    }
+
+    if (link.anchor && link.path.endsWith('.md')) {
+      let anchor = link.anchor;
+      try {
+        anchor = decodeURIComponent(anchor);
+      } catch {
+        // Keep the raw anchor if it is not valid percent-encoding.
+      }
+      if (!collectHeadings(fs.readFileSync(linkPath, 'utf8')).has(slugify(anchor))) {
+        warningsList.push(`ancla: ${file} → ${link.path}#${link.anchor}`);
+      }
+    }
+  }
+}
+
 const statusOrder = { fail: 0, warn: 1, ok: 2, exempt: 3 };
 rows.sort(
   (a, b) => statusOrder[a.status] - statusOrder[b.status] || b.bytes - a.bytes
@@ -168,6 +306,18 @@ if (!WARN_ONLY && failures > 0) {
   console.log('\nPresupuesto de documentación en verde.');
 }
 
-if (warnings > 0) {
-  console.warn(`${warnings} advertencia(s). Revisa los legacy sin resumen.`);
+const totalWarnings = warnings + warningsList.length;
+if (totalWarnings > 0) {
+  console.warn(`\n${totalWarnings} advertencia(s):`);
+  if (warnings > 0) {
+    console.warn(
+      ` - ${warnings} legacy sin **Resumen:** en las primeras 45 líneas.`
+    );
+  }
+  for (const warning of warningsList.slice(0, 30)) {
+    console.warn(` - ${warning}`);
+  }
+  if (warningsList.length > 30) {
+    console.warn(` ... y ${warningsList.length - 30} más.`);
+  }
 }

@@ -9,7 +9,8 @@ description: Mantiene y audita la documentación de PocketTool sin duplicar regl
 
 | Archivo | Límite |
 | --- | ---: |
-| `AGENTS.md` | 8 KB |
+| `AGENTS.md` raíz | 8 KB |
+| `AGENTS.md` de área | 4 KB |
 | `docs/phases.md` | 12 KB |
 | `docs/architecture/*.md` | 12 KB |
 | Skills (`.opencode/skills/*/SKILL.md`) | 4 KB |
@@ -33,10 +34,11 @@ No dupliques una regla en dos capas. Si necesitas repetirla, enlaza.
 ## Auditar
 
 1. Ejecuta `npm run docs:audit`.
-2. Revisa archivos sobre presupuesto y documentos con `**Resumen:**` faltante.
+2. Revisa archivos sobre presupuesto, legacy sin `**Resumen:**`, cabeceras
+   faltantes, índice incompleto y enlaces/anclas rotos.
 3. Propón una de estas acciones: recortar, dividir, mover a `docs/legacy/` o
    convertir en skill.
-4. Verifica enlaces internos y que `docs/README.md` siga siendo el índice.
+4. Verifica que `docs/README.md` y `docs/legacy/README.md` sean índices completos.
 5. No edites sin aprobación si estás en modo plan.
 
 ## Escribir documentación

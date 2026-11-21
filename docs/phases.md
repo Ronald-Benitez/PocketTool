@@ -1,6 +1,13 @@
 # Plan de fases
 
-**Última actualización:** 2026-11-19
+**Cuándo leer:** al consultar el estado vigente, la fase activa o el resumen
+histórico de PocketTool.
+**Resumen:** estado de las fases, fase activa, resumen de arquitectura y enlaces
+a las decisiones canónicas. Las reglas no viven aquí.
+**Secciones:** Estado · Fase activa · Arquitectura actual · Fases 0–18 ·
+Decisiones.
+
+**Última actualización:** 2026-11-20
 
 ## Estado
 
@@ -28,33 +35,26 @@
 
 ## Fase activa
 
-**No hay fase activa.**
+**No hay fase activa.** Plan registrado para la Fase 19:
+[`plans/fase-19-experiencia.md`](plans/fase-19-experiencia.md).
 
 `/cerrar-fase` busca este encabezado para saber qué fase cerrar. Si no existe,
 se detiene y pide cuál cerrar.
 
 ## Arquitectura actual (resumen)
 
-- **Esquema:** `src/db/schema/tables.ts` es la fuente única; los artefactos de
-  `src/db/schema/generated/` y `docs/schema.md` se generan con
-  `npm run db:generate`.
-- **Dinero/fechas:** centavos enteros y timestamps Unix en milisegundos.
-- **Auditoría:** `created_at`/`updated_at` con triggers; soft delete con
-  `deleted_at`.
-- **Migraciones:** `0001` a `0026`; `SCHEMA_VERSION = 26`.
-- **Acceso a datos:** ORM tipado + repositorios; la UI no usa `useORM` ni SQL.
-- **Backups:** dump SQL con metadatos versionados y compatibilidad legacy.
-- **Calidad:** `test:db` con `node:sqlite`, Jest, typecheck, lint bloqueante y
-  CI en `.github/workflows/ci.yml`.
-- **UI:** sistema propio en `src/ui/` con tema, tokens, primitivas, acciones,
-  formularios, overlays, feedback y filtros. `src/styles/useThemedStyles.ts`
-  adapta estilos legacy.
-- **Idiomas:** `src/lang/messages/` es la fuente de verdad, con inglés y español
-  co-localizados; `t()` se tipa con `TranslationKey`.
-- **Ayuda:** `src/help/registry.ts` define los temas y
-  `src/lang/messages/help.ts` el contenido bilingüe.
-- **Registros:** toda operación que mueva dinero ofrece crear, vincular u omitir
-  un `Record`, validando monto/fecha y evitando vínculos duplicados.
+- **Esquema y datos:** `src/db/schema/tables.ts` es la fuente única; los
+  artefactos se generan con `npm run db:generate`. ORM tipado y repositorios;
+  detalles en [`database.md`](database.md).
+- **Dinero, fechas y borrado:** centavos enteros, timestamps Unix y soft delete
+  con `deleted_at`. Reglas en [`../AGENTS.md`](../AGENTS.md).
+- **UI e i18n:** sistema propio en `src/ui`, tema por tokens y textos con `t()`.
+  Ver [`architecture/ui.md`](architecture/ui.md).
+- **Dominio y Registros:** lógica pura por área y create/link/omit de `Records`
+  en la misma transacción. Ver [`architecture/domains.md`](architecture/domains.md)
+  y la skill `pockettool-records`.
+- **Calidad:** typecheck, `test:db`, Jest, lint y `docs:audit` en CI. Ver
+  [`../AGENTS.md`](../AGENTS.md) → Verificación.
 
 ## Fases 0–3 — Base técnica (✅ 2026-10-28)
 
@@ -229,26 +229,10 @@ Plan en
 - Motor SVG con specs, tooltips multi-serie, colapsables y zoom.
 - Migración total y eliminación de Mermaid/WebView/`gifted-charts`.
 
-## Decisiones vigentes
+## Decisiones
 
-- Tablas lógicas PascalCase, nombres físicos y columnas snake_case.
-- Dinero en centavos; fechas en milisegundos.
-- Soft delete por defecto; el ORM filtra borrados.
-- Migraciones en transacción exclusiva y registro posterior al commit.
-- Repositorios como única puerta de acceso desde stores y pantallas.
-- Toda operación con impacto en cuentas ofrece crear, vincular u omitir un
-  `Record`, validando monto/fecha y evitando vínculos duplicados.
-- Backups con metadatos versionados y compatibilidad con dumps SQL antiguos.
-- Lint bloqueante; CI ejecuta typecheck, artefactos, tests y lint.
-- La UI nueva usa `src/ui`; los estilos legacy se adaptan con
-  `useThemedStyles`.
-- La ayuda se actualiza en el mismo cambio que la funcionalidad visible.
-- Los compartidos usan porcentajes o montos; los montos y porcentajes se
-  calculan sobre el total y se bloquea si la suma lo supera. Ahorros usa solo
-  porcentaje. El pagador y las liquidaciones viven en `Records` y
-  `PersonSettlements`.
-- Los pickers de formularios usan modales centrados con altura máxima y scroll.
-- Los modos de importe son `Tu parte`, `Compartido`, `Total` y `Propio bruto`;
-  el balance de caja es el único que incluye liquidaciones.
-- Las novedades in-app son un catálogo manual versionado; `/notas-version`
-  actualiza notas de Play, catálogo y versión en la misma entrega.
+Las reglas no negociables viven en [`../AGENTS.md`](../AGENTS.md) y en los
+`AGENTS.md` de cada área. Las decisiones de dominio (compartidos por porcentaje o
+monto, pagador, liquidaciones, pickers, modos de importe, cierre, ahorros y
+gráficos) están en [`architecture/domains.md`](architecture/domains.md). Este
+documento solo mantiene estado e historial; no dupliques reglas aquí.

@@ -77,28 +77,14 @@ dupliques arquitectura ni checklists aquí.
 ## Integración con Registros
 
 Toda operación que represente entrada, salida, pago, transferencia, aporte,
-retiro o cualquier movimiento que afecte las cuentas del mes debe evaluarse con
-la skill `pockettool-records`. Si aplica, debe ofrecer siempre:
-
-1. Crear un registro nuevo en `Records`.
-2. Vincular un registro existente.
-3. No vincular (`record_id = null`).
-
-Reglas clave:
-
-- La UI no escribe `Records`: el repositorio del agregado crea, actualiza o
-  vincula dentro de la misma transacción que guarda la operación.
-- Al vincular, valida que **monto** y **fecha** coincidan y excluye registros ya
-  vinculados a vehículo, financiamientos, ahorros o créditos. Un registro no
-  puede representar dos gastos.
-- Al eliminar, conserva el registro por defecto y quita solo el vínculo, salvo
-  que el usuario confirme borrarlo.
-- Mantén el comportamiento histórico: Vehículo crea por defecto; Financiamientos
-  no vincula por defecto.
-- Reutiliza los pickers existentes; si aparece un tercer flujo, extrae un
-  `RecordPicker` común.
-- Agrega pruebas de monto/fecha, exclusión de ya vinculados y
-  creación/vinculación transaccional.
+retiro o movimiento de cuentas debe evaluarse con la skill
+`pockettool-records`. Si aplica, ofrece crear, vincular o omitir
+(`record_id = null`). La UI no escribe `Records`: el repositorio del agregado lo
+hace en la misma transacción. Al vincular, valida monto/fecha y excluye
+registros ya vinculados; al eliminar, conserva el registro y quita solo el
+vínculo salvo confirmación. Mantén los defaults históricos (Vehículo crea;
+Financiamientos no vincula), reutiliza los pickers existentes y agrega pruebas
+de monto/fecha, exclusión y transaccionalidad.
 
 ## Verificación
 
@@ -119,7 +105,9 @@ npm run ci
   validación y créditos.
 - `doctor` se ejecuta antes de cerrar una fase o entregar cambios de Expo; no
   sustituye typecheck, Jest, `test:db` ni lint.
-- `docs:audit` falla si `AGENTS.md` o `docs/phases.md` exceden su presupuesto.
+- `docs:audit` falla si `AGENTS.md`, `docs/phases.md`, arquitectura, skills o
+  comandos exceden su presupuesto; también advierte por índice, enlaces, anclas
+  y cabeceras faltantes.
 
 ## Mapa de contexto
 
@@ -136,16 +124,11 @@ npm run ci
 
 ## Documentación
 
-- [`docs/README.md`](docs/README.md): contrato de documentación e índice.
-- [`docs/phases.md`](docs/phases.md): estado vigente y fase activa.
-- [`docs/database.md`](docs/database.md): base de datos y reglas de lectura.
-- [`docs/schema.md`](docs/schema.md): esquema generado; no editar a mano.
-- [`docs/release-notes/`](docs/release-notes/): notas de Google Play.
-- [`docs/legacy/`](docs/legacy/): archivo histórico; no es documentación vigente.
-- Skills: `.opencode/skills/<id>/SKILL.md`; el campo `name` debe ser exactamente
-  el ID de la carpeta (minúsculas, números y guiones). Los comandos viven en
-  `.opencode/commands/`.
+El índice completo vive en [`docs/README.md`](docs/README.md). Lee por secciones;
+no leas `docs/legacy/*` completos ni `docs/schema.md` completo. Skills:
+`.opencode/skills/<id>/SKILL.md`; el campo `name` debe ser exactamente el ID de la
+carpeta. Los comandos viven en `.opencode/commands/`.
 
-Al cerrar una fase: actualiza `docs/phases.md` y la tabla de `docs/README.md`,
+Al cerrar una fase: actualiza `docs/phases.md` y el índice de `docs/README.md`,
 archiva el plan en `docs/legacy/` con resumen e índice de secciones, actualiza la
 ayuda si cambió el comportamiento visible y ejecuta `/cerrar-fase`.

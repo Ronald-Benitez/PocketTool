@@ -51,12 +51,9 @@ esperes a que lo pidan. Si el cambio no es visible, documenta por qué no aplica
 
 ## Reglas
 
-- `src/lang/messages/` es la fuente de verdad; no agregues JSON.
-- Mantén paridad exacta entre inglés y español (`MessageShape`).
-- Todo tema debe tener tres pasos.
-- Los `related` deben existir.
-- Usa `Screen`, `Surface`, `ListItem` e `InlineMessage` para mantener dark mode
-  y accesibilidad.
+Las invariantes (fuente de mensajes, paridad, tres pasos, `related` existentes y
+componentes de UI) viven en `src/lang/AGENTS.md` y `src/ui/AGENTS.md`. El test de
+registro las valida; no las dupliques aquí.
 
 ## Referencias
 
