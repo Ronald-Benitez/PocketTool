@@ -2,7 +2,7 @@ import React from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-import { useBudgetPlan } from '@/src/hooks/useBudgetPlan';
+import { useBudgetProjection } from '@/src/hooks/useBudgetProjection';
 import { useSummaryMode } from '@/src/hooks/useSummaryMode';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import useRecordsStore from '@/src/stores/RecordsStore';
@@ -23,7 +23,10 @@ export const BudgetSummaryBlock = () => {
   const router = useRouter();
   const { group } = useRecordsStore();
   const { mode } = useSummaryMode();
-  const { plan } = useBudgetPlan(group?.id, mode);
+  const { plan, consumptionBalance, cashBalance } = useBudgetProjection(
+    group?.id,
+    mode
+  );
 
   return (
     <Stack gap='sm'>
@@ -60,19 +63,38 @@ export const BudgetSummaryBlock = () => {
             </Row>
             <SummaryBlock
               label={t('budget.expectedBalance')}
-              cents={plan.balance.expectedEndBalanceCents}
+              cents={
+                (consumptionBalance ?? plan.balance).expectedEndBalanceCents
+              }
               size='md'
               valueColorOverride={
-                plan.balance.expectedEndBalanceCents >= 0
+                (consumptionBalance ?? plan.balance).expectedEndBalanceCents >= 0
                   ? colors.success
                   : colors.expense
               }
               accentColor={
-                plan.balance.expectedEndBalanceCents >= 0
+                (consumptionBalance ?? plan.balance).expectedEndBalanceCents >= 0
                   ? colors.success
                   : colors.expense
               }
             />
+            {cashBalance ? (
+              <SummaryBlock
+                label={t('budget.cashExpected')}
+                cents={cashBalance.expectedEndCashCents}
+                size='md'
+                valueColorOverride={
+                  cashBalance.expectedEndCashCents >= 0
+                    ? colors.success
+                    : colors.expense
+                }
+                accentColor={
+                  cashBalance.expectedEndCashCents >= 0
+                    ? colors.success
+                    : colors.expense
+                }
+              />
+            ) : null}
             {plan.lines
               .filter((line) => line.effect === '-')
               .slice(0, 5)

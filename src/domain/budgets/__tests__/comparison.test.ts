@@ -1,5 +1,6 @@
 import { calculateBudgetPlanView } from '../comparison';
 import {
+  buildBudgetBalanceChart,
   buildBudgetComparisonChart,
   buildBudgetDistributionPie,
   buildBudgetHealthPie,
@@ -13,9 +14,13 @@ const labels: BudgetChartLabels = {
   distributionTitle: 'Distribution',
   comparisonTitle: 'Comparison',
   projectionTitle: 'Projection',
+  balanceTitle: 'Balance',
   planned: 'Planned',
   actual: 'Actual',
   projected: 'Projected',
+  plannedNet: 'Planned net',
+  actualNet: 'Actual net',
+  expectedNet: 'Expected net',
   spent: 'Spent',
   remaining: 'Remaining',
   onTrack: 'On track',
@@ -276,6 +281,7 @@ describe('budget comparison', () => {
     const distribution = buildBudgetDistributionPie(view, labels);
     const comparison = buildBudgetComparisonChart(view, labels);
     const projection = buildBudgetProjectionChart(view, labels);
+    const balance = buildBudgetBalanceChart(view, labels);
 
     expect(health?.kind).toBe('pie');
     expect(health?.series[0].points.length).toBeGreaterThan(0);
@@ -293,6 +299,8 @@ describe('budget comparison', () => {
     ).toBe(true);
     expect(projection?.kind).toBe('grouped_bar');
     expect(projection?.series[1].key).toBe('projected');
+    expect(balance?.kind).toBe('grouped_bar');
+    expect(balance?.series[0].points).toHaveLength(3);
   });
 
   it('returns null charts when there is no expense data', () => {

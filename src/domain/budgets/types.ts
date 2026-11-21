@@ -74,6 +74,44 @@ export type BudgetFixedCommitment = {
   inPeriod: boolean;
 };
 
+export type BudgetObligationKind =
+  | 'financing'
+  | 'vehicle'
+  | 'savings'
+  | 'card';
+
+export type BudgetObligation = {
+  key: string;
+  kind: BudgetObligationKind;
+  label: string;
+  amountCents: number;
+  date: number | null;
+  /** Adds to the consumption expected expense because it is not in plan/actuals. */
+  consumption: boolean;
+  /** Adds to the cash expected outflow. */
+  cash: boolean;
+  confidence?: 'high' | 'medium' | 'low';
+  note?: string | null;
+};
+
+export type BudgetObligationsView = {
+  items: BudgetObligation[];
+  financingCents: number;
+  vehicleCents: number;
+  savingsCents: number;
+  cardCents: number;
+  totalConsumptionCents: number;
+  totalCashCents: number;
+};
+
+export type BudgetCashView = {
+  currentCashCents: number;
+  remainingIncomeCents: number;
+  remainingExpenseCents: number;
+  obligationsCashCents: number;
+  expectedEndCashCents: number;
+};
+
 export type BudgetBalanceView = {
   actualIncomeCents: number;
   actualExpenseCents: number;

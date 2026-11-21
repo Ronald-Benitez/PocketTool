@@ -5,10 +5,13 @@ import { useFocusEffect, useRouter } from 'expo-router';
 
 import GroupSelector from '@/src/components/groups/group-selector';
 import { BudgetBalanceCard } from '@/src/components/budgets/BudgetBalanceCard';
+import { BudgetCashCard } from '@/src/components/budgets/BudgetCashCard';
 import { BudgetGroupAverageDialog } from '@/src/components/budgets/BudgetGroupAverageDialog';
 import { BudgetLineForm } from '@/src/components/budgets/BudgetLineForm';
+import { BudgetObligationsCard } from '@/src/components/budgets/BudgetObligationsCard';
 import { BudgetTemplateApplyDialog } from '@/src/components/budgets/BudgetTemplateApplyDialog';
-import { useBudgetPlan, useBudgetTemplates } from '@/src/hooks/useBudgetPlan';
+import { useBudgetTemplates } from '@/src/hooks/useBudgetPlan';
+import { useBudgetProjection } from '@/src/hooks/useBudgetProjection';
 import { SummaryModeToggle } from '@/src/components/summaries/SummaryModeToggle';
 import { useSummaryMode } from '@/src/hooks/useSummaryMode';
 import useRecordsStore from '@/src/stores/RecordsStore';
@@ -76,7 +79,15 @@ const Index = () => {
   const router = useRouter();
   const { group } = useRecordsStore();
   const { mode } = useSummaryMode();
-  const { plan, loading, refresh, repository } = useBudgetPlan(group?.id, mode);
+  const {
+    plan,
+    consumptionBalance,
+    cashBalance,
+    obligations,
+    loading,
+    refresh,
+    repository,
+  } = useBudgetProjection(group?.id, mode);
   const showFixeds = useFeature('fixeds');
   const visibleInsights = plan
     ? showFixeds
@@ -89,13 +100,19 @@ const Index = () => {
   const { templates, refresh: refreshTemplates } = useBudgetTemplates();
   const [lineFormVisible, setLineFormVisible] = useState(false);
   const [selectedLine, setSelectedLine] = useState<BudgetLineComparison | null>(null);
-  type BudgetChartMode = 'comparison' | 'health' | 'distribution' | 'projection';
+  type BudgetChartMode =
+    | 'comparison'
+    | 'health'
+    | 'distribution'
+    | 'projection'
+    | 'balance';
   const chartPreferences = useChartPreferences();
   const storedChartMode = chartPreferences.get('budget.plan').mode;
   const chartMode: BudgetChartMode =
     storedChartMode === 'health' ||
     storedChartMode === 'distribution' ||
-    storedChartMode === 'projection'
+    storedChartMode === 'projection' ||
+    storedChartMode === 'balance'
       ? storedChartMode
       : 'comparison';
   const setChartMode = (mode: BudgetChartMode) =>
@@ -119,9 +136,13 @@ const Index = () => {
       distributionTitle: t('budget.chart.distribution'),
       comparisonTitle: t('budget.chart.comparison'),
       projectionTitle: t('budget.chart.projection'),
+      balanceTitle: t('budget.chart.balance'),
       planned: t('budget.chart.planned'),
       actual: t('budget.chart.actual'),
       projected: t('budget.lines.projected'),
+      plannedNet: t('budget.totals.plannedNet'),
+      actualNet: t('budget.totals.actualNet'),
+      expectedNet: t('budget.expectedBalance'),
       spent: t('budget.chart.spent'),
       remaining: t('budget.chart.remaining'),
       onTrack: t('budget.lineStatus.onTrack'),
@@ -136,7 +157,13 @@ const Index = () => {
     () =>
       plan
         ? buildBudgetCharts(plan, chartLabels)
-        : { health: null, distribution: null, comparison: null, projection: null },
+        : {
+            health: null,
+            distribution: null,
+            comparison: null,
+            projection: null,
+            balance: null,
+          },
     [plan, chartLabels]
   );
 
@@ -587,7 +614,13 @@ const Index = () => {
               </Stack>
             </Surface>
 
-            <BudgetBalanceCard balance={plan.balance} />
+            {consumptionBalance ? (
+              <BudgetBalanceCard balance={consumptionBalance} />
+            ) : null}
+            {cashBalance ? (
+              <BudgetCashCard cash={cashBalance} obligations={obligations} />
+            ) : null}
+            <BudgetObligationsCard obligations={obligations} />
 
             {visibleInsights.length > 0 ? (
               <Stack gap='sm'>
@@ -633,6 +666,12 @@ const Index = () => {
                   size='sm'
                   variant={chartMode === 'projection' ? 'primary' : 'outline'}
                   onPress={() => setChartMode('projection')}
+                />
+                <Button
+                  label={t('budget.chart.balance')}
+                  size='sm'
+                  variant={chartMode === 'balance' ? 'primary' : 'outline'}
+                  onPress={() => setChartMode('balance')}
                 />
               </Row>
               <ChartCard

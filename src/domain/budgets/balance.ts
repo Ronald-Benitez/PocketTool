@@ -1,4 +1,8 @@
-import type { BudgetBalanceView, BudgetPeriodRelation } from './types';
+import type {
+  BudgetBalanceView,
+  BudgetCashView,
+  BudgetPeriodRelation,
+} from './types';
 
 export type BudgetBalanceInput = {
   actualIncomeCents: number;
@@ -71,5 +75,48 @@ export const calculateBudgetBalance = ({
     daysRemaining,
     dailyAvailableCents,
     hasIncomeLines,
+  };
+};
+
+export const addConsumptionObligations = (
+  balance: BudgetBalanceView,
+  obligationCents: number
+): BudgetBalanceView => {
+  const amount = Math.max(0, obligationCents);
+  if (amount === 0) return balance;
+
+  const expectedExpenseCents = balance.expectedExpenseCents + amount;
+  return {
+    ...balance,
+    expectedExpenseCents,
+    expectedNetCents: balance.expectedIncomeCents - expectedExpenseCents,
+    expectedEndBalanceCents: balance.expectedIncomeCents - expectedExpenseCents,
+    remainingExpenseCents: balance.remainingExpenseCents + amount,
+  };
+};
+
+export const calculateCashBalance = ({
+  currentCashCents,
+  remainingIncomeCents,
+  remainingExpenseCents,
+  obligationsCashCents,
+}: {
+  currentCashCents: number;
+  remainingIncomeCents: number;
+  remainingExpenseCents: number;
+  obligationsCashCents: number;
+}): BudgetCashView => {
+  const expectedEndCashCents =
+    currentCashCents +
+    remainingIncomeCents -
+    remainingExpenseCents -
+    Math.max(0, obligationsCashCents);
+
+  return {
+    currentCashCents,
+    remainingIncomeCents,
+    remainingExpenseCents,
+    obligationsCashCents: Math.max(0, obligationsCashCents),
+    expectedEndCashCents,
   };
 };

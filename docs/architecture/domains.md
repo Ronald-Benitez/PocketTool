@@ -44,10 +44,22 @@ Dinero en centavos, fechas en ms, dominio puro y UI sin cálculos: ver
 - `BudgetPlans`: un plan por grupo. `BudgetLines`: líneas `category` o `fixed`.
 - El monto planificado es un snapshot; el real se deriva de `Records` y no se
   guarda.
+- El cálculo usa el periodo real del grupo (`period_start`/`period_end`), no el
+  mes calendario. `BudgetPlanView` expone días del periodo, transcurridos,
+  restantes y relación pasado/actual/futuro.
+- `src/domain/budgets/balance.ts` proyecta el saldo de consumo: neto real +
+  ingresos restantes - gastos restantes (ritmo por línea + fijos pendientes).
+  También calcula caja con obligaciones separadas.
+- Obligaciones: fijos, financiamientos, aportes propios a ahorros, recordatorios
+  de vehículo y pagos de tarjeta. `useBudgetObligations` las reconcilia contra
+  líneas y `Records` para evitar duplicados.
+- Los recordatorios de vehículo validan estado (`is_active`, `deleted_at`,
+  reemplazo, mantenimiento en periodo) antes de pronosticar fecha/odómetro.
 - Plantillas reutilizables en `BudgetTemplates`/`BudgetTemplateItems`.
 - Dominio en `src/domain/budgets/`: comparación, estados de línea, proyección,
-  insights y builders de gráficos (`ChartSpec`).
+  balances, insights y builders de gráficos (`ChartSpec`).
 - Repositorios en `src/db/repositories/budgets.ts`; entregan `BudgetPlanView`.
+- Sin migración: el saldo es derivado y no se guarda.
 - Detalle en `docs/legacy/budget-plan.md` (histórico).
 
 ## Créditos y financiamientos

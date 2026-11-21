@@ -263,32 +263,32 @@ export const helpEn = {
         },
         "budgets": {
             "title": "Budgets",
-            "summary": "Plan the month, compare it with real records and detect deviations early.",
+            "summary": "Plan the group period, compare it with real records and project the expected end balance.",
             "what": {
                 "title": "What it is",
-                "body": "A budget is a monthly plan with category envelopes and fixed commitments. Each line stores a planned amount, but the actual amount always comes from the records of the same group."
+                "body": "A budget is a plan for the group period with income lines, expense lines and fixed commitments. Each line stores a planned amount, but the actual amount always comes from the records of the same group."
             },
             "how": {
                 "title": "How it works",
-                "body": "PocketTool compares planned and actual amounts by category and record type. It shows used percentage, variation, pending fixed transactions, unplanned spending and a projection at the current pace. The comparison chart shows planned vs. actual; health groups lines by status; distribution shows the planned share of each category; and projection compares planned vs. projected at the current pace. The legend identifies each color, and those colors can be edited in Settings → Colors. Projection is calculated per line: in the current month, a category uses actual spending ÷ elapsed days × days in the month; on the last day it equals the actual; in a future month it uses the planned amount; and in a past month it uses the actual. A fixed line uses its actual amount plus the pending fixed amount, not a daily rate. The result is an estimate, not a commitment."
+                "body": "The app compares planned and actual amounts by category and record type using the group period, not a fixed calendar month. It shows the current net, expected end balance for consumption and cash, remaining income and expenses, days left and a daily allowance. Consumption follows the selected amount mode. Cash adds pending fixed commitments, active financings, vehicle reminders that will fall due, own savings contributions and pending card payments, avoiding duplicates with plan lines and records. Expenses paid from a savings account do not count as monthly consumption. Projection is an estimate, not a commitment."
             },
             "steps": {
                 "title": "Step by step",
-                "step1": "Select the group and create a plan from scratch, from a template, from last month, from fixed transactions or from the average of selected groups.",
-                "step2": "Add category envelopes with amount, priority and notes. Open a line to view its records or edit it.",
-                "step3": "Review signals, switch between chart modes and adjust lines. If you want a different approach, delete the plan and create another."
+                "step1": "Select the group and create a plan from scratch, a template, the previous period, fixed transactions or the average of selected groups.",
+                "step2": "Add income and expense lines with amount, priority and notes. Open a line to view its records or edit it.",
+                "step3": "Review the expected consumption and cash balances, the obligations breakdown and the signals, then adjust lines before the period ends."
             },
             "example": {
                 "title": "Example",
-                "body": "Food envelope 2,000 and 1,250 spent shows 62.5% used and 750 remaining. If the selected groups averaged 1,800 in food, the group average creates a 1,800 envelope. Rent is a separate fixed line, so its confirmed record is not counted twice."
+                "body": "A period plans 3,000 income and 2,000 expenses. With 1,200 income and 900 expenses recorded, the expected consumption balance is 1,300. If 300 of fixed expenses are still pending and a 200 financing payment is due, the cash projection subtracts them. A savings-paid purchase is shown as excluded from monthly consumption."
             },
             "tips": {
                 "title": "Tips",
-                "body": "Keep categories and record types consistent between records and budgets. Use the group average when spending is stable, and templates when you want a fixed structure."
+                "body": "Add income lines when you want to project future income. Review the obligations breakdown to understand the cash number. Use the group average when spending is stable and templates when you want a fixed structure."
             },
             "warning": {
                 "title": "Common mistake",
-                "body": "Deleting a plan also deletes its lines. You can create another plan afterward. A fixed transaction is a commitment, not an expense: it only affects the actual amount after you confirm it and a record is created."
+                "body": "The modes Shared and Paid are not a consumption balance. The cash projection is the reference for available money. A fixed transaction is a commitment, not an expense: it only affects the actual amount after a record is created. Vehicle reminders with no cost history show zero until you add a line."
             }
         },
         "budgetTemplates": {
@@ -1007,32 +1007,32 @@ export const helpEs: MessageShape<typeof helpEn> = {
         },
         "budgets": {
             "title": "Presupuestos",
-            "summary": "Planifica el mes, compáralo con los registros reales y detecta desviaciones a tiempo.",
+            "summary": "Planifica el periodo del grupo, compáralo con los registros reales y proyecta el saldo esperado al cierre.",
             "what": {
                 "title": "Qué es",
-                "body": "Un presupuesto es un plan mensual con sobres de categoría y compromisos fijos. Cada línea guarda un monto planificado, pero el real siempre sale de los registros del mismo grupo."
+                "body": "Un presupuesto es un plan del periodo del grupo con líneas de ingreso, líneas de gasto y compromisos fijos. Cada línea guarda un monto planificado, pero el real siempre sale de los registros del mismo grupo."
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "PocketTool compara lo planificado y lo real por categoría y tipo de registro. Muestra porcentaje usado, variación, fijos pendientes, gasto sin planificar y una proyección al ritmo actual. El gráfico de comparación muestra planificado vs. real; salud agrupa las líneas por estado; distribución muestra el peso planificado de cada categoría; y proyección compara lo planificado con la proyección al ritmo actual. La leyenda identifica cada color y esos colores se pueden editar en Ajustes → Colores. La proyección se calcula por línea: en el mes actual, una categoría usa gasto real ÷ días transcurridos × días del mes; el último día coincide con el real; en un mes futuro usa el monto planificado; y en un mes pasado usa el real. Una línea fija usa su monto real más el fijo pendiente, no una tasa diaria. El resultado es una estimación, no un compromiso."
+                "body": "La app compara lo planificado y lo real por categoría y tipo de registro usando el periodo del grupo, no un mes calendario fijo. Muestra el neto actual, el saldo esperado de consumo y de caja, los ingresos y gastos restantes, los días que quedan y el disponible por día. El consumo sigue el modo de importe elegido. La caja suma fijos pendientes, financiamientos activos, recordatorios de vehículo que caerán en el periodo, aportes propios a ahorros y pagos pendientes de tarjeta, evitando duplicados con las líneas del plan y los registros. Los gastos pagados desde un ahorro no cuentan como consumo del mes. La proyección es una estimación, no un compromiso."
             },
             "steps": {
                 "title": "Paso a paso",
-                "step1": "Selecciona el grupo y crea un plan desde cero, desde una plantilla, desde el mes anterior, desde los fijos o desde la media de grupos seleccionados.",
-                "step2": "Agrega sobres de categoría con monto, prioridad y notas. Abre una línea para ver sus registros o editarla.",
-                "step3": "Revisa las señales, cambia entre los modos de gráfico y ajusta las líneas. Si quieres otro enfoque, elimina el plan y crea otro."
+                "step1": "Selecciona el grupo y crea un plan desde cero, una plantilla, el periodo anterior, los fijos o la media de grupos seleccionados.",
+                "step2": "Agrega líneas de ingreso y gasto con monto, prioridad y notas. Abre una línea para ver sus registros o editarla.",
+                "step3": "Revisa el saldo esperado de consumo y caja, el desglose de obligaciones y las señales, y ajusta las líneas antes de que termine el periodo."
             },
             "example": {
                 "title": "Ejemplo",
-                "body": "Sobre de comida 2,000 y 1,250 gastados muestran 62.5% usado y 750 restantes. Si los grupos seleccionados promediaron 1,800 en comida, la media de grupos crea un sobre de 1,800. La renta es una línea fija separada, así que su registro confirmado no se cuenta dos veces."
+                "body": "Un periodo planifica 3,000 de ingreso y 2,000 de gasto. Con 1,200 de ingreso y 900 de gasto registrados, el saldo esperado de consumo es 1,300. Si quedan 300 de fijos pendientes y vence una cuota de financiamiento de 200, la proyección de caja los resta. Una compra pagada con ahorro se muestra excluida del consumo del mes."
             },
             "tips": {
                 "title": "Consejos",
-                "body": "Mantén las mismas categorías y tipos entre registros y presupuestos. Usa la media de grupos cuando el gasto sea estable y plantillas cuando quieras una estructura fija."
+                "body": "Agrega líneas de ingreso cuando quieras proyectar ingresos futuros. Revisa el desglose de obligaciones para entender el número de caja. Usa la media de grupos cuando el gasto sea estable y plantillas cuando quieras una estructura fija."
             },
             "warning": {
                 "title": "Error común",
-                "body": "Eliminar un plan también elimina sus líneas. Después puedes crear otro plan. Una transacción fija es un compromiso, no un gasto: solo afecta el real después de confirmarla y crear un registro."
+                "body": "Los modos Compartido y Pagado no son un saldo de consumo. La proyección de caja es la referencia para el dinero disponible. Una transacción fija es un compromiso, no un gasto: solo afecta el real después de crear un registro. Los recordatorios de vehículo sin historial de costo muestran cero hasta que agregues una línea."
             }
         },
         "budgetTemplates": {

@@ -1,4 +1,8 @@
-import { calculateBudgetBalance } from '../balance';
+import {
+  addConsumptionObligations,
+  calculateBudgetBalance,
+  calculateCashBalance,
+} from '../balance';
 
 const base = {
   actualIncomeCents: 100000,
@@ -56,5 +60,29 @@ describe('budget balance', () => {
     });
     expect(balance.expectedEndBalanceCents).toBeLessThan(0);
     expect(balance.hasIncomeLines).toBe(true);
+  });
+
+  it('adds consumption obligations to the expected expense', () => {
+    const balance = calculateBudgetBalance(base);
+    const adjusted = addConsumptionObligations(balance, 25000);
+    expect(adjusted.expectedExpenseCents).toBe(
+      balance.expectedExpenseCents + 25000
+    );
+    expect(adjusted.expectedEndBalanceCents).toBe(
+      balance.expectedEndBalanceCents - 25000
+    );
+    expect(adjusted.remainingExpenseCents).toBe(
+      balance.remainingExpenseCents + 25000
+    );
+  });
+
+  it('projects cash from current cash, remaining flows and obligations', () => {
+    const cash = calculateCashBalance({
+      currentCashCents: 50000,
+      remainingIncomeCents: 100000,
+      remainingExpenseCents: 40000,
+      obligationsCashCents: 30000,
+    });
+    expect(cash.expectedEndCashCents).toBe(80000);
   });
 });

@@ -6,9 +6,13 @@ export type BudgetChartLabels = {
   distributionTitle: string;
   comparisonTitle: string;
   projectionTitle: string;
+  balanceTitle: string;
   planned: string;
   actual: string;
   projected: string;
+  plannedNet: string;
+  actualNet: string;
+  expectedNet: string;
   spent: string;
   remaining: string;
   onTrack: string;
@@ -189,9 +193,42 @@ export const buildBudgetProjectionChart = (
   };
 };
 
+export const buildBudgetBalanceChart = (
+  view: BudgetPlanView,
+  labels: BudgetChartLabels
+): ChartSpec | null => {
+  if (
+    view.totals.plannedNetCents === 0 &&
+    view.totals.actualNetCents === 0 &&
+    view.balance.expectedNetCents === 0
+  ) {
+    return null;
+  }
+
+  return {
+    kind: 'grouped_bar',
+    title: labels.balanceTitle,
+    xAxis: { type: 'category', format: 'text' },
+    yAxis: { format: 'money' },
+    series: [
+      {
+        key: 'balance',
+        label: labels.balanceTitle,
+        tone: 'primary',
+        points: [
+          { x: labels.plannedNet, y: view.totals.plannedNetCents },
+          { x: labels.actualNet, y: view.totals.actualNetCents },
+          { x: labels.expectedNet, y: view.balance.expectedNetCents },
+        ],
+      },
+    ],
+  };
+};
+
 export const buildBudgetCharts = (view: BudgetPlanView, labels: BudgetChartLabels) => ({
   health: buildBudgetHealthPie(view, labels),
   distribution: buildBudgetDistributionPie(view, labels),
   comparison: buildBudgetComparisonChart(view, labels),
   projection: buildBudgetProjectionChart(view, labels),
+  balance: buildBudgetBalanceChart(view, labels),
 });

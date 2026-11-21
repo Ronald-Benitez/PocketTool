@@ -28,7 +28,7 @@ Hooks y stores · Dominio · Registros · Ayuda · Reglas de decisión.
 | `fixeds` | `Fixed`, `Records`, `SharedExpenseParticipants`, `People`, `Categories`, `PaymentMethods`, `RecordTypes`; `src/domain/records/fixedPending.ts`. |
 | `financings` | `Financings`, `FinancingPayments`, `FinancingAdjustments`, `SharedExpenseParticipants`, `People`, `Records`, `PaidCredits`; `src/domain/credits/*`. |
 | `credits` | `PaymentMethods` (tarjetas), `PaidCredits`, `Records`, `Groups`, `useConfigs` (`creditType`, `paymentCreditType`). |
-| `budget` | `BudgetPlans`, `BudgetLines`, `BudgetTemplates`, `Records`, `Fixed`, `Categories`, `RecordTypes`; `src/domain/budgets/*`; `useSummaryMode`. |
+| `budget` | `BudgetPlans`, `BudgetLines`, `BudgetTemplates`, `Records`, `Fixed`, `Financings`, `Savings`/`SavingsHistory`, `Vehicle*`, `PaidCredits`, `Groups`; `src/domain/budgets/*`, `useSummaryMode`, `useBudgetProjection`. |
 | `savings` | `Savings`, `SavingsHistory`, `SavingsSettings`, `People`, `SharedExpenseParticipants`, `Records`; `src/domain/savings/*`. |
 | `vehicle` | `Vehicles`, `VehicleFuelEntries`, `VehicleMaintenance`, `VehicleReminders`, `VehicleSettings`, `VehicleExpenseLinks`, `Records`; `src/domain/vehicle/*`. |
 | `closing` | `GroupClosings`, `GroupClosingLines`, `Groups`, `PaymentMethods`, `Savings`, `Fixed`, `Financings`, `People`, `Records`; `src/domain/closing/*`. |
@@ -56,7 +56,7 @@ Hooks y stores · Dominio · Registros · Ayuda · Reglas de decisión.
 | `(fixeds)/FinancingsScreen` | Financiamientos | `financings` |
 | `(credits)/index` | Tarjetas y pagos | `credits`; `SummaryModeToggle` → `shared` |
 | `(savings)/index` | Ahorros, metas y movimientos | `savings`; usa `people` para ahorros compartidos |
-| `(budget)/index` | Plan, real, proyección y gráficos | `budget`, `charts`; “desde fijos” requiere `fixeds`; `SummaryModeToggle` → `shared` |
+| `(budget)/index` | Plan, real, saldos de consumo/caja, obligaciones y gráficos | `budget`, `charts`; “desde fijos” requiere `fixeds`; obligaciones respetan `financings`, `savings`, `vehicle` y `credits`; `SummaryModeToggle` → `shared` |
 | `(budget)/templates` | Plantillas | `budget` |
 | `(vehicle)/*` | Vehículo, combustible, mantenimiento y recordatorios | `vehicle`, `charts` |
 | `(closing)/index` | Cierre y cobertura | `closing`; lee `credits`, `savings`, `fixeds`, `financings` y `people` |
@@ -91,7 +91,7 @@ Hooks y stores · Dominio · Registros · Ayuda · Reglas de decisión.
 | `useSummaryMode` | Modo `own/shared/total/paid`; lo consume `budget` | `shared` para el selector. |
 | `useBalanceMode` | Modo `consumption/cash`; lo consume `closing` | `savings` para el selector de Resumen. |
 | `usePendingFixeds` | `Fixed`, `Records`, participantes, `useConfigs` | `fixeds`; los montos compartidos dependen de `shared`/`people`. |
-| `useBudgetPlan` | `BudgetPlans` y `SummaryMode` | `budget`; el modo compartido depende de `shared`. |
+| `useBudgetPlan` / `useBudgetProjection` / `useBudgetObligations` | `BudgetPlans`, `Financings`, `Savings`, `Vehicle*`, `PaidCredits` y `SummaryMode` | `budget`; obligaciones filtradas por `financings`, `savings`, `vehicle` y `credits`. |
 | `useRecordDefaults` | `recordDefaults` | `smartDefaults`. |
 | `useAutoGroup` | Grupos del periodo | Core. |
 | `ResumesStore` | `Records`, `PaidCredits`, `SavingsHistory`, `PersonSettlements` | `summaries`; las filas de ahorros/compartidos se ocultan por flag. |

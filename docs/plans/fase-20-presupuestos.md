@@ -332,6 +332,6 @@ claro/oscuro.
 | Fase | Contenido | Estado |
 |---|---|---|
 | 20A — Núcleo | Periodo real, ingresos/gastos/neto, saldo de consumo, avisos básicos y tests. | ✅ |
-| 20B — Caja y Compromisos | Saldo de caja, fijos y financiamientos, reconciliación sin duplicados. | Pendiente |
-| 20C — Ahorros y Vehículo | Aportes propios, recordatorios de vehículo, tarjetas y sugerencias. | Pendiente |
+| 20B — Caja y Compromisos | Saldo de caja, fijos y financiamientos, reconciliación sin duplicados. | ✅ |
+| 20C — Ahorros y Vehículo | Aportes propios, recordatorios de vehículo, tarjetas y sugerencias. | ✅ |
 | 20D — Cierre | Gráfico de balance, ayuda, i18n, documentación, QA y verificación. | Pendiente |
