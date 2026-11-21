@@ -46,6 +46,9 @@ detalle, usa `**Secciones:**` y busca el encabezado con
   archivado.
 - [`fase-18-chart-engine-plan.md`](fase-18-chart-engine-plan.md): plan del motor
   de gráficos nativo (Fase 18), implementado, validado y archivado.
+- [`fase-19-experience-plan.md`](fase-19-experience-plan.md): plan de niveles de
+  experiencia, flags, captura rápida y dependencias (Fase 19), implementado,
+  validado y archivado.
 - [`db-summary.md`](db-summary.md): resumen anterior de la base de datos,
   reemplazado por [`../database.md`](../database.md).
 - [`migration-history.md`](migration-history.md): tabla histórica de las

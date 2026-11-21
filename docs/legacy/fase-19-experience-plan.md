@@ -13,7 +13,7 @@ las tabs analíticas.
 [Registros](#registros-decisión) · [Archivos](#archivos) · [Pruebas](#pruebas) ·
 [Ayuda](#ayuda-e-i18n) · [Documentación](#documentación) · [Riesgos](#riesgos) ·
 [Verificación](#verificación) · [Fases](#fases-de-ejecución)
-**Estado:** En proceso desde 2026-11-20.
+**Estado:** Finalizada y archivada (2026-11-20).
 **Fecha:** 2026-11-20
 
 ## Objetivo
@@ -316,7 +316,7 @@ Manual:
 | A — Núcleo | `src/features/*`, store, normalización, provider, guarda de rutas, backup reload y pruebas. | ✅ |
 | B — Navegación y Ajustes | Drawer, tabs, Experiencia, onboarding, split de Ajustes, etiquetas y ayuda. | ✅ |
 | C — Captura | Alta rápida, valores recordados y gating dentro de Inicio/Resumen/Registros. | ✅ |
-| D — Cierre | i18n final, documentación, notas de versión, QA y verificación completa. | Pendiente |
+| D — Cierre | i18n final, documentación, notas de versión, QA y verificación completa. | ✅ |
 
 ## Estado del renombrado
 
@@ -330,3 +330,15 @@ Aplicado en esta entrega:
 - La gestión de catálogos en `app/(financials)/_layout.tsx` conserva sus títulos.
 - `src/lang/messages/summaries.ts`: corregido “Resumen por categorias” a
   “Resumen por categorías”.
+
+## Resultado del cierre
+
+- Fase 19 marcada como finalizada el 2026-11-20.
+- Mapa de dependencias en [`../architecture/dependencies.md`](../architecture/dependencies.md)
+  y guía de features en [`../architecture/features.md`](../architecture/features.md).
+- Commits principales: `41b0902` (núcleo y captura), `612165c` (alineación de
+  flags con dependencias), `62df1fb` (backup de `experienceSettings`).
+- Verificación: `typecheck`, `test:db`, 300 tests, lint, `doctor` 20/20,
+  `docs:audit`, `ci` y export Android.
+- Las notas de versión de `4.0.8` se gestionan por separado con
+  `/notas-version 4.0.8`.

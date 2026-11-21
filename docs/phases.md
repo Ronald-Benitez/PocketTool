@@ -32,15 +32,11 @@ Decisiones.
 | Fase 16 — Cierre informativo de periodo | ✅ Finalizada | 2026-11-18 |
 | Fase 17 — Grupos automáticos y periodos unificados | ✅ Finalizada | 2026-11-19 |
 | Fase 18 — Motor de gráficos nativo | ✅ Finalizada | 2026-11-19 |
-| Fase 19 — Experiencia configurable y simplificación | 🚧 En proceso | — |
+| Fase 19 — Experiencia configurable y simplificación | ✅ Finalizada | 2026-11-20 |
 
 ## Fase activa
 
-**Fase 19 — Experiencia configurable y simplificación**
-
-- **Inicio:** 2026-11-20.
-- **Plan:** [`plans/fase-19-experiencia.md`](plans/fase-19-experiencia.md).
-- **Estado:** en proceso.
+**No hay fase activa.**
 
 `/cerrar-fase` busca este encabezado para saber qué fase cerrar. Si no existe,
 se detiene y pide cuál cerrar.
@@ -234,6 +230,18 @@ Plan en
 - Migración `0026`: preferencias de gráficos en SQLite.
 - Motor SVG con specs, tooltips multi-serie, colapsables y zoom.
 - Migración total y eliminación de Mermaid/WebView/`gifted-charts`.
+
+## Fase 19 — Experiencia configurable y simplificación (✅ 2026-11-20)
+
+Plan en
+[`legacy/fase-19-experience-plan.md`](legacy/fase-19-experience-plan.md).
+
+- `src/features`: presets, flags, dependencias, store, route guard y backup.
+- Ajustes de Experiencia, onboarding, gating de drawer/tabs/pantallas y ayuda.
+- Alta rápida, valores recordados y mapa en
+  [`architecture/dependencies.md`](architecture/dependencies.md).
+- Verificación: typecheck, `test:db`, 300 tests, lint, doctor 20/20,
+  `docs:audit`, CI y export Android. Commits `41b0902`, `612165c`, `62df1fb`.
 
 ## Decisiones
 

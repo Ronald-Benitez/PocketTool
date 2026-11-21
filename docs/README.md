@@ -21,8 +21,6 @@ vive en una sola capa. El procedimiento y los límites están en la skill
 - [`architecture/dependencies.md`](architecture/dependencies.md): mapa de qué
   módulos, pantallas, componentes, hooks y dominios dependen de cada feature.
 - [`plans/futuro-borrador.md`](plans/futuro-borrador.md): pendientes futuros.
-- [`plans/fase-19-experiencia.md`](plans/fase-19-experiencia.md): plan registrado
-  de experiencia, flags y simplificación.
 
 ### Notas de versión
 
