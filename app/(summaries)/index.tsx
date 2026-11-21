@@ -49,6 +49,7 @@ const Index = () => {
     const showSavings = useFeature('savings')
     const showShared = useFeature('shared')
     const { mode: balanceMode, loaded, load } = useBalanceMode()
+    const effectiveBalanceMode = showSavings ? balanceMode : 'consumption'
     const { group: selectedGroup } = useRecordsStore()
     const { fetchRecordsWithMultipleWhere } = useRecords()
     const { refreshGroupData } = useGroupRefresh()
@@ -90,7 +91,7 @@ const Index = () => {
                 </Row>
 
                 <BalanceModeToggle />
-                {balanceMode === 'consumption' ? <SummaryModeToggle /> : null}
+                {effectiveBalanceMode === 'consumption' ? <SummaryModeToggle /> : null}
 
                 <Surface variant='raised' padding='lg'>
                     <Stack gap='md'>
@@ -101,12 +102,14 @@ const Index = () => {
                                 cents: balance,
                                 color: colors.primary,
                             },
-                            {
-                                key: 'cash',
-                                label: t('resume.cashBalance'),
-                                cents: cashBalance,
-                                color: colors.transfer,
-                            },
+                            ...(showSavings
+                                ? [{
+                                    key: 'cash',
+                                    label: t('resume.cashBalance'),
+                                    cents: cashBalance,
+                                    color: colors.transfer,
+                                }]
+                                : []),
                             ...(showShared
                                 ? [{
                                     key: 'paid',
@@ -144,12 +147,12 @@ const Index = () => {
                 <Row gap='md'>
                     <SummaryBlock
                         label={
-                            balanceMode === 'cash'
+                            effectiveBalanceMode === 'cash'
                                 ? t('resume.cashPaid')
                                 : t('resume.total')
                         }
                         cents={
-                            balanceMode === 'cash'
+                            effectiveBalanceMode === 'cash'
                                 ? cashPaidCents
                                 : totalPurchasesCents
                         }
@@ -161,12 +164,12 @@ const Index = () => {
                     {showShared ? (
                         <SummaryBlock
                             label={
-                                balanceMode === 'cash'
+                                effectiveBalanceMode === 'cash'
                                     ? t('resume.cashReceived')
                                     : t('resume.shared')
                             }
                             cents={
-                                balanceMode === 'cash'
+                                effectiveBalanceMode === 'cash'
                                     ? cashReceived
                                     : receivableCents
                             }
@@ -178,7 +181,7 @@ const Index = () => {
                     ) : null}
                 </Row>
 
-                {balanceMode === 'cash'
+                {effectiveBalanceMode === 'cash'
                     ? showShared ? (
                         <Surface variant='outlined' padding='md'>
                             <Stack gap='xs'>
@@ -231,7 +234,7 @@ const Index = () => {
                                     trailing={
                                         <FinanceValue
                                             cents={
-                                                balanceMode === 'cash'
+                                                effectiveBalanceMode === 'cash'
                                                     ? item.cash
                                                     : pickSummaryAmount(mode, item)
                                             }
