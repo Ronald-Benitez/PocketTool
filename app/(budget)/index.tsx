@@ -153,19 +153,21 @@ const Index = () => {
     [t]
   );
 
-  const charts = useMemo(
-    () =>
-      plan
-        ? buildBudgetCharts(plan, chartLabels)
-        : {
-            health: null,
-            distribution: null,
-            comparison: null,
-            projection: null,
-            balance: null,
-          },
-    [plan, chartLabels]
-  );
+  const charts = useMemo(() => {
+    if (!plan) {
+      return {
+        health: null,
+        distribution: null,
+        comparison: null,
+        projection: null,
+        balance: null,
+      };
+    }
+    return buildBudgetCharts(
+      consumptionBalance ? { ...plan, balance: consumptionBalance } : plan,
+      chartLabels
+    );
+  }, [chartLabels, consumptionBalance, plan]);
 
   useFocusEffect(
     useCallback(() => {
