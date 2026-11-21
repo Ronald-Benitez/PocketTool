@@ -34,6 +34,7 @@ import {
 import { averageBudgetTotals } from '@/src/domain/budgets/average';
 import { isMonthlyCashRecord } from '@/src/domain/summaries/monthly';
 import { calculateBudgetPlanView } from '@/src/domain/budgets/comparison';
+import { groupPeriodFromRow } from '@/src/domain/groups/period';
 import type {
   BudgetApplyMode,
   BudgetLineScope,
@@ -154,6 +155,7 @@ export const useBudgetPlansRepository = () => {
 
     const group = await groupsOrm.getById(groupId);
     if (!group) return null;
+    const period = groupPeriodFromRow(group);
 
     const [lines, records, fixeds, categories, recordTypes, template] = await Promise.all([
       linesOrm.where('budget_plan_id', plan.id).getAll(),
@@ -169,6 +171,8 @@ export const useBudgetPlansRepository = () => {
       planName: plan.plan_name || group.group_name || `${group.month}/${group.year}`,
       month: group.month,
       year: group.year,
+      periodStart: period.start,
+      periodEnd: period.end,
       templateName: template?.template_name ?? null,
       lines: lines as BudgetLine[],
       records: records.filter(isMonthlyCashRecord).map((record) => {

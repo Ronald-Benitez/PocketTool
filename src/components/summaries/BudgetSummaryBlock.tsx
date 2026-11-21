@@ -3,6 +3,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 import { useBudgetPlan } from '@/src/hooks/useBudgetPlan';
+import { useSummaryMode } from '@/src/hooks/useSummaryMode';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import useRecordsStore from '@/src/stores/RecordsStore';
 import { formatMoneyWithSymbol } from '@/src/utils';
@@ -21,7 +22,8 @@ export const BudgetSummaryBlock = () => {
   const { colors } = useTheme();
   const router = useRouter();
   const { group } = useRecordsStore();
-  const { plan } = useBudgetPlan(group?.id);
+  const { mode } = useSummaryMode();
+  const { plan } = useBudgetPlan(group?.id, mode);
 
   return (
     <Stack gap='sm'>
@@ -56,6 +58,21 @@ export const BudgetSummaryBlock = () => {
                 style={{ flex: 1 }}
               />
             </Row>
+            <SummaryBlock
+              label={t('budget.expectedBalance')}
+              cents={plan.balance.expectedEndBalanceCents}
+              size='md'
+              valueColorOverride={
+                plan.balance.expectedEndBalanceCents >= 0
+                  ? colors.success
+                  : colors.expense
+              }
+              accentColor={
+                plan.balance.expectedEndBalanceCents >= 0
+                  ? colors.success
+                  : colors.expense
+              }
+            />
             {plan.lines
               .filter((line) => line.effect === '-')
               .slice(0, 5)

@@ -4,6 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import GroupSelector from '@/src/components/groups/group-selector';
+import { BudgetBalanceCard } from '@/src/components/budgets/BudgetBalanceCard';
 import { BudgetGroupAverageDialog } from '@/src/components/budgets/BudgetGroupAverageDialog';
 import { BudgetLineForm } from '@/src/components/budgets/BudgetLineForm';
 import { BudgetTemplateApplyDialog } from '@/src/components/budgets/BudgetTemplateApplyDialog';
@@ -471,9 +472,28 @@ const Index = () => {
             </Row>
 
             <SummaryModeToggle />
+            {mode === 'shared' || mode === 'paid' ? (
+              <InlineMessage variant='info' message={t('budget.modeNote')} />
+            ) : null}
 
             <Surface variant='raised' padding='lg'>
               <Stack gap='md'>
+                <Row justify='space-between' align='flex-start' gap='md'>
+                  <SummaryBlock
+                    label={t('budget.totals.plannedIncome')}
+                    cents={plan.totals.plannedIncomeCents}
+                    size='lg'
+                    accentColor={colors.income}
+                    style={{ flex: 1 }}
+                  />
+                  <SummaryBlock
+                    label={t('budget.totals.actualIncome')}
+                    cents={plan.totals.actualIncomeCents}
+                    size='lg'
+                    accentColor={colors.success}
+                    style={{ flex: 1 }}
+                  />
+                </Row>
                 <Row justify='space-between' align='flex-start' gap='md'>
                   <SummaryBlock
                     label={t('budget.totals.plannedExpense')}
@@ -486,6 +506,22 @@ const Index = () => {
                     label={t('budget.totals.actualExpense')}
                     cents={plan.totals.actualExpenseCents}
                     size='lg'
+                    accentColor={colors.expense}
+                    style={{ flex: 1 }}
+                  />
+                </Row>
+                <Row justify='space-between' align='flex-start' gap='md'>
+                  <SummaryBlock
+                    label={t('budget.totals.plannedNet')}
+                    cents={plan.totals.plannedNetCents}
+                    size='md'
+                    accentColor={colors.primary}
+                    style={{ flex: 1 }}
+                  />
+                  <SummaryBlock
+                    label={t('budget.totals.actualNet')}
+                    cents={plan.totals.actualNetCents}
+                    size='md'
                     accentColor={colors.expense}
                     style={{ flex: 1 }}
                   />
@@ -550,6 +586,8 @@ const Index = () => {
                 </Stack>
               </Stack>
             </Surface>
+
+            <BudgetBalanceCard balance={plan.balance} />
 
             {visibleInsights.length > 0 ? (
               <Stack gap='sm'>

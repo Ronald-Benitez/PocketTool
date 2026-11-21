@@ -35,6 +35,8 @@ const baseInput = (): BudgetComparisonInput => ({
   planName: 'October',
   month: 10,
   year: 2026,
+  periodStart: new Date(2026, 9, 1).getTime(),
+  periodEnd: new Date(2026, 9, 31, 23, 59, 59, 999).getTime(),
   templateName: null,
   lines: [
     {
@@ -119,6 +121,81 @@ describe('budget comparison', () => {
     expect(food?.usagePercent).toBe(37.5);
     expect(food?.status).toBe('on_track');
     expect(view.totals.actualExpenseCents).toBe(84000);
+  });
+
+  it('uses the group period for elapsed and remaining days', () => {
+    const view = calculateBudgetPlanView(baseInput());
+    expect(view.periodStart).toBe(new Date(2026, 9, 1).getTime());
+    expect(view.daysInPeriod).toBe(31);
+    expect(view.daysElapsed).toBe(15);
+    expect(view.daysRemaining).toBe(17);
+    expect(view.periodRelation).toBe('current');
+  });
+
+  it('handles a start-day period that crosses the month', () => {
+    const input = baseInput();
+    input.periodStart = new Date(2026, 8, 18).getTime();
+    input.periodEnd = new Date(2026, 9, 17, 23, 59, 59, 999).getTime();
+    input.now = new Date(2026, 9, 1);
+
+    const view = calculateBudgetPlanView(input);
+    expect(view.daysInPeriod).toBe(30);
+    expect(view.daysElapsed).toBe(14);
+    expect(view.daysRemaining).toBe(17);
+    expect(view.periodRelation).toBe('current');
+  });
+
+  it('projects the end-of-period consumption balance', () => {
+    const view = calculateBudgetPlanView(baseInput());
+    expect(view.balance.actualNetCents).toBe(-84000);
+    expect(view.balance.remainingExpenseCents).toBe(110000);
+    expect(view.balance.expectedEndBalanceCents).toBe(-194000);
+    expect(view.balance.dailyAvailableCents).toBe(8588);
+    expect(view.balance.hasIncomeLines).toBe(false);
+  });
+
+  it('includes planned income in the expected balance', () => {
+    const input = baseInput();
+    input.lines.push({
+      id: 4,
+      budget_plan_id: 1,
+      category_id: 1,
+      record_type_id: 1,
+      scope: 'category',
+      source: 'manual',
+      planned_amount: 300000,
+      priority: 2,
+      sort_order: 3,
+    });
+    input.records.push({
+      id: 5,
+      amount: 100000,
+      category_id: 1,
+      record_type_id: 1,
+      fixed_id: null,
+    });
+
+    const view = calculateBudgetPlanView(input);
+    expect(view.balance.hasIncomeLines).toBe(true);
+    expect(view.balance.remainingIncomeCents).toBe(200000);
+    expect(view.balance.expectedEndBalanceCents).toBe(106000);
+  });
+
+  it('uses actual net for a past period and the full plan for a future one', () => {
+    const past = baseInput();
+    past.now = new Date(2026, 10, 5);
+    const pastView = calculateBudgetPlanView(past);
+    expect(pastView.periodRelation).toBe('past');
+    expect(pastView.daysRemaining).toBe(0);
+    expect(pastView.balance.expectedEndBalanceCents).toBe(-84000);
+
+    const future = baseInput();
+    future.now = new Date(2026, 8, 20);
+    future.records = [];
+    const futureView = calculateBudgetPlanView(future);
+    expect(futureView.periodRelation).toBe('future');
+    expect(futureView.daysElapsed).toBe(0);
+    expect(futureView.balance.expectedEndBalanceCents).toBe(-230000);
   });
 
   it('marks a fixed commitment as pending until it has a record', () => {

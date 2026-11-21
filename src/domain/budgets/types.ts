@@ -15,6 +15,7 @@ export type BudgetLineSource =
   | 'actuals'
   | 'group_average';
 export type BudgetApplyMode = 'merge' | 'replace' | 'reset';
+export type BudgetPeriodRelation = 'past' | 'current' | 'future';
 export type BudgetLineStatus =
   | 'on_track'
   | 'warning'
@@ -69,6 +70,25 @@ export type BudgetFixedCommitment = {
   recordId: number | null;
   lineId: number | null;
   active: boolean;
+  dueDate: number | null;
+  inPeriod: boolean;
+};
+
+export type BudgetBalanceView = {
+  actualIncomeCents: number;
+  actualExpenseCents: number;
+  actualNetCents: number;
+  expectedIncomeCents: number;
+  expectedExpenseCents: number;
+  expectedNetCents: number;
+  expectedEndBalanceCents: number;
+  remainingIncomeCents: number;
+  remainingExpenseCents: number;
+  remainingPlanExpenseCents: number;
+  uncoveredFixedCents: number;
+  daysRemaining: number;
+  dailyAvailableCents: number;
+  hasIncomeLines: boolean;
 };
 
 export type BudgetInsight =
@@ -90,8 +110,13 @@ export type BudgetPlanView = {
   templateName: string | null;
   alertThresholdPercent: number;
   notes: string | null;
-  daysInMonth: number;
+  periodStart: number;
+  periodEnd: number;
+  daysInPeriod: number;
   daysElapsed: number;
+  daysRemaining: number;
+  periodRelation: BudgetPeriodRelation;
+  balance: BudgetBalanceView;
   totals: {
     plannedIncomeCents: number;
     plannedExpenseCents: number;
@@ -112,6 +137,8 @@ export type BudgetComparisonInput = {
   planName: string;
   month: number;
   year: number;
+  periodStart: number;
+  periodEnd: number;
   templateName: string | null;
   lines: BudgetLine[];
   records: {

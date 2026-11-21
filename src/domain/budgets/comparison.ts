@@ -1,10 +1,14 @@
+import { periodContains } from '@/src/domain/periods/period';
+import { resolvePendingFixedDate } from '@/src/domain/records/fixedPending';
 import { getSpendingTypeIds } from '@/src/domain/summaries/aggregate';
+import { calculateBudgetBalance } from './balance';
 import type {
   BudgetComparisonInput,
   BudgetFixedCommitment,
   BudgetInsight,
   BudgetLineComparison,
   BudgetLineStatus,
+  BudgetPeriodRelation,
   BudgetPlanView,
   BudgetUnplannedBucket,
 } from './types';
@@ -18,24 +22,54 @@ const effectOf = (
   return effect === '+' || effect === '-' || effect === '=' ? effect : null;
 };
 
-const monthInfo = (year: number, month: number, now: Date) => {
-  const daysInMonth = new Date(year, month, 0).getDate();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1;
+const dayNumber = (timestamp: number) => {
+  const date = new Date(timestamp);
+  return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86400000;
+};
 
-  if (year === currentYear && month === currentMonth) {
+const periodInfo = (
+  periodStart: number,
+  periodEnd: number,
+  now: Date
+): {
+  daysInPeriod: number;
+  daysElapsed: number;
+  daysRemaining: number;
+  relation: BudgetPeriodRelation;
+} => {
+  const startDay = dayNumber(periodStart);
+  const endDay = dayNumber(periodEnd);
+  const nowDay = dayNumber(now.getTime());
+  const daysInPeriod = Math.max(1, endDay - startDay + 1);
+
+  if (nowDay < startDay) {
     return {
-      daysInMonth,
-      daysElapsed: Math.min(Math.max(now.getDate(), 0), daysInMonth),
-      relation: 'current' as const,
+      daysInPeriod,
+      daysElapsed: 0,
+      daysRemaining: daysInPeriod,
+      relation: 'future',
     };
   }
 
-  if (year < currentYear || (year === currentYear && month < currentMonth)) {
-    return { daysInMonth, daysElapsed: daysInMonth, relation: 'past' as const };
+  if (nowDay > endDay) {
+    return {
+      daysInPeriod,
+      daysElapsed: daysInPeriod,
+      daysRemaining: 0,
+      relation: 'past',
+    };
   }
 
-  return { daysInMonth, daysElapsed: 0, relation: 'future' as const };
+  const daysElapsed = Math.min(
+    daysInPeriod,
+    Math.max(1, nowDay - startDay + 1)
+  );
+  return {
+    daysInPeriod,
+    daysElapsed,
+    daysRemaining: Math.max(0, daysInPeriod - daysElapsed + 1),
+    relation: 'current',
+  };
 };
 
 const statusFor = (
@@ -57,14 +91,14 @@ const projectedFor = (
   actual: number,
   planned: number,
   pending: number,
-  info: ReturnType<typeof monthInfo>
+  info: ReturnType<typeof periodInfo>
 ) => {
   if (scope === 'fixed') return actual + pending;
   if (info.relation === 'past') return actual;
   if (info.relation === 'future') return planned;
   if (info.daysElapsed <= 0) return planned;
-  if (info.daysElapsed >= info.daysInMonth) return actual;
-  return Math.round((actual / info.daysElapsed) * info.daysInMonth);
+  if (info.daysElapsed >= info.daysInPeriod) return actual;
+  return Math.round((actual / info.daysElapsed) * info.daysInPeriod);
 };
 
 export const calculateBudgetPlanView = ({
@@ -72,6 +106,8 @@ export const calculateBudgetPlanView = ({
   planName,
   month,
   year,
+  periodStart,
+  periodEnd,
   templateName,
   lines,
   records,
@@ -81,7 +117,26 @@ export const calculateBudgetPlanView = ({
   excludedRecordTypeIds = [],
   now = new Date(),
 }: BudgetComparisonInput): BudgetPlanView => {
-  const info = monthInfo(year, month, now);
+  const info = periodInfo(periodStart, periodEnd, now);
+  const fixedInPeriod = new Map<number, { dueDate: number; inPeriod: boolean }>();
+  for (const fixed of fixeds) {
+    if (fixed.id === undefined) continue;
+    const dueDate = resolvePendingFixedDate({
+      mode: 'group_month',
+      now: now.getTime(),
+      fixedDay: fixed.fixed_day,
+      periodStart,
+      periodEnd,
+    });
+    fixedInPeriod.set(fixed.id, {
+      dueDate,
+      inPeriod: periodContains({ start: periodStart, end: periodEnd }, dueDate),
+    });
+  }
+  const fixedIsPendingInPeriod = (fixedId: number) => {
+    if (info.relation === 'past') return false;
+    return fixedInPeriod.get(fixedId)?.inPeriod ?? false;
+  };
   const threshold = plan.alert_threshold_percent || 80;
   const categoryNames = new Map(
     categories.flatMap((category) =>
@@ -142,7 +197,9 @@ export const calculateBudgetPlanView = ({
         scope === 'fixed' &&
         fixed &&
         fixed.deleted_at == null &&
-        !confirmed
+        !confirmed &&
+        line.fixed_id != null &&
+        fixedIsPendingInPeriod(line.fixed_id)
           ? fixed.fixed_amount
           : 0;
       const plannedCents = line.planned_amount;
@@ -230,6 +287,8 @@ export const calculateBudgetPlanView = ({
         recordId: record?.id ?? null,
         lineId: line?.lineId ?? null,
         active: fixed.deleted_at == null,
+        dueDate: fixedInPeriod.get(fixedId)?.dueDate ?? null,
+        inPeriod: fixedInPeriod.get(fixedId)?.inPeriod ?? false,
       };
     })
     .sort((a, b) => a.day - b.day);
@@ -274,7 +333,13 @@ export const calculateBudgetPlanView = ({
   );
 
   const pendingFixedCents = fixedCommitments
-    .filter((fixed) => fixed.active && !fixed.confirmed)
+    .filter(
+      (fixed) =>
+        fixed.active &&
+        !fixed.confirmed &&
+        fixed.inPeriod &&
+        info.relation !== 'past'
+    )
     .reduce((total, fixed) => total + fixed.amountCents, 0);
 
   const insights: BudgetInsight[] = [];
@@ -326,6 +391,45 @@ export const calculateBudgetPlanView = ({
   const actualIncomeCents = actualForEffect('+');
   const actualExpenseCents = actualForEffect('-');
 
+  const remainingExpenseLines =
+    info.relation === 'past'
+      ? 0
+      : comparedLines
+          .filter((line) => line.effect === '-')
+          .reduce(
+            (total, line) =>
+              total +
+              Math.max(
+                0,
+                (line.projectedCents ?? line.actualCents) - line.actualCents
+              ),
+            0
+          );
+  const uncoveredFixedCents =
+    info.relation === 'past'
+      ? 0
+      : fixedCommitments
+          .filter(
+            (fixed) =>
+              fixed.active &&
+              !fixed.confirmed &&
+              fixed.lineId === null &&
+              fixed.inPeriod
+          )
+          .reduce((total, fixed) => total + fixed.amountCents, 0);
+
+  const balance = calculateBudgetBalance({
+    actualIncomeCents,
+    actualExpenseCents,
+    plannedIncomeCents,
+    plannedExpenseCents,
+    remainingExpenseLinesCents: remainingExpenseLines,
+    uncoveredFixedCents,
+    daysRemaining: info.daysRemaining,
+    periodRelation: info.relation,
+    hasIncomeLines: comparedLines.some((line) => line.effect === '+'),
+  });
+
   return {
     planId: plan.id as number,
     groupId: plan.group_id,
@@ -336,8 +440,13 @@ export const calculateBudgetPlanView = ({
     templateName,
     alertThresholdPercent: threshold,
     notes: plan.notes ?? null,
-    daysInMonth: info.daysInMonth,
+    periodStart,
+    periodEnd,
+    daysInPeriod: info.daysInPeriod,
     daysElapsed: info.daysElapsed,
+    daysRemaining: info.daysRemaining,
+    periodRelation: info.relation,
+    balance,
     totals: {
       plannedIncomeCents,
       plannedExpenseCents,
