@@ -214,7 +214,7 @@ export const useBudgetObligations = (plan: BudgetPlanView | null) => {
         );
         const next = summary.schedule.rows[0];
         if (!next) continue;
-        if (next.date < plan.periodStart || next.date > plan.periodEnd) continue;
+        if (next.date > plan.periodEnd) continue;
 
         const own = Math.max(
           0,
