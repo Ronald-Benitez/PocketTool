@@ -33,35 +33,24 @@ Decisiones.
 | Fase 17 — Grupos automáticos y periodos unificados | ✅ Finalizada | 2026-11-19 |
 | Fase 18 — Motor de gráficos nativo | ✅ Finalizada | 2026-11-19 |
 | Fase 19 — Experiencia configurable y simplificación | ✅ Finalizada | 2026-11-20 |
-| Fase 20 — Presupuestos con saldo esperado | 🚧 En proceso | — |
+| Fase 20 — Presupuestos con saldo esperado | ✅ Finalizada | 2026-11-21 |
 
 ## Fase activa
 
-**Fase 20 — Presupuestos con saldo esperado**
-
-- **Inicio:** 2026-11-20.
-- **Plan:** [`plans/fase-20-presupuestos.md`](plans/fase-20-presupuestos.md).
-- **Estado:** en proceso.
+**No hay fase activa.**
 
 `/cerrar-fase` busca este encabezado para saber qué fase cerrar. Si no existe,
 se detiene y pide cuál cerrar.
 
 ## Arquitectura actual (resumen)
 
-- **Esquema y datos:** `src/db/schema/tables.ts` es la fuente única; los
-  artefactos se generan con `npm run db:generate`. ORM tipado y repositorios;
-  detalles en [`database.md`](database.md).
-- **Dinero, fechas y borrado:** centavos enteros, timestamps Unix y soft delete
-  con `deleted_at`. Reglas en [`../AGENTS.md`](../AGENTS.md).
-- **UI e i18n:** sistema propio en `src/ui`, tema por tokens y textos con `t()`.
-  Ver [`architecture/ui.md`](architecture/ui.md).
-- **Experiencia:** niveles, flags por módulo y captura en
+- **Datos:** `src/db/schema/tables.ts` es la fuente única; ORM y repositorios.
+  Ver [`database.md`](database.md).
+- **UI, dominio y experiencia:** `src/ui`, `src/domain` y `src/features` con
+  tokens, lógica pura y flags. Ver [`architecture/ui.md`](architecture/ui.md) y
   [`architecture/features.md`](architecture/features.md).
-- **Dominio y Registros:** lógica pura por área y create/link/omit de `Records`
-  en la misma transacción. Ver [`architecture/domains.md`](architecture/domains.md)
-  y la skill `pockettool-records`.
-- **Calidad:** typecheck, `test:db`, Jest, lint y `docs:audit` en CI. Ver
-  [`../AGENTS.md`](../AGENTS.md) → Verificación.
+- **Registros y calidad:** create/link/omit en la misma transacción; typecheck,
+  `test:db`, Jest, lint y `docs:audit` en CI. Ver [`../AGENTS.md`](../AGENTS.md).
 
 ## Fases 0–3 — Base técnica (✅ 2026-10-28)
 
@@ -248,10 +237,20 @@ Plan en
 - Verificación: typecheck, `test:db`, 300 tests, lint, doctor 20/20,
   `docs:audit`, CI y export Android. Commits `41b0902`, `612165c`, `62df1fb`.
 
+## Fase 20 — Presupuestos con saldo esperado (✅ 2026-11-21)
+
+Plan en [`legacy/fase-20-budget-plan.md`](legacy/fase-20-budget-plan.md).
+
+- Periodo real del grupo, ingresos/gastos/neto y saldos de consumo y caja.
+- Obligaciones de fijos, financiamientos, ahorros, vehículo y tarjetas sin
+  duplicados.
+- Sugerencias de ahorros vinculados, alta de líneas y reordenamiento
+  drag-and-drop.
+- Verificación: typecheck, `test:db`, 318 tests, lint, doctor, `docs:audit`, CI y
+  export Android. Commits `d943930`, `771578c`, `aa952e4`, `b7a042f`.
+
 ## Decisiones
 
-Las reglas no negociables viven en [`../AGENTS.md`](../AGENTS.md) y en los
-`AGENTS.md` de cada área. Las decisiones de dominio (compartidos por porcentaje o
-monto, pagador, liquidaciones, pickers, modos de importe, cierre, ahorros y
-gráficos) están en [`architecture/domains.md`](architecture/domains.md). Este
-documento solo mantiene estado e historial; no dupliques reglas aquí.
+Reglas en [`../AGENTS.md`](../AGENTS.md) y en los `AGENTS.md` de área; dominio en
+[`architecture/domains.md`](architecture/domains.md). Este documento solo mantiene
+estado e historial.

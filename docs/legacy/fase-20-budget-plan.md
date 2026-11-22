@@ -10,7 +10,7 @@ obligaciones sin duplicarlas y valide recordatorios de vehículo ya finalizados.
 Ingresos · Saldos · Obligaciones · Ahorros · Vehículo · Modo · UI · Archivos ·
 Modelo · Registros · Pruebas · Ayuda · Documentación · Riesgos · Verificación ·
 Fases.
-**Estado:** En proceso desde 2026-11-20.
+**Estado:** Finalizada y archivada (2026-11-21).
 **Fecha:** 2026-11-20
 
 ## Objetivo
@@ -334,4 +334,16 @@ claro/oscuro.
 | 20A — Núcleo | Periodo real, ingresos/gastos/neto, saldo de consumo, avisos básicos y tests. | ✅ |
 | 20B — Caja y Compromisos | Saldo de caja, fijos y financiamientos, reconciliación sin duplicados. | ✅ |
 | 20C — Ahorros y Vehículo | Aportes propios, recordatorios de vehículo, tarjetas y sugerencias. | ✅ |
-| 20D — Cierre | Gráfico de balance, ayuda, i18n, documentación, QA y verificación. | Pendiente |
+| 20D — Cierre | Gráfico de balance, ayuda, i18n, documentación, QA y verificación. | ✅ |
+
+## Resultado del cierre
+
+- Fase 20 finalizada el 2026-11-21.
+- Presupuestos con periodo real, ingresos/gastos/neto, saldo de consumo y caja.
+- Obligaciones reconciliadas de fijos, financiamientos, ahorros, vehículo y
+  tarjetas.
+- Sugerencias de ahorros vinculados, orden manual por `sort_order` y arrastre.
+- Verificación: `typecheck`, `test:db`, 318 tests, lint, `doctor` 20/20,
+  `docs:audit`, `ci` y export Android.
+- Commits principales: `d943930`, `771578c`, `7fe1654`, `e6865f8`, `aa952e4`,
+  `b7a042f`.

@@ -7,12 +7,8 @@ No implementar aquí sin convertirlos en una fase con plan aprobado.
 
 ## Presupuestos
 
-**Estado:** en implementación en la Fase 20. Ver
-[`fase-20-presupuestos.md`](fase-20-presupuestos.md).
-
-Incluye periodo real del grupo, ingresos/gastos/neto, saldo esperado de consumo y
-caja, obligaciones de Compromisos, aportes propios a ahorros, recordatorios de
-vehículo con validación de estado y modo global.
+**Estado:** cerrado en la Fase 20. Ver
+[`../legacy/fase-20-budget-plan.md`](../legacy/fase-20-budget-plan.md).
 
 ## Otros
 

@@ -49,6 +49,9 @@ detalle, usa `**Secciones:**` y busca el encabezado con
 - [`fase-19-experience-plan.md`](fase-19-experience-plan.md): plan de niveles de
   experiencia, flags, captura rápida y dependencias (Fase 19), implementado,
   validado y archivado.
+- [`fase-20-budget-plan.md`](fase-20-budget-plan.md): plan de Presupuestos con
+  saldo esperado, obligaciones, ahorros, vehículo y orden manual (Fase 20),
+  implementado, validado y archivado.
 - [`db-summary.md`](db-summary.md): resumen anterior de la base de datos,
   reemplazado por [`../database.md`](../database.md).
 - [`migration-history.md`](migration-history.md): tabla histórica de las
