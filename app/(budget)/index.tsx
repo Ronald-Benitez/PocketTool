@@ -668,11 +668,6 @@ const Index = () => {
               <BudgetCashCard cash={cashBalance} obligations={obligations} />
             ) : null}
             <BudgetObligationsCard obligations={obligations} />
-            <BudgetSavingsSuggestionsCard
-              suggestions={savingsSuggestions}
-              busy={busy}
-              onInclude={(suggestion) => void includeSaving(suggestion)}
-            />
 
             {visibleInsights.length > 0 ? (
               <Stack gap='sm'>
@@ -894,6 +889,12 @@ const Index = () => {
               )}
             </Stack>
             ) : null}
+
+            <BudgetSavingsSuggestionsCard
+              suggestions={savingsSuggestions}
+              busy={busy}
+              onInclude={(suggestion) => void includeSaving(suggestion)}
+            />
           </>
         )}
       </Stack>
