@@ -270,7 +270,7 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "The app compares planned and actual amounts by category and record type using the group period, not a fixed calendar month. It shows the current net, expected end balance for consumption and cash, remaining income and expenses, days left and a daily allowance. Consumption follows the selected amount mode. Cash adds pending fixed commitments, active financings, vehicle reminders that will fall due, own savings contributions and pending card payments, avoiding duplicates with plan lines and records. Expenses paid from a savings account do not count as monthly consumption. Projection is an estimate, not a commitment."
+                "body": "The app compares planned and actual amounts by category and record type using the group period, not a fixed calendar month. It shows the current net, expected end balance for consumption and cash, remaining income and expenses, days left and a daily allowance. Consumption follows the selected amount mode. Cash adds pending fixed commitments, active financings, vehicle reminders that will fall due, own savings contributions and pending card payments, avoiding duplicates with plan lines and records. Expenses paid from a savings account do not count as monthly consumption. Drag the handle on a line to change its order. Savings linked to Records appear as suggestions to include in the plan. Projection is an estimate, not a commitment."
             },
             "steps": {
                 "title": "Step by step",
@@ -1014,7 +1014,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "La app compara lo planificado y lo real por categoría y tipo de registro usando el periodo del grupo, no un mes calendario fijo. Muestra el neto actual, el saldo esperado de consumo y de caja, los ingresos y gastos restantes, los días que quedan y el disponible por día. El consumo sigue el modo de importe elegido. La caja suma fijos pendientes, financiamientos activos, recordatorios de vehículo que caerán en el periodo, aportes propios a ahorros y pagos pendientes de tarjeta, evitando duplicados con las líneas del plan y los registros. Los gastos pagados desde un ahorro no cuentan como consumo del mes. La proyección es una estimación, no un compromiso."
+                "body": "La app compara lo planificado y lo real por categoría y tipo de registro usando el periodo del grupo, no un mes calendario fijo. Muestra el neto actual, el saldo esperado de consumo y de caja, los ingresos y gastos restantes, los días que quedan y el disponible por día. El consumo sigue el modo de importe elegido. La caja suma fijos pendientes, financiamientos activos, recordatorios de vehículo que caerán en el periodo, aportes propios a ahorros y pagos pendientes de tarjeta, evitando duplicados con las líneas del plan y los registros. Los gastos pagados desde un ahorro no cuentan como consumo del mes. Arrastra el asa de una línea para cambiar su orden. Los ahorros vinculados a Registros aparecen como sugerencias para incluir en el plan. La proyección es una estimación, no un compromiso."
             },
             "steps": {
                 "title": "Paso a paso",

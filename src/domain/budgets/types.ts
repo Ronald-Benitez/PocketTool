@@ -13,7 +13,8 @@ export type BudgetLineSource =
   | 'fixed'
   | 'previous_month'
   | 'actuals'
-  | 'group_average';
+  | 'group_average'
+  | 'savings';
 export type BudgetApplyMode = 'merge' | 'replace' | 'reset';
 export type BudgetPeriodRelation = 'past' | 'current' | 'future';
 export type BudgetLineStatus =
@@ -92,6 +93,16 @@ export type BudgetObligation = {
   cash: boolean;
   confidence?: 'high' | 'medium' | 'low';
   note?: string | null;
+};
+
+export type BudgetSavingsSuggestion = {
+  key: string;
+  label: string;
+  amountCents: number;
+  categoryId: number;
+  recordTypeId: number;
+  includedLineId: number | null;
+  includedAmountCents: number | null;
 };
 
 export type BudgetObligationsView = {

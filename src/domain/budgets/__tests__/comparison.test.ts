@@ -203,6 +203,15 @@ describe('budget comparison', () => {
     expect(futureView.balance.expectedEndBalanceCents).toBe(-230000);
   });
 
+  it('orders lines by manual sort order first', () => {
+    const input = baseInput();
+    input.lines[0].sort_order = 2;
+    input.lines[1].sort_order = 1;
+
+    const view = calculateBudgetPlanView(input);
+    expect(view.lines.map((line) => line.lineId)).toEqual([2, 1]);
+  });
+
   it('marks a fixed commitment as pending until it has a record', () => {
     const view = calculateBudgetPlanView(baseInput());
     const rent = view.lines.find((line) => line.scope === 'fixed');

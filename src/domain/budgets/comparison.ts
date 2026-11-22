@@ -242,8 +242,8 @@ export const calculateBudgetPlanView = ({
       };
     })
     .sort((a, b) => {
-      if (a.priority !== b.priority) return a.priority - b.priority;
       if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+      if (a.priority !== b.priority) return a.priority - b.priority;
       return a.categoryName.localeCompare(b.categoryName);
     });
 

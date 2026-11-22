@@ -227,6 +227,16 @@ export const useBudgetPlansRepository = () => {
     );
   };
 
+  const nextSortOrder = async (planId: number) => {
+    const rows = (await linesOrm
+      .where('budget_plan_id', planId)
+      .getAll()) as BudgetLine[];
+    return rows.reduce(
+      (max, line) => Math.max(max, line.sort_order ?? 0),
+      -1
+    ) + 1;
+  };
+
   const saveLine = async (
     input: BudgetLineInput & { id?: number }
   ): Promise<number> => {
@@ -278,8 +288,17 @@ export const useBudgetPlansRepository = () => {
       scope,
       source: parsed.source ?? 'manual',
       priority: parsed.priority ?? 2,
-      sort_order: parsed.sort_order ?? 0,
+      sort_order: parsed.sort_order ?? (await nextSortOrder(parsed.budget_plan_id)),
     } as Insertable<BudgetLine>);
+  };
+
+  const reorderLines = async (planId: number, orderedIds: number[]) => {
+    await withExclusiveTransaction(db, async (txn) => {
+      const lines = new ORM(txn, 'BudgetLines');
+      for (let index = 0; index < orderedIds.length; index += 1) {
+        await lines.update(orderedIds[index], { sort_order: index });
+      }
+    });
   };
 
   const deleteLine = async (lineId: number) => linesOrm.delete(lineId);
@@ -703,6 +722,7 @@ export const useBudgetPlansRepository = () => {
     createPlan,
     updatePlan,
     saveLine,
+    reorderLines,
     deleteLine,
     listLines,
     fetchLineRecords,

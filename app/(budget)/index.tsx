@@ -6,9 +6,11 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import GroupSelector from '@/src/components/groups/group-selector';
 import { BudgetBalanceCard } from '@/src/components/budgets/BudgetBalanceCard';
 import { BudgetCashCard } from '@/src/components/budgets/BudgetCashCard';
+import { BudgetDraggableLines } from '@/src/components/budgets/BudgetDraggableLines';
 import { BudgetGroupAverageDialog } from '@/src/components/budgets/BudgetGroupAverageDialog';
 import { BudgetLineForm } from '@/src/components/budgets/BudgetLineForm';
 import { BudgetObligationsCard } from '@/src/components/budgets/BudgetObligationsCard';
+import { BudgetSavingsSuggestionsCard } from '@/src/components/budgets/BudgetSavingsSuggestionsCard';
 import { BudgetTemplateApplyDialog } from '@/src/components/budgets/BudgetTemplateApplyDialog';
 import { useBudgetTemplates } from '@/src/hooks/useBudgetPlan';
 import { useBudgetProjection } from '@/src/hooks/useBudgetProjection';
@@ -19,6 +21,7 @@ import type {
   BudgetApplyMode,
   BudgetInsight,
   BudgetLineComparison,
+  BudgetSavingsSuggestion,
 } from '@/src/domain/budgets/types';
 import { buildBudgetCharts } from '@/src/domain/budgets/charts';
 import { budgetLineStatusKey } from '@/src/lang/keys';
@@ -84,6 +87,7 @@ const Index = () => {
     consumptionBalance,
     cashBalance,
     obligations,
+    savingsSuggestions,
     loading,
     refresh,
     repository,
@@ -343,6 +347,47 @@ const Index = () => {
       });
       await refresh();
       showToast({ message: t('budget.toast.fixedSynced'), type: 'success' });
+    } catch {
+      showToast({ message: t('budget.toast.error'), type: 'error' });
+    }
+  };
+
+  const includeSaving = async (suggestion: BudgetSavingsSuggestion) => {
+    if (!plan) return;
+    setBusy(true);
+    try {
+      await repository.saveLine({
+        budget_plan_id: plan.planId,
+        category_id: suggestion.categoryId,
+        record_type_id: suggestion.recordTypeId,
+        scope: 'category',
+        source: 'savings',
+        planned_amount: suggestion.amountCents,
+        priority: 2,
+        notes: t('budget.savingsSuggestionsTitle'),
+      });
+      await refresh();
+      showToast({ message: t('budget.toast.lineSaved'), type: 'success' });
+    } catch {
+      showToast({ message: t('budget.toast.error'), type: 'error' });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const reorderLines = async (from: number, to: number) => {
+    if (!plan || from === to) return;
+    const ordered = [...plan.lines];
+    const [moved] = ordered.splice(from, 1);
+    if (!moved) return;
+    ordered.splice(to, 0, moved);
+
+    try {
+      await repository.reorderLines(
+        plan.planId,
+        ordered.map((line) => line.lineId)
+      );
+      await refresh();
     } catch {
       showToast({ message: t('budget.toast.error'), type: 'error' });
     }
@@ -623,6 +668,11 @@ const Index = () => {
               <BudgetCashCard cash={cashBalance} obligations={obligations} />
             ) : null}
             <BudgetObligationsCard obligations={obligations} />
+            <BudgetSavingsSuggestionsCard
+              suggestions={savingsSuggestions}
+              busy={busy}
+              onInclude={(suggestion) => void includeSaving(suggestion)}
+            />
 
             {visibleInsights.length > 0 ? (
               <Stack gap='sm'>
@@ -704,25 +754,29 @@ const Index = () => {
                   </Stack>
                 </Surface>
               ) : (
-                <Surface variant='outlined' padding='none'>
-                  {plan.lines.map((line, index) => {
+                <BudgetDraggableLines
+                  lines={plan.lines}
+                  onReorder={(from, to) => void reorderLines(from, to)}
+                  renderLine={(line, dragHandle, index) => {
                     const tone = statusTone(line.status);
                     return (
                       <ListItem
-                        key={line.lineId}
                         title={line.categoryName || t('budget.lines.noCategory')}
                         subtitle={`${line.typeName || t('budget.lines.noType')} · ${t(
                           budgetLineStatusKey(line.status)
                         )}`}
                         leading={
-                          <View
-                            style={{
-                              width: 4,
-                              height: 32,
-                              borderRadius: 2,
-                              backgroundColor: statusColor(line.status, colors),
-                            }}
-                          />
+                          <Row gap='xs' align='center'>
+                            <View
+                              style={{
+                                width: 4,
+                                height: 32,
+                                borderRadius: 2,
+                                backgroundColor: statusColor(line.status, colors),
+                              }}
+                            />
+                            {dragHandle}
+                          </Row>
                         }
                         trailing={
                           <Stack gap='xxs' align='flex-end'>
@@ -743,8 +797,8 @@ const Index = () => {
                         showDivider={index < plan.lines.length - 1}
                       />
                     );
-                  })}
-                </Surface>
+                  }}
+                />
               )}
             </Stack>
 

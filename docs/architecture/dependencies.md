@@ -28,7 +28,7 @@ Hooks y stores · Dominio · Registros · Ayuda · Reglas de decisión.
 | `fixeds` | `Fixed`, `Records`, `SharedExpenseParticipants`, `People`, `Categories`, `PaymentMethods`, `RecordTypes`; `src/domain/records/fixedPending.ts`. |
 | `financings` | `Financings`, `FinancingPayments`, `FinancingAdjustments`, `SharedExpenseParticipants`, `People`, `Records`, `PaidCredits`; `src/domain/credits/*`. |
 | `credits` | `PaymentMethods` (tarjetas), `PaidCredits`, `Records`, `Groups`, `useConfigs` (`creditType`, `paymentCreditType`). |
-| `budget` | `BudgetPlans`, `BudgetLines`, `BudgetTemplates`, `Records`, `Fixed`, `Financings`, `Savings`/`SavingsHistory`, `Vehicle*`, `PaidCredits`, `Groups`; `src/domain/budgets/*`, `useSummaryMode`, `useBudgetProjection`. |
+| `budget` | `BudgetPlans`, `BudgetLines`, `BudgetTemplates`, `Records`, `Fixed`, `Financings`, `Savings`/`SavingsHistory`, `Vehicle*`, `PaidCredits`, `Groups`; `src/domain/budgets/*`, `useSummaryMode`, `useBudgetProjection`; sugerencias de ahorros vinculados y orden manual por `sort_order`. |
 | `savings` | `Savings`, `SavingsHistory`, `SavingsSettings`, `People`, `SharedExpenseParticipants`, `Records`; `src/domain/savings/*`. |
 | `vehicle` | `Vehicles`, `VehicleFuelEntries`, `VehicleMaintenance`, `VehicleReminders`, `VehicleSettings`, `VehicleExpenseLinks`, `Records`; `src/domain/vehicle/*`. |
 | `closing` | `GroupClosings`, `GroupClosingLines`, `Groups`, `PaymentMethods`, `Savings`, `Fixed`, `Financings`, `People`, `Records`; `src/domain/closing/*`. |

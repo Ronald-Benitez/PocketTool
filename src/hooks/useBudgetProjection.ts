@@ -43,6 +43,7 @@ export const useBudgetProjection = (
     consumptionBalance,
     cashBalance: cashProjection,
     obligations: obligationsState.obligations,
+    savingsSuggestions: obligationsState.savingsSuggestions,
     loading: planState.loading || obligationsState.loading,
     refresh,
     repository: planState.repository,

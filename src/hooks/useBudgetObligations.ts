@@ -20,6 +20,7 @@ import type {
   BudgetObligation,
   BudgetObligationsView,
   BudgetPlanView,
+  BudgetSavingsSuggestion,
 } from '@/src/domain/budgets/types';
 import { suggestedContributionCents } from '@/src/domain/savings/contributions';
 import { forecastVehicleRemindersInPeriod } from '@/src/domain/vehicle/reminderForecast';
@@ -30,6 +31,7 @@ import { useCreditStore } from '@/src/stores/CreditsStore';
 import type {
   FinancingWithRelations,
   Saving,
+  SavingsSetting,
   VehicleReminder,
   VehicleSetting,
 } from '@/src/interfaces/schema';
@@ -100,6 +102,9 @@ export const useBudgetObligations = (plan: BudgetPlanView | null) => {
 
   const [financings, setFinancings] = useState<FinancingWithRelations[]>([]);
   const [savings, setSavings] = useState<Saving[]>([]);
+  const [savingsSettings, setSavingsSettings] = useState<SavingsSetting | null>(
+    null
+  );
   const [savingViews, setSavingViews] = useState<SavingView[]>([]);
   const [fuelEntries, setFuelEntries] = useState<VehicleFuelEntryView[]>([]);
   const [maintenance, setMaintenance] = useState<VehicleMaintenanceView[]>([]);
@@ -115,6 +120,7 @@ export const useBudgetObligations = (plan: BudgetPlanView | null) => {
       const [
         nextFinancings,
         nextSavings,
+        nextSavingsSettings,
         nextFuelEntries,
         nextMaintenance,
         nextReminders,
@@ -128,6 +134,9 @@ export const useBudgetObligations = (plan: BudgetPlanView | null) => {
               status: 'active',
             })
           : Promise.resolve([]),
+        showSavings
+          ? repositories.current.savingsRepository.fetchSettings()
+          : Promise.resolve(null),
         showVehicle
           ? repositories.current.fuelRepository.fetchFuelEntries()
           : Promise.resolve([]),
@@ -144,6 +153,7 @@ export const useBudgetObligations = (plan: BudgetPlanView | null) => {
 
       setFinancings(nextFinancings);
       setSavings(nextSavings);
+      setSavingsSettings(nextSavingsSettings);
       setFuelEntries(nextFuelEntries);
       setMaintenance(nextMaintenance);
       setReminders(nextReminders);
@@ -261,6 +271,19 @@ export const useBudgetObligations = (plan: BudgetPlanView | null) => {
         const ownShare = Math.round(
           (suggested.suggestedCents * view.ownSharePercent) / 100
         );
+        const linkedToRecords = view.records_mode === 'linked';
+        const coveredByLine =
+          linkedToRecords &&
+          savingsSettings?.category_id != null &&
+          savingsSettings.record_type_id != null &&
+          plan.lines.some(
+            (line) =>
+              line.scope === 'category' &&
+              line.categoryId === savingsSettings.category_id &&
+              line.recordTypeId === savingsSettings.record_type_id
+          );
+        if (coveredByLine) continue;
+
         const remaining = Math.max(
           0,
           ownShare - view.contribution.actualCents
@@ -367,6 +390,7 @@ export const useBudgetObligations = (plan: BudgetPlanView | null) => {
     plan,
     reminders,
     savingViews,
+    savingsSettings,
     showCredits,
     showFinancings,
     showSavings,
@@ -375,5 +399,68 @@ export const useBudgetObligations = (plan: BudgetPlanView | null) => {
     vehicleSettings,
   ]);
 
-  return { obligations, loading, refresh: load };
+  const savingsSuggestions = useMemo<BudgetSavingsSuggestion[]>(() => {
+    if (
+      !showSavings ||
+      !plan ||
+      plan.periodRelation === 'past' ||
+      savingsSettings?.category_id == null ||
+      savingsSettings.record_type_id == null
+    ) {
+      return [];
+    }
+
+    const categoryId = savingsSettings.category_id;
+    const recordTypeId = savingsSettings.record_type_id;
+    const groups = new Map<
+      string,
+      { labels: string[]; amountCents: number }
+    >();
+
+    for (const view of savingViews) {
+      if (view.records_mode !== 'linked') continue;
+      if (
+        view.contribution_rule !== 'percent' &&
+        view.contribution_rule !== 'fixed'
+      ) {
+        continue;
+      }
+
+      const suggested = suggestedContributionCents({
+        rule: view.contribution_rule,
+        percentBps: view.contribution_percent_bps,
+        fixedCents: view.contribution_amount_cents,
+        incomeCents: plan.balance.expectedIncomeCents,
+      });
+      const ownShare = Math.round(
+        (suggested.suggestedCents * view.ownSharePercent) / 100
+      );
+      if (ownShare <= 0) continue;
+
+      const key = `${categoryId}:${recordTypeId}`;
+      const group = groups.get(key) ?? { labels: [], amountCents: 0 };
+      group.labels.push(view.saving_name);
+      group.amountCents += ownShare;
+      groups.set(key, group);
+    }
+
+    const line = plan.lines.find(
+      (candidate) =>
+        candidate.scope === 'category' &&
+        candidate.categoryId === categoryId &&
+        candidate.recordTypeId === recordTypeId
+    );
+
+    return [...groups.entries()].map(([key, group]) => ({
+      key: `savings:${key}`,
+      label: group.labels.join(' · '),
+      amountCents: group.amountCents,
+      categoryId,
+      recordTypeId,
+      includedLineId: line?.lineId ?? null,
+      includedAmountCents: line?.plannedCents ?? null,
+    }));
+  }, [plan, savingViews, savingsSettings, showSavings]);
+
+  return { obligations, savingsSuggestions, loading, refresh: load };
 };

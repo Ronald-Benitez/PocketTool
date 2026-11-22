@@ -186,6 +186,7 @@ const budgetSource = z.enum([
   'previous_month',
   'actuals',
   'group_average',
+  'savings',
 ]);
 const priority = z.number().int().min(1).max(3);
 
