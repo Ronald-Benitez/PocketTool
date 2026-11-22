@@ -4,7 +4,7 @@
 histórico de PocketTool.
 **Resumen:** estado de las fases, fase activa, resumen de arquitectura y enlaces
 a las decisiones canónicas. Las reglas no viven aquí.
-**Secciones:** Estado · Fase activa · Arquitectura actual · Fases 0–18 ·
+**Secciones:** Estado · Fase activa · Arquitectura actual · Fases 0–23 ·
 Decisiones.
 
 **Última actualización:** 2026-11-22
@@ -36,13 +36,13 @@ Decisiones.
 | Fase 20 — Presupuestos con saldo esperado | ✅ Finalizada | 2026-11-21 |
 | Fase 21 — Identidad visual y dashboard de Inicio | ✅ Finalizada | 2026-11-21 |
 | Fase 22 — Coherencia visual restante | ✅ Finalizada | 2026-11-22 |
+| Fase 23 — Lista de compras | ✅ Finalizada | 2026-11-22 |
 
 ## Fase activa
 
 **No hay fase activa.**
 
-`/cerrar-fase` busca este encabezado para saber qué fase cerrar. Si no existe,
-se detiene y pide cuál cerrar.
+`/cerrar-fase` usa este encabezado para saber qué fase cerrar.
 
 ## Arquitectura actual (resumen)
 
@@ -215,27 +215,20 @@ Plan en
 Plan en
 [`legacy/fase-18-chart-engine-plan.md`](legacy/fase-18-chart-engine-plan.md).
 
-- Migración `0026`: preferencias de gráficos en SQLite.
-- Motor SVG con specs, tooltips multi-serie, colapsables y zoom.
-- Migración total y eliminación de Mermaid/WebView/`gifted-charts`.
+- Motor SVG, preferencias en SQLite y migración desde Mermaid.
 
 ## Fase 19 — Experiencia configurable y simplificación (✅ 2026-11-20)
 
 Plan en
 [`legacy/fase-19-experience-plan.md`](legacy/fase-19-experience-plan.md).
 
-- Presets/flags, onboarding, gating, alta rápida, valores recordados y backup.
-- Verificación: typecheck, `test:db`, 300 tests, lint, doctor 20/20,
-  `docs:audit`, CI y export Android. Commits `41b0902`, `612165c`, `62df1fb`.
+- Presets/flags, onboarding, gating, alta rápida y backup.
 
 ## Fase 20 — Presupuestos con saldo esperado (✅ 2026-11-21)
 
 Plan en [`legacy/fase-20-budget-plan.md`](legacy/fase-20-budget-plan.md).
 
-- Periodo real, saldos consumo/caja, obligaciones sin duplicados y orden
-  drag-and-drop.
-- Verificación: typecheck, `test:db`, 318 tests, lint, doctor, `docs:audit`, CI y
-  export Android. Commits `d943930`, `771578c`, `aa952e4`, `b7a042f`.
+- Periodo real, saldos, obligaciones sin duplicados y orden drag-and-drop.
 
 ## Fase 21 — Identidad visual y dashboard de Inicio (✅ 2026-11-21)
 
@@ -253,6 +246,19 @@ Plan en
 Catálogos, tablas, Presupuesto, Créditos, Ahorros, Vehículo, Personas, Cierre,
 tooltips y validación unificados. Verificación: `ci`, lint, doctor 20/20,
 `docs:audit` y export Android; QA validado por el usuario.
+
+## Fase 23 — Lista de compras (✅ 2026-11-22)
+
+Plan en
+[`legacy/fase-23-shopping-list-plan.md`](legacy/fase-23-shopping-list-plan.md).
+
+- Migración `0027` y totales con precio cero = sin precio.
+- Repositorio con CRUD, cierre inmutable y registro crear/vincular.
+- Sección con selector modal, check optimista y origen.
+- Flag `shopping`, `RecordPicker`.
+
+Verif.: `ci`, 379 tests, `test:db`, lint, doctor 20/20 y `docs:audit`.
+Commits `5602701`, `49e40fd`.
 
 ## Decisiones
 

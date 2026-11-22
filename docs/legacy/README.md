@@ -59,10 +59,14 @@ detalle, usa `**Secciones:**` y busca el encabezado con
   coherencia visual restante en catálogos, tablas, Presupuesto, Créditos,
   Ahorros, Vehículo, Personas, Cierre, tooltips y validación (Fase 22),
   implementado, validado y archivado.
+- [`fase-23-shopping-list-plan.md`](fase-23-shopping-list-plan.md): plan de
+  listas de compras globales, cierre inmutable, registro crear/vincular/omitir,
+  selector modal y origen de registros (Fase 23), implementado, validado y
+  archivado.
 - [`db-summary.md`](db-summary.md): resumen anterior de la base de datos,
   reemplazado por [`../database.md`](../database.md).
 - [`migration-history.md`](migration-history.md): tabla histórica de las
-  migraciones `0001`–`0026`; la fuente vigente es `src/db/migrations/`.
+  migraciones `0001`–`0027`; la fuente vigente es `src/db/migrations/`.
 
 Estos documentos son referencia histórica. La documentación vigente vive en
 `docs/` (fuera de `legacy/`).
