@@ -14,9 +14,9 @@ import { useVehicle } from '@/src/hooks/useVehicle';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { Badge, type BadgeTone } from '@/src/ui/data-display/Badge';
 import { ListItem } from '@/src/ui/data-display/ListItem';
-import { Button } from '@/src/ui/actions/Button';
+import { SectionCard } from '@/src/ui/data-display/SectionCard';
+import { LinkButton } from '@/src/ui/actions/LinkButton';
 import { EmptyState } from '@/src/ui/feedback/EmptyState';
-import { AppText } from '@/src/ui/primitives/AppText';
 import { Screen } from '@/src/ui/primitives/Screen';
 import { Row, Stack } from '@/src/ui/primitives/Stack';
 import { Surface } from '@/src/ui/primitives/Surface';
@@ -91,29 +91,31 @@ const RemindersScreen = () => {
 
   return (
     <Screen scroll edges={['left', 'right']}>
-      <Stack gap='lg'>
-        <Row justify='space-between' align='flex-start' gap='md'>
-          <Stack gap='xxs' style={{ flex: 1 }}>
-            <AppText variant='title'>{t('vehicle.reminders.title')}</AppText>
-            <AppText color='muted'>{t('vehicle.reminders.subtitle')}</AppText>
-          </Stack>
-          <Button
-            label={t('vehicle.actions.addReminder')}
-            size='sm'
-            onPress={() => {
-              setSelected(null);
-              setFormVisible(true);
-            }}
-          />
-        </Row>
-
+      <Stack gap='xl'>
+        <SectionCard
+          title={t('vehicle.reminders.title')}
+          tooltip={{
+            title: t('vehicle.reminders.title'),
+            body: t('vehicle.reminders.subtitle'),
+          }}
+          action={
+            <LinkButton
+              label={t('vehicle.actions.addReminder')}
+              onPress={() => {
+                setSelected(null);
+                setFormVisible(true);
+              }}
+            />
+          }
+          padded={false}
+        >
         {reminders.length === 0 ? (
           <EmptyState
             title={t('vehicle.reminders.empty')}
             icon={<MaterialIcons name='event-repeat' size={28} color={colors.textMuted} />}
           />
         ) : (
-          <Surface variant='outlined' padding='none'>
+          <>
             {reminders.map((reminder, index) => {
               const inactive = !Boolean(reminder.is_active);
               const status = buildReminderStatus(reminder, currentOdometerKm);
@@ -158,8 +160,9 @@ const RemindersScreen = () => {
                 />
               );
             })}
-          </Surface>
+          </>
         )}
+        </SectionCard>
       </Stack>
 
       <ReminderForm

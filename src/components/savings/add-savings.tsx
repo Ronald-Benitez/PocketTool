@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { usePeopleRepository, useSavings, useSharedParticipantsRepository } from '@/src/db';
@@ -17,6 +17,7 @@ import { MoneyField } from '@/src/ui/forms/MoneyField';
 import { SelectField } from '@/src/ui/forms/SelectField';
 import { SwitchField } from '@/src/ui/forms/SwitchField';
 import { TextField } from '@/src/ui/forms/TextField';
+import { FormErrorSummary } from '@/src/ui/forms/FormErrorSummary';
 import { Modal } from '@/src/ui/overlays/Modal';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Stack } from '@/src/ui/primitives/Stack';
@@ -25,6 +26,7 @@ type SavingFormProps = {
   isEditing?: boolean;
   children?: React.ReactNode;
   open?: boolean;
+  onClose?: () => void;
   onSaved?: () => void;
 };
 
@@ -37,6 +39,7 @@ export const AddSaving = ({
   isEditing = false,
   children,
   open,
+  onClose,
   onSaved,
 }: SavingFormProps) => {
   const { t } = useLanguage();
@@ -46,7 +49,6 @@ export const AddSaving = ({
   const peopleRepository = usePeopleRepository();
   const participantsRepository = useSharedParticipantsRepository();
   const { saving, setSaving, setSavings } = useSavingsStore();
-  const firstOpenEffect = useRef(true);
 
   const [visible, setVisible] = useState(false);
   const [name, setName] = useState('');
@@ -65,11 +67,7 @@ export const AddSaving = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (firstOpenEffect.current) {
-      firstOpenEffect.current = false;
-      return;
-    }
-    setVisible(true);
+    if (open) setVisible(true);
   }, [open]);
 
   useEffect(() => {
@@ -140,7 +138,10 @@ export const AddSaving = ({
     setError(null);
   }, [visible, isEditing, saving?.id]);
 
-  const closeModal = () => setVisible(false);
+  const closeModal = () => {
+    setVisible(false);
+    onClose?.();
+  };
 
   const save = async () => {
     if (!name.trim()) {
@@ -231,7 +232,17 @@ export const AddSaving = ({
         }
       >
         <Stack gap='md'>
-          <TextField label={t('item.name')} value={name} onChangeText={setName} required />
+          <FormErrorSummary errors={error ? [error] : []} />
+          <TextField
+            label={t('item.name')}
+            value={name}
+            onChangeText={(value) => {
+              setName(value);
+              setError(null);
+            }}
+            required
+            error={error === t('savings.form.required') ? t('required') : undefined}
+          />
           <MoneyField
             label={isEditing ? t('savings.form.currentAmount') : t('item.value')}
             value={amountCents}
@@ -244,7 +255,11 @@ export const AddSaving = ({
                 label={t('savings.form.targetAmount')}
                 required
                 value={targetAmountCents}
-                onChangeCents={setTargetAmountCents}
+                error={error === t('savings.form.targetRequired') ? t('required') : undefined}
+                onChangeCents={(value) => {
+                  setTargetAmountCents(value);
+                  setError(null);
+                }}
               />
               <DateField
                 label={t('savings.form.targetDate')}
@@ -267,15 +282,23 @@ export const AddSaving = ({
             <TextField
               label={t('savings.form.percentOfIncome')}
               value={contributionPercent}
-              onChangeText={setContributionPercent}
+              onChangeText={(value) => {
+                setContributionPercent(value);
+                setError(null);
+              }}
               keyboardType='decimal-pad'
+              error={error === t('savings.form.percentRequired') ? t('required') : undefined}
             />
           ) : null}
           {contributionRule === 'fixed' ? (
             <MoneyField
               label={t('savings.form.fixedContribution')}
               value={contributionAmountCents}
-              onChangeCents={setContributionAmountCents}
+              error={error === t('savings.form.amountRequired') ? t('required') : undefined}
+              onChangeCents={(value) => {
+                setContributionAmountCents(value);
+                setError(null);
+              }}
             />
           ) : null}
           <SelectField<'separate' | 'linked'>
@@ -292,7 +315,10 @@ export const AddSaving = ({
             value={interestRate}
             onChangeText={setInterestRate}
             keyboardType='decimal-pad'
-            hint={t('savings.form.interestHint')}
+            tooltip={{
+              title: t('savings.form.interestRate'),
+              body: t('savings.form.interestHint'),
+            }}
           />
           {showPeople || isEditing ? (
             <>
@@ -306,7 +332,6 @@ export const AddSaving = ({
               />
             </>
           ) : null}
-          {error ? <AppText color='danger'>{error}</AppText> : null}
         </Stack>
       </Modal>
     </>

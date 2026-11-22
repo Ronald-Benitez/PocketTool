@@ -3,18 +3,23 @@ import React from 'react';
 import type { BudgetBalanceView } from '@/src/domain/budgets/types';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { FinanceValue } from '@/src/ui/data-display/FinanceValue';
-import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock';
+import { SectionCard } from '@/src/ui/data-display/SectionCard';
 import { InlineMessage } from '@/src/ui/feedback/InlineMessage';
 import { AppText } from '@/src/ui/primitives/AppText';
+import { Divider } from '@/src/ui/primitives/Divider';
 import { Row, Stack } from '@/src/ui/primitives/Stack';
-import { Surface } from '@/src/ui/primitives/Surface';
 import { useTheme } from '@/src/ui/theme/ThemeProvider';
 
 type BudgetBalanceCardProps = {
   balance: BudgetBalanceView;
+  /** Current actual balance, to compare it with the expected end balance. */
+  currentBalanceCents?: number;
 };
 
-export const BudgetBalanceCard = ({ balance }: BudgetBalanceCardProps) => {
+export const BudgetBalanceCard = ({
+  balance,
+  currentBalanceCents,
+}: BudgetBalanceCardProps) => {
   const { t } = useLanguage();
   const { colors } = useTheme();
   const positive = balance.expectedEndBalanceCents >= 0;
@@ -23,23 +28,37 @@ export const BudgetBalanceCard = ({ balance }: BudgetBalanceCardProps) => {
     balance.expectedExpenseCents > balance.expectedIncomeCents;
 
   return (
-    <Surface variant='raised' padding='lg'>
+    <SectionCard
+      title={t('budget.expectedBalance')}
+      tooltip={{
+        title: t('budget.expectedBalance'),
+        body: t('budget.expectedBalanceHint'),
+      }}
+    >
       <Stack gap='md'>
-        <Stack gap='xxs'>
-          <SummaryBlock
-            label={t('budget.expectedBalance')}
-            cents={balance.expectedEndBalanceCents}
-            size='xl'
-            labelVariant='subtitle'
-            valueColorOverride={positive ? colors.success : colors.expense}
-            accentColor={positive ? colors.success : colors.expense}
-          />
-          <AppText variant='caption' color='muted'>
-            {t('budget.expectedBalanceHint')}
-          </AppText>
-        </Stack>
+        <FinanceValue
+          cents={balance.expectedEndBalanceCents}
+          size='xl'
+          color={positive ? colors.success : colors.expense}
+        />
 
         <Stack gap='xs'>
+          {typeof currentBalanceCents === 'number' ? (
+            <>
+              <Row justify='space-between' align='center'>
+                <AppText color='muted'>{t('budget.currentBalance')}</AppText>
+                <FinanceValue cents={currentBalanceCents} size='sm' />
+              </Row>
+              <Row justify='space-between' align='center'>
+                <AppText color='muted'>{t('budget.balanceGap')}</AppText>
+                <FinanceValue
+                  cents={balance.expectedEndBalanceCents - currentBalanceCents}
+                  size='sm'
+                />
+              </Row>
+              <Divider />
+            </>
+          ) : null}
           <Row justify='space-between' align='center'>
             <AppText color='muted'>{t('budget.currentNet')}</AppText>
             <FinanceValue cents={balance.actualNetCents} size='sm' />
@@ -82,6 +101,6 @@ export const BudgetBalanceCard = ({ balance }: BudgetBalanceCardProps) => {
           />
         ) : null}
       </Stack>
-    </Surface>
+    </SectionCard>
   );
 };

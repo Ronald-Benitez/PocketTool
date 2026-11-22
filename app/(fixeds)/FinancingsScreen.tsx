@@ -22,14 +22,15 @@ import { useDataStore } from '@/src/stores';
 import { formatMoneyWithSymbol } from '@/src/utils';
 import { SwipeAction } from '@/src/ui/actions/SwipeAction';
 import { Button } from '@/src/ui/actions/Button';
+import { LinkButton } from '@/src/ui/actions/LinkButton';
 import { Badge } from '@/src/ui/data-display/Badge';
+import { SectionCard } from '@/src/ui/data-display/SectionCard';
 import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock';
 import { EmptyState } from '@/src/ui/feedback/EmptyState';
 import { useToast } from '@/src/ui/feedback/ToastProvider';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Screen } from '@/src/ui/primitives/Screen';
 import { Row, Stack } from '@/src/ui/primitives/Stack';
-import { Surface } from '@/src/ui/primitives/Surface';
 import { useTheme } from '@/src/ui/theme/ThemeProvider';
 
 type FinancingRow = {
@@ -159,15 +160,58 @@ const FinancingsScreen = () => {
     }
   };
 
+  const financingTooltip = (financing: FinancingWithRelations, summary: FinancingSummary) => {
+    const lines = [
+      `${t('financings.paidPrincipal')}: ${formatMoneyWithSymbol(summary.paidPrincipalCents)}`,
+      `${t('financings.paidInterest')}: ${formatMoneyWithSymbol(summary.paidInterestCents)}`,
+    ];
+    const charges = summary.paidInsuranceCents + summary.paidFeesCents;
+    if (charges > 0) {
+      lines.push(`${t('financings.paidCharges')}: ${formatMoneyWithSymbol(charges)}`);
+    }
+    if (summary.adjustment) {
+      lines.push(
+        `${t('financings.lastAdjustment')}: ${new Date(
+          summary.adjustment.date
+        ).toLocaleDateString()} · ${t(
+          `financings.adjustmentKinds.${summary.adjustment.kind}` as never
+        )}`
+      );
+    }
+    if (financing.is_shared) {
+      lines.push(
+        `${t('shared.total')}: ${formatMoneyWithSymbol(
+          summary.monthlyPaymentCents
+        )}`,
+        `${t('shared.own')}: ${formatMoneyWithSymbol(
+          summary.monthlyPaymentCents - summary.sharedPaymentCents
+        )}`,
+        `${t('shared.totalShared')}: ${formatMoneyWithSymbol(
+          summary.sharedPaymentCents
+        )}`
+      );
+    }
+    return { title: financing.name, body: lines.join('\n') };
+  };
+
   return (
     <>
       <Screen scroll edges={['left', 'right']}>
-        <Stack gap='lg'>
-        <Stack gap='xxs'>
-          <AppText variant='title'>{t('financings.title')}</AppText>
-          <AppText color='muted'>{t('financings.subtitle')}</AppText>
-        </Stack>
-
+        <Stack gap='xl'>
+        <SectionCard
+          title={t('financings.title')}
+          tooltip={{ title: t('financings.title'), body: t('financings.subtitle') }}
+          action={
+            <LinkButton
+              label={t('financings.add')}
+              onPress={() => {
+                setSelected(null);
+                setFormVisible(true);
+              }}
+            />
+          }
+        >
+          <Stack gap='md'>
         <Row gap='md'>
           <SummaryBlock
             label={t('financings.totalDebt')}
@@ -204,61 +248,49 @@ const FinancingsScreen = () => {
         </Row>
 
         {upcoming.length > 0 ? (
-          <Surface variant='muted' padding='md'>
-            <Stack gap='sm'>
-              <AppText weight='600'>{t('financings.upcomingPayments')}</AppText>
-              {upcoming.map((row) => (
-                <Pressable
-                  key={`${row.financing.id}-${row.next.number}`}
-                  onPress={() => openUpcomingPayment(row)}
-                  accessibilityRole='button'
-                  accessibilityLabel={row.financing.name}
+          <Stack gap='sm'>
+            <AppText weight='600'>{t('financings.upcomingPayments')}</AppText>
+            {upcoming.map((row) => (
+              <Pressable
+                key={`${row.financing.id}-${row.next.number}`}
+                onPress={() => openUpcomingPayment(row)}
+                accessibilityRole='button'
+                accessibilityLabel={row.financing.name}
+              >
+                <Row
+                  justify='space-between'
+                  align='center'
+                  gap='sm'
+                  style={{ minHeight: 44 }}
                 >
-                  <Row
-                    justify='space-between'
-                    align='center'
-                    gap='sm'
-                    style={{ minHeight: 44 }}
-                  >
-                    <Stack gap='xxs' style={{ flex: 1 }}>
-                      <AppText numberOfLines={1}>{row.financing.name}</AppText>
+                  <Stack gap='xxs' style={{ flex: 1 }}>
+                    <AppText numberOfLines={1}>{row.financing.name}</AppText>
+                    <AppText variant='caption' color='muted'>
+                      {new Date(row.next.date).toLocaleDateString()} ·{' '}
+                      {t('financings.payment')} #{row.next.number}
+                    </AppText>
+                  </Stack>
+                  <Stack gap='xxs' style={{ alignItems: 'flex-end' }}>
+                    <AppText>
+                      {formatMoneyWithSymbol(row.summary.monthlyPaymentCents)}
+                    </AppText>
+                    {row.financing.is_shared ? (
                       <AppText variant='caption' color='muted'>
-                        {new Date(row.next.date).toLocaleDateString()} ·{' '}
-                        {t('financings.payment')} #{row.next.number}
+                        {t('shared.own')}:{' '}
+                        {formatMoneyWithSymbol(
+                          row.summary.monthlyPaymentCents -
+                            row.summary.sharedPaymentCents
+                        )}
                       </AppText>
-                    </Stack>
-                    <Stack gap='xxs' style={{ alignItems: 'flex-end' }}>
-                      <AppText>
-                        {formatMoneyWithSymbol(row.summary.monthlyPaymentCents)}
-                      </AppText>
-                      {row.financing.is_shared ? (
-                        <AppText variant='caption' color='muted'>
-                          {t('shared.own')}:{' '}
-                          {formatMoneyWithSymbol(
-                            row.summary.monthlyPaymentCents -
-                              row.summary.sharedPaymentCents
-                          )}
-                        </AppText>
-                      ) : null}
-                    </Stack>
-                  </Row>
-                </Pressable>
-              ))}
-            </Stack>
-          </Surface>
+                    ) : null}
+                  </Stack>
+                </Row>
+              </Pressable>
+            ))}
+          </Stack>
         ) : null}
-
-        <Button
-          label={t('financings.add')}
-          size='sm'
-          onPress={() => {
-            setSelected(null);
-            setFormVisible(true);
-          }}
-          leftIcon={
-            <MaterialIcons name='add' size={18} color={colors.onPrimary} />
-          }
-        />
+          </Stack>
+        </SectionCard>
 
         {rows.length === 0 ? (
           <EmptyState
@@ -282,22 +314,22 @@ const FinancingsScreen = () => {
                   setFormVisible(true);
                 }}
               >
-                <Surface variant='outlined' padding='md'>
+                <SectionCard
+                  title={financing.name}
+                  subtitle={`${t(
+                    `financings.kinds.${financing.kind}` as never
+                  )}${financing.lender ? ` · ${financing.lender}` : ''}`}
+                  action={
+                    <Badge
+                      label={t(`financings.kinds.${financing.kind}` as never)}
+                      tone='info'
+                      size='sm'
+                    />
+                  }
+                  tooltip={financingTooltip(financing, summary)}
+                  variant='outlined'
+                >
                   <Stack gap='sm'>
-                    <Row justify='space-between' align='flex-start' gap='sm'>
-                      <Stack gap='xxs' style={{ flex: 1 }}>
-                        <AppText weight='600'>{financing.name}</AppText>
-                        <AppText variant='caption' color='muted'>
-                          {t(`financings.kinds.${financing.kind}` as never)}
-                          {financing.lender ? ` · ${financing.lender}` : ''}
-                        </AppText>
-                      </Stack>
-                      <Badge
-                        label={t(`financings.kinds.${financing.kind}` as never)}
-                        tone='info'
-                        size='sm'
-                      />
-                    </Row>
                     <Row gap='md'>
                       <SummaryBlock
                         label={t('financings.balance')}
@@ -327,43 +359,6 @@ const FinancingsScreen = () => {
                           ).toLocaleDateString()}`
                         : ''}
                     </AppText>
-                    {financing.is_shared ? (
-                      <AppText variant='caption' color='muted'>
-                        {t('shared.total')}:{' '}
-                        {formatMoneyWithSymbol(summary.monthlyPaymentCents)} ·{' '}
-                        {t('shared.own')}:{' '}
-                        {formatMoneyWithSymbol(
-                          summary.monthlyPaymentCents -
-                            summary.sharedPaymentCents
-                        )}{' '}
-                        · {t('shared.totalShared')}:{' '}
-                        {formatMoneyWithSymbol(summary.sharedPaymentCents)}
-                      </AppText>
-                    ) : null}
-                    <AppText variant='caption' color='muted'>
-                      {t('financings.paidPrincipal')}:{' '}
-                      {formatMoneyWithSymbol(summary.paidPrincipalCents)} ·{' '}
-                      {t('financings.paidInterest')}:{' '}
-                      {formatMoneyWithSymbol(summary.paidInterestCents)}
-                    </AppText>
-                    {summary.paidInsuranceCents + summary.paidFeesCents > 0 ? (
-                      <AppText variant='caption' color='muted'>
-                        {t('financings.paidCharges')}:{' '}
-                        {formatMoneyWithSymbol(
-                          summary.paidInsuranceCents + summary.paidFeesCents
-                        )}
-                      </AppText>
-                    ) : null}
-                    {summary.adjustment ? (
-                      <AppText variant='caption' color='muted'>
-                        {t('financings.lastAdjustment')}:{' '}
-                        {new Date(summary.adjustment.date).toLocaleDateString()}{' '}
-                        ·{' '}
-                        {t(
-                          `financings.adjustmentKinds.${summary.adjustment.kind}` as never
-                        )}
-                      </AppText>
-                    ) : null}
                     <Row gap='sm' wrap>
                       <Button
                         label={t('financings.addPayment')}
@@ -427,7 +422,7 @@ const FinancingsScreen = () => {
                       />
                     </Row>
                   </Stack>
-                </Surface>
+                </SectionCard>
               </SwipeAction>
             ))}
           </Stack>

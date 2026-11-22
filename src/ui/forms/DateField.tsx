@@ -17,6 +17,7 @@ import { AppText } from '../primitives/AppText';
 import { Button } from '../actions/Button';
 import { IconButton } from '../actions/IconButton';
 import { Modal } from '../overlays/Modal';
+import type { InfoHintContent } from '../overlays/InfoHint';
 import { FormField } from './FormField';
 
 export type DateFieldProps = {
@@ -24,6 +25,7 @@ export type DateFieldProps = {
   required?: boolean;
   hint?: string;
   error?: string;
+  tooltip?: InfoHintContent;
   value: number | null | undefined;
   onChange: (timestampMs: number) => void;
   disabled?: boolean;
@@ -45,6 +47,7 @@ export const DateField = ({
   required = false,
   hint,
   error,
+  tooltip,
   value,
   onChange,
   disabled = false,
@@ -124,6 +127,7 @@ export const DateField = ({
       required={required}
       hint={hint}
       error={error}
+      tooltip={tooltip}
       style={containerStyle}
     >
       <Pressable

@@ -12,6 +12,7 @@ import { useTheme } from '../theme/ThemeProvider';
 import { controlHeight, radii, spacing } from '../theme/tokens';
 import { AppText } from '../primitives/AppText';
 import { Modal } from '../overlays/Modal';
+import type { InfoHintContent } from '../overlays/InfoHint';
 import { FormField } from './FormField';
 import { TextField } from './TextField';
 
@@ -26,6 +27,7 @@ export type SelectFieldProps<T extends string | number = string> = {
   required?: boolean;
   hint?: string;
   error?: string;
+  tooltip?: InfoHintContent;
   placeholder?: string;
   title?: string;
   emptyMessage?: string;
@@ -51,6 +53,7 @@ export const SelectField = <T extends string | number,>({
   required = false,
   hint,
   error,
+  tooltip,
   placeholder = 'Select an option',
   title,
   emptyMessage = 'No options available',
@@ -94,6 +97,7 @@ export const SelectField = <T extends string | number,>({
       required={required}
       hint={hint}
       error={error}
+      tooltip={tooltip}
       style={containerStyle}
     >
       <Pressable

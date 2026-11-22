@@ -24,7 +24,7 @@ import { ListItem } from '@/src/ui/data-display/ListItem';
 import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock';
 import { Row, Stack } from '@/src/ui/primitives/Stack';
 import { Screen } from '@/src/ui/primitives/Screen';
-import { Surface } from '@/src/ui/primitives/Surface';
+import { SectionCard } from '@/src/ui/data-display/SectionCard';
 import { useTheme } from '@/src/ui/theme/ThemeProvider';
 import { formatMoneyWithSymbol } from '@/src/utils';
 
@@ -85,7 +85,7 @@ const Index = () => {
 
     return (
         <Screen scroll edges={['left', 'right']}>
-            <Stack gap='lg'>
+            <Stack gap='xl'>
                 <Row justify='center'>
                     <GroupSelector />
                 </Row>
@@ -93,7 +93,9 @@ const Index = () => {
                 <BalanceModeToggle />
                 {effectiveBalanceMode === 'consumption' ? <SummaryModeToggle /> : null}
 
-                <Surface variant='raised' padding='lg'>
+                <SectionCard
+                    title={t('resume.balance')}
+                >
                     <Stack gap='md'>
                         {[
                             {
@@ -141,118 +143,113 @@ const Index = () => {
                                 </Row>
                             </React.Fragment>
                         ))}
-                    </Stack>
-                </Surface>
 
-                <Row gap='md'>
-                    <SummaryBlock
-                        label={
-                            effectiveBalanceMode === 'cash'
-                                ? t('resume.cashPaid')
-                                : t('resume.total')
-                        }
-                        cents={
-                            effectiveBalanceMode === 'cash'
-                                ? cashPaidCents
-                                : totalPurchasesCents
-                        }
-                        size='md'
-                        valueColorOverride={colors.text}
-                        accentColor={colors.primary}
-                        style={{ flex: 1 }}
-                    />
-                    {showShared ? (
-                        <SummaryBlock
-                            label={
-                                effectiveBalanceMode === 'cash'
-                                    ? t('resume.cashReceived')
-                                    : t('resume.shared')
-                            }
-                            cents={
-                                effectiveBalanceMode === 'cash'
-                                    ? cashReceived
-                                    : receivableCents
-                            }
-                            size='md'
-                            valueColorOverride={colors.textMuted}
-                            accentColor={colors.textMuted}
-                            style={{ flex: 1 }}
-                        />
-                    ) : null}
-                </Row>
+                        <Divider />
 
-                {effectiveBalanceMode === 'cash'
-                    ? showShared ? (
-                        <Surface variant='outlined' padding='md'>
-                            <Stack gap='xs'>
-                                <Row justify='space-between'>
-                                    <AppText color='muted'>{t('resume.settlementsPaid')}</AppText>
-                                    <AppText weight='600'>
-                                        {formatMoneyWithSymbol(settlementsPaidCents)}
-                                    </AppText>
-                                </Row>
-                                <Row justify='space-between'>
-                                    <AppText color='muted'>{t('resume.settlementsReceived')}</AppText>
-                                    <AppText weight='600'>
-                                        {formatMoneyWithSymbol(settlementsReceivedCents)}
-                                    </AppText>
-                                </Row>
-                            </Stack>
-                        </Surface>
-                    ) : null
-                    : showSavings ? (
-                        <Surface variant='outlined' padding='md'>
+                        <Row gap='md'>
+                            <SummaryBlock
+                                label={
+                                    effectiveBalanceMode === 'cash'
+                                        ? t('resume.cashPaid')
+                                        : t('resume.total')
+                                }
+                                cents={
+                                    effectiveBalanceMode === 'cash'
+                                        ? cashPaidCents
+                                        : totalPurchasesCents
+                                }
+                                size='md'
+                                valueColorOverride={colors.text}
+                                accentColor={colors.primary}
+                                style={{ flex: 1 }}
+                            />
+                            {showShared ? (
+                                <SummaryBlock
+                                    label={
+                                        effectiveBalanceMode === 'cash'
+                                            ? t('resume.cashReceived')
+                                            : t('resume.shared')
+                                    }
+                                    cents={
+                                        effectiveBalanceMode === 'cash'
+                                            ? cashReceived
+                                            : receivableCents
+                                    }
+                                    size='md'
+                                    valueColorOverride={colors.textMuted}
+                                    accentColor={colors.textMuted}
+                                    style={{ flex: 1 }}
+                                />
+                            ) : null}
+                        </Row>
+
+                        {effectiveBalanceMode === 'cash' ? (
+                            showShared ? (
+                                <Stack gap='xs'>
+                                    <Row justify='space-between'>
+                                        <AppText color='muted'>{t('resume.settlementsPaid')}</AppText>
+                                        <AppText weight='600'>
+                                            {formatMoneyWithSymbol(settlementsPaidCents)}
+                                        </AppText>
+                                    </Row>
+                                    <Row justify='space-between'>
+                                        <AppText color='muted'>{t('resume.settlementsReceived')}</AppText>
+                                        <AppText weight='600'>
+                                            {formatMoneyWithSymbol(settlementsReceivedCents)}
+                                        </AppText>
+                                    </Row>
+                                </Stack>
+                            ) : null
+                        ) : showSavings ? (
                             <SummaryBlock
                                 label={t('resume.savingsPaid')}
                                 cents={savingsPaidCents}
                                 size='md'
                                 accentColor={colors.chartPlanned}
                             />
-                        </Surface>
-                    ) : null}
+                        ) : null}
+                    </Stack>
+                </SectionCard>
 
                 {showBudget ? <BudgetSummaryBlock /> : null}
 
-                <Stack gap='sm'>
-                    <AppText variant='subtitle'>{t('resume.summaryByRecordType')}</AppText>
-                    <Surface variant='outlined' padding='none'>
-                        {balanceByRecordType && balanceByRecordType.length > 0 ? (
-                            balanceByRecordType.map((item, index) => (
-                                <ListItem
-                                    key={item?.id ?? index}
-                                    title={item.type_name}
-                                    leading={
-                                        <View
-                                            style={{
-                                                width: 4,
-                                                height: 32,
-                                                borderRadius: 2,
-                                                backgroundColor: item.record_color ?? colors.primary,
-                                            }}
-                                        />
-                                    }
-                                    trailing={
-                                        <FinanceValue
-                                            cents={
-                                                effectiveBalanceMode === 'cash'
-                                                    ? item.cash
-                                                    : pickSummaryAmount(mode, item)
-                                            }
-                                            size='lg'
-                                            color={colors.text}
-                                        />
-                                    }
-                                    onPress={() => openRecordType(item.id)}
-                                    showDivider={index < balanceByRecordType.length - 1}
-                                />
-                            ))
-                        ) : (
-                            <AppText color='muted' style={{ padding: 16 }}>
-                                {t('resume.noData')}
-                            </AppText>
-                        )}
-                    </Surface>
-                </Stack>
+                <SectionCard title={t('resume.summaryByRecordType')} padded={false}>
+                    {balanceByRecordType && balanceByRecordType.length > 0 ? (
+                        balanceByRecordType.map((item, index) => (
+                            <ListItem
+                                key={item?.id ?? index}
+                                title={item.type_name}
+                                leading={
+                                    <View
+                                        style={{
+                                            width: 4,
+                                            height: 32,
+                                            borderRadius: 2,
+                                            backgroundColor: item.record_color ?? colors.primary,
+                                        }}
+                                    />
+                                }
+                                trailing={
+                                    <FinanceValue
+                                        cents={
+                                            effectiveBalanceMode === 'cash'
+                                                ? item.cash
+                                                : pickSummaryAmount(mode, item)
+                                        }
+                                        size='lg'
+                                        color={colors.text}
+                                    />
+                                }
+                                onPress={() => openRecordType(item.id)}
+                                showDivider={index < balanceByRecordType.length - 1}
+                            />
+                        ))
+                    ) : (
+                        <AppText color='muted' style={{ padding: 16 }}>
+                            {t('resume.noData')}
+                        </AppText>
+                    )}
+                </SectionCard>
             </Stack>
             <RecordsModal ref={recordsModalRef} />
         </Screen>

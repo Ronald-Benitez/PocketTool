@@ -1,10 +1,9 @@
-import { View, Text, Pressable, StyleSheet } from "react-native"
-import { AccentRow } from '@/src/ui/data-display/AccentRow'
-import type { RecordFormEntry, RecordType } from "@/src/interfaces/schema"
-import { useThemedStyles } from '@/src/styles/useThemedStyles'
-import useDate from "@/src/hooks/useDate"
-import { useLanguage } from "@/src/lang/LanguageContext"
-import { formatMoneyWithSymbol } from "@/src/utils"
+import { Pressable, View } from 'react-native'
+
+import type { RecordFormEntry, RecordType } from '@/src/interfaces/schema'
+import { useLanguage } from '@/src/lang/LanguageContext'
+import { AppText } from '@/src/ui/primitives/AppText'
+import { RecordRow } from './RecordRow'
 
 type CreditsGroupsProps = {
     credits: RecordFormEntry[],
@@ -13,88 +12,37 @@ type CreditsGroupsProps = {
 }
 
 export const CreditsGroups = ({ credits, selectedPaymentCreditType, onCreditPayment }: CreditsGroupsProps) => {
-    const styles = useThemedStyles()
-    const dateh = useDate()
     const { t } = useLanguage()
 
-     if(!credits || credits.length === 0) {
-        return
+    if (!credits || credits.length === 0) {
+        return null
     }
 
     return (
         <>
-            {
-                credits?.length && credits?.length > 0 ? (
-                    <Text style={[styles.smallText, { textAlign: "center", marginTop: 10 }]}>{t("records.creditPayments")}</Text>
-                ) : null
-            }
-            <View style={{ gap: 5, paddingHorizontal: 30, }}>
-                {credits?.map((item, index) => {
-                    return (
-                        <Pressable key={index} onPress={() => onCreditPayment(item)}>
-                            <AccentRow
-                                bottomColor={selectedPaymentCreditType?.record_color || "#000"}
-                                accentColor={selectedPaymentCreditType?.record_color || "#000"}
-                            >
-                                <View style={localStyles.rowContainer}>
-                                    <View style={localStyles.dateContainer}>
-                                        <Text style={[localStyles.dateText, styles.textMuted]}>
-                                            {dateh.getStringDay(String(item.date))}
-                                        </Text>
-                                        <Text style={[localStyles.dateText, styles.textMuted]}>
-                                            {dateh.getDay(String(item.date))}
-                                        </Text>
-                                        <Text style={[localStyles.dateText, styles.textMuted]}>
-                                            {dateh.getStringMonth(String(item.date))}
-                                        </Text>
-                                    </View>
-                                    <Text style={[localStyles.nameText, styles.textPrimary]}>{item.record_name}</Text>
-                                    <Text style={[localStyles.valueText, styles.textPrimary]}>{formatMoneyWithSymbol(item.amount)}</Text>
-                                </View>
-                            </AccentRow>
-                        </Pressable>
-                    )
-                })}
+            <AppText
+                variant='label'
+                color='muted'
+                align='center'
+                style={{ marginTop: 12 }}
+            >
+                {t('records.creditPayments')}
+            </AppText>
+            <View style={{ gap: 5, paddingHorizontal: 16 }}>
+                {credits.map((item, index) => (
+                    <Pressable key={index} onPress={() => onCreditPayment(item)}>
+                        <RecordRow
+                            date={item.date ?? 0}
+                            title={item.record_name ?? ''}
+                            ownCents={item.amount ?? 0}
+                            accentColor={selectedPaymentCreditType?.record_color}
+                            bottomColor={selectedPaymentCreditType?.record_color}
+                        />
+                    </Pressable>
+                ))}
             </View>
         </>
     )
 }
 
 export default CreditsGroups
-
-const localStyles = StyleSheet.create({
-    rowContainer: {
-        width: "100%",
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center"
-    },
-    dateContainer: {
-        width: 50
-    },
-    dateText: {
-        fontWeight: "500",
-        fontSize: 8,
-        textAlign: "center"
-    },
-    nameText: {
-        fontSize: 12,
-        textAlign: "left",
-        maxWidth: 200
-    },
-    valueText: {
-        fontSize: 12,
-        textAlign: "center",
-        fontWeight: "300",
-    },
-    balanceText: {
-        width: "80%",
-        borderTopWidth: 4,
-        height: 60,
-        paddingTop: 10,
-        textAlign: "center",
-        marginLeft: 5,
-        fontWeight: "300",
-        fontSize: 18
-    }
-})

@@ -17,6 +17,8 @@ export const recordsEn = {
         "financingPayments": "Pending credit and loan payments",
         "all": "All",
         "records": "Records",
+        "pinGroup": "Pin group",
+        "unpinGroup": "Unpin group",
         "periodSuggestion": "This date belongs to {group} ({period}). You can switch groups in the selector.",
         "error": {
             "emptyFields": "Please enter all fields and select the necessary options."
@@ -82,6 +84,8 @@ export const recordsEs: MessageShape<typeof recordsEn> = {
         "financingPayments": "Pagos de créditos y préstamos pendientes",
         "all": "Todos",
         "records": "Registros",
+        "pinGroup": "Fijar grupo",
+        "unpinGroup": "Quitar grupo fijado",
         "periodSuggestion": "Esta fecha pertenece al grupo {group} ({period}). Puedes cambiar de grupo en el selector.",
         "error": {
             "emptyFields": "Por favor, ingresa todos los campos y selecciona las opciones necesarias."

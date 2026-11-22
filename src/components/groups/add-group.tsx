@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, View } from 'react-native'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
 import { useToast } from '@/src/ui/feedback/ToastProvider'
@@ -28,6 +28,7 @@ import { InlineMessage } from '@/src/ui/feedback/InlineMessage'
 import { MoneyField } from '@/src/ui/forms/MoneyField'
 import { MonthField } from '@/src/ui/forms/MonthField'
 import { TextField } from '@/src/ui/forms/TextField'
+import { FormErrorSummary } from '@/src/ui/forms/FormErrorSummary'
 import { Modal } from '@/src/ui/overlays/Modal'
 
 type GroupFormMode = 'create' | 'edit'
@@ -35,13 +36,23 @@ type GroupFormMode = 'create' | 'edit'
 interface AddGroupProps {
     children?: React.ReactNode
     openUpdate?: boolean
+    open?: boolean
     mode?: GroupFormMode
+    onClose?: () => void
+    onSaved?: (group: Group) => void
 }
 
 const groupDate = (group: Group) => groupPeriodFromRow(group).start
 const groupEnd = (group: Group) => groupPeriodFromRow(group).end
 
-const AddGroup = ({ children, openUpdate, mode = 'create' }: AddGroupProps) => {
+const AddGroup = ({
+    children,
+    openUpdate,
+    open,
+    mode = 'create',
+    onClose,
+    onSaved,
+}: AddGroupProps) => {
     const { t } = useLanguage()
     const { configs } = useConfigs()
     const [visible, setVisible] = useState(false)
@@ -59,7 +70,9 @@ const AddGroup = ({ children, openUpdate, mode = 'create' }: AddGroupProps) => {
     const [pendingItems, setPendingItems] = useState<PendingBalanceItem[]>([])
     const [pendingGroup, setPendingGroup] = useState<Group | null>(null)
     const [pendingPrevious, setPendingPrevious] = useState<Group | null>(null)
-    const firstOpenEffect = useRef(true)
+    const [missingFields, setMissingFields] = useState<
+        { field: string; label: string }[]
+    >([])
 
     const previewPeriod = useMemo<Period | null>(() => {
         const unchangedMonth =
@@ -105,13 +118,12 @@ const AddGroup = ({ children, openUpdate, mode = 'create' }: AddGroupProps) => {
             group.period_end !== previewPeriod.end)
 
     useEffect(() => {
-        if (openUpdate === undefined) return
-        if (firstOpenEffect.current) {
-            firstOpenEffect.current = false
-            return
-        }
-        setVisible(true)
+        if (openUpdate) setVisible(true)
     }, [openUpdate])
+
+    useEffect(() => {
+        if (open) setVisible(true)
+    }, [open])
 
     useEffect(() => {
         if (!visible) return
@@ -136,7 +148,22 @@ const AddGroup = ({ children, openUpdate, mode = 'create' }: AddGroupProps) => {
         setYear(new Date().getFullYear())
     }
 
-    const closeModal = () => setVisible(false)
+    const closeModal = () => {
+        setVisible(false)
+        setMissingFields([])
+        onClose?.()
+    }
+
+    const clearMissing = (field: string) => {
+        setMissingFields((current) =>
+            current.filter((item) => item.field !== field)
+        )
+    }
+
+    const errorFor = (field: string) =>
+        missingFields.some((item) => item.field === field)
+            ? t('required')
+            : undefined
 
     const checkPendingBalances = async (created: Group) => {
         const allGroups = await fetchGroups()
@@ -217,13 +244,24 @@ const AddGroup = ({ children, openUpdate, mode = 'create' }: AddGroupProps) => {
     }
 
     const onSave = async () => {
-        if (!name.trim() || goalCents <= 0 || !year || !previewPeriod) {
-            showToast({ message: t('toast.empty'), type: 'warning' })
+        const nextMissing: { field: string; label: string }[] = []
+        if (!name.trim()) {
+            nextMissing.push({ field: 'name', label: t('group.name') })
+        }
+        if (goalCents <= 0) {
+            nextMissing.push({ field: 'goal', label: t('group.goal') })
+        }
+        if (!year || String(year).length !== 4) {
+            nextMissing.push({ field: 'year', label: t('group.year') })
+        }
+        if (nextMissing.length > 0) {
+            setMissingFields(nextMissing)
             return
         }
+        setMissingFields([])
 
-        if (String(year).length !== 4) {
-            showToast({ message: t('year-error'), type: 'info' })
+        if (!previewPeriod) {
+            showToast({ message: t('toast.empty'), type: 'warning' })
             return
         }
 
@@ -246,17 +284,20 @@ const AddGroup = ({ children, openUpdate, mode = 'create' }: AddGroupProps) => {
             showToast({ message: t('toast.edited'), type: 'success' })
             await getGroups()
             cleanData()
+            onSaved?.(updateGroup)
             closeModal()
             return
         }
 
         const createdId = await addGroup(newGroup)
+        const createdGroup = { ...newGroup, id: createdId }
         showToast({ message: t('toast.added'), type: 'success' })
         await getGroups()
         cleanData()
+        onSaved?.(createdGroup)
         closeModal()
         try {
-            await checkPendingBalances({ ...newGroup, id: createdId })
+            await checkPendingBalances(createdGroup)
         } catch (cause) {
             if (__DEV__) console.warn('[groups] pending balances check failed', cause)
             showToast({ message: t('toast.error'), type: 'error' })
@@ -291,18 +332,29 @@ const AddGroup = ({ children, openUpdate, mode = 'create' }: AddGroupProps) => {
                 }
             >
                 <View style={styles.form}>
+                    <FormErrorSummary
+                        errors={missingFields.map((item) => item.label)}
+                    />
                     <TextField
                         label={t('group.name')}
                         required
                         value={name}
-                        onChangeText={setName}
+                        onChangeText={(value) => {
+                            setName(value)
+                            clearMissing('name')
+                        }}
                         placeholder={t('group.name')}
+                        error={errorFor('name')}
                     />
                     <MoneyField
                         label={t('group.goal')}
                         required
                         value={goalCents}
-                        onChangeCents={setGoalCents}
+                        onChangeCents={(value) => {
+                            setGoalCents(value)
+                            clearMissing('goal')
+                        }}
+                        error={errorFor('goal')}
                     />
                     <MonthField
                         label={t('group.month')}
@@ -314,10 +366,14 @@ const AddGroup = ({ children, openUpdate, mode = 'create' }: AddGroupProps) => {
                         label={t('group.year')}
                         required
                         value={String(year)}
-                        onChangeText={(value) => setYear(Number(value.replace(/[^0-9]/g, '')))}
+                        onChangeText={(value) => {
+                            setYear(Number(value.replace(/[^0-9]/g, '')))
+                            clearMissing('year')
+                        }}
                         keyboardType='number-pad'
                         maxLength={4}
                         placeholder={t('group.year')}
+                        error={errorFor('year')}
                     />
                     <GroupPeriodPreview period={previewPeriod} />
                     {periodChanged ? (

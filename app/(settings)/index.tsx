@@ -116,7 +116,7 @@ const SettingsScreen = () => {
 
     return (
         <Screen scroll edges={['left', 'right']}>
-            <Stack gap='lg'>
+            <Stack gap='xl'>
                 <AppText variant='title'>{t('settings.header')}</AppText>
                 <TextField
                     label={t('settings.search')}
@@ -203,7 +203,10 @@ const SettingsScreen = () => {
                         {enabled.credits ? (
                             <SelectField<PendingPaymentDateMode>
                                 label={t('settings.pendingPaymentDate')}
-                                hint={t('settings.pendingPaymentDateHint')}
+                                tooltip={{
+                                    title: t('settings.pendingPaymentDate'),
+                                    body: t('settings.pendingPaymentDateHint'),
+                                }}
                                 title={t('settings.pendingPaymentDate')}
                                 value={configs?.pendingPaymentDateMode ?? 'today'}
                                 options={[
@@ -231,7 +234,10 @@ const SettingsScreen = () => {
                             <>
                                 <SelectField<FixedPendingDateMode>
                                     label={t('settings.pendingFixedDate')}
-                                    hint={t('settings.pendingFixedDateHint')}
+                                    tooltip={{
+                                        title: t('settings.pendingFixedDate'),
+                                        body: t('settings.pendingFixedDateHint'),
+                                    }}
                                     title={t('settings.pendingFixedDate')}
                                     value={configs?.pendingFixedDateMode ?? 'next_occurrence'}
                                     options={[
@@ -250,7 +256,10 @@ const SettingsScreen = () => {
 
                                 <SelectField<FixedPendingDedupeMode>
                                     label={t('settings.pendingFixedDedupe')}
-                                    hint={t('settings.pendingFixedDedupeHint')}
+                                    tooltip={{
+                                        title: t('settings.pendingFixedDedupe'),
+                                        body: t('settings.pendingFixedDedupeHint'),
+                                    }}
                                     title={t('settings.pendingFixedDedupe')}
                                     value={configs?.pendingFixedDedupeMode ?? 'period'}
                                     options={[
@@ -273,20 +282,26 @@ const SettingsScreen = () => {
 
                 <SettingsSection
                     title={t('settings.sections.groups')}
-                    description={t('settings.sections.groupsDescription')}
+                    description={`${t('settings.sections.groupsDescription')}\n\n${t('settings.groupPeriodExample')}`}
                     keywords={['groups', 'grupos', 'period', 'periodo', 'automatic', 'automático', 'start day', 'día de inicio']}
                     search={search}
                 >
                     <SwitchField
                         label={t('settings.groupAutoCreate')}
-                        description={t('settings.groupAutoCreateHint')}
+                        tooltip={{
+                            title: t('settings.groupAutoCreate'),
+                            body: t('settings.groupAutoCreateHint'),
+                        }}
                         value={configs?.groupAutoCreate ?? false}
                         onChange={onGroupAutoCreateChange}
                     />
 
                     <SelectField<GroupPeriodMode>
                         label={t('settings.groupPeriod')}
-                        hint={t('settings.groupPeriodHint')}
+                        tooltip={{
+                            title: t('settings.groupPeriod'),
+                            body: t('settings.groupPeriodHint'),
+                        }}
                         title={t('settings.groupPeriod')}
                         value={configs?.groupPeriodMode ?? 'calendar_month'}
                         options={[
@@ -306,7 +321,10 @@ const SettingsScreen = () => {
                     {configs?.groupPeriodMode === 'start_day' ? (
                         <SelectField<number>
                             label={t('settings.groupStartDay')}
-                            hint={t('settings.groupStartDayHint')}
+                            tooltip={{
+                                title: t('settings.groupStartDay'),
+                                body: t('settings.groupStartDayHint'),
+                            }}
                             title={t('settings.groupStartDay')}
                             value={configs?.groupStartDay ?? 1}
                             options={Array.from({ length: 31 }, (_, index) => ({
@@ -318,10 +336,6 @@ const SettingsScreen = () => {
                         />
                     ) : null}
 
-                    <AppText variant='caption' color='muted'>
-                        {t('settings.groupPeriodExample')}
-                    </AppText>
-
                     <Button
                         label={t('settings.groupCreateNow')}
                         variant='outline'
@@ -332,13 +346,16 @@ const SettingsScreen = () => {
                 {enabled.closing ? (
                     <SettingsSection
                         title={t('settings.sections.closing')}
-                    description={t('settings.sections.closingDescription')}
+                    description={`${t('settings.sections.closingDescription')}\n\n${t('settings.closingPeriodExample')}`}
                     keywords={['closing', 'cierre', 'grace', 'gracia', 'deadline', 'límite', 'override', 'ajustar']}
                     search={search}
                 >
                     <SelectField<number>
                         label={t('settings.closingGraceDays')}
-                        hint={t('settings.closingGraceDaysHint')}
+                        tooltip={{
+                            title: t('settings.closingGraceDays'),
+                            body: t('settings.closingGraceDaysHint'),
+                        }}
                         title={t('settings.closingGraceDays')}
                         value={configs?.closingGraceDays ?? 5}
                         options={Array.from({ length: 32 }, (_, index) => ({
@@ -351,14 +368,13 @@ const SettingsScreen = () => {
 
                     <SwitchField
                         label={t('settings.closingAllowPeriodOverride')}
-                        description={t('settings.closingAllowPeriodOverrideHint')}
+                        tooltip={{
+                            title: t('settings.closingAllowPeriodOverride'),
+                            body: t('settings.closingAllowPeriodOverrideHint'),
+                        }}
                         value={configs?.closingAllowPeriodOverride ?? true}
                         onChange={onClosingAllowPeriodOverrideChange}
                     />
-
-                    <AppText variant='caption' color='muted'>
-                        {t('settings.closingPeriodExample')}
-                    </AppText>
                     </SettingsSection>
                 ) : null}
 

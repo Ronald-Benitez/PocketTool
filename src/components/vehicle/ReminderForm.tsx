@@ -242,7 +242,10 @@ export const ReminderForm = ({
               onChange={applyMaintenance}
               placeholder={t('vehicle.reminders.sourceMaintenancePlaceholder')}
               searchable
-              hint={t('vehicle.reminders.sourceMaintenanceHint')}
+              tooltip={{
+                title: t('vehicle.reminders.sourceMaintenance'),
+                body: t('vehicle.reminders.sourceMaintenanceHint'),
+              }}
             />
           ) : null}
           <SelectField

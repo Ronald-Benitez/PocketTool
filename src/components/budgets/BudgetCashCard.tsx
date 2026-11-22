@@ -6,11 +6,10 @@ import type {
 } from '@/src/domain/budgets/types';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { FinanceValue } from '@/src/ui/data-display/FinanceValue';
-import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock';
+import { SectionCard } from '@/src/ui/data-display/SectionCard';
 import { InlineMessage } from '@/src/ui/feedback/InlineMessage';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Row, Stack } from '@/src/ui/primitives/Stack';
-import { Surface } from '@/src/ui/primitives/Surface';
 import { useTheme } from '@/src/ui/theme/ThemeProvider';
 
 type BudgetCashCardProps = {
@@ -24,21 +23,19 @@ export const BudgetCashCard = ({ cash, obligations }: BudgetCashCardProps) => {
   const positive = cash.expectedEndCashCents >= 0;
 
   return (
-    <Surface variant='raised' padding='lg'>
+    <SectionCard
+      title={t('budget.cashExpected')}
+      tooltip={{
+        title: t('budget.cashExpected'),
+        body: t('budget.cashHint'),
+      }}
+    >
       <Stack gap='md'>
-        <Stack gap='xxs'>
-          <SummaryBlock
-            label={t('budget.cashExpected')}
-            cents={cash.expectedEndCashCents}
-            size='xl'
-            labelVariant='subtitle'
-            valueColorOverride={positive ? colors.success : colors.expense}
-            accentColor={positive ? colors.success : colors.expense}
-          />
-          <AppText variant='caption' color='muted'>
-            {t('budget.cashHint')}
-          </AppText>
-        </Stack>
+        <FinanceValue
+          cents={cash.expectedEndCashCents}
+          size='xl'
+          color={positive ? colors.success : colors.expense}
+        />
 
         <Stack gap='xs'>
           <Row justify='space-between' align='center'>
@@ -66,6 +63,6 @@ export const BudgetCashCard = ({ cash, obligations }: BudgetCashCardProps) => {
           />
         ) : null}
       </Stack>
-    </Surface>
+    </SectionCard>
   );
 };

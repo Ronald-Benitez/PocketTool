@@ -37,6 +37,8 @@ import { formatMoneyWithSymbol } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
 import { Badge } from '@/src/ui/data-display/Badge';
 import { ListItem } from '@/src/ui/data-display/ListItem';
+import { SectionCard } from '@/src/ui/data-display/SectionCard';
+import { InfoHint } from '@/src/ui/overlays/InfoHint';
 import { EmptyState } from '@/src/ui/feedback/EmptyState';
 import { LoadingState } from '@/src/ui/feedback/LoadingState';
 import { SelectField } from '@/src/ui/forms/SelectField';
@@ -228,11 +230,16 @@ const FuelScreen = () => {
 
   return (
     <Screen scroll edges={['left', 'right']}>
-      <Stack gap='lg'>
+      <Stack gap='xl'>
         <Row justify='space-between' align='flex-start' gap='md'>
           <Stack gap='xxs' style={{ flex: 1 }}>
-            <AppText variant='title'>{t('vehicle.fuel.title')}</AppText>
-            <AppText color='muted'>{t('vehicle.fuel.subtitle')}</AppText>
+            <Row gap='xs' align='center'>
+              <AppText variant='title'>{t('vehicle.fuel.title')}</AppText>
+              <InfoHint
+                title={t('vehicle.fuel.title')}
+                body={t('vehicle.fuel.subtitle')}
+              />
+            </Row>
           </Stack>
           <Button
             label={t('vehicle.actions.addFuel')}
@@ -263,7 +270,7 @@ const FuelScreen = () => {
           onChange={setDisplayVolumeUnit}
         />
 
-        <Surface variant='muted' padding='md'>
+        <SectionCard title={t('vehicle.stats.title')}>
           <Stack gap='xxs'>
             <AppText>
               {t('vehicle.stats.totalSpent')}: {formatMoneyWithSymbol(stats.totalSpentCents)}
@@ -274,7 +281,7 @@ const FuelScreen = () => {
               {consumptionUnits(format)}
             </AppText>
           </Stack>
-        </Surface>
+        </SectionCard>
 
         <FeatureGate feature='charts'>
         <ChartSection
@@ -373,7 +380,7 @@ const FuelScreen = () => {
             icon={<MaterialIcons name='local-gas-station' size={28} color={colors.textMuted} />}
           />
         ) : (
-          <Stack gap='md'>
+          <SectionCard title={t('vehicle.history.title')} padded={false}>
             {segments
               .slice()
               .reverse()
@@ -579,7 +586,7 @@ const FuelScreen = () => {
                   </Surface>
                 );
               })}
-          </Stack>
+          </SectionCard>
         )}
       </Stack>
 

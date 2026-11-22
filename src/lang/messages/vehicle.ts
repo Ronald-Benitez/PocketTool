@@ -236,6 +236,7 @@ export const vehicleEn = {
     price: 'Price',
   },
   stats: {
+    title: 'Summary',
     currentOdometer: 'Current odometer',
     lastFill: 'Last fill-up',
     monthSpend: 'Spent this month',
@@ -555,6 +556,7 @@ export const vehicleEs: MessageShape<typeof vehicleEn> = {
     price: 'Precio',
   },
   stats: {
+    title: 'Resumen',
     currentOdometer: 'Odómetro actual',
     lastFill: 'Última carga',
     monthSpend: 'Gastado este mes',

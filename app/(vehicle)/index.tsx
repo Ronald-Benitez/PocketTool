@@ -42,8 +42,10 @@ import { FeatureGate } from '@/src/features';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { formatMoneyWithSymbol } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
+import { LinkButton } from '@/src/ui/actions/LinkButton';
 import { Badge, type BadgeTone } from '@/src/ui/data-display/Badge';
 import { ListItem } from '@/src/ui/data-display/ListItem';
+import { SectionCard } from '@/src/ui/data-display/SectionCard';
 import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock';
 import { EmptyState } from '@/src/ui/feedback/EmptyState';
 import { LoadingState } from '@/src/ui/feedback/LoadingState';
@@ -303,7 +305,7 @@ const Index = () => {
 
   return (
     <Screen scroll edges={['left', 'right']}>
-      <Stack gap='lg'>
+      <Stack gap='xl'>
         <Row justify='space-between' align='center' gap='md'>
           <View style={{ flex: 1 }}>
             <SelectField
@@ -365,7 +367,7 @@ const Index = () => {
           </Surface>
         ) : null}
 
-        <Surface variant='raised' padding='lg'>
+        <SectionCard title={t('vehicle.stats.title')}>
           <Stack gap='md'>
             <Row gap='md' justify='space-between'>
               <SummaryBlock
@@ -438,12 +440,10 @@ const Index = () => {
               />
             </Row>
           </Stack>
-        </Surface>
+        </SectionCard>
 
         {dueReminders.length > 0 ? (
-          <Stack gap='sm'>
-            <AppText variant='subtitle'>{t('vehicle.reminders.title')}</AppText>
-            <Surface variant='outlined' padding='none'>
+          <SectionCard title={t('vehicle.reminders.title')} padded={false}>
               {dueReminders.map(({ reminder, status }, index) => {
                 const unit =
                   reminder.odometer_unit === 'km'
@@ -489,23 +489,19 @@ const Index = () => {
                   />
                 );
               })}
-            </Surface>
-          </Stack>
+          </SectionCard>
         ) : null}
 
-        <Surface variant='outlined' padding='lg'>
+        <SectionCard
+          title={t('vehicle.maintenance.title')}
+          action={
+            <LinkButton
+              label={t('vehicle.actions.addMaintenance')}
+              onPress={() => router.push('/(vehicle)/maintenance' as never)}
+            />
+          }
+        >
           <Stack gap='md'>
-            <Row justify='space-between' align='center' gap='sm'>
-              <AppText variant='subtitle'>
-                {t('vehicle.maintenance.title')}
-              </AppText>
-              <Button
-                label={t('vehicle.actions.addMaintenance')}
-                size='sm'
-                variant='ghost'
-                onPress={() => router.push('/(vehicle)/maintenance' as never)}
-              />
-            </Row>
             <Row gap='md'>
               <SummaryBlock
                 label={t('vehicle.maintenance.totalSpent')}
@@ -543,14 +539,16 @@ const Index = () => {
               <AppText color='muted'>{t('vehicle.maintenance.empty')}</AppText>
             )}
           </Stack>
-        </Surface>
+        </SectionCard>
 
-        <Surface variant='outlined' padding='lg'>
+        <SectionCard
+          title={t('vehicle.history.title')}
+          tooltip={{
+            title: t('vehicle.history.title'),
+            body: t('vehicle.history.subtitle'),
+          }}
+        >
           <Stack gap='md'>
-            <Stack gap='xxs'>
-              <AppText variant='subtitle'>{t('vehicle.history.title')}</AppText>
-              <AppText color='muted'>{t('vehicle.history.subtitle')}</AppText>
-            </Stack>
             <SelectField
               label={t('vehicle.history.mode')}
               value={historyMode}
@@ -693,7 +691,7 @@ const Index = () => {
               )}
             </Stack>
           </Stack>
-        </Surface>
+        </SectionCard>
 
         <FeatureGate feature='charts'>
         <ChartSection
@@ -735,12 +733,13 @@ const Index = () => {
         </ChartSection>
         </FeatureGate>
 
-        <Stack gap='sm'>
-          <AppText variant='subtitle'>{t('vehicle.fuel.title')}</AppText>
+        <SectionCard title={t('vehicle.fuel.title')} padded={false}>
           {fuelEntries.length === 0 ? (
-            <AppText color='muted'>{t('vehicle.fuel.empty')}</AppText>
+            <AppText color='muted' style={{ padding: 16 }}>
+              {t('vehicle.fuel.empty')}
+            </AppText>
           ) : (
-            <Surface variant='outlined' padding='none'>
+            <>
               {fuelEntries.slice(0, 4).map((entry, index) => {
                 const analysis = stats.entries.find((item) => item.entry.id === entry.id);
                 const value = selectConsumption(
@@ -782,9 +781,9 @@ const Index = () => {
                   />
                 );
               })}
-            </Surface>
+            </>
           )}
-        </Stack>
+        </SectionCard>
       </Stack>
 
       <VehicleForm

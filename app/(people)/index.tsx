@@ -16,11 +16,14 @@ import { SettlementForm } from '@/src/components/people/SettlementForm';
 import { FinanceValue } from '@/src/ui/data-display/FinanceValue';
 import { Button } from '@/src/ui/actions/Button';
 import { Badge } from '@/src/ui/data-display/Badge';
+import { SectionCard } from '@/src/ui/data-display/SectionCard';
 import { EmptyState } from '@/src/ui/feedback/EmptyState';
 import { useToast } from '@/src/ui/feedback/ToastProvider';
 import { SwitchField } from '@/src/ui/forms/SwitchField';
 import { TextField } from '@/src/ui/forms/TextField';
+import { FormErrorSummary } from '@/src/ui/forms/FormErrorSummary';
 import { ConfirmDialog } from '@/src/ui/overlays/Dialog';
+import { InfoHint } from '@/src/ui/overlays/InfoHint';
 import { Modal } from '@/src/ui/overlays/Modal';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Screen } from '@/src/ui/primitives/Screen';
@@ -180,10 +183,15 @@ const PeopleScreen = () => {
 
   return (
     <Screen scroll edges={['left', 'right']}>
-      <Stack gap='lg'>
+      <Stack gap='xl'>
         <Stack gap='xxs'>
-          <AppText variant='title'>{t('shared.peopleTitle')}</AppText>
-          <AppText color='muted'>{t('shared.peopleSubtitle')}</AppText>
+          <Row gap='xs' align='center'>
+            <AppText variant='title'>{t('shared.peopleTitle')}</AppText>
+            <InfoHint
+              title={t('shared.peopleTitle')}
+              body={t('shared.peopleSubtitle')}
+            />
+          </Row>
         </Stack>
         <Button
           label={t('shared.addPersonTitle')}
@@ -215,27 +223,24 @@ const PeopleScreen = () => {
               );
               const savings = person.id != null ? savingsTotals.get(person.id) : undefined;
               return (
-                <Surface key={person.id} variant='outlined' padding='md'>
+                <SectionCard
+                  key={person.id}
+                  title={person.name}
+                  subtitle={person.notes ?? undefined}
+                  action={
+                    <Badge
+                      label={
+                        person.is_active === 0
+                          ? t('shared.inactive')
+                          : t('shared.active')
+                      }
+                      tone={person.is_active === 0 ? 'neutral' : 'success'}
+                      size='sm'
+                    />
+                  }
+                  variant='outlined'
+                >
                   <Stack gap='sm'>
-                    <Row justify='space-between' align='center' gap='sm'>
-                      <Stack gap='xxs' style={{ flex: 1 }}>
-                        <AppText weight='600'>{person.name}</AppText>
-                        {person.notes ? (
-                          <AppText variant='caption' color='muted'>
-                            {person.notes}
-                          </AppText>
-                        ) : null}
-                      </Stack>
-                      <Badge
-                        label={
-                          person.is_active === 0
-                            ? t('shared.inactive')
-                            : t('shared.active')
-                        }
-                        tone={person.is_active === 0 ? 'neutral' : 'success'}
-                        size='sm'
-                      />
-                    </Row>
 
                     {hasStatement && summary ? (
                       <Surface variant='muted' padding='md'>
@@ -333,7 +338,7 @@ const PeopleScreen = () => {
                       />
                     </Row>
                   </Stack>
-                </Surface>
+                </SectionCard>
               );
             })}
           </Stack>
@@ -366,11 +371,16 @@ const PeopleScreen = () => {
         }
       >
         <Stack gap='md'>
+          <FormErrorSummary errors={error ? [error] : []} />
           <TextField
             label={t('shared.name')}
             required
             value={name}
-            onChangeText={setName}
+            onChangeText={(value) => {
+              setName(value);
+              setError(null);
+            }}
+            error={error === t('shared.personRequired') ? t('required') : undefined}
           />
           <TextField
             label={t('shared.notes')}
@@ -384,7 +394,6 @@ const PeopleScreen = () => {
             value={isActive}
             onChange={setIsActive}
           />
-          {error ? <AppText color='danger'>{error}</AppText> : null}
         </Stack>
       </Modal>
 

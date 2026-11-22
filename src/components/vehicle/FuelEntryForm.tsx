@@ -610,7 +610,10 @@ export const FuelEntryForm = ({
           {!entry && isFirstEntry ? (
             <SwitchField
               label={t('vehicle.fuel.baselineMode')}
-              description={t('vehicle.fuel.baselineHint')}
+              tooltip={{
+                title: t('vehicle.fuel.baselineMode'),
+                body: t('vehicle.fuel.baselineHint'),
+              }}
               value={isBaseline}
               onChange={(value) => {
                 setIsBaseline(value);

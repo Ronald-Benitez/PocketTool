@@ -1,8 +1,5 @@
 import {
   View,
-  Text,
-  Pressable,
-  TextStyle,
   StyleProp,
   StyleSheet,
 } from "react-native";
@@ -16,7 +13,6 @@ import { ScrollView } from "react-native-gesture-handler";
 import { useToast } from "@/src/ui/feedback/ToastProvider";
 import AddItem from "./add-record";
 import useRecordsStore from "@/src/stores/RecordsStore";
-import useColorStore from "@/src/stores/ColorsStore";
 import useResumesStore from "@/src/stores/ResumesStore";
 import { useCreditStore } from "@/src/stores/CreditsStore";
 import { useConfigs } from "@/src/hooks/useConfigs";
@@ -24,7 +20,6 @@ import { usePendingFixeds } from "@/src/hooks/usePendingFixeds";
 import { resolvePendingPaymentDate } from "@/src/domain/credits/pending";
 import { groupPeriodFromRow } from "@/src/domain/groups/period";
 import { useDataStore } from "@/src/stores";
-import { useThemedStyles } from "@/src/styles/useThemedStyles";
 import RecordsGroup from "./RecordsGroup";
 import FixedsGroup from "./FixedsGroup";
 import FinancingsGroup, { type PendingFinancingPayment } from "./FinancingsGroup";
@@ -40,7 +35,7 @@ import type { FinancingWithRelations } from "@/src/interfaces/schema";
 import { FinancingPaymentForm } from "@/src/components/credits/FinancingPaymentForm";
 import type { OrderCondition } from "@/src/orm";
 import type { RecordFormEntry, RecordType, RecordWithRelations } from "@/src/interfaces/schema";
-import { formatMoney } from "@/src/utils";
+import { formatMoneyWithSymbol } from "@/src/utils";
 import RecordsFilterModal, { RECORDS_ORDER_STORAGE_KEY } from "./RecordsFilterModal";
 import type { RecordFilter } from "./RecordsFilterModal";
 import {
@@ -48,8 +43,13 @@ import {
   sortRecords,
 } from "@/src/domain/records/filtering";
 import { IconButton as AppIconButton } from "@/src/ui/actions/IconButton";
+import { Button } from "@/src/ui/actions/Button";
 import { Badge } from "@/src/ui/data-display/Badge";
+import { FinanceValue } from "@/src/ui/data-display/FinanceValue";
 import { AppText } from "@/src/ui/primitives/AppText";
+import { Row, Stack } from "@/src/ui/primitives/Stack";
+import { Surface } from "@/src/ui/primitives/Surface";
+import { useTheme } from "@/src/ui/theme/ThemeProvider";
 
 enum SHOW_OPTIONS {
   ALL = 0,
@@ -60,13 +60,12 @@ enum SHOW_OPTIONS {
 }
 
 const ItemsTable = () => {
-  const styles = useThemedStyles();
   const [selected, setSelected] = React.useState<RecordFormEntry>();
   const [openUpdate, setOpenUpdate] = React.useState<boolean>(false);
   const { showToast } = useToast();
   const { t } = useLanguage();
   const { records, group, setRecords } = useRecordsStore();
-  const { colors } = useColorStore();
+  const { colors } = useTheme();
   const { credits } = useCreditStore();
   const { RecordTypes, setFixeds } = useDataStore();
   const [creditRecords, setCreditRecords] = useState<RecordFormEntry[]>();
@@ -217,7 +216,7 @@ const ItemsTable = () => {
 
   const handleUpdate = (record: RecordWithRelations) => {
     setSelected(record);
-    setOpenUpdate(!openUpdate);
+    setOpenUpdate(true);
   };
 
   const applyFiltersAndOrder = async (
@@ -228,17 +227,6 @@ const ItemsTable = () => {
     setRecordOrder(nextOrder)
     setFilterModalVisible(false)
   }
-
-  const color = (
-    type: "income" | "expense" | "transfer"
-  ): TextStyle => ({
-    borderColor:
-      type === "expense"
-        ? colors?.ExpenseColor
-        : type === "income"
-          ? colors?.IncomeColor
-          : undefined,
-  });
 
   const generateCreditRecords = () => {
     const list: RecordFormEntry[] = [];
@@ -323,113 +311,87 @@ const ItemsTable = () => {
 
   const onCreditPayment = (item: RecordFormEntry) => {
     setSelected(item);
-    setOpenUpdate(!openUpdate);
+    setOpenUpdate(true);
   };
 
   return (
     <>
-      <View>
-        <View style={localStyles.rowContainer}>
-          <View style={{ flex: 1 }}>
-            <Text
-              style={[
-                localStyles.balanceText,
-                styles.textPrimary,
-                color(balance < 0 ? "expense" : "income"),
-              ]}
-            >
-              $ {formatMoney(balance)}
-            </Text>
-            <Text style={[localStyles.cashText, styles.textMuted]}>
-              {t("resume.cashBalance")}: $ {formatMoney(cashBalance)}
-            </Text>
-          </View>
-          <View style={[{ position: "absolute", right: 0, top: 0, flexDirection: "row", gap: 2, alignItems: "center" }]}>
-            {showFilters ? (
-              <>
-                <AppIconButton
-                  label={t("recordsFilters.title")}
-                  variant="surface"
-                  icon={
-                    <MaterialIcons
-                      name="filter-list"
-                      size={20}
-                      color={filters.length > 0 ? colors.primary : colors.text}
-                    />
-                  }
-                  onPress={() => setFilterModalVisible(true)}
-                />
-                {filters.length > 0 ? (
-                  <Badge label={String(filters.length)} tone="primary" size="sm" />
-                ) : null}
-              </>
-            ) : null}
-            {group && (
-              <AddItem>
-                <View style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}>
-                  <MaterialIcons name="add" size={24} color={colors.primary} />
-                </View>
-              </AddItem>
-            )}
-          </View>
-        </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ flexGrow: 1, height: 40 }}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "center",
-              gap: 20,
-              marginVertical: 10,
-            }}
-          >
-            {[
-              { value: SHOW_OPTIONS.ALL, label: t("records.all") },
-              { value: SHOW_OPTIONS.RECORDS, label: t("records.records") },
-              ...(showCredits
-                ? [{
-                    value: SHOW_OPTIONS.CREDITS,
-                    label: t("records.creditPayments"),
-                  }]
-                : []),
-              ...(showFixeds
-                ? [{ value: SHOW_OPTIONS.FIXEDS, label: t("records.fixeds") }]
-                : []),
-              ...(showFinancings
-                ? [{
-                    value: SHOW_OPTIONS.FINANCINGS,
-                    label: t("records.financingPayments"),
-                  }]
-                : []),
-            ].map((option) => {
-              const selected = activeShow === option.value;
-              return (
-                <Pressable key={option.value} onPress={() => setShowActual(option.value)}>
-                  <View
-                    style={[
-                      localStyles.filterPill,
-                      {
-                        backgroundColor: selected ? colors.primary : colors.surfaceMuted,
-                        borderColor: selected ? colors.primary : colors.border,
-                      },
-                    ]}
-                  >
-                    <AppText
-                      variant='caption'
-                      style={{ color: selected ? colors.onPrimary : colors.text }}
-                    >
-                      {option.label}
-                    </AppText>
+      <Surface
+        variant='glass'
+        padding='md'
+        style={{ marginHorizontal: 16, marginBottom: 12 }}
+      >
+        <Stack gap='md'>
+          <Row justify='space-between' align='center' gap='md'>
+            <View style={{ flex: 1 }}>
+              <FinanceValue cents={balance} size='xl' />
+              <AppText variant='caption' color='muted'>
+                {t("resume.cashBalance")}: {formatMoneyWithSymbol(cashBalance)}
+              </AppText>
+            </View>
+            <Row gap='sm' align='center'>
+              {showFilters ? (
+                <>
+                  <AppIconButton
+                    label={t("recordsFilters.title")}
+                    variant="surface"
+                    icon={
+                      <MaterialIcons
+                        name="filter-list"
+                        size={20}
+                        color={filters.length > 0 ? colors.primary : colors.text}
+                      />
+                    }
+                    onPress={() => setFilterModalVisible(true)}
+                  />
+                  {filters.length > 0 ? (
+                    <Badge label={String(filters.length)} tone="primary" size="sm" />
+                  ) : null}
+                </>
+              ) : null}
+              {group && (
+                <AddItem>
+                  <View style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}>
+                    <MaterialIcons name="add" size={24} color={colors.primary} />
                   </View>
-                </Pressable>
-              );
-            })}
-          </View>
-        </ScrollView>
-      </View>
+                </AddItem>
+              )}
+            </Row>
+          </Row>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <Row gap='sm' align='center'>
+              {[
+                { value: SHOW_OPTIONS.ALL, label: t("records.all") },
+                { value: SHOW_OPTIONS.RECORDS, label: t("records.records") },
+                ...(showCredits
+                  ? [{
+                      value: SHOW_OPTIONS.CREDITS,
+                      label: t("records.creditPayments"),
+                    }]
+                  : []),
+                ...(showFixeds
+                  ? [{ value: SHOW_OPTIONS.FIXEDS, label: t("records.fixeds") }]
+                  : []),
+                ...(showFinancings
+                  ? [{
+                      value: SHOW_OPTIONS.FINANCINGS,
+                      label: t("records.financingPayments"),
+                    }]
+                  : []),
+              ].map((option) => (
+                <Button
+                  key={option.value}
+                  label={option.label}
+                  size='sm'
+                  variant={activeShow === option.value ? 'primary' : 'outline'}
+                  onPress={() => setShowActual(option.value)}
+                />
+              ))}
+            </Row>
+          </ScrollView>
+        </Stack>
+      </Surface>
 
       <ScrollView style={{ flex: 1 }}>
         {activeShow === SHOW_OPTIONS.ALL && (
@@ -486,7 +448,12 @@ const ItemsTable = () => {
             onPress={openFinancingPayment}
           />
         )}
-        <AddItem openUpdate={openUpdate} open={openUpdate} item={selected} />
+        <AddItem
+          openUpdate={openUpdate}
+          open={openUpdate}
+          item={selected}
+          onClose={() => setOpenUpdate(false)}
+        />
       </ScrollView>
       <FinancingPaymentForm
         visible={financingPaymentVisible}
@@ -555,12 +522,6 @@ const localStyles = StyleSheet.create({
     textAlign: "center",
     fontSize: 11,
     marginLeft: 5,
-  },
-  filterPill: {
-    borderWidth: 1,
-    padding: 6,
-    height: 30,
-    borderRadius: 100,
   },
 });
 

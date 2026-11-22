@@ -434,7 +434,10 @@ export const FinancingForm = ({
               label={t('financings.agreedPayment')}
               value={payment}
               onChangeCents={setPayment}
-              hint={t('financings.agreedPaymentHint')}
+              tooltip={{
+                title: t('financings.agreedPayment'),
+                body: t('financings.agreedPaymentHint'),
+              }}
             />
             {payment > 0 && paymentDifference > 0 ? (
               <InlineMessage

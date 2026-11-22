@@ -164,7 +164,7 @@ const GroupSelector = () => {
     }
 
     const handleUpdate = () => {
-        setOpenUpdate(!openUpdate)
+        setOpenUpdate(true)
     }
 
     return (
@@ -198,6 +198,7 @@ const GroupSelector = () => {
             <AddGroup
                 openUpdate={openUpdate}
                 mode='edit'
+                onClose={() => setOpenUpdate(false)}
             >
             </AddGroup>
         </>

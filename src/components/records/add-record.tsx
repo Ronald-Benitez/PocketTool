@@ -48,6 +48,7 @@ import { DateField } from "@/src/ui/forms/DateField";
 import { MoneyField } from "@/src/ui/forms/MoneyField";
 import { SelectField } from "@/src/ui/forms/SelectField";
 import { TextField } from "@/src/ui/forms/TextField";
+import { FormErrorSummary } from "@/src/ui/forms/FormErrorSummary";
 import { InlineMessage } from "@/src/ui/feedback/InlineMessage";
 import { Modal } from "@/src/ui/overlays/Modal";
 import { AppText } from "@/src/ui/primitives/AppText";
@@ -58,12 +59,14 @@ interface AddItemProps {
     children?: React.ReactNode
     openUpdate?: boolean
     open?: boolean
+    onClose?: () => void
+    onSaved?: () => void
 }
 
 type SharingSource = 'fixed' | 'financing' | 'saving' | null;
 type FixedPaidMode = 'me_full' | 'me_own' | 'person_full';
 
-const AddItem = ({ item, children, open }: AddItemProps) => {
+const AddItem = ({ item, children, open, onClose, onSaved }: AddItemProps) => {
     const { setRecords, group, setPaidCredits } = useRecordsStore()
     const dateH = useDate()
     const { t, language } = useLanguage()
@@ -105,10 +108,12 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     const quickAdd = useFeature('quickAdd')
     const smartDefaults = useFeature('smartDefaults')
     const [showMore, setShowMore] = useState(false)
+    const [missingFields, setMissingFields] = useState<
+        { field: string; label: string }[]
+    >([])
     const compact = quickAdd && !item && !showMore
     const rememberDefaults = useRecordDefaults((state) => state.remember)
     const defaultsApplied = useRef(false)
-    const firstOpenEffect = useRef(true)
     const [periodSuggestion, setPeriodSuggestion] = useState<{
         group: Group
         period: Period
@@ -158,11 +163,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
     }, [date, group, group_id])
 
     useEffect(() => {
-        if (firstOpenEffect.current) {
-            firstOpenEffect.current = false
-            return
-        }
-        setVisible(true)
+        if (open) setVisible(true)
     }, [open])
 
     useEffect(() => {
@@ -347,7 +348,22 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
         setFixedPaidMode('me_full')
     }, [savingId])
 
-    const closeModal = () => setVisible(false)
+    const closeModal = () => {
+        setVisible(false)
+        setMissingFields([])
+        onClose?.()
+    }
+
+    const clearMissing = (field: string) => {
+        setMissingFields((current) =>
+            current.filter((item) => item.field !== field)
+        )
+    }
+
+    const errorFor = (field: string) =>
+        missingFields.some((item) => item.field === field)
+            ? t('required')
+            : undefined
 
     const typeOptions = recordTypes.flatMap(val =>
         typeof val.id === 'number' ? [{ label: val.type_name, value: val.id }] : []
@@ -456,11 +472,47 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                 paymentMethod: payment_method,
             })
         ) {
-            showToast({ message: t('savings.records.creditCardConflict'), type: 'warning' })
+            setMissingFields([
+                {
+                    field: 'saving',
+                    label: t('savings.records.creditCardConflict'),
+                },
+            ])
             return
         }
 
         const requiresPayment = paidByMeCents > 0;
+        const nextMissing: { field: string; label: string }[] = []
+        if (!type?.id) nextMissing.push({ field: 'type', label: t('item.type') })
+        if (!category?.id) {
+            nextMissing.push({ field: 'category', label: t('item.category') })
+        }
+        if (requiresPayment && !payment_method?.id) {
+            nextMissing.push({ field: 'payment', label: t('item.payment') })
+        }
+        if (
+            requiresPayment &&
+            type?.id === paymentCreditType &&
+            !to_pay_method?.id
+        ) {
+            nextMissing.push({ field: 'toPay', label: t('item.toPay') })
+        }
+        if (totalCents <= 0) {
+            nextMissing.push({
+                field: 'amount',
+                label:
+                    participants.length > 0
+                        ? t('shared.totalPurchase')
+                        : t('item.value'),
+            })
+        }
+        if (!date) nextMissing.push({ field: 'date', label: t('item.date') })
+        if (nextMissing.length > 0) {
+            setMissingFields(nextMissing)
+            return
+        }
+        setMissingFields([])
+        if (!type || !category) return
         if (
             participants.some(
                 (participant) =>
@@ -468,17 +520,9 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                     (participant.shareAmountCents ?? 0) <= 0
             )
         ) {
-            showToast({ message: t('shared.amountRequired'), type: 'warning' })
-            return
-        }
-        if (
-            totalCents <= 0 ||
-            !category?.id ||
-            !type?.id ||
-            (requiresPayment && !payment_method?.id) ||
-            (requiresPayment && type.id === paymentCreditType && !to_pay_method?.id)
-        ) {
-            showToast({ message: t('toast.empty'), type: 'warning' })
+            setMissingFields([
+                { field: 'participants', label: t('shared.amountRequired') },
+            ])
             return
         }
 
@@ -550,6 +594,7 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
             const credits = await fetchPaidCreditsByGroup(group_id)
             setRecords(records ?? [])
             setPaidCredits(credits)
+            onSaved?.()
             closeModal()
         } catch (e) {
             console.error("Error al guardar el registro:", e)
@@ -600,6 +645,9 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                 }
             >
                 <View style={styles.form}>
+                    <FormErrorSummary
+                        errors={missingFields.map((item) => item.label)}
+                    />
                     {!compact ? (
                         <TextField
                             label={t('item.name')}
@@ -614,7 +662,11 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                         value={type?.id}
                         title={t('item.type')}
                         options={typeOptions}
-                        onChange={(id) => setType(recordTypes.find(val => val.id === id))}
+                        error={errorFor('type')}
+                        onChange={(id) => {
+                            setType(recordTypes.find(val => val.id === id))
+                            clearMissing('type')
+                        }}
                         renderValue={(option) => (
                             <ColoredSelectOption
                                 color={type?.record_color}
@@ -634,7 +686,11 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                         value={category?.id}
                         title={t('item.selectCategory')}
                         options={categoryOptions}
-                        onChange={(id) => setCategory(categories.find(cat => cat.id === id))}
+                        error={errorFor('category')}
+                        onChange={(id) => {
+                            setCategory(categories.find(cat => cat.id === id))
+                            clearMissing('category')
+                        }}
                     />
                     {paidByPersonId == null ? (
                         <SelectField<number>
@@ -643,7 +699,11 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                             value={payment_method?.id}
                             title={t('item.selectPayment')}
                             options={paymentOptions}
-                            onChange={(id) => setPaymentMethod(paymentMethods.find(pay => pay.id === id))}
+                            error={errorFor('payment')}
+                            onChange={(id) => {
+                                setPaymentMethod(paymentMethods.find(pay => pay.id === id))
+                                clearMissing('payment')
+                            }}
                             renderValue={(option) => (
                                 <ColoredSelectOption
                                     color={payment_method?.PaymentTypes?.payment_color}
@@ -665,7 +725,11 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                             value={to_pay_method?.id}
                             title={t('item.selectToPay')}
                             options={paymentOptions}
-                            onChange={(id) => setToPayMethod(paymentMethods.find(pay => pay.id === id))}
+                            error={errorFor('toPay')}
+                            onChange={(id) => {
+                                setToPayMethod(paymentMethods.find(pay => pay.id === id))
+                                clearMissing('toPay')
+                            }}
                             renderValue={(option) => (
                                 <ColoredSelectOption
                                     color={to_pay_method?.PaymentTypes?.payment_color}
@@ -684,7 +748,11 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                         label={participants.length > 0 ? t('shared.totalPurchase') : t('item.value')}
                         required
                         value={totalCents}
-                        onChangeCents={setTotalCents}
+                        error={errorFor('amount')}
+                        onChangeCents={(value) => {
+                            setTotalCents(value)
+                            clearMissing('amount')
+                        }}
                     />
 
                     {quickAdd && !item ? (
@@ -834,7 +902,11 @@ const AddItem = ({ item, children, open }: AddItemProps) => {
                     <DateField
                         label={t('item.date')}
                         value={date}
-                        onChange={setDate}
+                        error={errorFor('date')}
+                        onChange={(value) => {
+                            setDate(value)
+                            clearMissing('date')
+                        }}
                     />
                     {!compact && periodSuggestion ? (
                         <InlineMessage

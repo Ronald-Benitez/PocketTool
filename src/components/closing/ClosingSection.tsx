@@ -9,10 +9,10 @@ import { Button } from '@/src/ui/actions/Button';
 import { IconButton } from '@/src/ui/actions/IconButton';
 import { Badge } from '@/src/ui/data-display/Badge';
 import { FinanceValue } from '@/src/ui/data-display/FinanceValue';
+import { SectionCard } from '@/src/ui/data-display/SectionCard';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Divider } from '@/src/ui/primitives/Divider';
 import { Row, Stack } from '@/src/ui/primitives/Stack';
-import { Surface } from '@/src/ui/primitives/Surface';
 import { useTheme } from '@/src/ui/theme/ThemeProvider';
 
 type ClosingSectionProps = {
@@ -70,20 +70,17 @@ export const ClosingSection = ({
   const visibleLines = lines.filter((line) => line.section === section);
 
   return (
-    <Surface variant='outlined' padding='md'>
+    <SectionCard
+      title={title}
+      tooltip={{ title, body: hint }}
+      action={
+        subtotalCents != null ? (
+          <FinanceValue cents={subtotalCents} size='md' color={colors.text} />
+        ) : undefined
+      }
+      variant='outlined'
+    >
       <Stack gap='sm'>
-        <Row justify='space-between' align='center' gap='sm'>
-          <View style={{ flex: 1 }}>
-            <AppText variant='subtitle'>{title}</AppText>
-            <AppText variant='caption' color='muted'>
-              {hint}
-            </AppText>
-          </View>
-          {subtotalCents != null ? (
-            <FinanceValue cents={subtotalCents} size='md' color={colors.text} />
-          ) : null}
-        </Row>
-
         {visibleLines.length === 0 ? (
           <AppText variant='caption' color='muted'>
             {emptyText}
@@ -202,7 +199,7 @@ export const ClosingSection = ({
           />
         ) : null}
       </Stack>
-    </Surface>
+    </SectionCard>
   );
 };
 

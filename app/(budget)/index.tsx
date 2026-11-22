@@ -17,6 +17,7 @@ import { useBudgetProjection } from '@/src/hooks/useBudgetProjection';
 import { SummaryModeToggle } from '@/src/components/summaries/SummaryModeToggle';
 import { useSummaryMode } from '@/src/hooks/useSummaryMode';
 import useRecordsStore from '@/src/stores/RecordsStore';
+import useResumesStore from '@/src/stores/ResumesStore';
 import type {
   BudgetApplyMode,
   BudgetInsight,
@@ -30,7 +31,7 @@ import { FeatureGate, useFeature } from '@/src/features';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { formatMoneyWithSymbol } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
-import { IconButton } from '@/src/ui/actions/IconButton';
+import { LinkButton } from '@/src/ui/actions/LinkButton';
 import { Badge, type BadgeTone } from '@/src/ui/data-display/Badge';
 import { FinanceValue } from '@/src/ui/data-display/FinanceValue';
 import { ListItem } from '@/src/ui/data-display/ListItem';
@@ -46,6 +47,7 @@ import { Modal } from '@/src/ui/overlays/Modal';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Screen } from '@/src/ui/primitives/Screen';
 import { Row, Stack } from '@/src/ui/primitives/Stack';
+import { SectionCard } from '@/src/ui/data-display/SectionCard';
 import { Surface } from '@/src/ui/primitives/Surface';
 import { useTheme } from '@/src/ui/theme/ThemeProvider';
 
@@ -81,6 +83,7 @@ const Index = () => {
   const { showToast } = useToast();
   const router = useRouter();
   const { group } = useRecordsStore();
+  const { balance: currentConsumptionBalance } = useResumesStore();
   const { mode } = useSummaryMode();
   const {
     plan,
@@ -329,6 +332,16 @@ const Index = () => {
     }
   };
 
+  const removeLine = async (line: BudgetLineComparison) => {
+    if (!plan) return;
+    try {
+      await repository.deleteLine(line.lineId);
+      await refresh();
+    } catch {
+      showToast({ message: t('budget.toast.error'), type: 'error' });
+    }
+  };
+
   const syncFixed = async (line: BudgetLineComparison) => {
     if (!plan || !line.fixedId) return;
     const fixed = plan.fixedCommitments.find((item) => item.fixedId === line.fixedId);
@@ -493,18 +506,15 @@ const Index = () => {
 
   return (
     <Screen scroll edges={['left', 'right']}>
-      <Stack gap='lg'>
+      <Stack gap='xl'>
         <Row justify='center'>
           <GroupSelector />
         </Row>
 
         {!plan ? (
-          <Surface variant='raised' padding='lg'>
+          <SectionCard title={t('budget.noPlanTitle')}>
             <Stack gap='md'>
-              <Stack gap='xs'>
-                <AppText variant='title'>{t('budget.noPlanTitle')}</AppText>
-                <AppText color='muted'>{t('budget.noPlanBody')}</AppText>
-              </Stack>
+              <AppText color='muted'>{t('budget.noPlanBody')}</AppText>
               <Stack gap='sm'>
                 <Button label={t('budget.createFromScratch')} onPress={() => start('blank')} loading={busy} />
                 <Button label={t('budget.fromPrevious')} variant='outline' onPress={() => start('previous')} />
@@ -524,34 +534,31 @@ const Index = () => {
                 />
               </Stack>
             </Stack>
-          </Surface>
+          </SectionCard>
         ) : (
           <>
-            <Row justify='space-between' align='flex-start'>
-              <Stack gap='xxs' style={{ flex: 1 }}>
-                <AppText variant='title'>{plan.planName}</AppText>
-                <AppText color='muted'>{t('budget.planSubtitle')}</AppText>
-                {plan.templateName ? (
-                  <Row gap='xs' wrap>
-                    <Badge label={plan.templateName} size='sm' />
-                  </Row>
-                ) : null}
-              </Stack>
-              <IconButton
-                label={t('budget.manageTemplates')}
-                variant='ghost'
-                icon={<MaterialIcons name='dashboard-customize' size={22} color={colors.primary} />}
-                onPress={() => router.push('/(budget)/templates')}
-              />
-            </Row>
+            <SectionCard
+              title={plan.planName}
+              subtitle={t('budget.planSubtitle')}
+              action={
+                <LinkButton
+                  label={t('budget.manageTemplates')}
+                  onPress={() => router.push('/(budget)/templates')}
+                />
+              }
+            >
+              {plan.templateName ? (
+                <Row gap='xs' wrap>
+                  <Badge label={plan.templateName} size='sm' />
+                </Row>
+              ) : null}
 
             <SummaryModeToggle />
             {mode === 'shared' || mode === 'paid' ? (
               <InlineMessage variant='info' message={t('budget.modeNote')} />
             ) : null}
 
-            <Surface variant='raised' padding='lg'>
-              <Stack gap='md'>
+            <Stack gap='md'>
                 <Row justify='space-between' align='flex-start' gap='md'>
                   <SummaryBlock
                     label={t('budget.totals.plannedIncome')}
@@ -659,10 +666,13 @@ const Index = () => {
                   />
                 </Stack>
               </Stack>
-            </Surface>
+            </SectionCard>
 
             {consumptionBalance ? (
-              <BudgetBalanceCard balance={consumptionBalance} />
+              <BudgetBalanceCard
+                balance={plan.balance}
+                currentBalanceCents={currentConsumptionBalance}
+              />
             ) : null}
             {cashBalance ? (
               <BudgetCashCard cash={cashBalance} obligations={obligations} />
@@ -670,8 +680,7 @@ const Index = () => {
             <BudgetObligationsCard obligations={obligations} />
 
             {visibleInsights.length > 0 ? (
-              <Stack gap='sm'>
-                <AppText variant='subtitle'>{t('budget.insights.title')}</AppText>
+              <SectionCard title={t('budget.insights.title')}>
                 {visibleInsights.slice(0, 4).map((insight, index) => (
                   <InlineMessage
                     key={`${insight.kind}-${index}`}
@@ -683,7 +692,7 @@ const Index = () => {
                     message={insightText(insight)}
                   />
                 ))}
-              </Stack>
+              </SectionCard>
             ) : null}
 
             <FeatureGate feature='charts'>
@@ -786,6 +795,12 @@ const Index = () => {
                               </AppText>
                             ) : null}
                             <Badge label={`${Math.round(line.usagePercent)}%`} tone={tone} size='sm' />
+                            <Button
+                              label={t('budget.actions.removeFromPlan')}
+                              size='sm'
+                              variant='ghost'
+                              onPress={() => void removeLine(line)}
+                            />
                           </Stack>
                         }
                         onPress={() => openEditLine(line)}

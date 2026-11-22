@@ -19,6 +19,7 @@ import type { GroupClosingView } from '@/src/interfaces/schema';
 import { formatMoneyWithSymbol } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
 import { IconButton } from '@/src/ui/actions/IconButton';
+import { LinkButton } from '@/src/ui/actions/LinkButton';
 import { Badge } from '@/src/ui/data-display/Badge';
 import { FinanceValue } from '@/src/ui/data-display/FinanceValue';
 import { EmptyState } from '@/src/ui/feedback/EmptyState';
@@ -28,6 +29,7 @@ import { ConfirmDialog } from '@/src/ui/overlays/Dialog';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Divider } from '@/src/ui/primitives/Divider';
 import { Row, Stack } from '@/src/ui/primitives/Stack';
+import { SectionCard } from '@/src/ui/data-display/SectionCard';
 import { Surface } from '@/src/ui/primitives/Surface';
 import { useTheme } from '@/src/ui/theme/ThemeProvider';
 
@@ -135,26 +137,24 @@ export const ClosingScreen = () => {
   }
 
   return (
-    <Stack gap='lg'>
+    <Stack gap='xl'>
       <Row justify='center'>
         <GroupSelector />
       </Row>
 
       <InlineMessage variant='info' message={t('closing.notice')} />
 
-      <Row justify='space-between' align='center' gap='sm'>
-        <View style={{ flex: 1 }}>
-          <AppText variant='title'>{t('closing.history')}</AppText>
-          <AppText variant='caption' color='muted'>
-            {group.group_name}
-          </AppText>
-        </View>
-        <Button
-          label={t('closing.new')}
-          onPress={openNew}
-          disabled={!canCreate}
-        />
-      </Row>
+      <SectionCard
+        title={t('closing.history')}
+        subtitle={group.group_name}
+        action={
+          <LinkButton
+            label={t('closing.new')}
+            onPress={openNew}
+            disabled={!canCreate}
+          />
+        }
+      >
 
       {!canCreate ? (
         <InlineMessage variant='warning' message={t('closing.period.expired')} />
@@ -307,6 +307,8 @@ export const ClosingScreen = () => {
           })}
         </Stack>
       )}
+
+      </SectionCard>
 
       <ConfirmDialog
         visible={toDelete != null}

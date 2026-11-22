@@ -18,11 +18,12 @@ import useRecordsStore from '@/src/stores/RecordsStore';
 import { formatMoneyWithSymbol } from '@/src/utils';
 import { Badge } from '@/src/ui/data-display/Badge';
 import { ListItem } from '@/src/ui/data-display/ListItem';
-import { Button } from '@/src/ui/actions/Button';
+import { SectionCard } from '@/src/ui/data-display/SectionCard';
+import { LinkButton } from '@/src/ui/actions/LinkButton';
 import { EmptyState } from '@/src/ui/feedback/EmptyState';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Screen } from '@/src/ui/primitives/Screen';
-import { Row, Stack } from '@/src/ui/primitives/Stack';
+import { Stack } from '@/src/ui/primitives/Stack';
 import { Surface } from '@/src/ui/primitives/Surface';
 import { useTheme } from '@/src/ui/theme/ThemeProvider';
 
@@ -76,29 +77,31 @@ const MaintenanceScreen = () => {
 
   return (
     <Screen scroll edges={['left', 'right']}>
-      <Stack gap='lg'>
-        <Row justify='space-between' align='flex-start' gap='md'>
-          <Stack gap='xxs' style={{ flex: 1 }}>
-            <AppText variant='title'>{t('vehicle.maintenance.title')}</AppText>
-            <AppText color='muted'>{t('vehicle.maintenance.subtitle')}</AppText>
-          </Stack>
-          <Button
-            label={t('vehicle.actions.addMaintenance')}
-            size='sm'
-            onPress={() => {
-              setSelected(null);
-              setFormVisible(true);
-            }}
-          />
-        </Row>
-
+      <Stack gap='xl'>
+        <SectionCard
+          title={t('vehicle.maintenance.title')}
+          tooltip={{
+            title: t('vehicle.maintenance.title'),
+            body: t('vehicle.maintenance.subtitle'),
+          }}
+          action={
+            <LinkButton
+              label={t('vehicle.actions.addMaintenance')}
+              onPress={() => {
+                setSelected(null);
+                setFormVisible(true);
+              }}
+            />
+          }
+          padded={false}
+        >
         {entries.length === 0 ? (
           <EmptyState
             title={t('vehicle.maintenance.empty')}
             icon={<MaterialIcons name='build' size={28} color={colors.textMuted} />}
           />
         ) : (
-          <Surface variant='outlined' padding='none'>
+          <>
             {entries.map((entry, index) => (
               <ListItem
                 key={entry.id ?? index}
@@ -128,8 +131,9 @@ const MaintenanceScreen = () => {
                 showDivider={index < entries.length - 1}
               />
             ))}
-          </Surface>
+          </>
         )}
+        </SectionCard>
       </Stack>
 
       <MaintenanceForm

@@ -1,76 +1,13 @@
-import { View, ScrollView, StyleSheet } from 'react-native';
-import GroupSelector from '@/src/components/groups/group-selector';
-import { useThemedStyles } from '@/src/styles/useThemedStyles';
-import FinnanceTableBlock from '@/src/components/summaries/FinanceTableBlock';
-import RecordsModal, { RecordsModalRef } from '@/src/components/records/RecordsModal';
-import { useRef } from 'react';
-import { useRecords } from '@/src/db';
-import useRecordsStore from '@/src/stores/RecordsStore';
+import React from 'react';
 
-const PaymentTypesScreen = () => {
-    const styles = useThemedStyles()
-    const { group } = useRecordsStore()
-    const { fetchRecordsWithMultipleWhere } = useRecords()
-    const recordsModalRef = useRef<RecordsModalRef | null>(null);
+import { CatalogSummaryScreen } from '@/src/components/summaries/CatalogSummaryScreen';
 
-    const onSummarySelected = async (id: number | undefined, idRecordType: number | undefined) => {
-        if (!id) return;
-        try {
-            const filters: { column: string; value: string | number | null }[] = [
-                { column: "PaymentMethods.payment_type_id", value: id },
-                { column: "Records.group_id", value: group?.id ?? null }
-            ]
-            if (idRecordType) {
-                filters.push({ column: "Records.record_type_id", value: idRecordType })
-            }
-            await fetchRecordsWithMultipleWhere(filters).then((res) => {
-                if (res) {
-                    console.log("Filtered Records:", res?.length, id, idRecordType);
-                    recordsModalRef.current?.open(res)
-                }
-            })
-        } catch (e) {
-            console.error(e)
-        }
-    }
-
-
-    return (
-        <>
-            <View style={localStyles.container}>
-                <View style={[styles.row, { justifyContent: 'center', alignItems: "flex-end", marginBottom: 10, gap: 10 }]}>
-                    <GroupSelector />
-                </View>
-            </View >
-            <ScrollView>
-                <View style={localStyles.container}>
-                    <FinnanceTableBlock render='types' onSummarySelected={onSummarySelected} />
-                </View>
-            </ScrollView>
-            <RecordsModal ref={recordsModalRef} />
-        </>
-    );
-};
-
-const localStyles = StyleSheet.create({
-    balanceText: {
-        borderTopWidth: 4,
-        height: 60,
-        paddingTop: 10,
-        textAlign: "center",
-        marginLeft: 5,
-        fontWeight: "300",
-        fontSize: 18
-    },
-    simpleContainer: {
-        flexDirection: "row",
-        justifyContent: "center",
-        gap: 20
-    },
-    container: {
-        padding: 10,
-        paddingHorizontal: 20
-    }
-})
+const PaymentTypesScreen = () => (
+  <CatalogSummaryScreen
+    kind='types'
+    titleKey='resume.summaryByTypes'
+    column='PaymentMethods.payment_type_id'
+  />
+);
 
 export default PaymentTypesScreen;

@@ -4,6 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 import { useTheme } from '../theme/ThemeProvider';
 import { spacing } from '../theme/tokens';
+import { InfoHint, type InfoHintContent } from '../overlays/InfoHint';
 import { AppText } from '../primitives/AppText';
 
 export type FormFieldProps = {
@@ -11,6 +12,7 @@ export type FormFieldProps = {
   required?: boolean;
   hint?: string;
   error?: string;
+  tooltip?: InfoHintContent;
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
 };
@@ -20,6 +22,7 @@ export const FormField = ({
   required = false,
   hint,
   error,
+  tooltip,
   children,
   style,
 }: FormFieldProps) => {
@@ -27,15 +30,20 @@ export const FormField = ({
 
   return (
     <View style={[styles.container, style]}>
-      {label ? (
+      {label || tooltip ? (
         <View style={styles.labelRow}>
-          <AppText variant='label' color='muted'>
-            {label}
-          </AppText>
+          {label ? (
+            <AppText variant='label' color='muted'>
+              {label}
+            </AppText>
+          ) : null}
           {required ? (
             <AppText variant='label' color='danger' accessibilityLabel='required'>
               *
             </AppText>
+          ) : null}
+          {tooltip ? (
+            <InfoHint title={tooltip.title} body={tooltip.body} />
           ) : null}
         </View>
       ) : null}

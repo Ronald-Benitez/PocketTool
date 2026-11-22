@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { useFeature } from "@/src/features";
@@ -24,6 +24,7 @@ import { ColoredSelectOption } from "@/src/ui/forms/ColoredSelectOption";
 import { MoneyField } from "@/src/ui/forms/MoneyField";
 import { SelectField } from "@/src/ui/forms/SelectField";
 import { TextField } from "@/src/ui/forms/TextField";
+import { FormErrorSummary } from "@/src/ui/forms/FormErrorSummary";
 import { Modal } from "@/src/ui/overlays/Modal";
 
 interface AddItemProps {
@@ -31,9 +32,11 @@ interface AddItemProps {
     children?: React.ReactNode
     openUpdate?: boolean
     open?: boolean
+    onClose?: () => void
+    onSaved?: () => void
 }
 
-const AddFixed = ({ item, children, open }: AddItemProps) => {
+const AddFixed = ({ item, children, open, onClose, onSaved }: AddItemProps) => {
     const { group } = useRecordsStore()
     const { t } = useLanguage()
     const showShared = useFeature('shared')
@@ -46,12 +49,14 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
     const [amountCents, setAmountCents] = useState<number>(0)
     const [people, setPeople] = useState<Person[]>([])
     const [participants, setParticipants] = useState<ParticipantDraft[]>([])
+    const [missingFields, setMissingFields] = useState<
+        { field: string; label: string }[]
+    >([])
     const { showToast } = useToast()
     const { RecordTypes, PaymentMethods, Categories, setFixeds } = useDataStore()
     const { fetchFixeds, handler: fixedsHandler } = useFixeds()
     const peopleRepository = usePeopleRepository()
     const participantsRepository = useSharedParticipantsRepository()
-    const firstOpenEffect = useRef(true)
 
     const recordTypes = RecordTypes ?? []
     const paymentMethods = PaymentMethods ?? []
@@ -67,11 +72,7 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
     }, [visible])
 
     useEffect(() => {
-        if (firstOpenEffect.current) {
-            firstOpenEffect.current = false
-            return
-        }
-        setVisible(true)
+        if (open) setVisible(true)
     }, [open])
 
     useEffect(() => {
@@ -105,15 +106,44 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
         return () => { active = false }
     }, [item])
 
-    const closeModal = () => setVisible(false)
+    const closeModal = () => {
+        setVisible(false)
+        setMissingFields([])
+        onClose?.()
+    }
+
+    const clearMissing = (field: string) => {
+        setMissingFields((current) =>
+            current.filter((item) => item.field !== field)
+        )
+    }
+
+    const errorFor = (field: string) =>
+        missingFields.some((item) => item.field === field)
+            ? t('required')
+            : undefined
 
     const onSave = async () => {
         if (!group) return
 
-        if (amountCents <= 0 || !payment_method?.id || !category?.id || !type?.id) {
-            showToast({ message: t('toast.empty'), type: 'warning' })
+        const nextMissing: { field: string; label: string }[] = []
+        if (!type?.id) nextMissing.push({ field: 'type', label: t('item.type') })
+        if (!category?.id) {
+            nextMissing.push({ field: 'category', label: t('item.category') })
+        }
+        if (!payment_method?.id) {
+            nextMissing.push({ field: 'payment', label: t('item.payment') })
+        }
+        if (amountCents <= 0) {
+            nextMissing.push({ field: 'amount', label: t('item.value') })
+        }
+        if (nextMissing.length > 0) {
+            setMissingFields(nextMissing)
             return
         }
+        setMissingFields([])
+
+        if (!type || !category || !payment_method) return
 
         const split = computeParticipantShares(amountCents, participants)
         if (
@@ -123,15 +153,21 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
                     (participant.shareAmountCents ?? 0) <= 0
             )
         ) {
-            showToast({ message: t('shared.amountRequired'), type: 'warning' })
+            setMissingFields([
+                { field: 'participants', label: t('shared.amountRequired') },
+            ])
             return
         }
         if (split.exceedsTotal) {
-            showToast({ message: t('shared.invalidTotal'), type: 'warning' })
+            setMissingFields([
+                { field: 'participants', label: t('shared.invalidTotal') },
+            ])
             return
         }
         if (new Set(participants.map((participant) => participant.personId)).size !== participants.length) {
-            showToast({ message: t('shared.duplicate'), type: 'warning' })
+            setMissingFields([
+                { field: 'participants', label: t('shared.duplicate') },
+            ])
             return
         }
 
@@ -160,6 +196,7 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
             }
             const fixeds = await fetchFixeds()
             setFixeds(fixeds)
+            onSaved?.()
             closeModal()
         } catch {
             showToast({ message: t('toast.error'), type: 'error' })
@@ -218,6 +255,9 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
                 }
             >
                 <View style={styles.form}>
+                    <FormErrorSummary
+                        errors={missingFields.map((item) => item.label)}
+                    />
                     <TextField
                         label={t('item.name')}
                         value={name}
@@ -230,7 +270,11 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
                         value={type?.id}
                         title={t('item.type')}
                         options={typeOptions}
-                        onChange={(id) => setType(recordTypes.find(val => val.id === id))}
+                        error={errorFor('type')}
+                        onChange={(id) => {
+                            setType(recordTypes.find(val => val.id === id))
+                            clearMissing('type')
+                        }}
                         renderValue={(option) => (
                             <ColoredSelectOption
                                 color={type?.record_color}
@@ -250,7 +294,11 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
                         value={category?.id}
                         title={t('item.selectCategory')}
                         options={categoryOptions}
-                        onChange={(id) => setCategory(categories.find(cat => cat.id === id))}
+                        error={errorFor('category')}
+                        onChange={(id) => {
+                            setCategory(categories.find(cat => cat.id === id))
+                            clearMissing('category')
+                        }}
                     />
                     <SelectField<number>
                         label={t('item.payment')}
@@ -258,7 +306,11 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
                         value={payment_method?.id}
                         title={t('item.selectPayment')}
                         options={paymentOptions}
-                        onChange={(id) => setPaymentMethod(paymentMethods.find(pay => pay.id === id))}
+                        error={errorFor('payment')}
+                        onChange={(id) => {
+                            setPaymentMethod(paymentMethods.find(pay => pay.id === id))
+                            clearMissing('payment')
+                        }}
                         renderValue={(option) => (
                             <ColoredSelectOption
                                 color={payment_method?.PaymentTypes?.payment_color}
@@ -276,7 +328,11 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
                         label={t('item.value')}
                         required
                         value={amountCents}
-                        onChangeCents={setAmountCents}
+                        error={errorFor('amount')}
+                        onChangeCents={(value) => {
+                            setAmountCents(value)
+                            clearMissing('amount')
+                        }}
                     />
                     {showShared || item ? (
                         <SharedParticipantsField
@@ -293,7 +349,10 @@ const AddFixed = ({ item, children, open }: AddItemProps) => {
                         keyboardType='number-pad'
                         maxLength={2}
                         placeholder={t('item.date')}
-                        hint={t('item.dayHint')}
+                        tooltip={{
+                            title: t('item.date'),
+                            body: t('item.dayHint'),
+                        }}
                     />
                 </View>
             </Modal>

@@ -4,10 +4,9 @@ import type { BudgetObligationsView } from '@/src/domain/budgets/types';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { FinanceValue } from '@/src/ui/data-display/FinanceValue';
 import { ListItem } from '@/src/ui/data-display/ListItem';
+import { SectionCard } from '@/src/ui/data-display/SectionCard';
 import { InlineMessage } from '@/src/ui/feedback/InlineMessage';
-import { AppText } from '@/src/ui/primitives/AppText';
 import { Stack } from '@/src/ui/primitives/Stack';
-import { Surface } from '@/src/ui/primitives/Surface';
 
 type BudgetObligationsCardProps = {
   obligations: BudgetObligationsView;
@@ -19,12 +18,11 @@ export const BudgetObligationsCard = ({
   const { t } = useLanguage();
 
   return (
-    <Stack gap='sm'>
-      <AppText variant='subtitle'>{t('budget.obligationsTitle')}</AppText>
+    <SectionCard title={t('budget.obligationsTitle')} padded={false}>
       {obligations.items.length === 0 ? (
         <InlineMessage variant='info' message={t('budget.obligationsEmpty')} />
       ) : (
-        <Surface variant='outlined' padding='none'>
+        <Stack>
           {obligations.items.map((item, index) => (
             <ListItem
               key={item.key}
@@ -44,8 +42,8 @@ export const BudgetObligationsCard = ({
               showDivider={index < obligations.items.length - 1}
             />
           ))}
-        </Surface>
+        </Stack>
       )}
-    </Stack>
+    </SectionCard>
   );
 };

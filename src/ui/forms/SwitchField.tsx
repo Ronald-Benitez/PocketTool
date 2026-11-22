@@ -5,6 +5,7 @@ import { useTheme } from '../theme/ThemeProvider';
 import { spacing } from '../theme/tokens';
 import { AppText } from '../primitives/AppText';
 import { FormField } from './FormField';
+import type { InfoHintContent } from '../overlays/InfoHint';
 
 export type SwitchFieldProps = {
   label: string;
@@ -13,6 +14,7 @@ export type SwitchFieldProps = {
   onChange: (value: boolean) => void;
   hint?: string;
   error?: string;
+  tooltip?: InfoHintContent;
   disabled?: boolean;
   required?: boolean;
   onLabel?: string;
@@ -26,6 +28,7 @@ export const SwitchField = ({
   onChange,
   hint,
   error,
+  tooltip,
   disabled = false,
   required = false,
   onLabel,
@@ -35,7 +38,7 @@ export const SwitchField = ({
   const stateLabel = value ? onLabel : offLabel;
 
   return (
-    <FormField label={label} required={required} hint={hint} error={error}>
+    <FormField label={label} required={required} hint={hint} error={error} tooltip={tooltip}>
       <View style={[styles.row, { opacity: disabled ? 0.6 : 1 }]}>
         <View style={styles.textBlock}>
           {description ? (
