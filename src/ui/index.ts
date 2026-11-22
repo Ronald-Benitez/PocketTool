@@ -4,6 +4,7 @@ export * from './data-display';
 export * from './feedback';
 export * from './filters';
 export * from './forms';
+export * from './lists';
 export * from './overlays';
 export * from './primitives';
 export * from './theme/ThemeProvider';

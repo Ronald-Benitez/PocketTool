@@ -5,16 +5,25 @@ Reglas locales del sistema de UI. El procedimiento completo está en la skill
 
 - Usa las primitivas de `src/ui`: `AppText`, `Surface`, `Divider`, `Screen`,
   `Stack`, `Row`, `Column`.
-- Acciones: `Button`, `IconButton`, `LinkButton`, `SwipeAction`.
+- Identidad: sigue `docs/architecture/visual-identity.md`. Máximo un hero, 2–5
+  secciones y dos niveles de superficie por pantalla.
+- Glass: `Surface variant='glass'` + `shadows.glass`; deriva colores con
+  `withAlpha`. El efecto es simulado, no blur real.
+- Texto opcional educativo: `InfoHint`; errores, advertencias y validaciones
+  siguen inline.
+- Acciones: `Button`, `IconButton`, `LinkButton`, `SwipeAction`,
+  `QuickAction`, `FloatingActions`.
+- Listas: `SortableList` (drag + helpers subir/bajar y `resolveDropIndex`).
 - Formularios: `FormField`, `TextField`, `MoneyField`, `SelectField`,
   `MultiSelectField`, `DateField`, `MonthField`, `SwitchField`, `ColorField`,
   `ColorPicker`. `SelectField` y `MultiSelectField` aceptan `searchable`.
-- Overlays: `Modal` (center/bottom), `BottomSheet`, `Dialog`, `ConfirmDialog`.
-  No uses `Modal` de React Native fuera de `src/ui`.
+- Overlays: `Modal` (center/bottom), `BottomSheet`, `Dialog`, `ConfirmDialog`,
+  `InfoHint`. No uses `Modal` de React Native fuera de `src/ui`.
 - Feedback: un único `ToastProvider`; usa `InlineMessage`, `EmptyState` y
   `LoadingState`. No crees toasts o modales locales.
 - Datos: `Card`, `ListItem`, `Badge`, `FinanceValue`, `SummaryBlock`,
-  `SummaryGroup`, `AccentRow`. `FinanceValue` recibe centavos.
+  `SummaryGroup`, `AccentRow`, `SectionCard`, `StatTile`, `ProgressBar`.
+  `FinanceValue` recibe centavos.
 - Filtros: `src/ui/filters/`; `RecordsFilterModal` es el wrapper de Records.
 - Tema: usa `useTheme()` y tokens. No leas `useColorStore` ni claves legacy.
   `src/stores/ColorsStore.ts` es solo un adaptador de compatibilidad.

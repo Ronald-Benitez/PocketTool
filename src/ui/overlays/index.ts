@@ -11,3 +11,8 @@ export {
   type ModalPlacement,
   type ModalProps,
 } from './Modal';
+export {
+  InfoHint,
+  type InfoHintContent,
+  type InfoHintProps,
+} from './InfoHint';

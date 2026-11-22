@@ -5,8 +5,22 @@ modales, filtros o gráficos.
 **Resumen:** PocketTool usa un sistema propio en `src/ui`, con tokens, tema
 claro/oscuro, primitivas, acciones, formularios, overlays, feedback y filtros.
 **Skill:** `pockettool-ui`.
-**Secciones:** Tema y tokens · Componentes · Footers · Filtros · Gráficos ·
-Estilos legacy · Barrel y lint.
+**Secciones:** Identidad visual · Tema y tokens · Componentes · Footers ·
+Filtros · Gráficos · Estilos legacy · Barrel y lint.
+
+## Identidad visual
+
+El contrato completo vive en
+[`visual-identity.md`](visual-identity.md): principios, grid, jerarquía,
+glassmorphism, agrupadores, tooltips, accesibilidad y checklist. Puntos
+operativos:
+
+- `Surface variant='glass'` usa `withAlpha` y `shadows.glass`; el efecto es
+  simulado en Android e iOS, no blur nativo.
+- El texto opcional educativo va en `InfoHint`; errores, advertencias y
+  validaciones siguen inline.
+- Máximo un hero, entre 2 y 5 secciones y dos niveles de superficie por pantalla.
+- Todo resumen enlaza a su módulo y comprueba el flag de la feature.
 
 ## Tema y tokens
 
@@ -44,6 +58,13 @@ El catálogo y las reglas de uso viven en
 `src/ui/index.ts`. Puntos de arquitectura:
 
 - Primitivas: `AppText`, `Surface`, `Divider`, `Screen`, `Stack`, `Row`, `Column`.
+- Datos: `SectionCard` agrupa una idea; `StatTile` muestra un KPI compacto y
+  `ProgressBar` una meta o presupuesto.
+- Overlays: `InfoHint` abre explicaciones opcionales en bottom sheet.
+- Acciones: `QuickAction` para capturas compactas y `FloatingActions` para el
+  FAB con acciones secundarias.
+- Listas: `SortableList` comparte drag y helpers subir/bajar; `resolveDropIndex`
+  es puro y testeable.
 - Formularios: `SelectField` y `MultiSelectField` aceptan `searchable`.
 - Overlays: `Modal` maneja teclado, insets y auto-scroll; `Dialog` y
   `ConfirmDialog` cubren confirmaciones.
@@ -116,6 +137,8 @@ Mantén los adaptadores solo durante la migración.
 
 ## Referencias
 
+- [`visual-identity.md`](visual-identity.md): contrato visual y checklist.
+- [`dashboard.md`](dashboard.md): modelo y persistencia del Home.
 - `app/gallery.tsx`: galería de desarrollo, oculta del drawer.
 - `app/AGENTS.md`: reglas de navegación.
 - `src/ui/AGENTS.md`: reglas locales resumidas.

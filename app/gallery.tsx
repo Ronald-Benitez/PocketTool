@@ -15,17 +15,24 @@ import {
   Divider,
   EmptyState,
   FinanceValue,
+  FloatingActions,
   IconButton,
+  InfoHint,
   InlineMessage,
   LinkButton,
   ListItem,
   LoadingState,
   MoneyField,
   MonthField,
+  ProgressBar,
+  QuickAction,
   Row,
   Screen,
+  SectionCard,
   SelectField,
+  SortableList,
   Stack,
+  StatTile,
   SummaryBlock,
   SummaryGroup,
   Surface,
@@ -51,6 +58,20 @@ const GalleryScreen = () => {
   const [enabled, setEnabled] = useState(true);
   const [color, setColor] = useState(colors.primary);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [sortableItems, setSortableItems] = useState([
+    'Balance',
+    'Budget',
+    'Savings',
+  ]);
+
+  const reorderSortable = (from: number, to: number) => {
+    setSortableItems((current) => {
+      const next = [...current];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+  };
   const lineSpec: ChartSpec = {
     kind: 'line',
     title: 'Line',
@@ -457,6 +478,128 @@ const GalleryScreen = () => {
               </AppText>
             </Column>
           </Surface>
+          <Surface variant='glass'>
+            <Column gap='xs'>
+              <AppText variant='label'>Glass</AppText>
+              <AppText variant='caption' color='muted'>
+                Translucent surface with a top-left highlight and soft shadow.
+                Simulated on Android and iOS; never over card visuals.
+              </AppText>
+            </Column>
+          </Surface>
+        </Stack>
+
+        <Stack gap='md'>
+          <Row justify='space-between' align='center'>
+            <AppText variant='title'>Identity primitives</AppText>
+            <InfoHint
+              title='Tooltip'
+              body='Optional explanations live here. Errors and warnings stay inline.'
+            />
+          </Row>
+
+          <SectionCard
+            title='Section card'
+            subtitle='Short context only'
+            action={
+              <LinkButton
+                label='See all'
+                onPress={() => showToast({ message: 'Section action', type: 'info' })}
+              />
+            }
+            tooltip={{
+              title: 'Section card',
+              body: 'Groups one idea with a header, an optional action and a tooltip. Keep 2–5 sections per screen.',
+            }}
+          >
+            <Row gap='md' wrap>
+              <StatTile
+                label='Balance'
+                cents={248750}
+                hint='Own share'
+                size='sm'
+                style={{ flex: 1, minWidth: 150 }}
+              />
+              <StatTile
+                label='Goal'
+                value='75%'
+                accentColor={colors.goal}
+                size='sm'
+                style={{ flex: 1, minWidth: 150 }}
+              />
+            </Row>
+            <ProgressBar progress={0.75} label='Goal progress' tone='goal' />
+            <Row gap='sm' wrap>
+              <QuickAction
+                label='Add record'
+                icon={<MaterialIcons name='add' size={18} color={colors.primary} />}
+                onPress={() => showToast({ message: 'Quick action', type: 'info' })}
+              />
+              <QuickAction
+                label='Add saving'
+                icon={<MaterialIcons name='savings' size={18} color={colors.primary} />}
+                onPress={() => showToast({ message: 'Quick action', type: 'info' })}
+              />
+            </Row>
+          </SectionCard>
+
+          <View style={{ height: 190 }}>
+            <FloatingActions
+              mainAction={{
+                id: 'record',
+                label: 'Add record',
+                icon: <MaterialIcons name='add' size={28} color={colors.onPrimary} />,
+                onPress: () => showToast({ message: 'Main action', type: 'info' }),
+              }}
+              actions={[
+                {
+                  id: 'fixed',
+                  label: 'Add fixed',
+                  icon: (
+                    <MaterialIcons
+                      name='event-repeat'
+                      size={22}
+                      color={colors.primary}
+                    />
+                  ),
+                  onPress: () => showToast({ message: 'Secondary action', type: 'info' }),
+                },
+                {
+                  id: 'saving',
+                  label: 'Add saving',
+                  icon: (
+                    <MaterialIcons name='savings' size={22} color={colors.primary} />
+                  ),
+                  onPress: () => showToast({ message: 'Secondary action', type: 'info' }),
+                },
+              ]}
+              bottomOffset={0}
+            />
+          </View>
+
+          <SectionCard
+            title='Sortable list'
+            subtitle='Drag or use the accessible move helpers'
+            padded={false}
+          >
+            <SortableList
+              items={sortableItems}
+              keyExtractor={(item) => item}
+              onReorder={reorderSortable}
+              dragLabel='Reorder'
+              containerVariant={null}
+              renderItem={(item, dragHandle) => (
+                <Row
+                  justify='space-between'
+                  align='center'
+                  style={{ minHeight: 56, paddingHorizontal: 16 }}
+                >
+                  <AppText>{item}</AppText>
+                  {dragHandle}
+                </Row>
+              )}
+            />
+          </SectionCard>
         </Stack>
 
         <ChartCard
