@@ -807,3 +807,58 @@ export const personSettlementInputSchema = z
 export const personSettlementUpdateSchema = personSettlementInputSchema
   .partial()
   .extend(updateMeta);
+
+export const shoppingListStatus = z.enum(['open', 'closed']);
+
+export const shoppingListInputSchema = z
+  .object({
+    list_name: z.string().min(1).max(160),
+    status: shoppingListStatus.optional().default('open'),
+    closed_at: timestamp.nullable().optional(),
+    purchase_date: timestamp.nullable().optional(),
+    record_id: id,
+    record_total_cents: cents.nonnegative().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const shoppingListUpdateSchema = shoppingListInputSchema
+  .partial()
+  .extend(updateMeta);
+
+export const shoppingListItemInputSchema = z
+  .object({
+    shopping_list_id: z.number().int().positive(),
+    item_name: z.string().min(1).max(160),
+    price_cents: cents.nonnegative().nullable().optional(),
+    is_checked: z
+      .boolean()
+      .or(z.number().int().min(0).max(1))
+      .optional()
+      .default(false)
+      .transform((value) => (value ? 1 : 0)),
+    sort_order: z.number().int().min(0).optional().default(0),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const shoppingListItemUpdateSchema = shoppingListItemInputSchema
+  .partial()
+  .extend(updateMeta);
+
+export const shoppingPurchaseMode = z.enum(['create', 'link', 'none']);
+
+export const shoppingPurchaseInputSchema = z
+  .object({
+    mode: shoppingPurchaseMode,
+    amount_cents: cents.positive().optional(),
+    date: timestamp.optional(),
+    group_id: id,
+    record_type_id: id,
+    category_id: id,
+    payment_method_id: id,
+    record_id: id,
+    record_name: z.string().min(1).max(160).optional(),
+    ...auditTimestamps,
+  })
+  .strict();

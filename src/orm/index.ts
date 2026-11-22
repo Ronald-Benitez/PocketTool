@@ -60,6 +60,8 @@ import type {
   VehicleSetting,
   VehicleSettingWithRelations,
   VehicleExpenseLinkWithRelations,
+  ShoppingList,
+  ShoppingListItem,
   Insertable,
   UpdateEntity,
 } from '../interfaces/schema';
@@ -97,6 +99,8 @@ export type BaseSchemaMap = {
   VehicleReminders: VehicleReminder;
   VehicleSettings: VehicleSetting;
   VehicleExpenseLinks: VehicleExpenseLink;
+  ShoppingLists: ShoppingList;
+  ShoppingListItems: ShoppingListItem;
   Migrations: Migration;
 };
 
@@ -135,6 +139,8 @@ export type RelationsSchemaMap = {
   VehicleReminders: VehicleReminderWithRelations;
   VehicleSettings: VehicleSettingWithRelations;
   VehicleExpenseLinks: VehicleExpenseLinkWithRelations;
+  ShoppingLists: ShoppingList;
+  ShoppingListItems: ShoppingListItem;
   Migrations: Migration;
 };
 

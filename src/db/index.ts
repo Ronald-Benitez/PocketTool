@@ -19,9 +19,13 @@ export {
   useFinancingsRepository,
   useGroupClosingsRepository,
   useChartPreferencesRepository,
+  useShoppingListsRepository,
+  useRecordSourcesRepository,
 } from './repositories';
 
 export { useRecordsRepository as useRecords } from './repositories';
+export { recordSourceRoute } from './repositories';
+export type { RecordSource } from './repositories';
 export { useFixedsRepository as useFixeds } from './repositories';
 export { useGroupsRepository as useGroups } from './repositories';
 export { useCategoriesRepository as useCategories } from './repositories';

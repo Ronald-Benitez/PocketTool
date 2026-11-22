@@ -364,6 +364,27 @@ export interface ChartPreference extends Entity, SoftDeletable {
   updated_at?: TimestampMs | null;
 }
 
+export interface ShoppingList extends Entity, SoftDeletable {
+  list_name: string;
+  status: string;
+  closed_at?: TimestampMs | null;
+  purchase_date?: TimestampMs | null;
+  record_id?: number | null;
+  record_total_cents?: Cents | null;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
+export interface ShoppingListItem extends Entity, SoftDeletable {
+  shopping_list_id: number;
+  item_name: string;
+  price_cents?: Cents | null;
+  is_checked: boolean | number;
+  sort_order: number;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
 export interface Migration extends Entity {
   migration_name: string;
   applied_at: TimestampMs;

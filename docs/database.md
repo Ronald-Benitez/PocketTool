@@ -68,6 +68,8 @@ El inventario completo de tablas, columnas, índices y relaciones está en
 | `GroupClosings` | Cierre informativo por grupo con periodo, fecha límite, estado y totales snapshot; un solo final por grupo. |
 | `GroupClosingLines` | Líneas de disponible, obligación o resolución; índices únicos evitan repetir la misma tarjeta/cuenta, fijo o financiamiento. |
 | `VehicleExpenseLinks` | Vínculo uno a uno con `Records` para combustible y mantenimiento. |
+| `ShoppingLists` | Lista global de compras; `status` la vuelve de solo lectura y `record_id` (único) guarda la compra vinculada. |
+| `ShoppingListItems` | Artículos con precio opcional, check persistente y orden; pertenecen a una `ShoppingList`. |
 | `ChartPreferences` | Preferencias por gráfico: colapsado, modo, series ocultas, límite, orden y zoom. |
 | `Migrations` | Historial de migraciones aplicadas. |
 
@@ -79,7 +81,7 @@ y se documentan por tabla en [`schema.md`](schema.md).
 
 ## Migraciones
 
-El historial completo (0001–0026) vive en `src/db/migrations/` y en
+El historial completo (0001–0027) vive en `src/db/migrations/` y en
 [`legacy/migration-history.md`](legacy/migration-history.md).
 
 Reglas: transacción exclusiva, registro tras el commit, `PRAGMA user_version`

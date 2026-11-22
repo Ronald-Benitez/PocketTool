@@ -35,3 +35,4 @@ es `src/db/migrations/` y el resumen operativo está en
 | 24 | `0024_group_closings` | Crea `group_closings` y `group_closing_lines`; índice único de un final por grupo. |
 | 25 | `0025_group_periods` | Agrega `period_start`, `period_end` y `period_mode` a `groups`; normaliza el mes del grupo de ejemplo y `month = 12`; crea `idx_groups_period`. |
 | 26 | `0026_chart_preferences` | Crea `chart_preferences` con índice único parcial por `chart_key`. |
+| 27 | `0027_shopping_lists` | Crea `shopping_lists` y `shopping_list_items` con índices por estado, vínculo único a `Records` y orden de artículos. |

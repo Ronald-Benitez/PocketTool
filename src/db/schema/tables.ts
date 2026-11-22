@@ -1,6 +1,6 @@
 import type { TableDefinition, TableSchema } from '../types';
 
-export const SCHEMA_VERSION = 26;
+export const SCHEMA_VERSION = 27;
 
 export type TableName =
   | 'Groups'
@@ -35,6 +35,8 @@ export type TableName =
   | 'VehicleReminders'
   | 'VehicleSettings'
   | 'VehicleExpenseLinks'
+  | 'ShoppingLists'
+  | 'ShoppingListItems'
   | 'Migrations';
 
 const softDelete = { name: 'deleted_at', type: 'INTEGER', kind: 'timestamp', defaultValue: null } as const;
@@ -958,6 +960,66 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
         name: 'idx_chart_preferences_key',
         columns: ['chart_key'],
         unique: true,
+        where: 'deleted_at IS NULL',
+      },
+    ],
+  },
+  ShoppingLists: {
+    name: 'ShoppingLists',
+    sqlName: 'shopping_lists',
+    entity: 'ShoppingList',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      { name: 'list_name', type: 'TEXT', notNull: true },
+      { name: 'status', type: 'TEXT', notNull: true, defaultValue: 'open' },
+      { name: 'closed_at', type: 'INTEGER', kind: 'timestamp' },
+      { name: 'purchase_date', type: 'INTEGER', kind: 'timestamp' },
+      {
+        name: 'record_id',
+        type: 'INTEGER',
+        references: { table: 'Records', column: 'id', onDelete: 'SET NULL' },
+      },
+      { name: 'record_total_cents', type: 'INTEGER', kind: 'money' },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      {
+        name: 'idx_shopping_lists_status',
+        columns: ['status'],
+        where: 'deleted_at IS NULL',
+      },
+      {
+        name: 'idx_shopping_lists_record',
+        columns: ['record_id'],
+        unique: true,
+        where: 'deleted_at IS NULL AND record_id IS NOT NULL',
+      },
+    ],
+  },
+  ShoppingListItems: {
+    name: 'ShoppingListItems',
+    sqlName: 'shopping_list_items',
+    entity: 'ShoppingListItem',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      {
+        name: 'shopping_list_id',
+        type: 'INTEGER',
+        references: { table: 'ShoppingLists', column: 'id', onDelete: 'CASCADE' },
+        notNull: true,
+      },
+      { name: 'item_name', type: 'TEXT', notNull: true },
+      { name: 'price_cents', type: 'INTEGER', kind: 'money' },
+      { name: 'is_checked', type: 'INTEGER', kind: 'boolean', notNull: true, defaultValue: 0 },
+      { name: 'sort_order', type: 'INTEGER', notNull: true, defaultValue: 0 },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      {
+        name: 'idx_shopping_list_items_list',
+        columns: ['shopping_list_id', 'sort_order'],
         where: 'deleted_at IS NULL',
       },
     ],

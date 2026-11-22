@@ -962,3 +962,24 @@ export type {
   SharedOwnerType,
 } from './people';
 
+export { useShoppingListsRepository } from './shoppingLists';
+export type {
+  ShoppingListFilter,
+  ShoppingListItemView,
+  ShoppingListView,
+  ShoppingPurchaseInput,
+  ShoppingPurchaseMode,
+  ShoppingRecordOption,
+  ShoppingListsRepository,
+} from './shoppingLists';
+
+export {
+  useRecordSourcesRepository,
+  resolveRecordSources,
+  recordSourceRoute,
+} from './recordSources';
+export type {
+  RecordSource,
+  RecordSourcesRepository,
+} from './recordSources';
+
