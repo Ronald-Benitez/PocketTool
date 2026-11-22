@@ -15,6 +15,10 @@ vive en una sola capa. El procedimiento y los límites están en la skill
 - [`database.md`](database.md): esquema, migraciones, backups y acceso a datos.
 - [`schema.md`](schema.md): esquema generado; no editar ni leer completo.
 - [`architecture/ui.md`](architecture/ui.md): sistema de UI y tema.
+- [`architecture/visual-identity.md`](architecture/visual-identity.md):
+  contrato visual, glass, agrupadores, tooltips y checklist.
+- [`architecture/dashboard.md`](architecture/dashboard.md): modelo, bloques,
+  layout, persistencia y navegación del Home.
 - [`architecture/domains.md`](architecture/domains.md): reglas de dominio.
 - [`architecture/features.md`](architecture/features.md): experiencia, flags,
   presets, captura rápida y ayuda por módulo.

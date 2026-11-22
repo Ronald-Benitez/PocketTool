@@ -7,7 +7,7 @@ a las decisiones canónicas. Las reglas no viven aquí.
 **Secciones:** Estado · Fase activa · Arquitectura actual · Fases 0–18 ·
 Decisiones.
 
-**Última actualización:** 2026-11-20
+**Última actualización:** 2026-11-22
 
 ## Estado
 
@@ -34,6 +34,8 @@ Decisiones.
 | Fase 18 — Motor de gráficos nativo | ✅ Finalizada | 2026-11-19 |
 | Fase 19 — Experiencia configurable y simplificación | ✅ Finalizada | 2026-11-20 |
 | Fase 20 — Presupuestos con saldo esperado | ✅ Finalizada | 2026-11-21 |
+| Fase 21 — Identidad visual y dashboard de Inicio | ✅ Finalizada | 2026-11-21 |
+| Fase 22 — Coherencia visual restante | ✅ Finalizada | 2026-11-22 |
 
 ## Fase activa
 
@@ -54,16 +56,8 @@ se detiene y pide cuál cerrar.
 
 ## Fases 0–3 — Base técnica (✅ 2026-10-28)
 
-Detalle completo en [`legacy/phase-history.md`](legacy/phase-history.md).
-
-- Fase 0: unificación de la capa de acceso, migraciones, seed idempotente,
-  soft delete, integridad, export/import y limpieza de deuda.
-- Fase 1: esquema declarativo en `tables.ts`, artefactos generados, migraciones
-  como evolución y nombres normalizados.
-- Fase 2: repositorios por agregado, ORM tipado, validación en bordes y tipos
-  unificados.
-- Fase 3: pruebas, export/import v2, rendimiento, CI, auditoría de timestamps y
-  ESLint.
+Detalle completo en [`legacy/phase-history.md`](legacy/phase-history.md):
+esquema declarativo, migraciones, ORM, repositorios, backups, CI y ESLint.
 
 ## Fase 4 — Sistema de UI reutilizable (✅ 2026-10-29)
 
@@ -230,10 +224,7 @@ Plan en
 Plan en
 [`legacy/fase-19-experience-plan.md`](legacy/fase-19-experience-plan.md).
 
-- `src/features`: presets, flags, dependencias, store, route guard y backup.
-- Ajustes de Experiencia, onboarding, gating de drawer/tabs/pantallas y ayuda.
-- Alta rápida, valores recordados y mapa en
-  [`architecture/dependencies.md`](architecture/dependencies.md).
+- Presets/flags, onboarding, gating, alta rápida, valores recordados y backup.
 - Verificación: typecheck, `test:db`, 300 tests, lint, doctor 20/20,
   `docs:audit`, CI y export Android. Commits `41b0902`, `612165c`, `62df1fb`.
 
@@ -241,13 +232,27 @@ Plan en
 
 Plan en [`legacy/fase-20-budget-plan.md`](legacy/fase-20-budget-plan.md).
 
-- Periodo real del grupo, ingresos/gastos/neto y saldos de consumo y caja.
-- Obligaciones de fijos, financiamientos, ahorros, vehículo y tarjetas sin
-  duplicados.
-- Sugerencias de ahorros vinculados, alta de líneas y reordenamiento
+- Periodo real, saldos consumo/caja, obligaciones sin duplicados y orden
   drag-and-drop.
 - Verificación: typecheck, `test:db`, 318 tests, lint, doctor, `docs:audit`, CI y
   export Android. Commits `d943930`, `771578c`, `aa952e4`, `b7a042f`.
+
+## Fase 21 — Identidad visual y dashboard de Inicio (✅ 2026-11-21)
+
+Plan en
+[`legacy/fase-21-visual-dashboard-plan.md`](legacy/fase-21-visual-dashboard-plan.md).
+Contrato visual, glass simulado, `SectionCard`/`InfoHint`/`SortableList`,
+dashboard de 9 bloques con editor y FAB, y migración de Ajustes, Resúmenes,
+Registros y Compromisos. Verificación: typecheck, `test:db`, 375 tests, lint,
+doctor 20/20, `docs:audit` y export Android. QA visual validado por el usuario.
+
+## Fase 22 — Coherencia visual restante (✅ 2026-11-22)
+
+Plan en
+[`legacy/fase-22-visual-coherence-plan.md`](legacy/fase-22-visual-coherence-plan.md).
+Catálogos, tablas, Presupuesto, Créditos, Ahorros, Vehículo, Personas, Cierre,
+tooltips y validación unificados. Verificación: `ci`, lint, doctor 20/20,
+`docs:audit` y export Android; QA validado por el usuario.
 
 ## Decisiones
 

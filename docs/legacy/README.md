@@ -52,6 +52,13 @@ detalle, usa `**Secciones:**` y busca el encabezado con
 - [`fase-20-budget-plan.md`](fase-20-budget-plan.md): plan de Presupuestos con
   saldo esperado, obligaciones, ahorros, vehículo y orden manual (Fase 20),
   implementado, validado y archivado.
+- [`fase-21-visual-dashboard-plan.md`](fase-21-visual-dashboard-plan.md): plan de
+  identidad visual, glass simulado, agrupadores, tooltips y dashboard
+  configurable de Inicio (Fase 21), implementado, validado y archivado.
+- [`fase-22-visual-coherence-plan.md`](fase-22-visual-coherence-plan.md): plan de
+  coherencia visual restante en catálogos, tablas, Presupuesto, Créditos,
+  Ahorros, Vehículo, Personas, Cierre, tooltips y validación (Fase 22),
+  implementado, validado y archivado.
 - [`db-summary.md`](db-summary.md): resumen anterior de la base de datos,
   reemplazado por [`../database.md`](../database.md).
 - [`migration-history.md`](migration-history.md): tabla histórica de las
