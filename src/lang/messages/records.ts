@@ -24,6 +24,49 @@ export const recordsEn = {
             "emptyFields": "Please enter all fields and select the necessary options."
         }
     },
+    "recordSources": {
+        "title": "Source",
+        "open": "Open",
+        "kinds": {
+            "fixed": "Fixed transaction",
+            "saving": "Savings",
+            "financing": "Financing",
+            "fuel": "Fuel",
+            "maintenance": "Maintenance",
+            "shopping": "Shopping list",
+            "credit": "Credit payment"
+        },
+        "amount": "Amount",
+        "movement": "Movement",
+        "previousBalance": "Previous balance",
+        "newBalance": "New balance",
+        "note": "Note",
+        "principal": "Principal",
+        "interest": "Interest",
+        "insurance": "Insurance",
+        "fees": "Fees",
+        "odometer": "Odometer",
+        "volume": "Volume",
+        "fullTank": "Full tank",
+        "yes": "Yes",
+        "no": "No",
+        "serviceType": "Service",
+        "cost": "Cost",
+        "items": "Items",
+        "checked": "Checked",
+        "status": "Status",
+        "total": "Total",
+        "paymentMethod": "Payment method",
+        "moreItems": "+{count} more",
+        "movementKinds": {
+            "initial": "Initial balance",
+            "deposit": "Deposit",
+            "withdrawal": "Withdrawal",
+            "interest": "Interest",
+            "adjustment": "Adjustment",
+            "payment": "Paid with saving"
+        }
+    },
     "item": {
         "name": "Name",
         "value": "Amount",
@@ -89,6 +132,49 @@ export const recordsEs: MessageShape<typeof recordsEn> = {
         "periodSuggestion": "Esta fecha pertenece al grupo {group} ({period}). Puedes cambiar de grupo en el selector.",
         "error": {
             "emptyFields": "Por favor, ingresa todos los campos y selecciona las opciones necesarias."
+        }
+    },
+    "recordSources": {
+        "title": "Origen",
+        "open": "Abrir",
+        "kinds": {
+            "fixed": "Transacción fija",
+            "saving": "Ahorros",
+            "financing": "Financiamiento",
+            "fuel": "Combustible",
+            "maintenance": "Mantenimiento",
+            "shopping": "Lista de compras",
+            "credit": "Pago de crédito"
+        },
+        "amount": "Monto",
+        "movement": "Movimiento",
+        "previousBalance": "Saldo anterior",
+        "newBalance": "Saldo nuevo",
+        "note": "Nota",
+        "principal": "Capital",
+        "interest": "Interés",
+        "insurance": "Seguro",
+        "fees": "Comisiones",
+        "odometer": "Odómetro",
+        "volume": "Volumen",
+        "fullTank": "Tanque lleno",
+        "yes": "Sí",
+        "no": "No",
+        "serviceType": "Servicio",
+        "cost": "Costo",
+        "items": "Artículos",
+        "checked": "Marcados",
+        "status": "Estado",
+        "total": "Total",
+        "paymentMethod": "Método de pago",
+        "moreItems": "+{count} más",
+        "movementKinds": {
+            "initial": "Saldo inicial",
+            "deposit": "Aporte",
+            "withdrawal": "Retiro",
+            "interest": "Interés",
+            "adjustment": "Ajuste",
+            "payment": "Pagado con ahorro"
         }
     },
     "item": {

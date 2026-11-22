@@ -7,6 +7,7 @@ import { datesEn, datesEs } from './dates';
 import { groupsEn, groupsEs } from './groups';
 import { headersEn, headersEs } from './headers';
 import { helpEn, helpEs } from './help';
+import { shoppingEn, shoppingEs } from './shopping';
 import { homeEn, homeEs } from './home';
 import { recordsEn, recordsEs } from './records';
 import { settingsEn, settingsEs } from './settings';
@@ -37,6 +38,7 @@ export const en = {
   budget: budgetEn,
   ...financingsEn,
   vehicle: vehicleEn,
+  shopping: shoppingEn,
   whatsNew: whatsNewEn,
   help: helpEn,
 } as const;
@@ -59,6 +61,7 @@ export const es: MessageShape<typeof en> = {
   budget: budgetEs,
   ...financingsEs,
   vehicle: vehicleEs,
+  shopping: shoppingEs,
   whatsNew: whatsNewEs,
   help: helpEs,
 };
@@ -98,5 +101,6 @@ export type TranslationKey =
   | Leaves<typeof budgetEn, 'budget.'>
   | Leaves<typeof financingsEn>
   | Leaves<typeof vehicleEn, 'vehicle.'>
+  | Leaves<typeof shoppingEn, 'shopping.'>
   | Leaves<typeof whatsNewEn, 'whatsNew.'>
   | HelpTranslationKey;

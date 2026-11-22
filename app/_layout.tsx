@@ -207,6 +207,21 @@ const AppDrawer = () => {
         }}
       />
       <Drawer.Screen
+        name="(shopping)/index"
+        options={{
+          title: t('headers.shopping'),
+          headerShown: true,
+          drawerItemStyle: drawerItemStyle('shopping'),
+          drawerIcon: ({ color, size }) => (
+            <MaterialCommunityIcons
+              name="cart-outline"
+              size={size}
+              color={color as string | undefined}
+            />
+          ),
+        }}
+      />
+      <Drawer.Screen
         name="(budget)"
         options={{
           title: t('headers.budget'),

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import { useRouter } from "expo-router";
 
 import { useLanguage } from "@/src/lang/LanguageContext";
 import useDate from "@/src/hooks/useDate";
@@ -9,12 +10,15 @@ import {
     usePaidCredits,
     usePaymentMethods,
     usePeopleRepository,
+    useRecordSourcesRepository,
     useRecords,
     useGroups,
     useSavings,
     useSharedParticipantsRepository,
     useTableRepository,
+    recordSourceRoute,
 } from "@/src/db";
+import type { RecordSource } from "@/src/db";
 import type {
     Category,
     Group,
@@ -41,6 +45,7 @@ import {
 } from "@/src/hooks/useRecordDefaults";
 import { formatMoneyWithSymbol, formatPeriodRange } from "@/src/utils";
 import { SharedParticipantsField } from "@/src/components/shared/SharedParticipantsField";
+import { RecordSourceCard } from "./RecordSourceCard";
 import { Button } from "@/src/ui/actions/Button";
 import { LinkButton } from "@/src/ui/actions/LinkButton";
 import { ColoredSelectOption } from "@/src/ui/forms/ColoredSelectOption";
@@ -102,6 +107,9 @@ const AddItem = ({ item, children, open, onClose, onSaved }: AddItemProps) => {
     const { fetchPaymentMethods } = usePaymentMethods()
     const recordTypesRepository = useTableRepository("RecordTypes")
     const categoriesRepository = useTableRepository("Categories")
+    const recordSourcesRepository = useRecordSourcesRepository()
+    const router = useRouter()
+    const [recordSources, setRecordSources] = useState<RecordSource[]>([])
     const { configs: { paymentCreditType } } = useConfigs()
     const showShared = useFeature('shared')
     const showSavings = useFeature('savings')
@@ -165,6 +173,26 @@ const AddItem = ({ item, children, open, onClose, onSaved }: AddItemProps) => {
     useEffect(() => {
         if (open) setVisible(true)
     }, [open])
+
+    useEffect(() => {
+        let active = true
+        if (!visible || item?.id == null) {
+            setRecordSources([])
+            return
+        }
+        recordSourcesRepository
+            .getRecordSources(item.id)
+            .then((rows) => {
+                if (active) setRecordSources(rows)
+            })
+            .catch((cause) => {
+                if (__DEV__) console.warn('[records] source load failed', cause)
+                if (active) setRecordSources([])
+            })
+        return () => {
+            active = false
+        }
+    }, [visible, item?.id])
 
     useEffect(() => {
         const loadOptions = async () => {
@@ -352,6 +380,11 @@ const AddItem = ({ item, children, open, onClose, onSaved }: AddItemProps) => {
         setVisible(false)
         setMissingFields([])
         onClose?.()
+    }
+
+    const openSource = (source: RecordSource) => {
+        closeModal()
+        router.push(recordSourceRoute(source) as never)
     }
 
     const clearMissing = (field: string) => {
@@ -648,6 +681,12 @@ const AddItem = ({ item, children, open, onClose, onSaved }: AddItemProps) => {
                     <FormErrorSummary
                         errors={missingFields.map((item) => item.label)}
                     />
+                    {item ? (
+                        <RecordSourceCard
+                            sources={recordSources}
+                            onOpen={openSource}
+                        />
+                    ) : null}
                     {!compact ? (
                         <TextField
                             label={t('item.name')}

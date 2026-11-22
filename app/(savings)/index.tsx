@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 
 import AddSaving from '@/src/components/savings/add-savings';
@@ -58,10 +59,15 @@ const Index = () => {
   const { colors } = useTheme();
   const { showToast } = useToast();
   const repository = useSavings();
+  const router = useRouter();
   const peopleRepository = usePeopleRepository();
   const { group } = useRecordsStore();
   const { refreshGroupData } = useGroupRefresh();
   const { saving, savings, setSaving, setSavings } = useSavingsStore();
+  const { savingId: savingIdParam } = useLocalSearchParams<{
+    savingId?: string;
+  }>();
+  const appliedSavingParamRef = useRef<string | null>(null);
 
   const [view, setView] = useState<SavingView | null>(null);
   const [peopleById, setPeopleById] = useState<Map<number, string>>(new Map());
@@ -163,6 +169,20 @@ const Index = () => {
       active = false;
     };
   }, [refreshKey, statusFilter, pinnedId, preferencesLoaded]);
+
+  useEffect(() => {
+    if (!savingIdParam || appliedSavingParamRef.current === savingIdParam) {
+      return;
+    }
+    const id = Number(savingIdParam);
+    if (!Number.isFinite(id)) return;
+    const found = savings.find((item) => item.id === id);
+    if (found) {
+      setSaving(found);
+      appliedSavingParamRef.current = savingIdParam;
+      router.setParams({ savingId: undefined } as never);
+    }
+  }, [savingIdParam, savings, setSaving, router]);
 
   useEffect(() => {
     if (!saving?.id) {

@@ -16,6 +16,7 @@ export const FEATURE_IDS: FeatureId[] = [
   'budget',
   'savings',
   'vehicle',
+  'shopping',
   'closing',
   'people',
   'shared',
@@ -112,6 +113,11 @@ export const FEATURE_DEFINITIONS: Record<FeatureId, FeatureDefinition> = {
   vehicle: definition('vehicle', 'modules', {
     essential: false,
     balanced: false,
+    complete: true,
+  }),
+  shopping: definition('shopping', 'modules', {
+    essential: false,
+    balanced: true,
     complete: true,
   }),
   closing: definition('closing', 'modules', {

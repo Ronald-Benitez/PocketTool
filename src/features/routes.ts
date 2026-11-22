@@ -10,6 +10,7 @@ const GROUP_FEATURES: Record<string, FeatureId> = {
   '(savings)': 'savings',
   '(budget)': 'budget',
   '(vehicle)': 'vehicle',
+  '(shopping)': 'shopping',
   '(closing)': 'closing',
   '(people)': 'people',
   '(summaries)': 'summaries',

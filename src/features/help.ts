@@ -10,6 +10,7 @@ export const HELP_TOPIC_FEATURES: Partial<Record<HelpTopicId, FeatureId>> = {
   budgets: 'budget',
   budgetTemplates: 'budget',
   savings: 'savings',
+  shopping: 'shopping',
   vehicle: 'vehicle',
   vehicleFuel: 'vehicle',
   vehicleMaintenance: 'vehicle',

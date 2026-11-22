@@ -10,6 +10,7 @@ export type FeatureId =
   | 'filters'
   | 'savings'
   | 'vehicle'
+  | 'shopping'
   | 'closing'
   | 'people'
   | 'shared'

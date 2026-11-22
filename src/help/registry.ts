@@ -173,6 +173,12 @@ const seeds: HelpTopicSeed[] = [
     related: ['summaries', 'closing'],
   },
   {
+    id: 'shopping',
+    icon: 'shopping-cart',
+    category: 'planning',
+    related: ['records', 'groups', 'summaries', 'budgets'],
+  },
+  {
     id: 'closing',
     icon: 'calculate',
     category: 'planning',

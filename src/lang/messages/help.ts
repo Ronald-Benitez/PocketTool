@@ -150,7 +150,7 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "Income adds to the balance, expense subtracts, and transfer moves money between payment methods. Amounts are stored as integer cents. A shared record keeps your own amount in the record and the shared portion separately, so personal balances only use what you really pay. Pending card payments can use today's date, the card payment day inside the group month, or the next card payment day calculated from today; choose it in Settings."
+                "body": "Income adds to the balance, expense subtracts, and transfer moves money between payment methods. Amounts are stored as integer cents. A shared record keeps your own amount in the record and the shared portion separately, so personal balances only use what you really pay. Pending card payments can use today's date, the card payment day inside the group month, or the next card payment day calculated from today; choose it in Settings. When you open an existing record, its source is shown with a preview (saving, fuel, maintenance, financing, shopping list or credit) and a shortcut to open that module."
             },
             "steps": {
                 "title": "Step by step",
@@ -681,6 +681,36 @@ export const helpEn = {
                 "body": "Interest is not a new deposit. Register it as interest so it is distributed correctly. Deleting a saving removes its movements and history; archive it instead when you want to keep the data."
             }
         },
+        "shopping": {
+            "title": "Shopping lists",
+            "summary": "Plan purchases, check items and record the purchase.",
+            "what": {
+                "title": "What it is",
+                "body": "A shopping list is a global to-do list with items that may have a price. A price of zero means the item has no price. Lists are not tied to a group; the group is chosen only when you create or link the purchase record. Checking an item marks progress and adds its price to the total."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "Open lists can be renamed and their items added, edited, checked, reordered or deleted. Use the list selector to switch lists without growing the page or losing the item view. The total only sums checked items that have a price; if a checked item has no price, the total is marked as partial. Closing a list makes it read-only. From a closed list you can create a record with the calculated or manual amount, link an existing compatible record, or skip registration. The record link is unique per list and cannot be created twice."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Create a list and add items with an optional price.",
+                "step2": "Check the items you plan to buy and review the calculated or partial total.",
+                "step3": "Close the list and choose create, link or skip to finish."
+            },
+            "example": {
+                "title": "Example",
+                "body": "A list with milk at 3.50, bread at 2.00 and a checked item without price shows 5.50 as a partial total. When you close it, you can create a 5.50 expense, type a different amount, link an existing expense on the same date, or close without a record."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Use the calculated total as a starting point and adjust the amount for discounts or extra items. Linking requires the same amount and day and excludes records already used by vehicle, financings, savings, credits or another shopping list."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "A closed list cannot be edited again. Check the items and prices before closing. Deleting a list keeps its record; deleting the record leaves the list closed and shows the link as missing."
+            }
+        },
         "filters": {
             "title": "Filters",
             "summary": "Find records by date, amount, relation, and range.",
@@ -924,7 +954,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "El ingreso suma al balance, el gasto resta y la transferencia mueve dinero entre métodos de pago. Los montos se guardan en centavos enteros. Un registro compartido guarda tu monto propio y separa la parte compartida, para que los balances personales solo usen lo que realmente pagas. Los pagos pendientes de tarjeta pueden usar la fecha de hoy, el día de pago dentro del mes del grupo o el próximo día de pago calculado desde hoy; se elige en Configuraciones."
+                "body": "El ingreso suma al balance, el gasto resta y la transferencia mueve dinero entre métodos de pago. Los montos se guardan en centavos enteros. Un registro compartido guarda tu monto propio y separa la parte compartida, para que los balances personales solo usen lo que realmente pagas. Los pagos pendientes de tarjeta pueden usar la fecha de hoy, el día de pago dentro del mes del grupo o el próximo día de pago calculado desde hoy; se elige en Configuraciones. Al abrir un registro existente se muestra su origen con una previsualización (ahorro, combustible, mantenimiento, financiamiento, lista de compras o crédito) y un acceso para abrir ese módulo."
             },
             "steps": {
                 "title": "Paso a paso",
@@ -1453,6 +1483,36 @@ export const helpEs: MessageShape<typeof helpEn> = {
             "warning": {
                 "title": "Error común",
                 "body": "El interés no es un aporte nuevo. Regístralo como interés para que se reparta correctamente. Eliminar un ahorro borra sus movimientos e historial; archívalo si quieres conservar los datos."
+            }
+        },
+        "shopping": {
+            "title": "Listas de compras",
+            "summary": "Planifica compras, marca artículos y registra la compra.",
+            "what": {
+                "title": "Qué es",
+                "body": "Una lista de compras es una lista global tipo to-do con artículos que pueden tener precio. Un precio de cero significa que el artículo no tiene precio. Las listas no pertenecen a un grupo; el grupo se elige solo al crear o vincular el registro de compra. Marcar un artículo indica progreso y suma su precio al total."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "Las listas abiertas se pueden renombrar y sus artículos se pueden agregar, editar, marcar, reordenar o eliminar. Usa el selector de listas para cambiar sin que la página crezca ni perder la vista de los artículos. El total suma solo los artículos marcados que tienen precio; si un artículo marcado no tiene precio, el total se muestra como parcial. Cerrar la lista la deja de solo lectura. Desde una lista cerrada puedes crear un registro con el monto calculado o manual, vincular un registro compatible existente u omitir el registro. El vínculo es único por lista y no se puede registrar dos veces."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Crea una lista y agrega artículos con precio opcional.",
+                "step2": "Marca los artículos que vas a comprar y revisa el total calculado o parcial.",
+                "step3": "Cierra la lista y elige crear, vincular u omitir para terminar."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "Una lista con leche a 3.50, pan a 2.00 y un artículo marcado sin precio muestra 5.50 como total parcial. Al cerrarla puedes crear un gasto de 5.50, escribir otro monto, vincular un gasto existente del mismo día o cerrar sin registro."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Usa el total calculado como punto de partida y ajusta el monto por descuentos o artículos extra. Vincular exige el mismo monto y día, y excluye registros ya usados por vehículo, financiamientos, ahorros, créditos u otra lista de compras."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "Una lista cerrada ya no se puede editar. Revisa artículos y precios antes de cerrar. Eliminar la lista conserva su registro; eliminar el registro deja la lista cerrada y muestra el vínculo como faltante."
             }
         },
         "filters": {

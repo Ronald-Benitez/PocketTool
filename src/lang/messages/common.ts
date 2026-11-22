@@ -3,6 +3,7 @@ import type { MessageShape } from './types';
 export const commonEn = {
     "confirm": "Accept",
     "cancel": "Cancel",
+    "save": "Save",
     "close": "Close",
     "moreInfo": "More information",
     "required": "Required field",
@@ -54,6 +55,7 @@ export const commonEn = {
 export const commonEs: MessageShape<typeof commonEn> = {
     "confirm": "Aceptar",
     "cancel": "Cancelar",
+    "save": "Guardar",
     "close": "Cerrar",
     "moreInfo": "Más información",
     "required": "Campo obligatorio",

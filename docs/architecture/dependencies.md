@@ -16,6 +16,7 @@ Hooks y stores · Dominio · Registros · Ayuda · Reglas de decisión.
 | `shared` | `people` | Sin personas no hay participantes ni pagador. |
 | `budget` | — | Si `fixeds` está apagado, se oculta “crear desde fijos”. |
 | `savings` | — | Personas solo es necesaria para ahorros compartidos. |
+| `shopping` | — | Listas globales; el registro usa grupos y catálogos base. |
 | `closing` | — | Lee datos de otros módulos, pero no los exige. |
 | `quickAdd` | — | Solo afecta la captura. |
 | `smartDefaults` | — | Solo afecta la captura. |
@@ -28,9 +29,10 @@ Hooks y stores · Dominio · Registros · Ayuda · Reglas de decisión.
 | `fixeds` | `Fixed`, `Records`, `SharedExpenseParticipants`, `People`, `Categories`, `PaymentMethods`, `RecordTypes`; `src/domain/records/fixedPending.ts`. |
 | `financings` | `Financings`, `FinancingPayments`, `FinancingAdjustments`, `SharedExpenseParticipants`, `People`, `Records`, `PaidCredits`; `src/domain/credits/*`. |
 | `credits` | `PaymentMethods` (tarjetas), `PaidCredits`, `Records`, `Groups`, `useConfigs` (`creditType`, `paymentCreditType`). |
-| `budget` | `BudgetPlans`, `BudgetLines`, `BudgetTemplates`, `Records`, `Fixed`, `Financings`, `Savings`/`SavingsHistory`, `Vehicle*`, `PaidCredits`, `Groups`; `src/domain/budgets/*`, `useSummaryMode`, `useBudgetProjection`; sugerencias de ahorros vinculados y orden manual por `sort_order`. |
+| `budget` | `BudgetPlans`, `BudgetLines`, `BudgetTemplates`, `Records`, `Fixed`, `Financings`, `Savings`/`SavingsHistory`, `Vehicle*`, `PaidCredits`, `Groups`; `src/domain/budgets/*`, `useSummaryMode`, `useBudgetProjection`; sugerencias de ahorros y orden manual. |
 | `savings` | `Savings`, `SavingsHistory`, `SavingsSettings`, `People`, `SharedExpenseParticipants`, `Records`; `src/domain/savings/*`. |
 | `vehicle` | `Vehicles`, `VehicleFuelEntries`, `VehicleMaintenance`, `VehicleReminders`, `VehicleSettings`, `VehicleExpenseLinks`, `Records`; `src/domain/vehicle/*`. |
+| `shopping` | `ShoppingLists`, `ShoppingListItems`, `Records`, grupos y catálogos base; `src/domain/shopping/*`. |
 | `closing` | `GroupClosings`, `GroupClosingLines`, `Groups`, `PaymentMethods`, `Savings`, `Fixed`, `Financings`, `People`, `Records`; `src/domain/closing/*`. |
 | `people` | `People`, `PersonSettlements`, `SharedExpenseParticipants`, `SharedPaymentAllocations`, `Savings`, `Fixed`, `Financings`, `Records`; `src/domain/shared/*`. |
 | `shared` | `SharedExpenseParticipants`, `People`, `Records` (`paid_by_person_id`, `paid_scope`), `PersonSettlements`, `SharedPaymentAllocations`; `src/domain/shared/*`. |
@@ -56,9 +58,10 @@ Hooks y stores · Dominio · Registros · Ayuda · Reglas de decisión.
 | `(fixeds)/FinancingsScreen` | Financiamientos | `financings` |
 | `(credits)/index` | Tarjetas y pagos | `credits`; `SummaryModeToggle` → `shared` |
 | `(savings)/index` | Ahorros, metas y movimientos | `savings`; usa `people` para ahorros compartidos |
-| `(budget)/index` | Plan, real, saldos de consumo/caja, obligaciones y gráficos | `budget`, `charts`; “desde fijos” requiere `fixeds`; obligaciones respetan `financings`, `savings`, `vehicle` y `credits`; `SummaryModeToggle` → `shared` |
+| `(budget)/index` | Plan, real, saldos y obligaciones | `budget`, `charts`; “desde fijos” requiere `fixeds`; obligaciones respetan otros módulos; `SummaryModeToggle` → `shared` |
 | `(budget)/templates` | Plantillas | `budget` |
 | `(vehicle)/*` | Vehículo, combustible, mantenimiento y recordatorios | `vehicle`, `charts` |
+| `(shopping)/index` | Listas, artículos y registro de compra | `shopping`; usa grupos y catálogos base |
 | `(closing)/index` | Cierre y cobertura | `closing`; lee `credits`, `savings`, `fixeds`, `financings` y `people` |
 | `(people)/index` | Personas, saldos y liquidaciones | `people`; lee `savings`, `fixeds` y `financings` |
 | `(settings)/index` | Experiencia y ajustes por área | `experience`; secciones según flags |
@@ -68,23 +71,23 @@ Hooks y stores · Dominio · Registros · Ayuda · Reglas de decisión.
 
 | Componente | Depende de | Qué ocultar si el flag está apagado |
 | --- | --- | --- |
-| `SummaryModeToggle` | `shared` | Todo el selector “Propio / Compartido / Total / Pagado”. |
+| `SummaryModeToggle` | `shared` | Todo el selector de modo. |
 | `BalanceModeToggle` | `savings` | Todo el selector “Consumo / Caja”. |
 | `FinanceTableBlock` | `summaries` + `shared` | La tabla sigue; el toggle interno desaparece. |
-| `records-table` | `filters`, `credits`, `fixeds`, `financings` | Botón de filtros, orden, pills y grupos de pendientes. |
-| `add-record` | `shared`, `savings`, `quickAdd`, `smartDefaults` | Participantes/pagador, origen en ahorros, campos avanzados y precarga. |
+| `records-table` | `filters`, `credits`, `fixeds`, `financings` | Filtros, orden, pills y pendientes. |
+| `add-record` | `shared`, `savings`, `quickAdd`, `smartDefaults` | Participantes/pagador, origen en ahorros y precarga. |
 | `AddFixed` | `fixeds`, `shared` | Participantes compartidos al crear; al editar se conservan. |
 | `FinancingForm` | `financings`, `shared` | Participantes compartidos al crear; al editar se conservan. |
 | `AddSaving` | `savings`, `people` | Participantes al crear; al editar se conservan. |
-| `FinancingPaymentForm` | `financings`, `shared` | El desglose compartido de un financiamiento existente se mantiene visible. |
+| `FinancingPaymentForm` | `financings`, `shared` | El desglose compartido existente se mantiene. |
 | `BudgetSummaryBlock` | `budget` | El bloque completo. |
 | `Chart` / `ChartCard` | `charts` | Las tarjetas de gráfico, no el módulo. |
 | `ExperienceSettings` | Todos | Nada: es el panel de control. |
 | `ExperienceOnboardingGate` | Todos + `useWhatsNew` | Se pospone si hay novedades pendientes. |
 | `SettlementForm` | `people` / `shared` | El flujo de liquidación. |
-| `DashboardScreen` / `DashboardBlock` | Flags de cada bloque | Bloques ocultos o de módulos apagados; acción “Ver todo” sin destino |
-| `DashboardObligationsBlock` | `fixeds`, `financings`, `credits`, `vehicle` | Filas de módulos apagados; bloque completo si ninguno está activo |
-| `Dashboard*Block` (budget, savings, people, credits, vehicle, closing) | Su feature | El bloque completo |
+| `DashboardScreen` / `DashboardBlock` | Flags de cada bloque | Bloques ocultos o sin destino |
+| `DashboardObligationsBlock` | `fixeds`, `financings`, `credits`, `vehicle` | Filas de módulos apagados; bloque si ninguno está activo |
+| `Dashboard*Block` | Su feature | El bloque completo |
 | `QuickActionsFab` | `quickAdd`, `fixeds`, `savings` | Acciones no disponibles; “Agregar registro” siempre |
 
 ## Hooks y stores

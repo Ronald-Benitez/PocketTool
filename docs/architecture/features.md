@@ -20,6 +20,7 @@ Pantallas · Captura · Agregar una feature · Pruebas.
 | `budget` | modules | — | — | ✅ | ✅ |
 | `savings` | modules | — | — | — | ✅ |
 | `vehicle` | modules | — | — | — | ✅ |
+| `shopping` | modules | — | — | ✅ | ✅ |
 | `closing` | modules | — | — | — | ✅ |
 | `people` | modules | — | — | — | ✅ |
 | `shared` | modules | `people` | — | — | ✅ |
@@ -36,7 +37,7 @@ Siempre visibles: Inicio, Registros, Grupos, Ajustes y Ayuda. Los flags viven en
 
 - **Esencial:** día a día. Registros, resumen, alta rápida y valores recordados.
 - **Equilibrado:** añade compromisos, financiamientos, créditos, presupuestos,
-  gráficos, filtros y catálogos avanzados.
+  compras, gráficos, filtros y catálogos avanzados.
 - **Completo:** todos los módulos. `quickAdd` y `smartDefaults` quedan apagados
   para conservar el formulario histórico; se activan a mano.
 - **Personalizado:** el conjunto no coincide con ningún preset.
@@ -84,6 +85,8 @@ captura no cambian la etiqueta del preset.
 - Resumen: presupuesto, ahorros y compartidos/liquidaciones según flags; el modo
   “Compartido” se oculta si `shared` está apagado.
 - Registros: filtros/orden, créditos, fijos y financiamientos según flags.
+- Compras: listas globales; crear, vincular u omitir el registro de compra usa
+  el grupo y los catálogos disponibles.
 - Alta de registro: compartidos y origen en ahorros según flags; al editar un
   registro existente se conservan los vínculos aunque el módulo esté oculto.
 - Ayuda: el hub filtra temas por feature; los temas núcleo siempre se muestran.

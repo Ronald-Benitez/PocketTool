@@ -69,6 +69,10 @@ export const featuresEn = {
                 label: 'Vehicle',
                 description: 'Fuel, maintenance, reminders and vehicle expenses.',
             },
+            shopping: {
+                label: 'Shopping',
+                description: 'Shopping lists with items, prices and purchase records.',
+            },
             closing: {
                 label: 'Closing',
                 description: 'Informational period closing and coverage.',
@@ -192,6 +196,11 @@ export const featuresEs: MessageShape<typeof featuresEn> = {
                 label: 'Vehículo',
                 description:
                     'Combustible, mantenimiento, recordatorios y gastos del vehículo.',
+            },
+            shopping: {
+                label: 'Compras',
+                description:
+                    'Listas de compras con artículos, precios y registro de compra.',
             },
             closing: {
                 label: 'Cierre',
