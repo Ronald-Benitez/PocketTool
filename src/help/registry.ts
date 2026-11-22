@@ -53,6 +53,12 @@ const seeds: HelpTopicSeed[] = [
     related: ['groups', 'records'],
   },
   {
+    id: 'dashboard',
+    icon: 'dashboard-customize',
+    category: 'start',
+    related: ['gettingStarted', 'records', 'summaries', 'experience'],
+  },
+  {
     id: 'whatsNew',
     icon: 'new-releases',
     category: 'start',

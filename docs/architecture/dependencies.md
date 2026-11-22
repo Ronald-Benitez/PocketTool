@@ -44,7 +44,7 @@ Hooks y stores · Dominio · Registros · Ayuda · Reglas de decisión.
 
 | Pantalla | Muestra / usa | Flags que la afectan |
 | --- | --- | --- |
-| `app/index.tsx` | Inicio, saldos, fijos pendientes, financiamientos pendientes | `fixeds`, `financings`, `summaries` |
+| `app/index.tsx` | Dashboard de Inicio con bloques y FAB | Cada bloque y acción comprueba su flag |
 | `(summaries)/index` | Resumen, presupuesto, ahorros, compartidos | `summaries`, `budget`, `savings`, `shared` |
 | `(summaries)/*Screen` | Vistas analíticas por categoría, pago y tipo | `summaries`; el toggle interno depende de `shared` |
 | `(financials)/RecordsScreen` | Registros, filtros, grupos, pendientes | `filters`, `credits`, `fixeds`, `financings`, `shared`, `savings` |
@@ -82,6 +82,10 @@ Hooks y stores · Dominio · Registros · Ayuda · Reglas de decisión.
 | `ExperienceSettings` | Todos | Nada: es el panel de control. |
 | `ExperienceOnboardingGate` | Todos + `useWhatsNew` | Se pospone si hay novedades pendientes. |
 | `SettlementForm` | `people` / `shared` | El flujo de liquidación. |
+| `DashboardScreen` / `DashboardBlock` | Flags de cada bloque | Bloques ocultos o de módulos apagados; acción “Ver todo” sin destino |
+| `DashboardObligationsBlock` | `fixeds`, `financings`, `credits`, `vehicle` | Filas de módulos apagados; bloque completo si ninguno está activo |
+| `Dashboard*Block` (budget, savings, people, credits, vehicle, closing) | Su feature | El bloque completo |
+| `QuickActionsFab` | `quickAdd`, `fixeds`, `savings` | Acciones no disponibles; “Agregar registro” siempre |
 
 ## Hooks y stores
 
@@ -93,6 +97,7 @@ Hooks y stores · Dominio · Registros · Ayuda · Reglas de decisión.
 | `usePendingFixeds` | `Fixed`, `Records`, participantes, `useConfigs` | `fixeds`; los montos compartidos dependen de `shared`/`people`. |
 | `useBudgetPlan` / `useBudgetProjection` / `useBudgetObligations` | `BudgetPlans`, `Financings`, `Savings`, `Vehicle*`, `PaidCredits` y `SummaryMode` | `budget`; obligaciones filtradas por `financings`, `savings`, `vehicle` y `credits`. |
 | `useRecordDefaults` | `recordDefaults` | `smartDefaults`. |
+| `useDashboardLayout` | `dashboardLayout` (AsyncStorage) | Core; el orden y la visibilidad no dependen de flags. |
 | `useAutoGroup` | Grupos del periodo | Core. |
 | `ResumesStore` | `Records`, `PaidCredits`, `SavingsHistory`, `PersonSettlements` | `summaries`; las filas de ahorros/compartidos se ocultan por flag. |
 | `FixedsResumesStore` | `Fixed`, `Financings`, participantes | `fixeds`, `financings`, `shared`. |

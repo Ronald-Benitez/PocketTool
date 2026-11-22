@@ -51,6 +51,36 @@ export const helpEn = {
                 "body": "Records need a selected group. If you change groups, the lists and summaries change too."
             }
         },
+        "dashboard": {
+            "title": "Home dashboard",
+            "summary": "See your group at a glance and jump to what matters.",
+            "what": {
+                "title": "What it is",
+                "body": "Home is a dashboard with blocks for balance, pending items, budget, savings, people, recent records, credits, vehicle and closing. Each block is a shortcut to its module."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "Only blocks whose module is enabled are shown. The capture button opens a new record and can also offer fixed expenses, savings or groups. Order and visibility are saved on this device."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Select the group you want to review.",
+                "step2": "Read a block or tap See all to open its module.",
+                "step3": "Use the capture button to add a record or a configured action."
+            },
+            "example": {
+                "title": "Example",
+                "body": "Your dashboard shows a 2,500 balance, a card payment due in two days and 500 in savings. Tap the card row to open Credits or the savings block to open Savings."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Hide blocks you do not use and keep the ones you check every day. The savings block lets you choose which savings count toward its total. The layout is stored with your backup."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "If a module is disabled in Experience, its block is hidden even if it was visible before. Enable the module to use it again."
+            }
+        },
         "whatsNew": {
             "title": "What's new",
             "summary": "See everything that changed after each update.",
@@ -284,7 +314,7 @@ export const helpEn = {
             },
             "tips": {
                 "title": "Tips",
-                "body": "Add income lines when you want to project future income. Review the obligations breakdown to understand the cash number. Use the group average when spending is stable and templates when you want a fixed structure."
+                "body": "Add income lines when you want to project future income. Review the obligations breakdown to understand the cash number. The expected end balance is compared with the current balance, so you can see the projected gap. Use the group average when spending is stable and templates when you want a fixed structure."
             },
             "warning": {
                 "title": "Common mistake",
@@ -795,6 +825,36 @@ export const helpEs: MessageShape<typeof helpEn> = {
                 "body": "Los registros necesitan un grupo seleccionado. Si cambias de grupo, también cambian las listas y los resúmenes."
             }
         },
+        "dashboard": {
+            "title": "Panel de Inicio",
+            "summary": "Consulta tu grupo de un vistazo y salta a lo importante.",
+            "what": {
+                "title": "Qué es",
+                "body": "Inicio es un panel con bloques de saldo, pendientes, presupuesto, ahorros, personas, movimientos recientes, créditos, vehículo y cierre. Cada bloque es un acceso directo a su módulo."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "Solo se muestran los bloques cuyo módulo está activo. El botón de captura abre un registro nuevo y también puede ofrecer fijos, ahorros o grupos. El orden y la visibilidad se guardan en este dispositivo."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Selecciona el grupo que quieres revisar.",
+                "step2": "Lee un bloque o toca Ver todo para abrir su módulo.",
+                "step3": "Usa el botón de captura para agregar un registro o una acción configurada."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "Tu panel muestra un saldo de 2,500, un pago de tarjeta dentro de dos días y 500 en ahorros. Toca la fila de la tarjeta para abrir Créditos o el bloque de ahorros para abrir Ahorros."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Oculta los bloques que no uses y conserva los que revisas a diario. El bloque de ahorros permite elegir qué ahorros cuentan para su total. El diseño se guarda con tu respaldo."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "Si un módulo está desactivado en Experiencia, su bloque se oculta aunque antes estuviera visible. Activa el módulo para volver a usarlo."
+            }
+        },
         "whatsNew": {
             "title": "Qué hay de nuevo",
             "summary": "Consulta todo lo que cambió después de cada actualización.",
@@ -1028,7 +1088,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "tips": {
                 "title": "Consejos",
-                "body": "Agrega líneas de ingreso cuando quieras proyectar ingresos futuros. Revisa el desglose de obligaciones para entender el número de caja. Usa la media de grupos cuando el gasto sea estable y plantillas cuando quieras una estructura fija."
+                "body": "Agrega líneas de ingreso cuando quieras proyectar ingresos futuros. Revisa el desglose de obligaciones para entender el número de caja. El saldo esperado al cierre se compara con el saldo actual para ver la diferencia proyectada. Usa la media de grupos cuando el gasto sea estable y plantillas cuando quieras una estructura fija."
             },
             "warning": {
                 "title": "Error común",

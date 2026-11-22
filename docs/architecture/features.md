@@ -78,7 +78,9 @@ captura no cambian la etiqueta del preset.
 
 ## Pantallas
 
-- Inicio: obligaciones de fijos y financiamientos según sus flags.
+- Inicio: dashboard configurable con bloques de saldo, pendientes, presupuesto,
+  ahorros, personas, recientes, créditos, vehículo y cierre; cada bloque y acción
+  respeta su flag. El FAB ofrece alta de registro y acciones configuradas.
 - Resumen: presupuesto, ahorros y compartidos/liquidaciones según flags; el modo
   “Compartido” se oculta si `shared` está apagado.
 - Registros: filtros/orden, créditos, fijos y financiamientos según flags.
