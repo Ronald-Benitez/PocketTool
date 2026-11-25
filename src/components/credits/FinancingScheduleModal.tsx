@@ -6,15 +6,15 @@ import {
   buildBalanceChart,
   buildPaymentCompositionChart,
 } from '@/src/domain/credits/charts';
+import { FeatureGate } from '@/src/features';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { formatMoneyWithSymbol } from '@/src/utils';
-import { MermaidChart } from '@/src/ui/charts/MermaidChart';
+import { ChartCard } from '@/src/ui/charts';
 import { ListItem } from '@/src/ui/data-display/ListItem';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Stack } from '@/src/ui/primitives/Stack';
 import { Surface } from '@/src/ui/primitives/Surface';
 import { Modal } from '@/src/ui/overlays/Modal';
-import { useTheme } from '@/src/ui/theme/ThemeProvider';
 
 type FinancingScheduleModalProps = {
   visible: boolean;
@@ -30,7 +30,6 @@ export const FinancingScheduleModal = ({
   onClose,
 }: FinancingScheduleModalProps) => {
   const { t } = useLanguage();
-  const { colors } = useTheme();
   const rows = summary?.schedule.rows ?? [];
   const balanceChart = useMemo(
     () => (summary ? buildBalanceChart(summary, t('financings.balanceChart')) : null),
@@ -42,7 +41,12 @@ export const FinancingScheduleModal = ({
         ? buildPaymentCompositionChart(
             financing?.FinancingPayments ?? [],
             summary,
-            t('financings.paymentCompositionChart')
+            t('financings.paymentCompositionChart'),
+            {
+              principal: t('financings.principalLabel'),
+              interest: t('financings.interest'),
+              insurance: t('financings.insurance'),
+            }
           )
         : null,
     [financing, summary, t]
@@ -123,52 +127,26 @@ export const FinancingScheduleModal = ({
             </Stack>
           </Surface>
         ) : null}
-        {balanceChart ? (
-          <MermaidChart
-            definition={balanceChart}
-            height={220}
-            accessibilityLabel={t('financings.balanceChart')}
-            palette={[colors.chartDistance]}
-            legend={[
-              {
-                label: t('financings.balanceChart'),
-                color: colors.chartDistance,
-              },
-            ]}
-            fallback={
-              <AppText color='muted'>{t('financings.chartNoData')}</AppText>
-            }
-          />
-        ) : null}
-        {compositionChart ? (
-          <MermaidChart
-            definition={compositionChart}
-            height={240}
-            accessibilityLabel={t('financings.paymentCompositionChart')}
-            palette={[
-              colors.chartPlanned,
-              colors.chartActual,
-              colors.chartProjected,
-            ]}
-            legend={[
-              {
-                label: t('financings.principalLabel'),
-                color: colors.chartPlanned,
-              },
-              {
-                label: t('financings.interest'),
-                color: colors.chartActual,
-              },
-              {
-                label: t('financings.insurance'),
-                color: colors.chartProjected,
-              },
-            ]}
-            fallback={
-              <AppText color='muted'>{t('financings.chartNoData')}</AppText>
-            }
-          />
-        ) : null}
+        <FeatureGate feature='charts'>
+          {balanceChart ? (
+            <ChartCard
+              chartKey='credits.schedule.balance'
+              title={t('financings.balanceChart')}
+              spec={balanceChart}
+              height={220}
+              empty={<AppText color='muted'>{t('financings.chartNoData')}</AppText>}
+            />
+          ) : null}
+          {compositionChart ? (
+            <ChartCard
+              chartKey='credits.schedule.composition'
+              title={t('financings.paymentCompositionChart')}
+              spec={compositionChart}
+              height={240}
+              empty={<AppText color='muted'>{t('financings.chartNoData')}</AppText>}
+            />
+          ) : null}
+        </FeatureGate>
       </Stack>
     </Modal>
   );

@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { radii, spacing } from '../theme/tokens';
 import { AppText } from '../primitives/AppText';
+import type { InfoHintContent } from '../overlays/InfoHint';
 import ColorPicker from './ColorPicker';
 import { FormField } from './FormField';
 
@@ -12,6 +13,7 @@ export type ColorFieldProps = {
   required?: boolean;
   hint?: string;
   error?: string;
+  tooltip?: InfoHintContent;
   value: string;
   onChange: (color: string) => void;
   disabled?: boolean;
@@ -22,6 +24,7 @@ export const ColorField = ({
   required = false,
   hint,
   error,
+  tooltip,
   value,
   onChange,
   disabled = false,
@@ -29,7 +32,7 @@ export const ColorField = ({
   const { colors } = useTheme();
 
   return (
-    <FormField label={label} required={required} hint={hint} error={error}>
+    <FormField label={label} required={required} hint={hint} error={error} tooltip={tooltip}>
       <View style={styles.row}>
         {disabled ? (
           <View

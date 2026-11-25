@@ -1,3 +1,4 @@
+import type { ChartSpec } from '@/src/domain/charts/types';
 import type {
   ConsumptionFormat,
   DistanceUnit,
@@ -15,37 +16,36 @@ import {
   selectConsumption,
 } from './units';
 
-const clean = (value: string, fallback: string) => {
-  const normalized = value.replace(/["[\]{}();\r\n]/g, ' ').replace(/\s+/g, ' ').trim();
-  return normalized ? normalized.slice(0, 24) : fallback;
-};
-
 export const buildConsumptionChart = (
   entries: FuelEntryAnalysis[],
   format: ConsumptionFormat,
   title: string
-) => {
+): ChartSpec | null => {
   const points = entries
     .map((entry) => ({
-      date: entry.entry.date,
-      value: selectConsumption(entry.segmentMetrics, format),
+      x: entry.entry.date,
+      y: selectConsumption(entry.segmentMetrics, format),
     }))
-    .filter((point): point is { date: number; value: number } => point.value != null);
+    .filter(
+      (point): point is { x: number; y: number } => point.y != null
+    );
 
   if (points.length < 2) return null;
-  const values = points.map((point) => Number(point.value.toFixed(3)));
-  const max = Math.max(...values, 1);
-  const axisMax = Math.ceil(max * 1.15);
 
-  return [
-    'xychart-beta',
-    `  title "${clean(title, title)}"`,
-    `  x-axis [${points
-      .map((point) => `"${new Date(point.date).toLocaleDateString()}"`)
-      .join(', ')}]`,
-    `  y-axis "${clean(consumptionUnits(format), consumptionUnits(format))}" 0 --> ${axisMax}`,
-    `  line [${values.join(', ')}]`,
-  ].join('\n');
+  return {
+    kind: 'line',
+    title,
+    xAxis: { type: 'time', format: 'date' },
+    yAxis: { format: 'unit', unit: consumptionUnits(format) },
+    series: [
+      {
+        key: 'consumption',
+        label: title,
+        tone: 'consumption',
+        points,
+      },
+    ],
+  };
 };
 
 type SegmentChartPoint = {
@@ -78,93 +78,109 @@ const buildSegmentPoints = (
     ];
   });
 
-const buildXYChart = ({
-  title,
-  points,
-  values,
-  yAxis,
-  series,
-}: {
-  title: string;
-  points: SegmentChartPoint[];
-  values: number[];
-  yAxis: string;
-  series: 'bar' | 'line';
-}) => {
-  if (points.length < 2 || values.length !== points.length) return null;
-  const max = Math.max(...values, 1);
-  const axisMax = Math.ceil(max * 1.15);
-
-  return [
-    'xychart-beta',
-    `  title "${clean(title, title)}"`,
-    `  x-axis [${points
-      .map((point) => `"${new Date(point.date).toLocaleDateString()}"`)
-      .join(', ')}]`,
-    `  y-axis "${clean(yAxis, yAxis)}" 0 --> ${axisMax}`,
-    `  ${series} [${values.join(', ')}]`,
-  ].join('\n');
-};
-
 export const buildVolumeChart = (
   entries: FuelEntryAnalysis[],
   unit: VolumeUnit,
   title: string
-) => {
+): ChartSpec | null => {
   const points = buildSegmentPoints(entries, unit).filter(
     (point) => point.volume > 0
   );
-  return buildXYChart({
+  if (points.length < 2) return null;
+
+  return {
+    kind: 'bar',
     title,
-    points,
-    values: points.map((point) => Number(point.volume.toFixed(3))),
-    yAxis: unit === 'L' ? 'L' : 'gal',
-    series: 'bar',
-  });
+    xAxis: { type: 'category', format: 'date' },
+    yAxis: { format: 'unit', unit: unit === 'L' ? 'L' : 'gal' },
+    series: [
+      {
+        key: 'volume',
+        label: title,
+        tone: 'distance',
+        points: points.map((point) => ({
+          x: point.date,
+          y: Number(point.volume.toFixed(3)),
+        })),
+      },
+    ],
+  };
 };
 
 export const buildPriceChart = (
   entries: FuelEntryAnalysis[],
   unit: VolumeUnit,
   title: string
-) => {
+): ChartSpec | null => {
   const points = buildSegmentPoints(entries, unit).filter(
     (point): point is SegmentChartPoint & { price: number } =>
       point.price != null && point.price > 0
   );
-  return buildXYChart({
+  if (points.length < 2) return null;
+
+  return {
+    kind: 'line',
     title,
-    points,
-    values: points.map((point) => Number(point.price.toFixed(3))),
-    yAxis: unit === 'L' ? '$/L' : '$/gal',
-    series: 'line',
-  });
+    xAxis: { type: 'time', format: 'date' },
+    yAxis: { format: 'currency', unit: unit === 'L' ? '/L' : '/gal' },
+    series: [
+      {
+        key: 'price',
+        label: title,
+        tone: 'fuel',
+        points: points.map((point) => ({
+          x: point.date,
+          y: Math.round(point.price * 100),
+        })),
+      },
+    ],
+  };
 };
 
 export const buildTotalSpendChart = (
   entries: FuelEntryAnalysis[],
   unit: VolumeUnit,
   title: string
-) => {
+): ChartSpec | null => {
   const points = buildSegmentPoints(entries, unit).filter(
     (point): point is SegmentChartPoint & { total: number } =>
       point.total != null && point.total > 0
   );
-  return buildXYChart({
+  if (points.length < 2) return null;
+
+  return {
+    kind: 'bar',
     title,
-    points,
-    values: points.map((point) => Number(point.total.toFixed(2))),
-    yAxis: '$',
-    series: 'bar',
-  });
+    xAxis: { type: 'category', format: 'date' },
+    yAxis: { format: 'money' },
+    series: [
+      {
+        key: 'total',
+        label: title,
+        tone: 'fuel',
+        points: points.map((point) => ({
+          x: point.date,
+          y: Math.round(point.total * 100),
+        })),
+      },
+    ],
+  };
 };
+
+export type MobilityChartMode = 'index' | 'real';
 
 export const buildMobilityComparisonChart = (
   entries: FuelEntryAnalysis[],
   volumeUnit: VolumeUnit,
   distanceUnit: DistanceUnit,
-  title: string
-) => {
+  title: string,
+  labels: { volume: string; distance: string; total: string } = {
+    volume: 'Volume',
+    distance: 'Distance',
+    total: 'Total',
+  },
+  mode: MobilityChartMode = 'index'
+): ChartSpec | null => {
   const points = buildSegmentPoints(entries, volumeUnit)
     .filter(
       (point): point is SegmentChartPoint & { total: number } =>
@@ -180,53 +196,91 @@ export const buildMobilityComparisonChart = (
 
   if (points.length < 2) return null;
   const first = points[0];
-  const volumeValues = points.map((point) =>
-    Number(((point.volume / first.volume) * 100).toFixed(2))
+  const volumeValues = points.map(
+    (point) => Number(((point.volume / first.volume) * 100).toFixed(2))
   );
-  const distanceValues = points.map((point) =>
-    Number(((point.distance / first.distance) * 100).toFixed(2))
+  const distanceValues = points.map(
+    (point) => Number(((point.distance / first.distance) * 100).toFixed(2))
   );
-  const totalValues = points.map((point) =>
-    Number(((point.total / first.total) * 100).toFixed(2))
+  const totalValues = points.map(
+    (point) => Number(((point.total / first.total) * 100).toFixed(2))
   );
-  const max = Math.max(
-    ...volumeValues,
-    ...distanceValues,
-    ...totalValues,
-    100
-  );
-  const axisMax = Math.ceil(max * 1.15);
+  const volumeRaw = points.map((point) => Number(point.volume.toFixed(3)));
+  const distanceRaw = points.map((point) => Number(point.distance.toFixed(3)));
+  const totalRaw = points.map((point) => Number(point.total.toFixed(2)));
+  const volumeLabel = volumeUnit === 'L' ? 'L' : 'gal';
+  const distanceLabel = distanceUnit === 'km' ? 'km' : 'mi';
+  const plotted = (index: number, raw: number[], indexed: number[]) =>
+    mode === 'real' ? raw[index] : indexed[index];
 
-  return [
-    'xychart-beta',
-    `  title "${clean(title, title)}"`,
-    `  x-axis [${points
-      .map((point) => `"${new Date(point.date).toLocaleDateString()}"`)
-      .join(', ')}]`,
-    `  y-axis "Index (base 100)" 0 --> ${axisMax}`,
-    `  line [${volumeValues.join(', ')}]`,
-    `  line [${distanceValues.join(', ')}]`,
-    `  line [${totalValues.join(', ')}]`,
-  ].join('\n');
+  return {
+    kind: 'line',
+    title,
+    xAxis: { type: 'time', format: 'date' },
+    yAxis: { format: mode === 'real' ? 'number' : 'index' },
+    series: [
+      {
+        key: 'volume',
+        label: labels.volume,
+        tone: 'consumption',
+        points: points.map((point, index) => ({
+          x: point.date,
+          y: plotted(index, volumeRaw, volumeValues),
+          tooltipValue: volumeRaw[index],
+          tooltipFormat: 'unit',
+          tooltipUnit: volumeLabel,
+        })),
+      },
+      {
+        key: 'distance',
+        label: labels.distance,
+        tone: 'distance',
+        points: points.map((point, index) => ({
+          x: point.date,
+          y: plotted(index, distanceRaw, distanceValues),
+          tooltipValue: distanceRaw[index],
+          tooltipFormat: 'unit',
+          tooltipUnit: distanceLabel,
+        })),
+      },
+      {
+        key: 'total',
+        label: labels.total,
+        tone: 'fuel',
+        points: points.map((point, index) => ({
+          x: point.date,
+          y: plotted(index, totalRaw, totalValues),
+          tooltipValue: totalRaw[index],
+          tooltipFormat: 'currency_units',
+        })),
+      },
+    ],
+  };
 };
 
 export const buildPeriodSpendChart = (
   rows: FuelPeriodSummary[],
   title: string
-) => {
-  const periodRows = rows;
-  if (periodRows.length < 2) return null;
-  const values = periodRows.map((row) => Number((row.totalCostCents / 100).toFixed(2)));
-  const max = Math.max(...values, 1);
-  const axisMax = Math.ceil(max * 1.15);
+): ChartSpec | null => {
+  if (rows.length < 2) return null;
 
-  return [
-    'xychart-beta',
-    `  title "${clean(title, title)}"`,
-    `  x-axis [${periodRows.map((row) => `"${clean(row.label, '')}"`).join(', ')}]`,
-    `  y-axis "Total" 0 --> ${axisMax}`,
-    `  bar [${values.join(', ')}]`,
-  ].join('\n');
+  return {
+    kind: 'bar',
+    title,
+    xAxis: { type: 'category', format: 'text' },
+    yAxis: { format: 'money' },
+    series: [
+      {
+        key: 'period',
+        label: title,
+        tone: 'fuel',
+        points: rows.map((row) => ({
+          x: row.label,
+          y: row.totalCostCents,
+        })),
+      },
+    ],
+  };
 };
 
 export const buildFuelMaintenanceComparisonChart = (
@@ -237,7 +291,7 @@ export const buildFuelMaintenanceComparisonChart = (
     fuel: string;
     maintenance: string;
   }
-) => {
+): ChartSpec | null => {
   const maintenanceByKey = new Map(
     maintenance.map((row) => [row.key, row] as const)
   );
@@ -254,32 +308,38 @@ export const buildFuelMaintenanceComparisonChart = (
   const rows = [...keys.values()].sort((a, b) => a.sort - b.sort);
   if (rows.length < 2) return null;
 
-  const fuelValues = rows.map((row) =>
-    Number(((fuelByKey.get(row.key)?.totalCostCents ?? 0) / 100).toFixed(2))
-  );
-  const maintenanceValues = rows.map((row) =>
-    Number(((maintenanceByKey.get(row.key)?.totalCostCents ?? 0) / 100).toFixed(2))
-  );
-  const max = Math.max(...fuelValues, ...maintenanceValues, 1);
-  const axisMax = Math.ceil(max * 1.15);
-
-  return [
-    'xychart-beta',
-    `  title "${clean(labels.title, labels.title)}"`,
-    `  x-axis [${rows.map((row) => `"${clean(row.label, '')}"`).join(', ')}]`,
-    `  y-axis "${clean(labels.fuel, labels.fuel)} / ${clean(
-      labels.maintenance,
-      labels.maintenance
-    )}" 0 --> ${axisMax}`,
-    `  bar [${fuelValues.join(', ')}]`,
-    `  bar [${maintenanceValues.join(', ')}]`,
-  ].join('\n');
+  return {
+    kind: 'grouped_bar',
+    title: labels.title,
+    xAxis: { type: 'category', format: 'text' },
+    yAxis: { format: 'money' },
+    series: [
+      {
+        key: 'fuel',
+        label: labels.fuel,
+        tone: 'fuel',
+        points: rows.map((row) => ({
+          x: row.label,
+          y: fuelByKey.get(row.key)?.totalCostCents ?? 0,
+        })),
+      },
+      {
+        key: 'maintenance',
+        label: labels.maintenance,
+        tone: 'maintenance',
+        points: rows.map((row) => ({
+          x: row.label,
+          y: maintenanceByKey.get(row.key)?.totalCostCents ?? 0,
+        })),
+      },
+    ],
+  };
 };
 
 export const buildMonthlySpendChart = (
   entries: { date: number; total_cost: number | null }[],
   title: string
-) => {
+): ChartSpec | null => {
   const months = new Map<string, { label: string; total: number; sort: number }>();
   for (const entry of entries) {
     const date = new Date(entry.date);
@@ -294,14 +354,22 @@ export const buildMonthlySpendChart = (
   }
   const rows = [...months.values()].sort((a, b) => a.sort - b.sort);
   if (rows.length < 2) return null;
-  const max = Math.max(...rows.map((row) => row.total), 1);
-  const axisMax = Math.ceil(max * 1.15);
 
-  return [
-    'xychart-beta',
-    `  title "${clean(title, title)}"`,
-    `  x-axis [${rows.map((row) => `"${clean(row.label, '')}"`).join(', ')}]`,
-    `  y-axis "Total" 0 --> ${axisMax}`,
-    `  bar [${rows.map((row) => Number(row.total.toFixed(2))).join(', ')}]`,
-  ].join('\n');
+  return {
+    kind: 'bar',
+    title,
+    xAxis: { type: 'category', format: 'text' },
+    yAxis: { format: 'money' },
+    series: [
+      {
+        key: 'monthly',
+        label: title,
+        tone: 'fuel',
+        points: rows.map((row) => ({
+          x: row.label,
+          y: Math.round(row.total * 100),
+        })),
+      },
+    ],
+  };
 };

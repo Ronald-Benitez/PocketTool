@@ -2,6 +2,10 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { z } from 'zod';
 
 import { ORM, useORM } from '@/src/orm';
+import {
+  getRecordPaidByMeCents,
+  getRecordReceivableCents,
+} from '@/src/domain/summaries/cash';
 import { withExclusiveTransaction } from '@/src/db/transaction';
 import { useConfigs } from '@/src/hooks/useConfigs';
 import type {
@@ -30,6 +34,7 @@ import {
 import { averageBudgetTotals } from '@/src/domain/budgets/average';
 import { isMonthlyCashRecord } from '@/src/domain/summaries/monthly';
 import { calculateBudgetPlanView } from '@/src/domain/budgets/comparison';
+import { groupPeriodFromRow } from '@/src/domain/groups/period';
 import type {
   BudgetApplyMode,
   BudgetLineScope,
@@ -139,7 +144,7 @@ export const useBudgetPlansRepository = () => {
     await plansOrm.update(planId, payload);
   };
 
-  type AmountMode = 'own' | 'total' | 'shared';
+  type AmountMode = 'own' | 'total' | 'shared' | 'paid';
 
   const fetchPlanView = async (
     groupId: number,
@@ -150,6 +155,7 @@ export const useBudgetPlansRepository = () => {
 
     const group = await groupsOrm.getById(groupId);
     if (!group) return null;
+    const period = groupPeriodFromRow(group);
 
     const [lines, records, fixeds, categories, recordTypes, template] = await Promise.all([
       linesOrm.where('budget_plan_id', plan.id).getAll(),
@@ -165,19 +171,24 @@ export const useBudgetPlansRepository = () => {
       planName: plan.plan_name || group.group_name || `${group.month}/${group.year}`,
       month: group.month,
       year: group.year,
+      periodStart: period.start,
+      periodEnd: period.end,
       templateName: template?.template_name ?? null,
       lines: lines as BudgetLine[],
       records: records.filter(isMonthlyCashRecord).map((record) => {
         const own = record.own_amount_cents ?? record.amount;
         const shared = record.shared_amount_cents ?? 0;
+        const receivable = getRecordReceivableCents(record);
         return {
           id: record.id as number,
           amount:
             mode === 'total'
               ? own + shared
               : mode === 'shared'
-                ? shared
-                : own,
+                ? receivable
+                : mode === 'paid'
+                  ? getRecordPaidByMeCents(record)
+                  : own,
           category_id: record.category_id ?? null,
           record_type_id: record.record_type_id ?? null,
           fixed_id: record.fixed_id ?? null,
@@ -214,6 +225,16 @@ export const useBudgetPlansRepository = () => {
         );
       }) ?? null
     );
+  };
+
+  const nextSortOrder = async (planId: number) => {
+    const rows = (await linesOrm
+      .where('budget_plan_id', planId)
+      .getAll()) as BudgetLine[];
+    return rows.reduce(
+      (max, line) => Math.max(max, line.sort_order ?? 0),
+      -1
+    ) + 1;
   };
 
   const saveLine = async (
@@ -267,8 +288,17 @@ export const useBudgetPlansRepository = () => {
       scope,
       source: parsed.source ?? 'manual',
       priority: parsed.priority ?? 2,
-      sort_order: parsed.sort_order ?? 0,
+      sort_order: parsed.sort_order ?? (await nextSortOrder(parsed.budget_plan_id)),
     } as Insertable<BudgetLine>);
+  };
+
+  const reorderLines = async (planId: number, orderedIds: number[]) => {
+    await withExclusiveTransaction(db, async (txn) => {
+      const lines = new ORM(txn, 'BudgetLines');
+      for (let index = 0; index < orderedIds.length; index += 1) {
+        await lines.update(orderedIds[index], { sort_order: index });
+      }
+    });
   };
 
   const deleteLine = async (lineId: number) => linesOrm.delete(lineId);
@@ -692,6 +722,7 @@ export const useBudgetPlansRepository = () => {
     createPlan,
     updatePlan,
     saveLine,
+    reorderLines,
     deleteLine,
     listLines,
     fetchLineRecords,

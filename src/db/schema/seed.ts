@@ -78,13 +78,27 @@ export const seedSampleData = async (db: SQLiteDatabase) => {
   }
 
   const now = new Date();
+  const month = now.getMonth();
+  const periodStart = new Date(now.getFullYear(), month, 1).getTime();
+  const periodEnd = new Date(
+    now.getFullYear(),
+    month + 1,
+    0,
+    23,
+    59,
+    59,
+    999
+  ).getTime();
   const result = await db.runAsync(
-    `INSERT INTO ${quoteIdent(APP_SCHEMA.Groups.sqlName)} (group_name, goal, year, month)
-     VALUES (?, ?, ?, ?)`,
+    `INSERT INTO ${quoteIdent(APP_SCHEMA.Groups.sqlName)} (group_name, goal, year, month, period_start, period_end, period_mode)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
     'Default Group',
     500000,
     now.getFullYear(),
-    now.getMonth() + 1
+    month,
+    periodStart,
+    periodEnd,
+    'calendar_month'
   );
   const groupId = result.lastInsertRowId;
 

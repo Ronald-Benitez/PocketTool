@@ -20,33 +20,22 @@ description: Crea o modifica pantallas, componentes, formularios, modales, filtr
 
 ## En modo build
 
-1. Revisa `src/ui/index.ts` y reutiliza lo existente antes de crear algo.
-2. Usa primitivas: `AppText`, `Surface`, `Divider`, `Screen`, `Stack`, `Row`,
-   `Column`.
-3. Acciones: `Button`, `IconButton`, `LinkButton`, `SwipeAction`.
-4. Formularios: `FormField`, `TextField`, `MoneyField`, `SelectField`,
-   `MultiSelectField`, `DateField`, `MonthField`, `SwitchField`, `ColorField`,
-   `ColorPicker`. Usa `searchable` cuando la lista sea larga.
-5. Overlays: `Modal` (center/bottom), `BottomSheet`, `Dialog`,
-   `ConfirmDialog`. Nunca uses `Modal`, `Alert` o `ToastAndroid` de React
-   Native fuera de `src/ui`.
-6. **Footer de modales:** contenedor interno con `flex: 1` si los botones usan
+1. Revisa `src/ui/index.ts` y reutiliza lo existente antes de crear algo. El
+   catálogo y las reglas de componentes viven en `src/ui/AGENTS.md`; no los
+   dupliques aquí.
+2. **Footer de modales:** contenedor interno con `flex: 1` si los botones usan
    `flex: 1`; `Row` como footer recibe `style={{ flex: 1 }}`.
-7. Feedback: `ToastProvider` único, `InlineMessage`, `EmptyState`,
-   `LoadingState`. No crees toasts o modales locales.
-8. Datos: `Card`, `ListItem`, `Badge`, `FinanceValue`, `SummaryBlock`,
-   `SummaryGroup`, `AccentRow`. `FinanceValue` recibe centavos.
-9. Tema: `useTheme()` y tokens. No leas `useColorStore`. Si agregas un color,
-   actualiza `ThemeColorTokens`, `bright.base.json`, `dark.base.json`,
-   `COLOR_GROUPS` y `COLOR_LABELS_ES`.
-10. Gráficos: `MermaidChart` o wrappers existentes; colores desde tokens y
-    leyenda visible que relacione color y serie.
-11. Navegación: `StackBase` + `Tabs.Screen`; no crees un `Stack` interno dentro
-    de una sección del drawer. Para editores, usa estado local y componentes.
-12. Textos: todo pasa por `t()` con `TranslationKey`; actualiza la ayuda con
-    `pockettool-help`.
-13. Verifica: `npm run typecheck`, `npm run lint`, `npm test` y prueba visual en
-    Android/iOS.
+3. Feedback: `ToastProvider` único; no crees toasts o modales locales.
+4. Tema: `useTheme()` y tokens. No leas `useColorStore`. Si agregas un color,
+   actualiza los cuatro registros indicados en `src/ui/AGENTS.md`.
+5. Gráficos: usa `Chart`/`ChartCard` de `src/ui/charts`; los builders devuelven
+   `ChartSpec` y la UI decide tokens y leyenda.
+6. Navegación: `StackBase` + `Tabs.Screen`; no crees un `Stack` interno dentro
+   de una sección del drawer. Para editores, usa estado local y componentes.
+7. Textos: todo pasa por `t()` con `TranslationKey`; actualiza la ayuda con
+   `pockettool-help`.
+8. Verifica: `npm run typecheck`, `npm run lint`, `npm test` y prueba visual en
+   Android/iOS.
 
 ## Referencias
 

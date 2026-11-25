@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { View } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { SwipeAction } from '@/src/ui/actions/SwipeAction';
@@ -9,11 +8,14 @@ import { RecordType, Insertable } from '@/src/interfaces/schema';
 import { useDataStore } from '@/src/stores';
 import { useTableRepository } from '@/src/db';
 import { Button } from '@/src/ui/actions/Button';
+import { LinkButton } from '@/src/ui/actions/LinkButton';
 import { ColorField } from '@/src/ui/forms/ColorField';
 import { SelectField } from '@/src/ui/forms/SelectField';
 import { TextField } from '@/src/ui/forms/TextField';
 import { ListItem } from '@/src/ui/data-display/ListItem';
+import { SectionCard } from '@/src/ui/data-display/SectionCard';
 import { Modal } from '@/src/ui/overlays/Modal';
+import { AppText } from '@/src/ui/primitives/AppText';
 import { Row, Stack } from '@/src/ui/primitives/Stack';
 import { Screen } from '@/src/ui/primitives/Screen';
 import { useTheme } from '@/src/ui/theme/ThemeProvider';
@@ -109,39 +111,48 @@ const RecordTypesScreen = () => {
 
     return (
         <Screen scroll edges={['left', 'right']}>
-            <Stack gap='lg'>
-                <Button
-                    label={t('add.recordType')}
-                    size='sm'
-                    onPress={openCreate}
-                    leftIcon={<MaterialIcons name='add' size={18} color={colors.onPrimary} />}
-                    style={{ alignSelf: 'flex-start' }}
-                />
-
-                <View style={{ gap: 8 }}>
-                    {RecordTypes?.map((item, index) => (
-                        <SwipeAction
-                            key={item.id ?? index}
-                            handleDelete={() => handleDelete(item.id)}
-                            handleUpdate={() => handleEdit(item)}
-                        >
-                            <ListItem
-                                title={item.type_name}
-                                leading={
-                                    <View
-                                        style={{
-                                            width: 4,
-                                            height: 32,
-                                            borderRadius: 2,
-                                            backgroundColor: item.record_color || colors.primary,
-                                        }}
-                                    />
-                                }
-                                showDivider
-                            />
-                        </SwipeAction>
-                    ))}
-                </View>
+            <Stack gap='xl'>
+                <SectionCard
+                    title={t('headers.recordTypes')}
+                    action={
+                        <LinkButton
+                            label={t('add.recordType')}
+                            onPress={openCreate}
+                        />
+                    }
+                    padded={false}
+                >
+                    {RecordTypes?.length ? (
+                        RecordTypes.map((item, index) => (
+                            <SwipeAction
+                                key={item.id ?? index}
+                                handleDelete={() => handleDelete(item.id)}
+                                handleUpdate={() => handleEdit(item)}
+                            >
+                                <ListItem
+                                    title={item.type_name}
+                                    leading={
+                                        <View
+                                            style={{
+                                                width: 4,
+                                                height: 32,
+                                                borderRadius: 2,
+                                                backgroundColor:
+                                                    item.record_color ||
+                                                    colors.primary,
+                                            }}
+                                        />
+                                    }
+                                    showDivider
+                                />
+                            </SwipeAction>
+                        ))
+                    ) : (
+                        <AppText color='muted' style={{ padding: 16 }}>
+                            {t('resume.noData')}
+                        </AppText>
+                    )}
+                </SectionCard>
             </Stack>
 
             <Modal

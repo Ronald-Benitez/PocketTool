@@ -23,6 +23,7 @@ import {
   buildPaymentBreakdown,
   type ExtraChargeType,
 } from '@/src/domain/credits/payments';
+import { computeParticipantShares } from '@/src/domain/shared/split';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import useRecordsStore from '@/src/stores/RecordsStore';
 import { formatMoneyWithSymbol } from '@/src/utils';
@@ -102,6 +103,9 @@ export const FinancingPaymentForm = ({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sharedPercent, setSharedPercent] = useState(0);
+  const [sharedParticipants, setSharedParticipants] = useState<
+    { person_id: number; share_percent: number; share_mode: string; share_amount_cents: number | null }[]
+  >([]);
 
   useEffect(() => {
     if (!visible) return;
@@ -173,6 +177,7 @@ export const FinancingPaymentForm = ({
   useEffect(() => {
     if (!visible || !financing?.id) {
       setSharedPercent(0);
+      setSharedParticipants([]);
       return;
     }
     let active = true;
@@ -180,10 +185,20 @@ export const FinancingPaymentForm = ({
       .fetchFor('financing', financing.id)
       .then((rows) => {
         if (!active) return;
+        setSharedParticipants(
+          rows.map((row) => ({
+            person_id: row.person_id,
+            share_percent: row.share_percent,
+            share_mode: row.share_mode,
+            share_amount_cents: row.share_amount_cents ?? null,
+          }))
+        );
         setSharedPercent(
           Math.min(
             100,
-            rows.reduce((total, row) => total + row.share_percent, 0)
+            rows
+              .filter((row) => row.share_mode !== 'amount')
+              .reduce((total, row) => total + row.share_percent, 0)
           )
         );
       })
@@ -191,6 +206,7 @@ export const FinancingPaymentForm = ({
         if (!active) return;
         if (__DEV__) console.warn('[financings] participants load failed', cause);
         setSharedPercent(0);
+        setSharedParticipants([]);
         const mapped = mapDatabaseError(cause, t('toast.error'));
         showToast({
           message: t(`dbErrors.${mapped.code}` as never),
@@ -224,14 +240,29 @@ export const FinancingPaymentForm = ({
     ]
   );
 
-  const sharedAmount = Math.round(
-    (breakdown.amountCents * sharedPercent) / 100
+  const sharedSplit = computeParticipantShares(
+    breakdown.amountCents,
+    sharedParticipants.map((participant) => ({
+      personId: participant.person_id,
+      shareMode: participant.share_mode as 'percent' | 'amount',
+      sharePercent: participant.share_percent,
+      shareAmountCents: participant.share_amount_cents,
+    }))
   );
-  const ownAmount = breakdown.amountCents - sharedAmount;
+  const sharedAmount = sharedSplit.sharedCents;
+  const ownAmount = sharedSplit.ownCents;
+  const fixedSharedAmount = sharedParticipants
+    .filter((participant) => participant.share_mode === 'amount')
+    .reduce(
+      (total, participant) => total + (participant.share_amount_cents ?? 0),
+      0
+    );
   const grossUp = (ownCents: number) =>
     sharedPercent >= 100
-      ? ownCents
-      : Math.round(ownCents / (1 - sharedPercent / 100));
+      ? ownCents + fixedSharedAmount
+      : Math.round(
+          (ownCents + fixedSharedAmount) / (1 - sharedPercent / 100)
+        );
 
   const selectLinkedRecord = (option: FinancingRecordOption) => {
     setLinkedRecord(option);
@@ -483,7 +514,7 @@ export const FinancingPaymentForm = ({
                   </AppText>
                 </Row>
               ) : null}
-              {sharedPercent > 0 ? (
+              {sharedAmount > 0 ? (
                 <>
                   <Row justify='space-between'>
                     <AppText color='muted'>{t('shared.total')}</AppText>

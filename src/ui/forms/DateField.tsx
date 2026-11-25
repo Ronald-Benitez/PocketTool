@@ -16,7 +16,8 @@ import { controlHeight, radii, spacing } from '../theme/tokens';
 import { AppText } from '../primitives/AppText';
 import { Button } from '../actions/Button';
 import { IconButton } from '../actions/IconButton';
-import { BottomSheet } from '../overlays/Modal';
+import { Modal } from '../overlays/Modal';
+import type { InfoHintContent } from '../overlays/InfoHint';
 import { FormField } from './FormField';
 
 export type DateFieldProps = {
@@ -24,6 +25,7 @@ export type DateFieldProps = {
   required?: boolean;
   hint?: string;
   error?: string;
+  tooltip?: InfoHintContent;
   value: number | null | undefined;
   onChange: (timestampMs: number) => void;
   disabled?: boolean;
@@ -45,6 +47,7 @@ export const DateField = ({
   required = false,
   hint,
   error,
+  tooltip,
   value,
   onChange,
   disabled = false,
@@ -124,6 +127,7 @@ export const DateField = ({
       required={required}
       hint={hint}
       error={error}
+      tooltip={tooltip}
       style={containerStyle}
     >
       <Pressable
@@ -152,11 +156,12 @@ export const DateField = ({
         <MaterialIcons name='calendar-month' size={22} color={colors.textMuted} />
       </Pressable>
 
-      <BottomSheet
+      <Modal
         visible={visible}
         onClose={() => setVisible(false)}
         title={title ?? label ?? placeholder}
         closeLabel={closeLabel ?? cancelLabel ?? t('datePicker.cancel')}
+        scrollable
         footer={
           <View style={styles.footer}>
             <Button
@@ -251,7 +256,7 @@ export const DateField = ({
             );
           })}
         </View>
-      </BottomSheet>
+      </Modal>
     </FormField>
   );
 };

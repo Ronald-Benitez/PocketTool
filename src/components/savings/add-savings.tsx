@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { usePeopleRepository, useSavings, useSharedParticipantsRepository } from '@/src/db';
@@ -6,6 +6,7 @@ import { mapDatabaseError } from '@/src/db/errors';
 import type { ParticipantDraft } from '@/src/db/repositories/people';
 import type { SavingInput } from '@/src/db/repositories/savings';
 import type { Person } from '@/src/interfaces/schema';
+import { useFeature } from '@/src/features';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import useSavingsStore from '@/src/stores/SavingsStore';
 import { SharedParticipantsField } from '@/src/components/shared/SharedParticipantsField';
@@ -16,6 +17,7 @@ import { MoneyField } from '@/src/ui/forms/MoneyField';
 import { SelectField } from '@/src/ui/forms/SelectField';
 import { SwitchField } from '@/src/ui/forms/SwitchField';
 import { TextField } from '@/src/ui/forms/TextField';
+import { FormErrorSummary } from '@/src/ui/forms/FormErrorSummary';
 import { Modal } from '@/src/ui/overlays/Modal';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Stack } from '@/src/ui/primitives/Stack';
@@ -24,6 +26,7 @@ type SavingFormProps = {
   isEditing?: boolean;
   children?: React.ReactNode;
   open?: boolean;
+  onClose?: () => void;
   onSaved?: () => void;
 };
 
@@ -36,15 +39,16 @@ export const AddSaving = ({
   isEditing = false,
   children,
   open,
+  onClose,
   onSaved,
 }: SavingFormProps) => {
   const { t } = useLanguage();
+  const showPeople = useFeature('people');
   const { showToast } = useToast();
   const repository = useSavings();
   const peopleRepository = usePeopleRepository();
   const participantsRepository = useSharedParticipantsRepository();
   const { saving, setSaving, setSavings } = useSavingsStore();
-  const firstOpenEffect = useRef(true);
 
   const [visible, setVisible] = useState(false);
   const [name, setName] = useState('');
@@ -63,11 +67,7 @@ export const AddSaving = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (firstOpenEffect.current) {
-      firstOpenEffect.current = false;
-      return;
-    }
-    setVisible(true);
+    if (open) setVisible(true);
   }, [open]);
 
   useEffect(() => {
@@ -115,6 +115,8 @@ export const AddSaving = ({
             rows.map((row) => ({
               personId: row.person_id,
               sharePercent: row.share_percent,
+              shareMode: row.share_mode as 'percent' | 'amount',
+              shareAmountCents: row.share_amount_cents ?? null,
               notes: row.notes,
             }))
           );
@@ -136,10 +138,13 @@ export const AddSaving = ({
     setError(null);
   }, [visible, isEditing, saving?.id]);
 
-  const closeModal = () => setVisible(false);
+  const closeModal = () => {
+    setVisible(false);
+    onClose?.();
+  };
 
   const save = async () => {
-    if (!name.trim() || amountCents <= 0) {
+    if (!name.trim()) {
       setError(t('savings.form.required'));
       return;
     }
@@ -227,10 +232,19 @@ export const AddSaving = ({
         }
       >
         <Stack gap='md'>
-          <TextField label={t('item.name')} value={name} onChangeText={setName} required />
+          <FormErrorSummary errors={error ? [error] : []} />
+          <TextField
+            label={t('item.name')}
+            value={name}
+            onChangeText={(value) => {
+              setName(value);
+              setError(null);
+            }}
+            required
+            error={error === t('savings.form.required') ? t('required') : undefined}
+          />
           <MoneyField
             label={isEditing ? t('savings.form.currentAmount') : t('item.value')}
-            required
             value={amountCents}
             onChangeCents={setAmountCents}
           />
@@ -241,7 +255,11 @@ export const AddSaving = ({
                 label={t('savings.form.targetAmount')}
                 required
                 value={targetAmountCents}
-                onChangeCents={setTargetAmountCents}
+                error={error === t('savings.form.targetRequired') ? t('required') : undefined}
+                onChangeCents={(value) => {
+                  setTargetAmountCents(value);
+                  setError(null);
+                }}
               />
               <DateField
                 label={t('savings.form.targetDate')}
@@ -264,15 +282,23 @@ export const AddSaving = ({
             <TextField
               label={t('savings.form.percentOfIncome')}
               value={contributionPercent}
-              onChangeText={setContributionPercent}
+              onChangeText={(value) => {
+                setContributionPercent(value);
+                setError(null);
+              }}
               keyboardType='decimal-pad'
+              error={error === t('savings.form.percentRequired') ? t('required') : undefined}
             />
           ) : null}
           {contributionRule === 'fixed' ? (
             <MoneyField
               label={t('savings.form.fixedContribution')}
               value={contributionAmountCents}
-              onChangeCents={setContributionAmountCents}
+              error={error === t('savings.form.amountRequired') ? t('required') : undefined}
+              onChangeCents={(value) => {
+                setContributionAmountCents(value);
+                setError(null);
+              }}
             />
           ) : null}
           <SelectField<'separate' | 'linked'>
@@ -289,16 +315,23 @@ export const AddSaving = ({
             value={interestRate}
             onChangeText={setInterestRate}
             keyboardType='decimal-pad'
-            hint={t('savings.form.interestHint')}
+            tooltip={{
+              title: t('savings.form.interestRate'),
+              body: t('savings.form.interestHint'),
+            }}
           />
-          <AppText variant='label'>{t('savings.form.participants')}</AppText>
-          <SharedParticipantsField
-            people={people}
-            value={participants}
-            onChange={setParticipants}
-            totalCents={hasGoal ? targetAmountCents : amountCents}
-          />
-          {error ? <AppText color='danger'>{error}</AppText> : null}
+          {showPeople || isEditing ? (
+            <>
+              <AppText variant='label'>{t('savings.form.participants')}</AppText>
+              <SharedParticipantsField
+                people={people}
+                value={participants}
+                onChange={setParticipants}
+                totalCents={hasGoal ? targetAmountCents : amountCents}
+                allowAmount={false}
+              />
+            </>
+          ) : null}
         </Stack>
       </Modal>
     </>

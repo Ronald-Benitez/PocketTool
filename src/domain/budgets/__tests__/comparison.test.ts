@@ -1,5 +1,6 @@
 import { calculateBudgetPlanView } from '../comparison';
 import {
+  buildBudgetBalanceChart,
   buildBudgetComparisonChart,
   buildBudgetDistributionPie,
   buildBudgetHealthPie,
@@ -13,9 +14,13 @@ const labels: BudgetChartLabels = {
   distributionTitle: 'Distribution',
   comparisonTitle: 'Comparison',
   projectionTitle: 'Projection',
+  balanceTitle: 'Balance',
   planned: 'Planned',
   actual: 'Actual',
   projected: 'Projected',
+  plannedNet: 'Planned net',
+  actualNet: 'Actual net',
+  expectedNet: 'Expected net',
   spent: 'Spent',
   remaining: 'Remaining',
   onTrack: 'On track',
@@ -35,6 +40,8 @@ const baseInput = (): BudgetComparisonInput => ({
   planName: 'October',
   month: 10,
   year: 2026,
+  periodStart: new Date(2026, 9, 1).getTime(),
+  periodEnd: new Date(2026, 9, 31, 23, 59, 59, 999).getTime(),
   templateName: null,
   lines: [
     {
@@ -121,6 +128,90 @@ describe('budget comparison', () => {
     expect(view.totals.actualExpenseCents).toBe(84000);
   });
 
+  it('uses the group period for elapsed and remaining days', () => {
+    const view = calculateBudgetPlanView(baseInput());
+    expect(view.periodStart).toBe(new Date(2026, 9, 1).getTime());
+    expect(view.daysInPeriod).toBe(31);
+    expect(view.daysElapsed).toBe(15);
+    expect(view.daysRemaining).toBe(17);
+    expect(view.periodRelation).toBe('current');
+  });
+
+  it('handles a start-day period that crosses the month', () => {
+    const input = baseInput();
+    input.periodStart = new Date(2026, 8, 18).getTime();
+    input.periodEnd = new Date(2026, 9, 17, 23, 59, 59, 999).getTime();
+    input.now = new Date(2026, 9, 1);
+
+    const view = calculateBudgetPlanView(input);
+    expect(view.daysInPeriod).toBe(30);
+    expect(view.daysElapsed).toBe(14);
+    expect(view.daysRemaining).toBe(17);
+    expect(view.periodRelation).toBe('current');
+  });
+
+  it('projects the end-of-period consumption balance', () => {
+    const view = calculateBudgetPlanView(baseInput());
+    expect(view.balance.actualNetCents).toBe(-84000);
+    expect(view.balance.remainingExpenseCents).toBe(110000);
+    expect(view.balance.expectedEndBalanceCents).toBe(-194000);
+    expect(view.balance.dailyAvailableCents).toBe(8588);
+    expect(view.balance.hasIncomeLines).toBe(false);
+  });
+
+  it('includes planned income in the expected balance', () => {
+    const input = baseInput();
+    input.lines.push({
+      id: 4,
+      budget_plan_id: 1,
+      category_id: 1,
+      record_type_id: 1,
+      scope: 'category',
+      source: 'manual',
+      planned_amount: 300000,
+      priority: 2,
+      sort_order: 3,
+    });
+    input.records.push({
+      id: 5,
+      amount: 100000,
+      category_id: 1,
+      record_type_id: 1,
+      fixed_id: null,
+    });
+
+    const view = calculateBudgetPlanView(input);
+    expect(view.balance.hasIncomeLines).toBe(true);
+    expect(view.balance.remainingIncomeCents).toBe(200000);
+    expect(view.balance.expectedEndBalanceCents).toBe(106000);
+  });
+
+  it('uses actual net for a past period and the full plan for a future one', () => {
+    const past = baseInput();
+    past.now = new Date(2026, 10, 5);
+    const pastView = calculateBudgetPlanView(past);
+    expect(pastView.periodRelation).toBe('past');
+    expect(pastView.daysRemaining).toBe(0);
+    expect(pastView.balance.expectedEndBalanceCents).toBe(-84000);
+
+    const future = baseInput();
+    future.now = new Date(2026, 8, 20);
+    future.records = [];
+    const futureView = calculateBudgetPlanView(future);
+    expect(futureView.periodRelation).toBe('future');
+    expect(futureView.daysElapsed).toBe(0);
+    expect(futureView.balance.expectedEndBalanceCents).toBe(-230000);
+  });
+
+  it('orders lines by manual sort order first', () => {
+    const input = baseInput();
+    input.lines[0].sort_order = 2;
+    input.lines[1].sort_order = 1;
+
+    const view = calculateBudgetPlanView(input);
+    expect(view.lines.map((line) => line.lineId)).toEqual([2, 1]);
+  });
+
   it('marks a fixed commitment as pending until it has a record', () => {
     const view = calculateBudgetPlanView(baseInput());
     const rent = view.lines.find((line) => line.scope === 'fixed');
@@ -190,7 +281,7 @@ describe('budget comparison', () => {
     ).toBe(true);
   });
 
-  it('builds charts and sanitizes labels', () => {
+  it('builds structured chart specs without altering labels', () => {
     const input = baseInput();
     input.categories[0].category_name = 'Food "and" [drinks]';
     const view = calculateBudgetPlanView(input);
@@ -199,14 +290,26 @@ describe('budget comparison', () => {
     const distribution = buildBudgetDistributionPie(view, labels);
     const comparison = buildBudgetComparisonChart(view, labels);
     const projection = buildBudgetProjectionChart(view, labels);
+    const balance = buildBudgetBalanceChart(view, labels);
 
-    expect(health).toContain('pie showData');
-    expect(distribution).toContain('Food and drinks');
-    expect(distribution).not.toContain('"and"');
-    expect(comparison).toContain('xychart-beta');
-    expect(comparison).toContain('bar [');
-    expect(projection).toContain('xychart-beta');
-    expect(projection).toContain('Projection');
+    expect(health?.kind).toBe('pie');
+    expect(health?.series[0].points.length).toBeGreaterThan(0);
+    expect(distribution?.kind).toBe('pie');
+    expect(distribution?.series[0].points[0].x).toBe('Food "and" [drinks]');
+    expect(comparison?.kind).toBe('grouped_bar');
+    expect(comparison?.series.map((series) => series.key)).toEqual([
+      'planned',
+      'actual',
+    ]);
+    expect(
+      comparison?.series[0].points.every(
+        (point) => typeof point.y === 'number' && point.y > 0
+      )
+    ).toBe(true);
+    expect(projection?.kind).toBe('grouped_bar');
+    expect(projection?.series[1].key).toBe('projected');
+    expect(balance?.kind).toBe('grouped_bar');
+    expect(balance?.series[0].points).toHaveLength(3);
   });
 
   it('returns null charts when there is no expense data', () => {

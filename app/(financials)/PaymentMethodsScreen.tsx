@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { SwipeAction } from '@/src/ui/actions/SwipeAction';
@@ -11,12 +10,14 @@ import { usePaymentMethods, useTableRepository } from '@/src/db';
 import { PaymentMethodVisual } from '@/src/components/payments/PaymentMethodVisual';
 import { formatMoneyWithSymbol } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
+import { LinkButton } from '@/src/ui/actions/LinkButton';
 import { ColoredSelectOption } from '@/src/ui/forms/ColoredSelectOption';
 import { ColorChoiceField } from '@/src/ui/forms/ColorChoiceField';
 import { MoneyField } from '@/src/ui/forms/MoneyField';
 import { SelectField } from '@/src/ui/forms/SelectField';
 import { SwitchField } from '@/src/ui/forms/SwitchField';
 import { TextField } from '@/src/ui/forms/TextField';
+import { SectionCard } from '@/src/ui/data-display/SectionCard';
 import { Modal } from '@/src/ui/overlays/Modal';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Row, Stack } from '@/src/ui/primitives/Stack';
@@ -263,80 +264,84 @@ const PaymentMethodsScreen = () => {
 
   return (
     <Screen scroll edges={['left', 'right']}>
-      <Stack gap='lg'>
-        <Row justify='flex-start'>
-          <Button
-            label={t('paymentMethods.addMethod')}
-            size='sm'
-            onPress={openCreate}
-            leftIcon={
-              <MaterialIcons name='add' size={18} color={colors.onPrimary} />
-            }
-          />
-        </Row>
-
-        <Stack gap='md'>
-          {PaymentMethods?.map((item) => {
-            const credit =
-              Boolean(item.is_credit_card) ||
-              (item.closing_date ?? 0) > 0 ||
-              item.visual_kind === 'credit_card';
-            const kind = credit
-              ? 'credit_card'
-              : item.visual_kind ?? 'other';
-            const color =
-              item.card_color ??
-              item.PaymentTypes?.payment_color ??
-              colors.primary;
-            const typeName = item.PaymentTypes?.payment_type_name ?? '';
-            return (
-              <SwipeAction
-                key={item.id}
-                handleDelete={() => handleDeletePaymentMethod(item.id)}
-                handleUpdate={() => handleEditPaymentMethod(item)}
-              >
-                <Surface variant='outlined' padding='md'>
-                  <Row gap='md' align='center'>
-                    <View style={{ width: 116 }}>
-                      <PaymentMethodVisual
-                        kind={kind}
-                        brand={item.card_brand}
-                        style={item.card_style}
-                        color={color}
-                        name={item.method_name}
-                        last4={item.card_last4}
-                        holder={item.card_holder}
-                        issuer={item.card_issuer}
-                        limitCents={item.credit_limit}
-                        closingDate={item.closing_date}
-                        paymentDate={item.payment_date}
-                        height={70}
-                        compact
-                      />
-                    </View>
-                    <Stack gap='xxs' style={{ flex: 1 }}>
-                      <AppText weight='600'>{item.method_name}</AppText>
-                      <AppText variant='caption' color='muted'>
-                        {typeName}
-                        {credit && item.credit_limit
-                          ? ` · ${t('paymentMethods.creditLimit')}: ${formatMoneyWithSymbol(
-                              item.credit_limit
-                            )}`
-                          : ''}
-                      </AppText>
-                      {credit ? (
+      <Stack gap='xl'>
+        <SectionCard
+          title={t('headers.payments')}
+          action={
+            <LinkButton
+              label={t('paymentMethods.addMethod')}
+              onPress={openCreate}
+            />
+          }
+          padded={false}
+        >
+          {PaymentMethods?.length ? (
+            PaymentMethods.map((item) => {
+              const credit =
+                Boolean(item.is_credit_card) ||
+                (item.closing_date ?? 0) > 0 ||
+                item.visual_kind === 'credit_card';
+              const kind = credit
+                ? 'credit_card'
+                : item.visual_kind ?? 'other';
+              const color =
+                item.card_color ??
+                item.PaymentTypes?.payment_color ??
+                colors.primary;
+              const typeName = item.PaymentTypes?.payment_type_name ?? '';
+              return (
+                <SwipeAction
+                  key={item.id}
+                  handleDelete={() => handleDeletePaymentMethod(item.id)}
+                  handleUpdate={() => handleEditPaymentMethod(item)}
+                >
+                  <Surface variant='outlined' padding='md'>
+                    <Row gap='md' align='center'>
+                      <View style={{ width: 116 }}>
+                        <PaymentMethodVisual
+                          kind={kind}
+                          brand={item.card_brand}
+                          style={item.card_style}
+                          color={color}
+                          name={item.method_name}
+                          last4={item.card_last4}
+                          holder={item.card_holder}
+                          issuer={item.card_issuer}
+                          limitCents={item.credit_limit}
+                          closingDate={item.closing_date}
+                          paymentDate={item.payment_date}
+                          height={70}
+                          compact
+                        />
+                      </View>
+                      <Stack gap='xxs' style={{ flex: 1 }}>
+                        <AppText weight='600'>{item.method_name}</AppText>
                         <AppText variant='caption' color='muted'>
-                          {t('credits.closingDate')}: {item.closing_date ?? '—'} ·{' '}
-                          {t('credits.paidDate')}: {item.payment_date ?? '—'}
+                          {typeName}
+                          {credit && item.credit_limit
+                            ? ` · ${t('paymentMethods.creditLimit')}: ${formatMoneyWithSymbol(
+                                item.credit_limit
+                              )}`
+                            : ''}
                         </AppText>
-                      ) : null}
-                    </Stack>
-                  </Row>
-                </Surface>
-              </SwipeAction>
-            );
-          })}
-        </Stack>
+                        {credit ? (
+                          <AppText variant='caption' color='muted'>
+                            {t('credits.closingDate')}: {item.closing_date ?? '—'} ·{' '}
+                            {t('credits.paidDate')}: {item.payment_date ?? '—'}
+                          </AppText>
+                        ) : null}
+                      </Stack>
+                    </Row>
+                  </Surface>
+                </SwipeAction>
+              );
+            })
+          ) : (
+            <AppText color='muted' style={{ padding: 16 }}>
+              {t('resume.noData')}
+            </AppText>
+          )}
+        </SectionCard>
       </Stack>
 
       <Modal

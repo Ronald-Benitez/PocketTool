@@ -22,23 +22,34 @@ const entries = analyzeFuelEntries([
 describe('vehicle fuel charts', () => {
   it('builds a volume chart by segment in the selected unit', () => {
     const chart = buildVolumeChart(entries, 'L', 'Volume');
-    expect(chart).toContain('xychart-beta');
-    expect(chart).toContain('bar [37.854, 37.854]');
-    expect(buildVolumeChart(entries, 'gal', 'Volume')).toContain(
-      'bar [10, 10]'
-    );
+    expect(chart?.kind).toBe('bar');
+    expect(chart?.series[0].points.map((point) => point.y)).toEqual([
+      37.854,
+      37.854,
+    ]);
+    expect(buildVolumeChart(entries, 'gal', 'Volume')?.series[0].points.map((point) => point.y)).toEqual([
+      10,
+      10,
+    ]);
   });
 
   it('builds a price chart by segment in the selected unit', () => {
     const chart = buildPriceChart(entries, 'gal', 'Price');
-    expect(chart).toContain('line [4, 4.5]');
-    expect(buildPriceChart(entries, 'L', 'Price')).toContain('line [1.057');
+    expect(chart?.kind).toBe('line');
+    expect(chart?.yAxis?.format).toBe('currency');
+    expect(chart?.series[0].points.map((point) => point.y)).toEqual([400, 450]);
+    expect(
+      buildPriceChart(entries, 'L', 'Price')?.series[0].points[0].y
+    ).toBe(106);
   });
 
-  it('builds a total spend chart by segment', () => {
+  it('builds a total spend chart by segment in cents', () => {
     const chart = buildTotalSpendChart(entries, 'gal', 'Total spent');
-    expect(chart).toContain('bar [40, 45]');
-    expect(chart).toContain('y-axis "$"');
+    expect(chart?.kind).toBe('bar');
+    expect(chart?.yAxis?.format).toBe('money');
+    expect(chart?.series[0].points.map((point) => point.y)).toEqual([
+      4000, 4500,
+    ]);
   });
 
   it('compares volume, distance and total cost per segment', () => {
@@ -48,8 +59,29 @@ describe('vehicle fuel charts', () => {
       'mi',
       'Mobility'
     );
-    expect(chart).toContain('Index (base 100)');
-    expect(chart?.match(/line \[/g)).toHaveLength(3);
+    expect(chart?.kind).toBe('line');
+    expect(chart?.yAxis?.format).toBe('index');
+    expect(chart?.series).toHaveLength(3);
+    expect(chart?.series[0].points[0].tooltipValue).toBe(37.854);
+    expect(chart?.series[0].points[0].tooltipFormat).toBe('unit');
+    expect(chart?.series[1].points[0].tooltipValue).toBe(300);
+    expect(chart?.series[2].points[0].tooltipValue).toBe(40);
+    expect(chart?.series[2].points[0].tooltipFormat).toBe('currency_units');
+  });
+
+  it('can plot raw mobility values without the base-100 index', () => {
+    const chart = buildMobilityComparisonChart(
+      entries,
+      'L',
+      'mi',
+      'Mobility',
+      { volume: 'Volume', distance: 'Distance', total: 'Total' },
+      'real'
+    );
+    expect(chart?.yAxis?.format).toBe('number');
+    expect(chart?.series[0].points[0].y).toBe(37.854);
+    expect(chart?.series[1].points[0].y).toBe(300);
+    expect(chart?.series[2].points[0].y).toBe(40);
   });
 
   it('requires at least two segments', () => {

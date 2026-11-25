@@ -2,7 +2,7 @@
   "expo": {
     "name": "PoketTool",
     "slug": "PoketTool",
-    "version": "4.0.4",
+    "version": "4.0.7",
     "orientation": "portrait",
     "icon": "./assets/images/icon3.png",
     "scheme": "myapp",
@@ -33,7 +33,8 @@
       "expo-sharing",
       "expo-splash-screen",
       "expo-status-bar",
-      "expo-asset"
+      "expo-asset",
+      "./plugins/withOptionalScreenPortrait"
     ],
     "experiments": {
       "typedRoutes": true

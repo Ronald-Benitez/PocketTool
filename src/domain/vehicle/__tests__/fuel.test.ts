@@ -3,7 +3,9 @@ import {
   buildFuelStats,
   fuelOdometerPoints,
   groupFuelSegments,
+  resolveOdometerMode,
   resolvePartialOdometer,
+  segmentDistanceKm,
   selectPreviousFuelReading,
 } from '../fuel';
 
@@ -17,8 +19,7 @@ const base = {
 };
 
 describe('vehicle fuel analysis', () => {
-  it('calculates distance from odometer and consumption', () => {
-    const entries = [
+  it('calculates distance from odometer and consumption', () => {    const entries = [
       { ...base, id: 1, date: 1, odometer: 1000, volume: 10 },
       { ...base, id: 2, date: 2, odometer: 1300, volume: 10 },
     ];
@@ -54,6 +55,7 @@ describe('vehicle fuel analysis', () => {
     expect(segments[0].endEntry.id).toBe(3);
     expect(segments[0].entries.map((item) => item.entry.id)).toEqual([1, 2, 3]);
     expect(segments[0].metrics?.miPerGal).toBeCloseTo(40, 6);
+    expect(segmentDistanceKm(segments[0])).toBeCloseTo(400 * 1.609344, 6);
   });
 
   it('changes segment boundaries when a partial fill becomes full', () => {
@@ -471,5 +473,52 @@ describe('vehicle fuel analysis', () => {
     expect(stats.totalVolumeL).toBeCloseTo(75.70823568, 6);
     expect(stats.averageMetrics?.miPerGal).toBeCloseTo(30, 6);
     expect(stats.best).not.toBeNull();
+  });
+
+  it('resolves the remembered odometer mode', () => {
+    expect(
+      resolveOdometerMode({
+        isBaseline: true,
+        isEditing: false,
+        hasManualOdometer: false,
+        storedMode: 'distance',
+      })
+    ).toBe('odometer');
+
+    expect(
+      resolveOdometerMode({
+        isBaseline: false,
+        isEditing: false,
+        hasManualOdometer: false,
+        storedMode: 'odometer',
+      })
+    ).toBe('odometer');
+
+    expect(
+      resolveOdometerMode({
+        isBaseline: false,
+        isEditing: false,
+        hasManualOdometer: false,
+        storedMode: 'distance',
+      })
+    ).toBe('distance');
+
+    expect(
+      resolveOdometerMode({
+        isBaseline: false,
+        isEditing: true,
+        hasManualOdometer: true,
+        storedMode: 'distance',
+      })
+    ).toBe('odometer');
+
+    expect(
+      resolveOdometerMode({
+        isBaseline: false,
+        isEditing: true,
+        hasManualOdometer: false,
+        storedMode: 'odometer',
+      })
+    ).toBe('distance');
   });
 });

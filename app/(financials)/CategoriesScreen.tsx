@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { View } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
 
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { SwipeAction } from '@/src/ui/actions/SwipeAction';
@@ -9,16 +7,17 @@ import { Category } from '@/src/interfaces/schema';
 import { useDataStore } from '@/src/stores';
 import { useTableRepository } from '@/src/db';
 import { Button } from '@/src/ui/actions/Button';
+import { LinkButton } from '@/src/ui/actions/LinkButton';
 import { ListItem } from '@/src/ui/data-display/ListItem';
+import { SectionCard } from '@/src/ui/data-display/SectionCard';
 import { TextField } from '@/src/ui/forms/TextField';
 import { Modal } from '@/src/ui/overlays/Modal';
 import { Row, Stack } from '@/src/ui/primitives/Stack';
 import { Screen } from '@/src/ui/primitives/Screen';
-import { useTheme } from '@/src/ui/theme/ThemeProvider';
+import { AppText } from '@/src/ui/primitives/AppText';
 
 const CategoriesScreen = () => {
     const { t } = useLanguage();
-    const { colors } = useTheme();
     const [visible, setVisible] = useState(false);
     const [category_name, setCategoryName] = useState('');
     const [editingId, setEditingId] = useState<number | undefined>(undefined);
@@ -90,36 +89,36 @@ const CategoriesScreen = () => {
 
     return (
         <Screen scroll edges={['left', 'right']}>
-            <Stack gap='lg'>
-                <Row justify='flex-start'>
-                    <Button
-                        label={t('add.category')}
-                        size='sm'
-                        onPress={openCreate}
-                        leftIcon={
-                            <MaterialIcons
-                                name='add'
-                                size={18}
-                                color={colors.onPrimary}
-                            />
-                        }
-                    />
-                </Row>
-
-                <View style={{ gap: 8 }}>
-                    {Categories?.map((item, index) => (
-                        <SwipeAction
-                            key={item.id ?? index}
-                            handleDelete={() => handleDelete(item.id)}
-                            handleUpdate={() => handleEdit(item)}
-                        >
-                            <ListItem
-                                title={item.category_name}
-                                showDivider
-                            />
-                        </SwipeAction>
-                    ))}
-                </View>
+            <Stack gap='xl'>
+                <SectionCard
+                    title={t('headers.categories')}
+                    action={
+                        <LinkButton
+                            label={t('add.category')}
+                            onPress={openCreate}
+                        />
+                    }
+                    padded={false}
+                >
+                    {Categories?.length ? (
+                        Categories.map((item, index) => (
+                            <SwipeAction
+                                key={item.id ?? index}
+                                handleDelete={() => handleDelete(item.id)}
+                                handleUpdate={() => handleEdit(item)}
+                            >
+                                <ListItem
+                                    title={item.category_name}
+                                    showDivider
+                                />
+                            </SwipeAction>
+                        ))
+                    ) : (
+                        <AppText color='muted' style={{ padding: 16 }}>
+                            {t('resume.noData')}
+                        </AppText>
+                    )}
+                </SectionCard>
             </Stack>
 
             <Modal

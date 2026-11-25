@@ -20,6 +20,13 @@ import savingsGoalsAndSharing from './0017_savings_goals_and_sharing';
 import savingsMovements from './0018_savings_movements';
 import recordsSavingSource from './0019_records_saving_source';
 import clearMovementSavingSource from './0020_clear_movement_saving_source';
+import recordsPayerAndScope from './0021_records_payer_and_scope';
+import personSettlements from './0022_person_settlements';
+import sharedParticipantAmounts from './0023_shared_participant_amounts';
+import groupClosings from './0024_group_closings';
+import groupPeriods from './0025_group_periods';
+import chartPreferences from './0026_chart_preferences';
+import shoppingLists from './0027_shopping_lists';
 
 export interface Migration {
   version: number;
@@ -52,4 +59,11 @@ export const migrations: Migration[] = [
   savingsMovements,
   recordsSavingSource,
   clearMovementSavingSource,
+  recordsPayerAndScope,
+  personSettlements,
+  sharedParticipantAmounts,
+  groupClosings,
+  groupPeriods,
+  chartPreferences,
+  shoppingLists,
 ];

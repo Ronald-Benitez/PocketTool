@@ -236,6 +236,7 @@ export const vehicleEn = {
     price: 'Price',
   },
   stats: {
+    title: 'Summary',
     currentOdometer: 'Current odometer',
     lastFill: 'Last fill-up',
     monthSpend: 'Spent this month',
@@ -300,6 +301,7 @@ export const vehicleEn = {
     noVehiclesBody: 'Add your first vehicle to start tracking fuel and maintenance.',
   },
   chart: {
+    title: 'Fuel charts',
     consumption: 'Consumption',
     consumptionProgress: 'Consumption progression',
     spend: 'Spend',
@@ -309,6 +311,10 @@ export const vehicleEn = {
     totalSpent: 'Spend by segment',
     price: 'Price by segment',
     comparison: 'Mobility by segment',
+    modeIndex: 'Index (base 100)',
+    modeReal: 'Real data',
+    indexHint: 'Base 100 makes the three series comparable.',
+    realHint: 'Raw values: volume, distance and cost use different units.',
     fuelVsMaintenance: 'Fuel vs. maintenance',
     noData: 'Not enough data for a chart.',
   },
@@ -550,6 +556,7 @@ export const vehicleEs: MessageShape<typeof vehicleEn> = {
     price: 'Precio',
   },
   stats: {
+    title: 'Resumen',
     currentOdometer: 'Odómetro actual',
     lastFill: 'Última carga',
     monthSpend: 'Gastado este mes',
@@ -614,6 +621,7 @@ export const vehicleEs: MessageShape<typeof vehicleEn> = {
     noVehiclesBody: 'Agrega tu primer vehículo para empezar a controlar combustible y mantenimiento.',
   },
   chart: {
+    title: 'Gráficos de combustible',
     consumption: 'Consumo',
     consumptionProgress: 'Progresión del consumo',
     spend: 'Gasto',
@@ -623,6 +631,10 @@ export const vehicleEs: MessageShape<typeof vehicleEn> = {
     totalSpent: 'Gasto por segmento',
     price: 'Precio por segmento',
     comparison: 'Movilidad por segmento',
+    modeIndex: 'Índice (base 100)',
+    modeReal: 'Datos reales',
+    indexHint: 'La base 100 hace comparables las tres series.',
+    realHint: 'Datos puros: volumen, distancia y costo usan unidades distintas.',
     fuelVsMaintenance: 'Combustible vs. mantenimiento',
     noData: 'No hay suficientes datos para un gráfico.',
   },

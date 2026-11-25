@@ -1,11 +1,9 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native'
+import { Pressable, View } from 'react-native'
 
 import { useLanguage } from '@/src/lang/LanguageContext'
-import useDate from '@/src/hooks/useDate'
-import { AccentRow } from '@/src/ui/data-display/AccentRow'
 import type { RecordFormEntry } from '@/src/interfaces/schema'
-import { useThemedStyles } from '@/src/styles/useThemedStyles'
-import { formatMoneyWithSymbol } from '@/src/utils'
+import { AppText } from '@/src/ui/primitives/AppText'
+import { RecordRow } from './RecordRow'
 
 type FixedsGroupProps = {
     fixeds: RecordFormEntry[],
@@ -13,104 +11,38 @@ type FixedsGroupProps = {
 }
 
 const FixedsGroup = ({ fixeds, onCreditPayment }: FixedsGroupProps) => {
-    const styles = useThemedStyles()
-    const dateh = useDate()
     const { t } = useLanguage()
 
     if (!fixeds || fixeds.length === 0) {
-        return
+        return null
     }
 
     return (
         <>
-            {
-                fixeds?.length && fixeds?.length > 0 ? (
-                    <Text style={[styles.smallText, { textAlign: "center", marginTop: 10 }]}>{t("records.fixeds")}</Text>
-                ) : null
-            }
-            <View style={{ gap: 5, paddingHorizontal: 30, }}>
-                {fixeds?.map((item, index) => {
-                    return (
-                        <Pressable key={index} onPress={() => onCreditPayment(item)}>
-                            <AccentRow
-                                bottomColor={item.PaymentMethods?.PaymentTypes?.payment_color || "#000"}
-                                accentColor={item.RecordTypes?.record_color || "#000"}
-                            >
-                                <View style={localStyles.rowContainer}>
-                                    <View style={localStyles.dateContainer}>
-                                        <Text style={[localStyles.dateText, styles.textMuted]}>
-                                            {dateh.getStringDay(String(item.date))}
-                                        </Text>
-                                        <Text style={[localStyles.dateText, styles.textMuted]}>
-                                            {dateh.getDay(String(item.date))}
-                                        </Text>
-                                        <Text style={[localStyles.dateText, styles.textMuted]}>
-                                            {dateh.getStringMonth(String(item.date))}
-                                        </Text>
-                                    </View>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={[localStyles.nameText, styles.textPrimary]}>{item.record_name}</Text>
-                                        {(item.shared_amount_cents ?? 0) > 0 ? (
-                                            <Text style={[localStyles.captionText, styles.textMuted]}>
-                                                {t('shared.total')}: {formatMoneyWithSymbol((item.own_amount_cents ?? item.amount ?? 0) + (item.shared_amount_cents ?? 0))} · {t('shared.totalShared')}: {formatMoneyWithSymbol(item.shared_amount_cents ?? 0)}
-                                            </Text>
-                                        ) : null}
-                                    </View>
-                                    <View style={{ alignItems: 'flex-end' }}>
-                                        <Text style={[localStyles.valueText, styles.textPrimary]}>{formatMoneyWithSymbol(item.own_amount_cents ?? item.amount ?? 0)}</Text>
-                                        {(item.shared_amount_cents ?? 0) > 0 ? (
-                                            <Text style={[localStyles.captionText, styles.textMuted]}>{t('shared.own')}</Text>
-                                        ) : null}
-                                    </View>
-                                </View>
-                            </AccentRow>
-                        </Pressable>
-                    )
-                })}
+            <AppText
+                variant='label'
+                color='muted'
+                align='center'
+                style={{ marginTop: 12 }}
+            >
+                {t('records.fixeds')}
+            </AppText>
+            <View style={{ gap: 5, paddingHorizontal: 16 }}>
+                {fixeds.map((item, index) => (
+                    <Pressable key={index} onPress={() => onCreditPayment(item)}>
+                        <RecordRow
+                            date={item.date ?? 0}
+                            title={item.record_name ?? ''}
+                            ownCents={item.own_amount_cents ?? item.amount ?? 0}
+                            sharedCents={item.shared_amount_cents ?? 0}
+                            accentColor={item.RecordTypes?.record_color}
+                            bottomColor={item.PaymentMethods?.PaymentTypes?.payment_color}
+                        />
+                    </Pressable>
+                ))}
             </View>
         </>
     )
 }
-
-const localStyles = StyleSheet.create({
-    rowContainer: {
-        width: "100%",
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center"
-    },
-    dateContainer: {
-        width: 50
-    },
-    dateText: {
-        fontWeight: "500",
-        fontSize: 8,
-        textAlign: "center"
-    },
-    nameText: {
-        fontSize: 12,
-        textAlign: "left",
-        maxWidth: 200
-    },
-    captionText: {
-        fontSize: 9,
-        textAlign: 'left',
-    },
-    valueText: {
-        fontSize: 12,
-        textAlign: "center",
-        fontWeight: "300",
-    },
-    balanceText: {
-        width: "80%",
-        borderTopWidth: 4,
-        height: 60,
-        paddingTop: 10,
-        textAlign: "center",
-        marginLeft: 5,
-        fontWeight: "300",
-        fontSize: 18
-    }
-})
 
 export default FixedsGroup

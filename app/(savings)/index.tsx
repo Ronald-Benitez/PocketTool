@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
-import { LineChart } from 'react-native-gifted-charts';
 
 import AddSaving from '@/src/components/savings/add-savings';
 import { SavingMovementDetails } from '@/src/components/savings/SavingMovementDetails';
@@ -10,14 +10,22 @@ import { SavingMovementForm } from '@/src/components/savings/SavingMovementForm'
 import { SavingsGoalTrophy } from '@/src/components/savings/SavingsGoalTrophy';
 import { usePeopleRepository, useSavings } from '@/src/db';
 import { mapDatabaseError } from '@/src/db/errors';
+import { buildSavingChartSpec } from '@/src/domain/savings/charts';
 import type { SavingMovementView, SavingView } from '@/src/db/repositories/savings';
+import { FeatureGate } from '@/src/features';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import useRecordsStore from '@/src/stores/RecordsStore';
+import { useGroupRefresh } from '@/src/hooks/useGroupRefresh';
 import useSavingsStore from '@/src/stores/SavingsStore';
-import { formatMoney, formatMoneyWithSymbol } from '@/src/utils';
+import { formatMoneyWithSymbol } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
 import { IconButton } from '@/src/ui/actions/IconButton';
+import { InfoHint } from '@/src/ui/overlays/InfoHint';
 import { Badge } from '@/src/ui/data-display/Badge';
+import { ChartCard } from '@/src/ui/charts';
+import { ListItem } from '@/src/ui/data-display/ListItem';
+import { ProgressBar } from '@/src/ui/data-display/ProgressBar';
+import { SectionCard } from '@/src/ui/data-display/SectionCard';
 import { SummaryBlock } from '@/src/ui/data-display/SummaryBlock';
 import { EmptyState } from '@/src/ui/feedback/EmptyState';
 import { useToast } from '@/src/ui/feedback/ToastProvider';
@@ -51,9 +59,15 @@ const Index = () => {
   const { colors } = useTheme();
   const { showToast } = useToast();
   const repository = useSavings();
+  const router = useRouter();
   const peopleRepository = usePeopleRepository();
   const { group } = useRecordsStore();
+  const { refreshGroupData } = useGroupRefresh();
   const { saving, savings, setSaving, setSavings } = useSavingsStore();
+  const { savingId: savingIdParam } = useLocalSearchParams<{
+    savingId?: string;
+  }>();
+  const appliedSavingParamRef = useRef<string | null>(null);
 
   const [view, setView] = useState<SavingView | null>(null);
   const [peopleById, setPeopleById] = useState<Map<number, string>>(new Map());
@@ -69,7 +83,14 @@ const Index = () => {
   const [deleteVisible, setDeleteVisible] = useState(false);
   const [deleteMovementId, setDeleteMovementId] = useState<number | null>(null);
 
-  const refresh = () => setRefreshKey((value) => value + 1);
+  const refresh = () => {
+    setRefreshKey((value) => value + 1);
+    if (group?.id) {
+      refreshGroupData(group.id).catch((cause) => {
+        if (__DEV__) console.warn('[savings] group refresh failed', cause);
+      });
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -150,6 +171,20 @@ const Index = () => {
   }, [refreshKey, statusFilter, pinnedId, preferencesLoaded]);
 
   useEffect(() => {
+    if (!savingIdParam || appliedSavingParamRef.current === savingIdParam) {
+      return;
+    }
+    const id = Number(savingIdParam);
+    if (!Number.isFinite(id)) return;
+    const found = savings.find((item) => item.id === id);
+    if (found) {
+      setSaving(found);
+      appliedSavingParamRef.current = savingIdParam;
+      router.setParams({ savingId: undefined } as never);
+    }
+  }, [savingIdParam, savings, setSaving, router]);
+
+  useEffect(() => {
     if (!saving?.id) {
       setView(null);
       return;
@@ -174,15 +209,17 @@ const Index = () => {
     };
   }, [saving?.id, group?.id, scope, refreshKey]);
 
-  const chart = useMemo(() => {
-    if (!view) return { data: [], data2: [], data3: [] };
-    const toItem = (cents: number) => ({ value: Number(formatMoney(cents)) });
-    return {
-      data: view.chart.map((point) => toItem(point.totalCents)),
-      data2: view.chart.map((point) => toItem(point.ownCents)),
-      data3: view.chart.map((point) => toItem(point.sharedCents)),
-    };
-  }, [view]);
+  const chart = useMemo(
+    () =>
+      view
+        ? buildSavingChartSpec(view.chart, {
+            total: t('savings.chart.total'),
+            own: t('savings.chart.own'),
+            shared: t('savings.chart.shared'),
+          })
+        : null,
+    [view, t]
+  );
 
   const orderedMovements = useMemo(() => {
     const rows = view?.movements ?? [];
@@ -259,11 +296,16 @@ const Index = () => {
   return (
     <>
       <Screen scroll edges={['left', 'right']}>
-        <Stack gap='lg'>
+        <Stack gap='xl'>
           <Row justify='space-between' align='flex-start' gap='md'>
             <Stack gap='xxs' style={{ flex: 1 }}>
-              <AppText variant='title'>{t('savings.title')}</AppText>
-              <AppText color='muted'>{t('savings.subtitle')}</AppText>
+              <Row gap='xs' align='center'>
+                <AppText variant='title'>{t('savings.title')}</AppText>
+                <InfoHint
+                  title={t('savings.title')}
+                  body={t('savings.subtitle')}
+                />
+              </Row>
             </Stack>
             {saving ? (
               <AddSaving isEditing onSaved={refresh}>
@@ -345,59 +387,60 @@ const Index = () => {
 
           {view ? (
             <>
-              <Surface variant='raised' padding='lg'>
-                <Stack gap='sm'>
-                  <Row justify='space-between' align='center' gap='sm'>
-                    <Stack gap='xxs' style={{ flex: 1 }}>
-                      <Row gap='sm' align='center' wrap>
-                        <AppText variant='subtitle'>{view.saving_name}</AppText>
-                        {view.goal.reached ? (
-                          <SavingsGoalTrophy
-                            color={trophyColor}
-                            size={36}
-                            accessibilityLabel={t('savings.goal.reached')}
-                          />
-                        ) : null}
-                        {view.status === 'archived' ? (
-                          <Badge label={t('savings.archived')} tone='neutral' size='sm' />
-                        ) : null}
-                      </Row>
-                      <AppText color='muted'>{formatMoneyWithSymbol(view.amount)}</AppText>
-                    </Stack>
-                    <Row gap='xs'>
-                      <IconButton
-                        label={pinnedId === view.id ? t('savings.unpin') : t('savings.pin')}
-                        variant='surface'
-                        selected={pinnedId === view.id}
-                        icon={
-                          <Ionicons
-                            name={pinnedId === view.id ? 'pin' : 'pin-outline'}
-                            size={20}
-                            color={colors.text}
-                          />
-                        }
-                        onPress={togglePin}
-                      />
-                      <IconButton
-                        label={view.status === 'archived' ? t('savings.restore') : t('savings.archive')}
-                        variant='surface'
-                        icon={
-                          <MaterialCommunityIcons
-                            name={view.status === 'archived' ? 'archive-arrow-up-outline' : 'archive-outline'}
-                            size={20}
-                            color={colors.text}
-                          />
-                        }
-                        onPress={archive}
-                      />
-                      <IconButton
-                        label={t('savings.delete')}
-                        variant='surface'
-                        icon={<MaterialIcons name='delete-outline' size={20} color={colors.danger} />}
-                        onPress={() => setDeleteVisible(true)}
-                      />
-                    </Row>
+              <SectionCard
+                title={view.saving_name}
+                subtitle={formatMoneyWithSymbol(view.amount)}
+                action={
+                  <Row gap='xs'>
+                    <IconButton
+                      label={pinnedId === view.id ? t('savings.unpin') : t('savings.pin')}
+                      variant='surface'
+                      selected={pinnedId === view.id}
+                      icon={
+                        <Ionicons
+                          name={pinnedId === view.id ? 'pin' : 'pin-outline'}
+                          size={20}
+                          color={colors.text}
+                        />
+                      }
+                      onPress={togglePin}
+                    />
+                    <IconButton
+                      label={view.status === 'archived' ? t('savings.restore') : t('savings.archive')}
+                      variant='surface'
+                      icon={
+                        <MaterialCommunityIcons
+                          name={view.status === 'archived' ? 'archive-arrow-up-outline' : 'archive-outline'}
+                          size={20}
+                          color={colors.text}
+                        />
+                      }
+                      onPress={archive}
+                    />
+                    <IconButton
+                      label={t('savings.delete')}
+                      variant='surface'
+                      icon={<MaterialIcons name='delete-outline' size={20} color={colors.danger} />}
+                      onPress={() => setDeleteVisible(true)}
+                    />
                   </Row>
+                }
+              >
+                <Stack gap='sm'>
+                  {view.goal.reached || view.status === 'archived' ? (
+                    <Row gap='sm' align='center' wrap>
+                      {view.goal.reached ? (
+                        <SavingsGoalTrophy
+                          color={trophyColor}
+                          size={36}
+                          accessibilityLabel={t('savings.goal.reached')}
+                        />
+                      ) : null}
+                      {view.status === 'archived' ? (
+                        <Badge label={t('savings.archived')} tone='neutral' size='sm' />
+                      ) : null}
+                    </Row>
+                  ) : null}
 
                   <Row gap='md'>
                     <SummaryBlock
@@ -423,27 +466,32 @@ const Index = () => {
                     />
                   </Row>
                 </Stack>
-              </Surface>
+              </SectionCard>
 
-              <Surface variant='outlined' padding='md'>
-                <Stack gap='md'>
-                  <Row justify='space-between' align='center' gap='sm'>
-                    <AppText weight='600'>{t('savings.contribution.title')}</AppText>
-                    <Row gap='xs'>
-                      <Button
-                        label={t('savings.scope.own')}
-                        size='sm'
-                        variant={scope === 'own' ? 'primary' : 'outline'}
-                        onPress={() => setScope('own')}
-                      />
-                      <Button
-                        label={t('savings.scope.global')}
-                        size='sm'
-                        variant={scope === 'global' ? 'primary' : 'outline'}
-                        onPress={() => setScope('global')}
-                      />
-                    </Row>
+              <SectionCard
+                title={t('savings.contribution.title')}
+                tooltip={{
+                  title: t('savings.contribution.title'),
+                  body: t('savings.contribution.noRuleHint'),
+                }}
+                action={
+                  <Row gap='xs'>
+                    <Button
+                      label={t('savings.scope.own')}
+                      size='sm'
+                      variant={scope === 'own' ? 'primary' : 'outline'}
+                      onPress={() => setScope('own')}
+                    />
+                    <Button
+                      label={t('savings.scope.global')}
+                      size='sm'
+                      variant={scope === 'global' ? 'primary' : 'outline'}
+                      onPress={() => setScope('global')}
+                    />
                   </Row>
+                }
+              >
+                <Stack gap='md'>
                   {view.contribution.hasRule ? (
                     <>
                       <Row justify='space-between' gap='sm'>
@@ -461,29 +509,19 @@ const Index = () => {
                       />
                     </>
                   ) : (
-                    <AppText color='muted'>{t('savings.contribution.noRuleHint')}</AppText>
+                    <AppText color='muted'>{t('savings.contribution.noRule')}</AppText>
                   )}
                 </Stack>
-              </Surface>
+              </SectionCard>
 
               {view.goal.hasGoal ? (
-                <Surface variant='outlined' padding='md'>
+                <SectionCard title={t('savings.goal.title')}>
                   <Stack gap='sm'>
-                    <Row justify='space-between' align='center' gap='sm'>
-                      <AppText weight='600'>{t('savings.goal.title')}</AppText>
-                      <AppText>{`${view.goal.progressPercent.toFixed(0)}%`}</AppText>
-                    </Row>
-                    <View style={[styles.progressTrack, { backgroundColor: colors.surfaceMuted }]}>
-                      <View
-                        style={[
-                          styles.progressFill,
-                          {
-                            width: `${Math.min(100, view.goal.progressPercent)}%`,
-                            backgroundColor: view.goal.reached ? trophyColor : colors.primary,
-                          },
-                        ]}
-                      />
-                    </View>
+                    <ProgressBar
+                      progress={Math.min(1, view.goal.progressPercent / 100)}
+                      valueLabel={`${view.goal.progressPercent.toFixed(0)}%`}
+                      tone='goal'
+                    />
                     <Row justify='space-between' gap='sm'>
                       <AppText color='muted'>{t('savings.goal.target')}</AppText>
                       <AppText>{formatMoneyWithSymbol(view.goal.targetCents)}</AppText>
@@ -511,58 +549,20 @@ const Index = () => {
                       </>
                     )}
                   </Stack>
-                </Surface>
+                </SectionCard>
               ) : null}
 
-              <Surface variant='outlined' padding='md'>
-                <Stack gap='sm'>
-                  <Row justify='space-between' align='center'>
-                    <AppText weight='600'>{t('savings.chart.title')}</AppText>
-                    <Row gap='sm' wrap>
-                      {[
-                        { label: t('savings.chart.total'), color: colors.chartPlanned },
-                        { label: t('savings.chart.own'), color: colors.primary },
-                        { label: t('savings.chart.shared'), color: colors.textMuted },
-                      ].map((series) => (
-                        <Row key={series.label} gap='xxs' align='center'>
-                          <View
-                            style={[styles.legendDot, { backgroundColor: series.color }]}
-                          />
-                          <AppText variant='caption' color='muted'>
-                            {series.label}
-                          </AppText>
-                        </Row>
-                      ))}
-                    </Row>
-                  </Row>
-                  {view.chart.length > 0 ? (
-                    <LineChart
-                      data={chart.data}
-                      data2={chart.data2}
-                      data3={chart.data3}
-                      color={colors.chartPlanned}
-                      color2={colors.primary}
-                      color3={colors.textMuted}
-                      thickness={2}
-                      thickness2={2}
-                      thickness3={2}
-                      dataPointsColor={colors.chartPlanned}
-                      dataPointsColor2={colors.primary}
-                      dataPointsColor3={colors.textMuted}
-                      yAxisTextStyle={{ color: colors.textMuted }}
-                      yAxisLabelPrefix='$'
-                      yAxisColor={colors.border}
-                      xAxisColor={colors.border}
-                      width={300}
-                      height={240}
-                      adjustToWidth
-                      hideDataPoints
-                    />
-                  ) : (
+              <FeatureGate feature='charts'>
+                <ChartCard
+                  chartKey='savings.balance'
+                  title={t('savings.chart.title')}
+                  spec={chart}
+                  height={240}
+                  empty={
                     <AppText color='muted'>{t('savings.chart.empty')}</AppText>
-                  )}
-                </Stack>
-              </Surface>
+                  }
+                />
+              </FeatureGate>
 
               <Button
                 label={t('savings.movement.add')}
@@ -570,9 +570,9 @@ const Index = () => {
                 onPress={() => setMovementVisible(true)}
               />
 
-              <Stack gap='sm'>
-                <Row justify='space-between' align='center' gap='sm'>
-                  <AppText variant='subtitle'>{t('savings.history.title')}</AppText>
+              <SectionCard
+                title={t('savings.history.title')}
+                action={
                   <Row gap='xs'>
                     <Button
                       label={t('savings.history.newest')}
@@ -587,70 +587,56 @@ const Index = () => {
                       onPress={() => setMovementOrder('asc')}
                     />
                   </Row>
-                </Row>
+                }
+                padded={false}
+              >
                 {orderedMovements.length === 0 ? (
-                  <AppText color='muted'>{t('savings.history.empty')}</AppText>
+                  <AppText color='muted' style={{ padding: 16 }}>
+                    {t('savings.history.empty')}
+                  </AppText>
                 ) : (
-                  orderedMovements.map((movement) => {
+                  orderedMovements.map((movement, index) => {
                     const personName =
                       movement.person_id != null
                         ? peopleById.get(movement.person_id) ?? ''
                         : t('savings.movement.own');
                     return (
-                      <Surface key={movement.id} variant='muted' padding='sm'>
-                        <Row justify='space-between' align='center' gap='sm'>
-                          <Pressable
-                            onPress={() => setDetailMovement(movement)}
-                            accessibilityRole='button'
-                            accessibilityLabel={t('savings.movement.viewDetails')}
-                            style={styles.movementPressable}
-                          >
-                            <Row justify='space-between' align='center' gap='sm'>
-                              <Row gap='sm' align='center' style={{ flex: 1 }}>
-                                <MaterialIcons
-                                  name={kindIcon(movement.kind)}
-                                  size={18}
-                                  color={
-                                    movement.kind === 'withdrawal'
-                                      ? colors.expense
-                                      : colors.income
-                                  }
-                                />
-                                <Stack gap='xxs' style={{ flex: 1 }}>
-                                  <AppText numberOfLines={1}>
-                                    {t(`savings.movement.kinds.${movement.kind}` as never)}
-                                  </AppText>
-                                  <AppText variant='caption' color='muted'>
-                                    {new Date(movement.change_date).toLocaleDateString()} · {personName}
-                                    {movement.note ? ` · ${movement.note}` : ''}
-                                  </AppText>
-                                </Stack>
-                              </Row>
-                              <Row gap='xs' align='center'>
-                                <AppText>
-                                  {formatMoneyWithSymbol(movement.amount_cents)}
-                                </AppText>
-                                <MaterialIcons
-                                  name='chevron-right'
-                                  size={18}
-                                  color={colors.textMuted}
-                                />
-                              </Row>
-                            </Row>
-                          </Pressable>
-                          <IconButton
-                            label={t('savings.history.delete')}
-                            size='sm'
-                            variant='ghost'
-                            icon={<MaterialIcons name='delete-outline' size={18} color={colors.danger} />}
-                            onPress={() => setDeleteMovementId(movement.id ?? null)}
+                      <ListItem
+                        key={movement.id}
+                        title={t(`savings.movement.kinds.${movement.kind}` as never)}
+                        subtitle={`${new Date(movement.change_date).toLocaleDateString()} · ${personName}${
+                          movement.note ? ` · ${movement.note}` : ''
+                        }`}
+                        leading={
+                          <MaterialIcons
+                            name={kindIcon(movement.kind)}
+                            size={18}
+                            color={
+                              movement.kind === 'withdrawal'
+                                ? colors.expense
+                                : colors.income
+                            }
                           />
-                        </Row>
-                      </Surface>
+                        }
+                        trailing={
+                          <Row gap='xs' align='center'>
+                            <AppText>{formatMoneyWithSymbol(movement.amount_cents)}</AppText>
+                            <IconButton
+                              label={t('savings.history.delete')}
+                              size='sm'
+                              variant='ghost'
+                              icon={<MaterialIcons name='delete-outline' size={18} color={colors.danger} />}
+                              onPress={() => setDeleteMovementId(movement.id ?? null)}
+                            />
+                          </Row>
+                        }
+                        onPress={() => setDetailMovement(movement)}
+                        showDivider={index < orderedMovements.length - 1}
+                      />
                     );
                   })
                 )}
-              </Stack>
+              </SectionCard>
             </>
           ) : null}
         </Stack>
@@ -701,25 +687,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  movementPressable: {
-    flex: 1,
-  },
   savingChipRow: {
     height: 22,
-  },
-  progressTrack: {
-    height: 10,
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 10,
   },
 });
 

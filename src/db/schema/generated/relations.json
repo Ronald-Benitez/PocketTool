@@ -12,6 +12,7 @@
     "PaymentMethods": "PaymentMethods",
     "PaymentMethods.PaymentTypes": "PaymentMethods.PaymentTypes"
   },
+  "People": {},
   "Records": {
     "RecordTypes": "RecordTypes",
     "Groups": "Groups",
@@ -27,7 +28,8 @@
     "PaidCredits.Groups": "PaidCredits.Groups",
     "PaidCredits.PaymentMethods": "PaidCredits.PaymentMethods",
     "PaidCredits.PaymentMethods.PaymentTypes": "PaidCredits.PaymentMethods.PaymentTypes",
-    "Savings": "Savings"
+    "Savings": "Savings",
+    "People": "People"
   },
   "PaidCredits": {
     "Groups": "Groups",
@@ -57,7 +59,10 @@
     "Financings.Categories": "Financings.Categories",
     "Financings.RecordTypes": "Financings.RecordTypes"
   },
-  "People": {},
+  "PersonSettlements": {
+    "People": "People",
+    "Groups": "Groups"
+  },
   "SharedExpenseParticipants": {
     "People": "People"
   },
@@ -79,6 +84,7 @@
     "Records.PaidCredits.PaymentMethods": "Records.PaidCredits.PaymentMethods",
     "Records.PaidCredits.PaymentMethods.PaymentTypes": "Records.PaidCredits.PaymentMethods.PaymentTypes",
     "Records.Savings": "Records.Savings",
+    "Records.People": "Records.People",
     "FinancingPayments": "FinancingPayments",
     "FinancingPayments.Financings": "FinancingPayments.Financings",
     "FinancingPayments.Financings.PaymentMethods": "FinancingPayments.Financings.PaymentMethods",
@@ -145,6 +151,7 @@
     "Records.PaidCredits.PaymentMethods": "Records.PaidCredits.PaymentMethods",
     "Records.PaidCredits.PaymentMethods.PaymentTypes": "Records.PaidCredits.PaymentMethods.PaymentTypes",
     "Records.Savings": "Records.Savings",
+    "Records.People": "Records.People",
     "Groups": "Groups",
     "RecordTypes": "RecordTypes"
   },
@@ -153,6 +160,67 @@
     "PaymentMethods": "PaymentMethods",
     "PaymentMethods.PaymentTypes": "PaymentMethods.PaymentTypes",
     "Categories": "Categories"
+  },
+  "GroupClosings": {
+    "Groups": "Groups"
+  },
+  "GroupClosingLines": {
+    "GroupClosings": "GroupClosings",
+    "GroupClosings.Groups": "GroupClosings.Groups",
+    "PaymentMethods": "PaymentMethods",
+    "PaymentMethods.PaymentTypes": "PaymentMethods.PaymentTypes",
+    "Savings": "Savings",
+    "Fixed": "Fixed",
+    "Fixed.RecordTypes": "Fixed.RecordTypes",
+    "Fixed.Categories": "Fixed.Categories",
+    "Fixed.PaymentMethods": "Fixed.PaymentMethods",
+    "Fixed.PaymentMethods.PaymentTypes": "Fixed.PaymentMethods.PaymentTypes",
+    "Financings": "Financings",
+    "Financings.PaymentMethods": "Financings.PaymentMethods",
+    "Financings.PaymentMethods.PaymentTypes": "Financings.PaymentMethods.PaymentTypes",
+    "Financings.Categories": "Financings.Categories",
+    "Financings.RecordTypes": "Financings.RecordTypes",
+    "Groups": "Groups"
+  },
+  "ChartPreferences": {},
+  "ShoppingLists": {
+    "Records": "Records",
+    "Records.RecordTypes": "Records.RecordTypes",
+    "Records.Groups": "Records.Groups",
+    "Records.Categories": "Records.Categories",
+    "Records.PaymentMethods": "Records.PaymentMethods",
+    "Records.PaymentMethods.PaymentTypes": "Records.PaymentMethods.PaymentTypes",
+    "Records.Fixed": "Records.Fixed",
+    "Records.Fixed.RecordTypes": "Records.Fixed.RecordTypes",
+    "Records.Fixed.Categories": "Records.Fixed.Categories",
+    "Records.Fixed.PaymentMethods": "Records.Fixed.PaymentMethods",
+    "Records.Fixed.PaymentMethods.PaymentTypes": "Records.Fixed.PaymentMethods.PaymentTypes",
+    "Records.PaidCredits": "Records.PaidCredits",
+    "Records.PaidCredits.Groups": "Records.PaidCredits.Groups",
+    "Records.PaidCredits.PaymentMethods": "Records.PaidCredits.PaymentMethods",
+    "Records.PaidCredits.PaymentMethods.PaymentTypes": "Records.PaidCredits.PaymentMethods.PaymentTypes",
+    "Records.Savings": "Records.Savings",
+    "Records.People": "Records.People"
+  },
+  "ShoppingListItems": {
+    "ShoppingLists": "ShoppingLists",
+    "ShoppingLists.Records": "ShoppingLists.Records",
+    "ShoppingLists.Records.RecordTypes": "ShoppingLists.Records.RecordTypes",
+    "ShoppingLists.Records.Groups": "ShoppingLists.Records.Groups",
+    "ShoppingLists.Records.Categories": "ShoppingLists.Records.Categories",
+    "ShoppingLists.Records.PaymentMethods": "ShoppingLists.Records.PaymentMethods",
+    "ShoppingLists.Records.PaymentMethods.PaymentTypes": "ShoppingLists.Records.PaymentMethods.PaymentTypes",
+    "ShoppingLists.Records.Fixed": "ShoppingLists.Records.Fixed",
+    "ShoppingLists.Records.Fixed.RecordTypes": "ShoppingLists.Records.Fixed.RecordTypes",
+    "ShoppingLists.Records.Fixed.Categories": "ShoppingLists.Records.Fixed.Categories",
+    "ShoppingLists.Records.Fixed.PaymentMethods": "ShoppingLists.Records.Fixed.PaymentMethods",
+    "ShoppingLists.Records.Fixed.PaymentMethods.PaymentTypes": "ShoppingLists.Records.Fixed.PaymentMethods.PaymentTypes",
+    "ShoppingLists.Records.PaidCredits": "ShoppingLists.Records.PaidCredits",
+    "ShoppingLists.Records.PaidCredits.Groups": "ShoppingLists.Records.PaidCredits.Groups",
+    "ShoppingLists.Records.PaidCredits.PaymentMethods": "ShoppingLists.Records.PaidCredits.PaymentMethods",
+    "ShoppingLists.Records.PaidCredits.PaymentMethods.PaymentTypes": "ShoppingLists.Records.PaidCredits.PaymentMethods.PaymentTypes",
+    "ShoppingLists.Records.Savings": "ShoppingLists.Records.Savings",
+    "ShoppingLists.Records.People": "ShoppingLists.Records.People"
   },
   "Migrations": {},
   "Vehicles": {},
@@ -192,6 +260,7 @@
     "Records.PaidCredits.PaymentMethods": "Records.PaidCredits.PaymentMethods",
     "Records.PaidCredits.PaymentMethods.PaymentTypes": "Records.PaidCredits.PaymentMethods.PaymentTypes",
     "Records.Savings": "Records.Savings",
+    "Records.People": "Records.People",
     "VehicleFuelEntries": "VehicleFuelEntries",
     "VehicleFuelEntries.Vehicles": "VehicleFuelEntries.Vehicles",
     "VehicleMaintenance": "VehicleMaintenance",

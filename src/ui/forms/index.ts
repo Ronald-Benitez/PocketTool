@@ -6,6 +6,10 @@ export {
 } from './ColoredSelectOption';
 export { DateField, type DateFieldProps } from './DateField';
 export { FormField, type FormFieldProps } from './FormField';
+export {
+  FormErrorSummary,
+  type FormErrorSummaryProps,
+} from './FormErrorSummary';
 export { MoneyField, type MoneyFieldProps } from './MoneyField';
 export {
   MultiSelectField,

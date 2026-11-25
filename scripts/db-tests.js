@@ -45,6 +45,9 @@ Module._resolveFilename = function (request, ...args) {
   return originalResolve.call(this, request, ...args);
 };
 const { ORM } = require(path.join(ROOT, 'src/orm/index.ts'));
+const { resolveRecordSources } = require(
+  path.join(ROOT, 'src/db/repositories/recordSources.ts')
+);
 const { buildSqlDump, validateSqlDump } = require(path.join(ROOT, 'src/db/utils/sql-dump.ts'));
 const {
   BACKUP_FORMAT_VERSION,
@@ -54,8 +57,14 @@ const {
 const {
   recordInputSchema,
   groupInputSchema,
+  chartPreferenceInputSchema,
   budgetLineInputSchema,
   budgetPlanInputSchema,
+  personSettlementInputSchema,
+  savingInputSchema,
+  shoppingListInputSchema,
+  shoppingListItemInputSchema,
+  shoppingPurchaseInputSchema,
   vehicleInputSchema,
 } = require(path.join(ROOT, 'src/validation/entities.ts'));
 const { getCreditPeriods } = require(path.join(ROOT, 'src/utils/creditPeriods.ts'));
@@ -113,6 +122,7 @@ INSERT INTO PaymentMethods (method_name, closing_date, payment_type_id) VALUES (
 INSERT INTO RecordTypes (type_name, effect, record_color) VALUES ('Income', '+', '#4CAF50'), ('Expense', '-', '#F44336'), ('Transfer', '=', '#FF9800'), ('Credit expenses', '=', '#9C27B0'), ('Payments', '-', '#F44376');
 INSERT INTO Categories (category_name) VALUES ('Salary'), ('Groceries');
 INSERT INTO Groups (group_name, goal, year, month) VALUES ('Legacy Group', 5000.50, 2024, 3);
+INSERT INTO Groups (group_name, goal, year, month) VALUES ('Legacy December', 1000, 2024, 12);
 INSERT INTO Records (amount, record_name, date, record_type_id, group_id, category_id, payment_method_id) VALUES (1000.25, 'Salary', 1700000000000, 1, 1, 1, 1), (200.75, 'Groceries', 1700000001000, 2, 1, 2, 2);
 INSERT INTO PaidCredits (amount, date, group_id, payment_method_id) VALUES (50.50, '2024-01-15 10:00:00', 1, 1);
 INSERT INTO Fixed (fixed_amount, fixed_name, fixed_day, record_type_id, category_id, payment_method_id) VALUES (99.99, 'Rent', 5, 2, 2, 2);
@@ -132,7 +142,7 @@ async function testLegacyMigration() {
   await migrateDb(db);
 
   const tables = q(raw, "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").map(r => r.name);
-  for (const expected of ['groups', 'payment_types', 'payment_methods', 'categories', 'record_types', 'fixed_records', 'records', 'paid_credits', 'budget_templates', 'budget_template_items', 'budget_plans', 'budget_lines', 'savings', 'savings_history', 'migrations', 'financings', 'financing_payments', 'financing_adjustments', 'vehicles', 'vehicle_fuel_entries', 'vehicle_maintenance', 'vehicle_maintenance_items', 'vehicle_reminders', 'vehicle_settings', 'vehicle_expense_links', 'fuel_refills_legacy', 'trip_logs_legacy']) {
+  for (const expected of ['groups', 'payment_types', 'payment_methods', 'categories', 'record_types', 'fixed_records', 'records', 'paid_credits', 'budget_templates', 'budget_template_items', 'budget_plans', 'budget_lines', 'savings', 'savings_history', 'migrations', 'financings', 'financing_payments', 'financing_adjustments', 'group_closings', 'group_closing_lines', 'chart_preferences', 'vehicles', 'vehicle_fuel_entries', 'vehicle_maintenance', 'vehicle_maintenance_items', 'vehicle_reminders', 'vehicle_settings', 'vehicle_expense_links', 'fuel_refills_legacy', 'trip_logs_legacy']) {
     assert.ok(tables.includes(expected), `missing table ${expected}`);
   }
   assert.ok(!tables.includes('Groups'), 'legacy Groups should be gone');
@@ -161,6 +171,13 @@ async function testLegacyMigration() {
   const group = q(raw, 'SELECT * FROM groups')[0];
   assert.strictEqual(group.goal, 500050, 'goal should be cents');
   assert.strictEqual(group.deleted_at, null);
+  assert.strictEqual(group.period_mode, 'calendar_month');
+  assert.ok(
+    q(raw, 'PRAGMA table_info(groups)').some((column) => column.name === 'period_start'),
+    'groups should have period_start'
+  );
+  const december = q(raw, "SELECT * FROM groups WHERE group_name = 'Legacy December'")[0];
+  assert.strictEqual(december.month, 11, '1-based December should become zero-based');
 
   const records = q(raw, 'SELECT * FROM records ORDER BY id');
   assert.strictEqual(records.length, 2);
@@ -238,7 +255,7 @@ async function testLegacyMigration() {
   for (const t of tables) {
     assert.strictEqual(q(raw, `SELECT COUNT(*) AS c FROM "${t}"`)[0].c, counts[t], `second run duplicated ${t}`);
   }
-  assert.strictEqual(q(raw, 'SELECT COUNT(*) AS c FROM groups')[0].c, 1);
+  assert.strictEqual(q(raw, 'SELECT COUNT(*) AS c FROM groups')[0].c, 2);
   assert.strictEqual(q(raw, 'SELECT COUNT(*) AS c FROM categories')[0].c, 6);
 
   const fk = q(raw, 'PRAGMA foreign_key_list(records)');
@@ -318,6 +335,34 @@ async function testLegacyMigration() {
     .getAll();
   assert.strictEqual(page.length, 2);
   assert.ok(page[0].id > 1);
+
+  // Pending fixed deduplication reads records by fixed_id across groups.
+  const fixedId = await new ORM(db, 'Fixed').insert({
+    fixed_amount: 1000,
+    fixed_name: 'Pending fixed check',
+    fixed_day: 5,
+  });
+  const fixedRecordId = await new ORM(db, 'Records').insert({
+    amount: 1000,
+    record_name: 'Fixed record',
+    date: Date.now(),
+    group_id: 1,
+    fixed_id: fixedId,
+  });
+  const deletedFixedRecordId = await new ORM(db, 'Records').insert({
+    amount: 1000,
+    record_name: 'Deleted fixed record',
+    date: Date.now(),
+    group_id: 1,
+    fixed_id: fixedId,
+  });
+  await new ORM(db, 'Records').delete(deletedFixedRecordId);
+  const fixedRecords = await new ORM(db, 'Records')
+    .where('fixed_id', [fixedId], 'IN')
+    .getAll();
+  assert.strictEqual(fixedRecords.length, 1);
+  assert.strictEqual(fixedRecords[0].id, fixedRecordId);
+  assert.strictEqual(fixedRecords[0].fixed_id, fixedId);
 
   await recordsOrm.delete(999);
   const visible = await new ORM(db, 'Records').getAll();
@@ -402,7 +447,7 @@ async function testEmptyDatabase() {
   await migrateDb(db);
 
   const tables = q(raw, "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").map(r => r.name);
-  for (const expected of ['groups', 'records', 'payment_types', 'record_types', 'categories', 'payment_methods', 'migrations']) {
+  for (const expected of ['groups', 'records', 'payment_types', 'record_types', 'categories', 'payment_methods', 'group_closings', 'group_closing_lines', 'chart_preferences', 'migrations']) {
     assert.ok(tables.includes(expected), `fresh database missing ${expected}`);
   }
   assert.strictEqual(q(raw, 'SELECT COUNT(*) AS c FROM groups')[0].c, 1);
@@ -410,7 +455,14 @@ async function testEmptyDatabase() {
   assert.strictEqual(q(raw, 'SELECT goal FROM groups')[0].goal, 500000);
   assert.strictEqual(q(raw, 'SELECT amount FROM records ORDER BY id')[0].amount, 100000);
   assert.strictEqual(q(raw, 'SELECT migration_name FROM migrations')[0].migration_name, '0001_baseline');
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 20);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 27);
+  const seededGroup = q(raw, 'SELECT month, period_start, period_end, period_mode FROM groups')[0];
+  assert.strictEqual(seededGroup.month, new Date().getMonth());
+  assert.ok(seededGroup.period_start != null, 'seed group should have a period start');
+  assert.ok(seededGroup.period_end != null, 'seed group should have a period end');
+  assert.strictEqual(seededGroup.period_mode, 'calendar_month');
+  const groupIndexes = q(raw, "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='groups'").map(r => r.name);
+  assert.ok(groupIndexes.includes('idx_groups_period'), 'groups should have a period index');
   const recordColumns = q(raw, 'PRAGMA table_info(records)').map(c => c.name);
   assert.ok(recordColumns.includes('created_at'));
   assert.ok(recordColumns.includes('updated_at'));
@@ -447,10 +499,24 @@ async function testExportImport() {
   assert.ok(metadata);
   assert.strictEqual(metadata.formatVersion, BACKUP_FORMAT_VERSION);
   assert.strictEqual(metadata.appVersion, 'test-version');
-  assert.strictEqual(metadata.schemaVersion, 20);
+  assert.strictEqual(metadata.schemaVersion, 27);
   assert.ok(metadata.tables.includes('records'));
   assert.doesNotThrow(() => validateSqlDump(backupSql));
   assert.strictEqual(parseBackupMetadata(dump), null);
+
+  const backupWithSettings = await createBackupSql(source, 'test-version', {
+    configs: '{"recordTypes":[1,2]}',
+    appLanguage: 'es',
+    experienceSettings:
+      '{"version":1,"presetId":"essential","enabled":{"summaries":true,"quickAdd":true,"smartDefaults":true}}',
+  });
+  const settingsMetadata = parseBackupMetadata(backupWithSettings);
+  assert.deepStrictEqual(settingsMetadata.settings, {
+    configs: '{"recordTypes":[1,2]}',
+    appLanguage: 'es',
+    experienceSettings:
+      '{"version":1,"presetId":"essential","enabled":{"summaries":true,"quickAdd":true,"smartDefaults":true}}',
+  });
 
   const targetRaw = new DatabaseSync(':memory:');
   const target = shim(targetRaw);
@@ -500,7 +566,7 @@ async function testAuditTimestampMigration() {
   const backfilled = q(raw, 'SELECT created_at, updated_at FROM records LIMIT 1')[0];
   assert.ok(backfilled.created_at > 0);
   assert.ok(backfilled.updated_at > 0);
-  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 20);
+  assert.strictEqual(q(raw, 'PRAGMA user_version')[0].user_version, 27);
   assert.strictEqual(
     q(raw, "SELECT COUNT(*) AS c FROM migrations WHERE migration_name = '0002_audit_timestamps'")[0].c,
     1
@@ -537,12 +603,108 @@ async function testValidationSchemas() {
       not_a_column: true,
     })
   );
+  assert.doesNotThrow(() =>
+    recordInputSchema.parse({
+      amount: 1000,
+      record_name: 'Shared record',
+      date: Date.now(),
+      paid_by_person_id: 1,
+      paid_scope: 'own',
+    })
+  );
+  assert.throws(() =>
+    recordInputSchema.parse({
+      amount: 1000,
+      record_name: 'Invalid scope',
+      date: Date.now(),
+      paid_scope: 'other',
+    })
+  );
+  const settlement = personSettlementInputSchema.parse({
+    person_id: 1,
+    group_id: null,
+    date: Date.now(),
+    amount_cents: 500,
+    direction: 'they_paid_me',
+  });
+  assert.strictEqual(settlement.direction, 'they_paid_me');
+  assert.throws(() =>
+    personSettlementInputSchema.parse({
+      person_id: 1,
+      date: Date.now(),
+      amount_cents: -1,
+      direction: 'they_paid_me',
+    })
+  );
+  assert.doesNotThrow(() =>
+    savingInputSchema.parse({
+      saving_name: 'Zero saving',
+      amount: 0,
+    })
+  );
   assert.throws(() =>
     groupInputSchema.parse({
       group_name: '',
       goal: 100,
       year: 2026,
       month: 1,
+    })
+  );
+  const groupWithPeriod = groupInputSchema.parse({
+    group_name: 'Period group',
+    goal: 100,
+    year: 2026,
+    month: 1,
+    period_start: new Date(2026, 1, 15).getTime(),
+    period_end: new Date(2026, 2, 14, 23, 59, 59, 999).getTime(),
+  });
+  assert.strictEqual(groupWithPeriod.period_mode, 'calendar_month');
+  assert.throws(() =>
+    groupInputSchema.parse({
+      group_name: 'Incomplete period',
+      goal: 100,
+      year: 2026,
+      month: 1,
+      period_start: new Date(2026, 1, 15).getTime(),
+    })
+  );
+  assert.throws(() =>
+    groupInputSchema.parse({
+      group_name: 'Reversed period',
+      goal: 100,
+      year: 2026,
+      month: 1,
+      period_start: new Date(2026, 2, 15).getTime(),
+      period_end: new Date(2026, 1, 14).getTime(),
+    })
+  );
+  assert.throws(() =>
+    groupInputSchema.parse({
+      group_name: 'Invalid month',
+      goal: 100,
+      year: 2026,
+      month: 12,
+    })
+  );
+  const chartPreference = chartPreferenceInputSchema.parse({
+    chart_key: 'vehicle.fuel.consumption',
+    collapsed: true,
+    hidden_series: ['shared'],
+    data_limit: 20,
+    zoom: 1.5,
+  });
+  assert.strictEqual(chartPreference.collapsed, true);
+  assert.deepStrictEqual(chartPreference.hidden_series, ['shared']);
+  assert.throws(() =>
+    chartPreferenceInputSchema.parse({
+      chart_key: '',
+      collapsed: false,
+    })
+  );
+  assert.throws(() =>
+    chartPreferenceInputSchema.parse({
+      chart_key: 'chart',
+      zoom: 0,
     })
   );
   const plan = budgetPlanInputSchema.parse({
@@ -568,6 +730,41 @@ async function testValidationSchemas() {
       scope: 'category',
     })
   );
+  const shoppingList = shoppingListInputSchema.parse({
+    list_name: 'Groceries',
+  });
+  assert.strictEqual(shoppingList.status, 'open');
+  assert.strictEqual(shoppingList.record_id ?? null, null);
+
+  const shoppingItem = shoppingListItemInputSchema.parse({
+    shopping_list_id: 1,
+    item_name: 'Milk',
+    price_cents: 350,
+  });
+  assert.strictEqual(shoppingItem.is_checked, 0);
+  assert.strictEqual(shoppingItem.sort_order, 0);
+  assert.throws(() =>
+    shoppingListItemInputSchema.parse({
+      shopping_list_id: 1,
+      item_name: 'Negative',
+      price_cents: -1,
+    })
+  );
+
+  const shoppingPurchase = shoppingPurchaseInputSchema.parse({
+    mode: 'create',
+    amount_cents: 550,
+    date: Date.now(),
+    group_id: 1,
+    record_type_id: 1,
+    category_id: 1,
+    payment_method_id: 1,
+  });
+  assert.strictEqual(shoppingPurchase.mode, 'create');
+  assert.throws(() =>
+    shoppingPurchaseInputSchema.parse({ mode: 'unknown' })
+  );
+
   console.log('validation schemas: OK');
 }
 
@@ -1421,6 +1618,126 @@ async function testSharedPaymentAllocations() {
   console.log('shared payment allocations: OK');
 }
 
+async function testRecordsPayerAndSettlements() {
+  const raw = new DatabaseSync(':memory:');
+  const db = shim(raw);
+  await migrateDb(db);
+
+  const recordColumns = q(raw, 'PRAGMA table_info(records)').map((row) => row.name);
+  assert.ok(recordColumns.includes('paid_by_person_id'), 'missing paid_by_person_id');
+  assert.ok(recordColumns.includes('paid_scope'), 'missing paid_scope');
+
+  const tables = q(raw, "SELECT name FROM sqlite_master WHERE type='table'").map(
+    (row) => row.name
+  );
+  assert.ok(tables.includes('person_settlements'), 'missing person_settlements table');
+
+  raw.exec(`
+    INSERT INTO records (amount, record_name, date)
+    VALUES (1000, 'Default payer', 1);
+  `);
+  const defaultRecord = q(
+    raw,
+    "SELECT paid_by_person_id, paid_scope FROM records WHERE record_name = 'Default payer'"
+  )[0];
+  assert.strictEqual(defaultRecord.paid_by_person_id, null);
+  assert.strictEqual(defaultRecord.paid_scope, 'full');
+
+  const people = new ORM(db, 'People');
+  const personId = await people.insert({ name: 'Ana' });
+  const records = new ORM(db, 'Records');
+  const recordId = await records.insert({
+    amount: 5000,
+    own_amount_cents: 5000,
+    shared_amount_cents: 5000,
+    record_name: 'Shared groceries',
+    date: 2,
+    paid_by_person_id: personId,
+    paid_scope: 'full',
+  });
+
+  const stored = q(
+    raw,
+    'SELECT paid_by_person_id, paid_scope FROM records WHERE id = ?',
+    [recordId]
+  )[0];
+  assert.strictEqual(stored.paid_by_person_id, personId);
+  assert.strictEqual(stored.paid_scope, 'full');
+
+  const settlements = new ORM(db, 'PersonSettlements');
+  const settlementId = await settlements.insert({
+    person_id: personId,
+    group_id: null,
+    date: 3,
+    amount_cents: 5000,
+    direction: 'they_paid_me',
+    notes: 'Settle',
+  });
+  const settlement = q(
+    raw,
+    'SELECT person_id, direction, amount_cents FROM person_settlements WHERE id = ?',
+    [settlementId]
+  )[0];
+  assert.strictEqual(settlement.person_id, personId);
+  assert.strictEqual(settlement.direction, 'they_paid_me');
+  assert.strictEqual(settlement.amount_cents, 5000);
+
+  await settlements.delete(settlementId);
+  assert.strictEqual((await settlements.getAll()).length, 0);
+
+  raw.close();
+  console.log('records payer and settlements: OK');
+}
+
+async function testSharedParticipantAmounts() {
+  const raw = new DatabaseSync(':memory:');
+  const db = shim(raw);
+  await migrateDb(db);
+
+  const columns = q(
+    raw,
+    'PRAGMA table_info(shared_expense_participants)'
+  ).map((row) => row.name);
+  assert.ok(columns.includes('share_mode'), 'missing share_mode');
+  assert.ok(columns.includes('share_amount_cents'), 'missing share_amount_cents');
+
+  const people = new ORM(db, 'People');
+  const personId = await people.insert({ name: 'Ana' });
+  const participants = new ORM(db, 'SharedExpenseParticipants');
+  const percentId = await participants.insert({
+    owner_type: 'record',
+    owner_id: 1,
+    person_id: personId,
+    share_percent: 50,
+  });
+  const amountId = await participants.insert({
+    owner_type: 'record',
+    owner_id: 1,
+    person_id: personId,
+    share_percent: 0,
+    share_mode: 'amount',
+    share_amount_cents: 250,
+  });
+
+  const percent = q(
+    raw,
+    'SELECT share_mode, share_amount_cents FROM shared_expense_participants WHERE id = ?',
+    [percentId]
+  )[0];
+  const amount = q(
+    raw,
+    'SELECT share_mode, share_amount_cents FROM shared_expense_participants WHERE id = ?',
+    [amountId]
+  )[0];
+  assert.strictEqual(percent.share_mode, 'percent');
+  assert.strictEqual(percent.share_amount_cents, null);
+  assert.strictEqual(amount.share_mode, 'amount');
+  assert.strictEqual(amount.share_amount_cents, 250);
+
+  raw.close();
+  console.log('shared participant amounts: OK');
+}
+
 async function testVehicleInsert() {
   const raw = new DatabaseSync(':memory:');
   const db = shim(raw);
@@ -1580,6 +1897,401 @@ async function testInterruptedRebuild() {
   console.log('interrupted rebuild recovery: OK');
 }
 
+async function testGroupClosings() {
+  const raw = new DatabaseSync(':memory:');
+  const db = shim(raw);
+  await migrateDb(db);
+
+  const groups = new ORM(db, 'Groups');
+  const group = (await groups.getAll())[0];
+  const groupId = group.id;
+  const closings = new ORM(db, 'GroupClosings');
+  const lines = new ORM(db, 'GroupClosingLines');
+  const now = Date.now();
+
+  const base = {
+    group_id: groupId,
+    close_name: 'Cierre de prueba',
+    close_date: now,
+    period_start: now - 86400000,
+    period_end: now,
+    editable_until: now + 86400000,
+    status: 'draft',
+    notes: null,
+    total_available_cents: 1000,
+    total_reserve_cents: 500,
+    total_obligations_cents: 800,
+    result_cents: 200,
+    total_resolution_cents: 200,
+    remaining_cents: 0,
+  };
+
+  const closingId = await closings.insert(base);
+  await lines.insert({
+    closing_id: closingId,
+    section: 'available',
+    kind: 'manual',
+    label: 'Disponible',
+    operation: 'add',
+    amount_cents: 1000,
+    sort_order: 0,
+  });
+  await lines.insert({
+    closing_id: closingId,
+    section: 'obligation',
+    kind: 'manual',
+    label: 'Pago',
+    operation: 'add',
+    amount_cents: 800,
+    sort_order: 1,
+  });
+
+  const storedLines = await lines.where('closing_id', closingId).getAll();
+  assert.strictEqual(storedLines.length, 2);
+  assert.strictEqual(storedLines[0].amount_cents, 1000);
+
+  const paymentMethodId = q(
+    raw,
+    'SELECT id FROM payment_methods ORDER BY id LIMIT 1'
+  )[0].id;
+  await lines.insert({
+    closing_id: closingId,
+    section: 'obligation',
+    kind: 'card',
+    label: 'Card',
+    operation: 'add',
+    amount_cents: 1000,
+    payment_method_id: paymentMethodId,
+    sort_order: 2,
+  });
+  let duplicateSourceFailed = false;
+  try {
+    await lines.insert({
+      closing_id: closingId,
+      section: 'obligation',
+      kind: 'card',
+      label: 'Card duplicate',
+      operation: 'add',
+      amount_cents: 1000,
+      payment_method_id: paymentMethodId,
+      sort_order: 3,
+    });
+  } catch {
+    duplicateSourceFailed = true;
+  }
+  assert.ok(
+    duplicateSourceFailed,
+    'the same registered source cannot be added twice'
+  );
+
+  const indexes = q(raw, 'PRAGMA index_list(group_closings)');
+  const finalIndex = indexes.find((index) => index.name === 'idx_group_closings_final');
+  assert.ok(finalIndex, 'final closing index should exist');
+  assert.strictEqual(finalIndex.unique, 1);
+
+  await closings.update(closingId, { status: 'final' });
+  let secondFinalFailed = false;
+  try {
+    await closings.insert({ ...base, status: 'final' });
+  } catch {
+    secondFinalFailed = true;
+  }
+  assert.ok(secondFinalFailed, 'only one final closing per group is allowed');
+
+  await closings.delete(closingId);
+  const replacementFinal = await closings.insert({
+    ...base,
+    status: 'final',
+  });
+  assert.ok(replacementFinal > 0, 'a final closing can be created after soft delete');
+
+  const timestamp = q(
+    raw,
+    'SELECT created_at FROM group_closings WHERE id = ?',
+    [replacementFinal]
+  )[0];
+  assert.ok(timestamp.created_at != null, 'audit timestamps should be filled');
+
+  await lines.deleteWhere('closing_id', replacementFinal);
+  await closings.delete(replacementFinal);
+  assert.strictEqual(
+    (await closings.getAll()).length,
+    0,
+    'soft deleted closings should be hidden'
+  );
+
+  raw.close();
+  console.log('group closings: OK');
+}
+
+async function testShoppingLists() {
+  const raw = new DatabaseSync(':memory:');
+  raw.exec('PRAGMA foreign_keys = ON');
+  const db = shim(raw);
+  await migrateDb(db);
+
+  const lists = new ORM(db, 'ShoppingLists');
+  const items = new ORM(db, 'ShoppingListItems');
+
+  const listId = await lists.insert(
+    shoppingListInputSchema.parse({ list_name: 'Groceries' })
+  );
+  const milkId = await items.insert(
+    shoppingListItemInputSchema.parse({
+      shopping_list_id: listId,
+      item_name: 'Milk',
+      price_cents: 350,
+      is_checked: true,
+      sort_order: 0,
+    })
+  );
+  await items.insert(
+    shoppingListItemInputSchema.parse({
+      shopping_list_id: listId,
+      item_name: 'Bread',
+      price_cents: null,
+      is_checked: true,
+      sort_order: 1,
+    })
+  );
+
+  const listRow = q(raw, 'SELECT * FROM shopping_lists WHERE id = ?', [listId])[0];
+  assert.strictEqual(listRow.status, 'open');
+  assert.ok(listRow.created_at != null, 'shopping list audit timestamp');
+
+  const itemRows = q(
+    raw,
+    'SELECT * FROM shopping_list_items WHERE shopping_list_id = ? ORDER BY sort_order',
+    [listId]
+  );
+  assert.strictEqual(itemRows.length, 2);
+  assert.strictEqual(itemRows[0].id, milkId);
+  assert.strictEqual(itemRows[1].price_cents, null);
+
+  const indexes = q(
+    raw,
+    "SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name IN ('shopping_lists', 'shopping_list_items')"
+  );
+  assert.ok(indexes.some((index) => index.name === 'idx_shopping_lists_status'));
+  assert.ok(indexes.some((index) => index.name === 'idx_shopping_lists_record'));
+  assert.ok(indexes.some((index) => index.name === 'idx_shopping_list_items_list'));
+
+  const records = new ORM(db, 'Records');
+  const recordId = await records.insert({
+    amount: 350,
+    own_amount_cents: 350,
+    shared_amount_cents: 0,
+    record_name: 'Milk',
+    date: Date.now(),
+  });
+  await lists.update(listId, {
+    record_id: recordId,
+    record_total_cents: 350,
+    purchase_date: Date.now(),
+    status: 'closed',
+    closed_at: Date.now(),
+  });
+
+  const secondId = await lists.insert(
+    shoppingListInputSchema.parse({ list_name: 'Second' })
+  );
+  await assert.rejects(
+    () => lists.update(secondId, { record_id: recordId }),
+    'record_id must be unique per shopping list'
+  );
+
+  raw.exec(`DELETE FROM records WHERE id = ${recordId}`);
+  const unlinked = q(raw, 'SELECT record_id FROM shopping_lists WHERE id = ?', [
+    listId,
+  ])[0];
+  assert.strictEqual(unlinked.record_id, null, 'record FK uses SET NULL');
+
+  await items.deleteWhere('shopping_list_id', listId);
+  await lists.delete(listId);
+  assert.strictEqual((await lists.getAll()).length, 1);
+  assert.strictEqual(
+    (await items.where('shopping_list_id', listId).getAll()).length,
+    0,
+    'items of a deleted list are hidden'
+  );
+
+  raw.close();
+  console.log('shopping lists: OK');
+}
+
+async function testRecordSources() {
+  const raw = new DatabaseSync(':memory:');
+  const db = shim(raw);
+  await migrateDb(db);
+
+  const listId = await new ORM(db, 'ShoppingLists').insert(
+    shoppingListInputSchema.parse({ list_name: 'Groceries' })
+  );
+  await new ORM(db, 'ShoppingListItems').insert(
+    shoppingListItemInputSchema.parse({
+      shopping_list_id: listId,
+      item_name: 'Milk',
+      price_cents: 350,
+      is_checked: 1,
+      sort_order: 0,
+    })
+  );
+  const shoppingRecord = await new ORM(db, 'Records').insert({
+    amount: 350,
+    record_name: 'Shopping',
+    date: Date.now(),
+  });
+  await new ORM(db, 'ShoppingLists').update(listId, {
+    record_id: shoppingRecord,
+  });
+  const shoppingSources = await resolveRecordSources(db, shoppingRecord);
+  assert.strictEqual(shoppingSources.length, 1);
+  assert.strictEqual(shoppingSources[0].kind, 'shopping');
+  assert.strictEqual(shoppingSources[0].totalCents, 350);
+  assert.strictEqual(shoppingSources[0].checkedCount, 1);
+  assert.strictEqual(shoppingSources[0].items.length, 1);
+
+  const savingId = await new ORM(db, 'Savings').insert({
+    saving_name: 'Trip',
+    amount: 10000,
+    status: 'active',
+    records_mode: 'separate',
+    contribution_rule: 'none',
+    own_amount_cents: 10000,
+    shared_amount_cents: 0,
+  });
+  const savingRecord = await new ORM(db, 'Records').insert({
+    amount: 500,
+    record_name: 'Deposit',
+    date: Date.now(),
+  });
+  await new ORM(db, 'SavingsHistory').insert({
+    savings_id: savingId,
+    kind: 'deposit',
+    amount_cents: 500,
+    previous_amount: 9500,
+    new_amount: 10000,
+    change_date: Date.now(),
+    period_year: 2026,
+    period_month: 10,
+    record_id: savingRecord,
+  });
+  const savingSources = await resolveRecordSources(db, savingRecord);
+  assert.strictEqual(savingSources.length, 1);
+  assert.strictEqual(savingSources[0].kind, 'saving');
+  assert.strictEqual(savingSources[0].name, 'Trip');
+
+  const vehicleId = await new ORM(db, 'Vehicles').insert({ name: 'Car' });
+  const fuelId = await new ORM(db, 'VehicleFuelEntries').insert({
+    vehicle_id: vehicleId,
+    date: Date.now(),
+    odometer: 1000,
+    volume: 10,
+    total_cost: 500,
+  });
+  const fuelRecord = await new ORM(db, 'Records').insert({
+    amount: 500,
+    record_name: 'Fuel',
+    date: Date.now(),
+  });
+  await new ORM(db, 'VehicleExpenseLinks').insert({
+    record_id: fuelRecord,
+    fuel_entry_id: fuelId,
+  });
+  const fuelSources = await resolveRecordSources(db, fuelRecord);
+  assert.strictEqual(fuelSources.length, 1);
+  assert.strictEqual(fuelSources[0].kind, 'vehicle_fuel');
+  assert.strictEqual(fuelSources[0].name, 'Car');
+  assert.strictEqual(fuelSources[0].odometer, 1000);
+
+  const maintenanceId = await new ORM(db, 'VehicleMaintenance').insert({
+    vehicle_id: vehicleId,
+    date: Date.now(),
+    service_type: 'oil_change',
+    title: 'Oil change',
+    cost: 800,
+  });
+  await new ORM(db, 'VehicleMaintenanceItems').insert({
+    maintenance_id: maintenanceId,
+    name: 'Filter',
+    cost: 200,
+  });
+  const maintenanceRecord = await new ORM(db, 'Records').insert({
+    amount: 800,
+    record_name: 'Maintenance',
+    date: Date.now(),
+  });
+  await new ORM(db, 'VehicleExpenseLinks').insert({
+    record_id: maintenanceRecord,
+    maintenance_id: maintenanceId,
+  });
+  const maintenanceSources = await resolveRecordSources(
+    db,
+    maintenanceRecord
+  );
+  assert.strictEqual(maintenanceSources.length, 1);
+  assert.strictEqual(maintenanceSources[0].kind, 'vehicle_maintenance');
+  assert.strictEqual(maintenanceSources[0].title, 'Oil change');
+  assert.strictEqual(maintenanceSources[0].items.length, 1);
+
+  const financingId = await new ORM(db, 'Financings').insert({
+    name: 'Loan',
+    kind: 'loan',
+    start_date: Date.now(),
+  });
+  const financingRecord = await new ORM(db, 'Records').insert({
+    amount: 1000,
+    record_name: 'Payment',
+    date: Date.now(),
+  });
+  await new ORM(db, 'FinancingPayments').insert({
+    financing_id: financingId,
+    date: Date.now(),
+    amount_cents: 1000,
+    principal_cents: 900,
+    interest_cents: 100,
+    record_id: financingRecord,
+  });
+  const financingSources = await resolveRecordSources(db, financingRecord);
+  assert.strictEqual(financingSources.length, 1);
+  assert.strictEqual(financingSources[0].kind, 'financing');
+  assert.strictEqual(financingSources[0].principalCents, 900);
+
+  const fixedId = await new ORM(db, 'Fixed').insert({
+    fixed_amount: 1000,
+    fixed_name: 'Rent',
+    fixed_day: 1,
+  });
+  const fixedRecord = await new ORM(db, 'Records').insert({
+    amount: 1000,
+    record_name: 'Rent',
+    date: Date.now(),
+    fixed_id: fixedId,
+  });
+  const fixedSources = await resolveRecordSources(db, fixedRecord);
+  assert.strictEqual(fixedSources.length, 1);
+  assert.strictEqual(fixedSources[0].kind, 'fixed');
+  assert.strictEqual(fixedSources[0].name, 'Rent');
+
+  const creditId = await new ORM(db, 'PaidCredits').insert({
+    amount: 1000,
+    date: Date.now(),
+  });
+  const creditRecord = await new ORM(db, 'Records').insert({
+    amount: 1000,
+    record_name: 'Card payment',
+    date: Date.now(),
+    paid_credit_id: creditId,
+  });
+  const creditSources = await resolveRecordSources(db, creditRecord);
+  assert.strictEqual(creditSources.length, 1);
+  assert.strictEqual(creditSources[0].kind, 'credit');
+  assert.strictEqual(creditSources[0].name, 'Card payment');
+
+  raw.close();
+  console.log('record sources: OK');
+}
+
 (async () => {
   await testLegacyMigration();
   await testTextFallbacks();
@@ -1606,6 +2318,11 @@ async function testInterruptedRebuild() {
   await testRecordsSavingSourceMigration();
   await testSavingsRecordLink();
   await testSharedPaymentAllocations();
+  await testRecordsPayerAndSettlements();
+  await testSharedParticipantAmounts();
+  await testGroupClosings();
+  await testShoppingLists();
+  await testRecordSources();
   await testVehicleSettingsRecordTypeMigration();
   await testVehicleInsert();
   await testVehicleTypeMigration();

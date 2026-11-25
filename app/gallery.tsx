@@ -15,17 +15,24 @@ import {
   Divider,
   EmptyState,
   FinanceValue,
+  FloatingActions,
   IconButton,
+  InfoHint,
   InlineMessage,
   LinkButton,
   ListItem,
   LoadingState,
   MoneyField,
   MonthField,
+  ProgressBar,
+  QuickAction,
   Row,
   Screen,
+  SectionCard,
   SelectField,
+  SortableList,
   Stack,
+  StatTile,
   SummaryBlock,
   SummaryGroup,
   Surface,
@@ -35,6 +42,8 @@ import {
   useTheme,
   useToast,
 } from '@/src/ui';
+import { Chart, ChartCard } from '@/src/ui/charts';
+import type { ChartSpec } from '@/src/domain/charts/types';
 
 const GalleryScreen = () => {
   const { colors, mode, resolvedMode, palettes, setMode } = useTheme();
@@ -49,6 +58,94 @@ const GalleryScreen = () => {
   const [enabled, setEnabled] = useState(true);
   const [color, setColor] = useState(colors.primary);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [sortableItems, setSortableItems] = useState([
+    'Balance',
+    'Budget',
+    'Savings',
+  ]);
+
+  const reorderSortable = (from: number, to: number) => {
+    setSortableItems((current) => {
+      const next = [...current];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+  };
+  const lineSpec: ChartSpec = {
+    kind: 'line',
+    title: 'Line',
+    xAxis: { type: 'time', format: 'date' },
+    yAxis: { format: 'money' },
+    series: [
+      {
+        key: 'own',
+        label: 'Own',
+        tone: 'primary',
+        points: [
+          { x: new Date(2026, 0, 1).getTime(), y: 12000 },
+          { x: new Date(2026, 1, 1).getTime(), y: 18000 },
+          { x: new Date(2026, 2, 1).getTime(), y: 15000 },
+          { x: new Date(2026, 3, 1).getTime(), y: 24000 },
+        ],
+      },
+      {
+        key: 'shared',
+        label: 'Shared',
+        tone: 'muted',
+        points: [
+          { x: new Date(2026, 0, 1).getTime(), y: 4000 },
+          { x: new Date(2026, 1, 1).getTime(), y: 5000 },
+          { x: new Date(2026, 2, 1).getTime(), y: 4500 },
+          { x: new Date(2026, 3, 1).getTime(), y: 6000 },
+        ],
+      },
+    ],
+  };
+  const groupedSpec: ChartSpec = {
+    kind: 'grouped_bar',
+    title: 'Grouped',
+    xAxis: { type: 'category' },
+    yAxis: { format: 'money' },
+    series: [
+      {
+        key: 'planned',
+        label: 'Planned',
+        tone: 'planned',
+        points: [
+          { x: 'Food', y: 20000 },
+          { x: 'Rent', y: 50000 },
+        ],
+      },
+      {
+        key: 'actual',
+        label: 'Actual',
+        tone: 'actual',
+        points: [
+          { x: 'Food', y: 17000 },
+          { x: 'Rent', y: 52000 },
+        ],
+      },
+    ],
+  };
+  const pieSpec: ChartSpec = {
+    kind: 'donut',
+    title: 'Donut',
+    yAxis: { format: 'money' },
+    showValues: true,
+    series: [
+      {
+        key: 'distribution',
+        label: 'Distribution',
+        tone: 'primary',
+        points: [
+          { x: 'Food', y: 20000, tone: 'planned' },
+          { x: 'Rent', y: 50000, tone: 'actual' },
+          { x: 'Transport', y: 12000, tone: 'projected' },
+        ],
+      },
+    ],
+  };
 
   return (
     <Screen scroll>
@@ -381,7 +478,159 @@ const GalleryScreen = () => {
               </AppText>
             </Column>
           </Surface>
+          <Surface variant='glass'>
+            <Column gap='xs'>
+              <AppText variant='label'>Glass</AppText>
+              <AppText variant='caption' color='muted'>
+                Translucent surface with a top-left highlight and soft shadow.
+                Simulated on Android and iOS; never over card visuals.
+              </AppText>
+            </Column>
+          </Surface>
         </Stack>
+
+        <Stack gap='md'>
+          <Row justify='space-between' align='center'>
+            <AppText variant='title'>Identity primitives</AppText>
+            <InfoHint
+              title='Tooltip'
+              body='Optional explanations live here. Errors and warnings stay inline.'
+            />
+          </Row>
+
+          <SectionCard
+            title='Section card'
+            subtitle='Short context only'
+            action={
+              <LinkButton
+                label='See all'
+                onPress={() => showToast({ message: 'Section action', type: 'info' })}
+              />
+            }
+            tooltip={{
+              title: 'Section card',
+              body: 'Groups one idea with a header, an optional action and a tooltip. Keep 2–5 sections per screen.',
+            }}
+          >
+            <Row gap='md' wrap>
+              <StatTile
+                label='Balance'
+                cents={248750}
+                hint='Own share'
+                size='sm'
+                style={{ flex: 1, minWidth: 150 }}
+              />
+              <StatTile
+                label='Goal'
+                value='75%'
+                accentColor={colors.goal}
+                size='sm'
+                style={{ flex: 1, minWidth: 150 }}
+              />
+            </Row>
+            <ProgressBar progress={0.75} label='Goal progress' tone='goal' />
+            <Row gap='sm' wrap>
+              <QuickAction
+                label='Add record'
+                icon={<MaterialIcons name='add' size={18} color={colors.primary} />}
+                onPress={() => showToast({ message: 'Quick action', type: 'info' })}
+              />
+              <QuickAction
+                label='Add saving'
+                icon={<MaterialIcons name='savings' size={18} color={colors.primary} />}
+                onPress={() => showToast({ message: 'Quick action', type: 'info' })}
+              />
+            </Row>
+          </SectionCard>
+
+          <View style={{ height: 190 }}>
+            <FloatingActions
+              mainAction={{
+                id: 'record',
+                label: 'Add record',
+                icon: <MaterialIcons name='add' size={28} color={colors.onPrimary} />,
+                onPress: () => showToast({ message: 'Main action', type: 'info' }),
+              }}
+              actions={[
+                {
+                  id: 'fixed',
+                  label: 'Add fixed',
+                  icon: (
+                    <MaterialIcons
+                      name='event-repeat'
+                      size={22}
+                      color={colors.primary}
+                    />
+                  ),
+                  onPress: () => showToast({ message: 'Secondary action', type: 'info' }),
+                },
+                {
+                  id: 'saving',
+                  label: 'Add saving',
+                  icon: (
+                    <MaterialIcons name='savings' size={22} color={colors.primary} />
+                  ),
+                  onPress: () => showToast({ message: 'Secondary action', type: 'info' }),
+                },
+              ]}
+              bottomOffset={0}
+            />
+          </View>
+
+          <SectionCard
+            title='Sortable list'
+            subtitle='Drag or use the accessible move helpers'
+            padded={false}
+          >
+            <SortableList
+              items={sortableItems}
+              keyExtractor={(item) => item}
+              onReorder={reorderSortable}
+              dragLabel='Reorder'
+              containerVariant={null}
+              renderItem={(item, dragHandle) => (
+                <Row
+                  justify='space-between'
+                  align='center'
+                  style={{ minHeight: 56, paddingHorizontal: 16 }}
+                >
+                  <AppText>{item}</AppText>
+                  {dragHandle}
+                </Row>
+              )}
+            />
+          </SectionCard>
+        </Stack>
+
+        <ChartCard
+          chartKey='gallery.line'
+          title='Line chart'
+          spec={lineSpec}
+          height={240}
+        />
+        <ChartCard
+          chartKey='gallery.grouped'
+          title='Grouped bars'
+          spec={groupedSpec}
+          height={240}
+        />
+        <ChartCard
+          chartKey='gallery.donut'
+          title='Donut'
+          spec={pieSpec}
+          height={240}
+        />
+        <Surface variant='outlined'>
+          <Stack gap='sm'>
+            <AppText variant='title'>Chart (standalone)</AppText>
+            <Chart
+              spec={lineSpec}
+              height={200}
+              accessibilityLabel='Line chart'
+              showDataToggle={false}
+            />
+          </Stack>
+        </Surface>
 
         <Surface variant='muted'>
           <Stack gap='xs'>

@@ -3,6 +3,8 @@ import {
   Pressable,
   StyleSheet,
   View,
+  type AccessibilityRole,
+  type AccessibilityState,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
@@ -21,6 +23,8 @@ export type ListItemProps = {
   selected?: boolean;
   showDivider?: boolean;
   style?: StyleProp<ViewStyle>;
+  accessibilityRole?: AccessibilityRole;
+  accessibilityState?: AccessibilityState;
 };
 
 export const ListItem = ({
@@ -33,6 +37,8 @@ export const ListItem = ({
   selected = false,
   showDivider = false,
   style,
+  accessibilityRole = 'button',
+  accessibilityState,
 }: ListItemProps) => {
   const { colors } = useTheme();
 
@@ -70,9 +76,9 @@ export const ListItem = ({
     <Pressable
       onPress={disabled ? undefined : onPress}
       disabled={disabled}
-      accessibilityRole='button'
+      accessibilityRole={accessibilityRole}
       accessibilityLabel={title}
-      accessibilityState={{ selected, disabled }}
+      accessibilityState={{ selected, disabled, ...accessibilityState }}
       style={({ pressed }) => [
         containerStyle,
         pressed ? { backgroundColor: colors.surfaceMuted } : null,

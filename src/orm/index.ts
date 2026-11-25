@@ -9,6 +9,7 @@ import {
 } from './errors';
 import type {
   Group,
+  ChartPreference,
   PaymentType,
   PaymentMethod,
   PaymentMethodWithRelations,
@@ -27,6 +28,7 @@ import type {
   FinancingAdjustment,
   FinancingAdjustmentWithRelations,
   Person,
+  PersonSettlement,
   SharedExpenseParticipant,
   SharedExpenseParticipantWithRelations,
   SharedPaymentAllocation,
@@ -42,6 +44,8 @@ import type {
   SavingsHistoryEntry,
   SavingsHistoryWithRelations,
   SavingsSetting,
+  GroupClosing,
+  GroupClosingLine,
   Migration,
   Vehicle,
   VehicleExpenseLink,
@@ -56,12 +60,15 @@ import type {
   VehicleSetting,
   VehicleSettingWithRelations,
   VehicleExpenseLinkWithRelations,
+  ShoppingList,
+  ShoppingListItem,
   Insertable,
   UpdateEntity,
 } from '../interfaces/schema';
 
 export type BaseSchemaMap = {
   Groups: Group;
+  ChartPreferences: ChartPreference;
   PaymentTypes: PaymentType;
   PaymentMethods: PaymentMethod;
   Categories: Category;
@@ -73,6 +80,7 @@ export type BaseSchemaMap = {
   FinancingPayments: FinancingPayment;
   FinancingAdjustments: FinancingAdjustment;
   People: Person;
+  PersonSettlements: PersonSettlement;
   SharedExpenseParticipants: SharedExpenseParticipant;
   SharedPaymentAllocations: SharedPaymentAllocation;
   BudgetTemplates: BudgetTemplate;
@@ -82,6 +90,8 @@ export type BaseSchemaMap = {
   Savings: Saving;
   SavingsHistory: SavingsHistoryEntry;
   SavingsSettings: SavingsSetting;
+  GroupClosings: GroupClosing;
+  GroupClosingLines: GroupClosingLine;
   Vehicles: Vehicle;
   VehicleFuelEntries: VehicleFuelEntry;
   VehicleMaintenance: VehicleMaintenanceEntry;
@@ -89,6 +99,8 @@ export type BaseSchemaMap = {
   VehicleReminders: VehicleReminder;
   VehicleSettings: VehicleSetting;
   VehicleExpenseLinks: VehicleExpenseLink;
+  ShoppingLists: ShoppingList;
+  ShoppingListItems: ShoppingListItem;
   Migrations: Migration;
 };
 
@@ -96,6 +108,7 @@ export type TableOption = TableName;
 
 export type RelationsSchemaMap = {
   Groups: Group;
+  ChartPreferences: ChartPreference;
   PaymentTypes: PaymentType;
   PaymentMethods: PaymentMethodWithRelations;
   Categories: Category;
@@ -107,6 +120,7 @@ export type RelationsSchemaMap = {
   FinancingPayments: FinancingPaymentWithRelations;
   FinancingAdjustments: FinancingAdjustmentWithRelations;
   People: Person;
+  PersonSettlements: PersonSettlement;
   SharedExpenseParticipants: SharedExpenseParticipantWithRelations;
   SharedPaymentAllocations: SharedPaymentAllocation;
   BudgetTemplates: BudgetTemplateWithRelations;
@@ -116,6 +130,8 @@ export type RelationsSchemaMap = {
   Savings: Saving;
   SavingsHistory: SavingsHistoryWithRelations;
   SavingsSettings: SavingsSetting;
+  GroupClosings: GroupClosing;
+  GroupClosingLines: GroupClosingLine;
   Vehicles: Vehicle;
   VehicleFuelEntries: VehicleFuelEntryWithRelations;
   VehicleMaintenance: VehicleMaintenanceEntryWithRelations;
@@ -123,6 +139,8 @@ export type RelationsSchemaMap = {
   VehicleReminders: VehicleReminderWithRelations;
   VehicleSettings: VehicleSettingWithRelations;
   VehicleExpenseLinks: VehicleExpenseLinkWithRelations;
+  ShoppingLists: ShoppingList;
+  ShoppingListItems: ShoppingListItem;
   Migrations: Migration;
 };
 

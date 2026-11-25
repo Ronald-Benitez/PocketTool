@@ -607,12 +607,12 @@ checklist visual.
 
 ## 15. Trabajo paralelo — documentación de base de datos
 
-- Mantener [`database.md`](database.md) como referencia actual y concisa:
+- Mantener [`database.md`](../database.md) como referencia actual y concisa:
   convenciones, tablas, relaciones, migraciones, triggers, backups y acceso a
   datos.
-- Mantener [`schema.md`](schema.md) como referencia generada y no editarla a
+- Mantener [`schema.md`](../schema.md) como referencia generada y no editarla a
   mano.
-- Conservar [`legacy/db-summary.md`](legacy/db-summary.md) solo como archivo
+- Conservar [`legacy/db-summary.md`](db-summary.md) solo como archivo
   histórico.
 - Mantener `db.md` como puntero a `database.md`.
 - Actualizar `database.md` cuando cambie una migración, un trigger, el formato

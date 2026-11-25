@@ -1,6 +1,13 @@
 # Plan de fases
 
-**Última actualización:** 2026-11-05
+**Cuándo leer:** al consultar el estado vigente, la fase activa o el resumen
+histórico de PocketTool.
+**Resumen:** estado de las fases, fase activa, resumen de arquitectura y enlaces
+a las decisiones canónicas. Las reglas no viven aquí.
+**Secciones:** Estado · Fase activa · Arquitectura actual · Fases 0–23 ·
+Decisiones.
+
+**Última actualización:** 2026-11-22
 
 ## Estado
 
@@ -18,58 +25,39 @@
 | Fase 9 — Gastos fijos y Créditos | ✅ Finalizada | 2026-11-03 |
 | Fase 10 — Errores y ajustes de siguiente versión | ✅ Finalizada | 2026-11-03 |
 | Fase 11 — Ahorros compartidos y metas | ✅ Finalizada | 2026-11-04 |
+| Fase 12 — Compras compartidas, saldo por persona y doble balance | ✅ Finalizada | 2026-11-11 |
+| Fase 13 — Pendientes de Fase 12 y ajustes de Registros/Vehículo | ✅ Finalizada | 2026-11-17 |
+| Fase 14 — “Qué hay de nuevo” acumulado | ✅ Finalizada | 2026-11-17 |
+| Fase 15 — Fechas de pagos pendientes de tarjeta y fijos | ✅ Finalizada | 2026-11-18 |
+| Fase 16 — Cierre informativo de periodo | ✅ Finalizada | 2026-11-18 |
+| Fase 17 — Grupos automáticos y periodos unificados | ✅ Finalizada | 2026-11-19 |
+| Fase 18 — Motor de gráficos nativo | ✅ Finalizada | 2026-11-19 |
+| Fase 19 — Experiencia configurable y simplificación | ✅ Finalizada | 2026-11-20 |
+| Fase 20 — Presupuestos con saldo esperado | ✅ Finalizada | 2026-11-21 |
+| Fase 21 — Identidad visual y dashboard de Inicio | ✅ Finalizada | 2026-11-21 |
+| Fase 22 — Coherencia visual restante | ✅ Finalizada | 2026-11-22 |
+| Fase 23 — Lista de compras | ✅ Finalizada | 2026-11-22 |
 
 ## Fase activa
 
 **No hay fase activa.**
 
-Para iniciar una fase, reemplaza este bloque por:
-
-```md
-## Fase activa: 12 — Nombre de la fase
-- Estado: 🚧 En curso
-- Inicio: 2026-11-05
-- Plan: docs/plans/fase-12.md
-```
-
-`/cerrar-fase` busca este encabezado para saber qué fase cerrar. Si no existe,
-se detiene y pide cuál cerrar.
+`/cerrar-fase` usa este encabezado para saber qué fase cerrar.
 
 ## Arquitectura actual (resumen)
 
-- **Esquema:** `src/db/schema/tables.ts` es la fuente única; los artefactos de
-  `src/db/schema/generated/` y `docs/schema.md` se generan con
-  `npm run db:generate`.
-- **Dinero/fechas:** centavos enteros y timestamps Unix en milisegundos.
-- **Auditoría:** `created_at`/`updated_at` con triggers; soft delete con
-  `deleted_at`.
-- **Migraciones:** `0001` a `0020`; `SCHEMA_VERSION = 20`.
-- **Acceso a datos:** ORM tipado + repositorios; la UI no usa `useORM` ni SQL.
-- **Backups:** dump SQL con metadatos versionados y compatibilidad legacy.
-- **Calidad:** `test:db` con `node:sqlite`, Jest, typecheck, lint bloqueante y
-  CI en `.github/workflows/ci.yml`.
-- **UI:** sistema propio en `src/ui/` con tema, tokens, primitivas, acciones,
-  formularios, overlays, feedback y filtros. `src/styles/useThemedStyles.ts`
-  adapta estilos legacy.
-- **Idiomas:** `src/lang/messages/` es la fuente de verdad, con inglés y español
-  co-localizados; `t()` se tipa con `TranslationKey`.
-- **Ayuda:** `src/help/registry.ts` define los temas y
-  `src/lang/messages/help.ts` el contenido bilingüe.
-- **Registros:** toda operación que mueva dinero ofrece crear, vincular u omitir
-  un `Record`, validando monto/fecha y evitando vínculos duplicados.
+- **Datos:** `src/db/schema/tables.ts` es la fuente única; ORM y repositorios.
+  Ver [`database.md`](database.md).
+- **UI, dominio y experiencia:** `src/ui`, `src/domain` y `src/features` con
+  tokens, lógica pura y flags. Ver [`architecture/ui.md`](architecture/ui.md) y
+  [`architecture/features.md`](architecture/features.md).
+- **Registros y calidad:** create/link/omit en la misma transacción; typecheck,
+  `test:db`, Jest, lint y `docs:audit` en CI. Ver [`../AGENTS.md`](../AGENTS.md).
 
 ## Fases 0–3 — Base técnica (✅ 2026-10-28)
 
-Detalle completo en [`legacy/phase-history.md`](legacy/phase-history.md).
-
-- Fase 0: unificación de la capa de acceso, migraciones, seed idempotente,
-  soft delete, integridad, export/import y limpieza de deuda.
-- Fase 1: esquema declarativo en `tables.ts`, artefactos generados, migraciones
-  como evolución y nombres normalizados.
-- Fase 2: repositorios por agregado, ORM tipado, validación en bordes y tipos
-  unificados.
-- Fase 3: pruebas, export/import v2, rendimiento, CI, auditoría de timestamps y
-  ESLint.
+Detalle completo en [`legacy/phase-history.md`](legacy/phase-history.md):
+esquema declarativo, migraciones, ORM, repositorios, backups, CI y ESLint.
 
 ## Fase 4 — Sistema de UI reutilizable (✅ 2026-10-29)
 
@@ -117,9 +105,6 @@ Plan completo en [`legacy/vehicle-plan.md`](legacy/vehicle-plan.md).
   preferencias de unidades por vehículo.
 - Resumen, estadísticas, históricos y gráficos Mermaid responsivos.
 - Verificación: typecheck, 84 tests, `test:db`, lint, doctor y export Android.
-- Commits principales: `d1e7e13`, `1fbb2ec`, `8e51999`, `918bf45`, `e926413`,
-  `2d7280b`, `a8ee207`, `099c3b4`, `5158797`, `e6069af`, `8b30c42`, `e7de4de`,
-  `f54963d`, `70aa777`, `6a27346`, `0f61fb2`.
 
 ## Fase 9 — Gastos fijos y Créditos (✅ 2026-11-03)
 
@@ -145,8 +130,6 @@ Plan completo en [`legacy/next-version-plan.md`](legacy/next-version-plan.md).
 - Compartidos ilimitados, snapshot propio/compartido en `Records` y modos de
   importe propio/total/compartido.
 - Temas de ayuda de Personas y “Tu parte / Total / Compartido”.
-- Commits principales: `1f77b6a`, `3cc8dc8`, `6de9ff7`, `745f052`, `cf50c0b`,
-  `4a3afaf`, `d454e75`, `f651333`, `7e03428`, `892875d`.
 
 ## Fase 11 — Ahorros compartidos y metas (✅ 2026-11-04)
 
@@ -162,30 +145,123 @@ Plan completo en [`legacy/savings-plan.md`](legacy/savings-plan.md).
   excluyen del gasto del mes.
 - Personas con aportes y saldo en ahorros; pruebas de migración, movimientos,
   saldo insuficiente y vínculo/desvínculo.
-- Commits principales: `e3e6a7a`, `b7be5c4`, `2dc3bd8`, `17cdc4f`, `cf21572`,
-  `e1a281c`, `789a125`, `e5a1fc0`, `5cc9684`, `b33df55`, `7dc8c1b`.
 
-## Decisiones vigentes
+## Fase 12 — Compras compartidas, saldo por persona y doble balance (✅ 2026-11-11)
 
-- Tablas lógicas PascalCase, nombres físicos y columnas snake_case.
-- Dinero en centavos; fechas en milisegundos.
-- Soft delete por defecto; el ORM filtra borrados.
-- Migraciones en transacción exclusiva y registro posterior al commit.
-- Repositorios como única puerta de acceso desde stores y pantallas.
-- Toda operación con impacto en cuentas ofrece crear, vincular u omitir un
-  `Record`, validando monto/fecha y evitando vínculos duplicados.
-- Backups con metadatos versionados y compatibilidad con dumps SQL antiguos.
-- Lint bloqueante; CI ejecuta typecheck, artefactos, tests y lint.
-- La UI nueva usa `src/ui`; los estilos legacy se adaptan con
-  `useThemedStyles`.
-- La ayuda se actualiza en el mismo cambio que la funcionalidad visible.
+Plan completo en [`legacy/shared-purchases-plan.md`](legacy/shared-purchases-plan.md).
 
-## Documentación
+- Migraciones `0021` y `0022`: pagador y alcance en `Records`, y
+  `PersonSettlements` para liquidaciones por persona y grupo.
+- Compras compartidas con participantes y pagador; fijos con total, solo mi
+  parte o pagó otra persona.
+- Estado de cuenta por persona con saldo, movimientos y liquidaciones totales o
+  parciales; aviso de saldos al crear un grupo.
+- Doble balance consumo/caja y modos `Tu parte`, `Compartido`, `Total` y
+  `Propio bruto`.
+- Ayuda bilingüe `sharedPurchases` y `settlements`. Commits: `5622d5c`,
+  `d61072b`.
 
-- [`README.md`](README.md): índice y contrato de documentación.
-- [`database.md`](database.md): base de datos y reglas de lectura.
-- [`schema.md`](schema.md): esquema generado.
-- [`architecture/ui.md`](architecture/ui.md): sistema de UI.
-- [`architecture/domains.md`](architecture/domains.md): reglas de negocio.
-- [`legacy/README.md`](legacy/README.md): índice del archivo histórico.
-- [`../AGENTS.md`](../AGENTS.md): reglas para agentes.
+## Fase 13 — Pendientes de Fase 12 y ajustes de Registros/Vehículo (✅ 2026-11-17)
+
+Plan completo en [`legacy/pending-adjustments-plan.md`](legacy/pending-adjustments-plan.md).
+
+- Migración `0023`: reparto por porcentaje o monto en compartidos; ahorros
+  sigue solo con porcentaje.
+- Refresco global tras combustible, mantenimiento y ahorros; ahorros con monto
+  inicial 0.
+- Pickers centrados con altura máxima y scroll.
+- Fecha configurable de pagos pendientes de tarjeta y distancia por segmento en
+  gasolina, con memoria de “Use odometer” por vehículo.
+- Limpieza de datos en memoria al borrar el último grupo. Commit: `0265179`.
+
+## Fase 14 — “Qué hay de nuevo” acumulado (✅ 2026-11-17)
+
+Plan completo en [`legacy/whats-new-plan.md`](legacy/whats-new-plan.md).
+
+- Catálogo bilingüe versionado desde 4.0.5, con comparación semver y acumulación
+  de versiones pendientes; instalaciones nuevas se marcan vistas salvo la
+  excepción de lanzamiento 4.0.5.
+- Modal único con todas las novedades, un botón “Entendido” y acceso manual
+  desde la sección especial de Ayuda.
+- `useWhatsNew` guarda `whatsNewLastSeenVersion` en AsyncStorage; no toca SQLite
+  ni bloquea el arranque.
+- `/notas-version` queda a cargo de las notas de Play, el catálogo in-app y el
+  bump de versión.
+
+## Fase 15 — Fechas de pagos pendientes de tarjeta y fijos (✅ 2026-11-18)
+
+Plan en
+[`legacy/fase-15-pending-dates-plan.md`](legacy/fase-15-pending-dates-plan.md).
+
+- `next_payment_date`, modos de fijos y `usePendingFixeds` para Registros e
+  Inicio; ayuda bilingüe y pruebas. Sin cambios de esquema.
+
+## Fase 16 — Cierre informativo de periodo configurable (✅ 2026-11-18)
+
+Plan en
+[`legacy/fase-16-group-closing-plan.md`](legacy/fase-16-group-closing-plan.md).
+
+- Migración `0024`: cierres configurables, balances, validación y backups.
+
+## Fase 17 — Grupos automáticos y periodos unificados (✅ 2026-11-19)
+
+Plan en
+[`legacy/fase-17-group-periods-plan.md`](legacy/fase-17-group-periods-plan.md).
+
+- Migración `0025`: periodo por grupo, creación automática y cierre unificado.
+
+## Fase 18 — Motor de gráficos nativo (✅ 2026-11-19)
+
+Plan en
+[`legacy/fase-18-chart-engine-plan.md`](legacy/fase-18-chart-engine-plan.md).
+
+- Motor SVG, preferencias en SQLite y migración desde Mermaid.
+
+## Fase 19 — Experiencia configurable y simplificación (✅ 2026-11-20)
+
+Plan en
+[`legacy/fase-19-experience-plan.md`](legacy/fase-19-experience-plan.md).
+
+- Presets/flags, onboarding, gating, alta rápida y backup.
+
+## Fase 20 — Presupuestos con saldo esperado (✅ 2026-11-21)
+
+Plan en [`legacy/fase-20-budget-plan.md`](legacy/fase-20-budget-plan.md).
+
+- Periodo real, saldos, obligaciones sin duplicados y orden drag-and-drop.
+
+## Fase 21 — Identidad visual y dashboard de Inicio (✅ 2026-11-21)
+
+Plan en
+[`legacy/fase-21-visual-dashboard-plan.md`](legacy/fase-21-visual-dashboard-plan.md).
+Contrato visual, glass simulado, `SectionCard`/`InfoHint`/`SortableList`,
+dashboard de 9 bloques con editor y FAB, y migración de Ajustes, Resúmenes,
+Registros y Compromisos. Verificación: typecheck, `test:db`, 375 tests, lint,
+doctor 20/20, `docs:audit` y export Android. QA visual validado por el usuario.
+
+## Fase 22 — Coherencia visual restante (✅ 2026-11-22)
+
+Plan en
+[`legacy/fase-22-visual-coherence-plan.md`](legacy/fase-22-visual-coherence-plan.md).
+Catálogos, tablas, Presupuesto, Créditos, Ahorros, Vehículo, Personas, Cierre,
+tooltips y validación unificados. Verificación: `ci`, lint, doctor 20/20,
+`docs:audit` y export Android; QA validado por el usuario.
+
+## Fase 23 — Lista de compras (✅ 2026-11-22)
+
+Plan en
+[`legacy/fase-23-shopping-list-plan.md`](legacy/fase-23-shopping-list-plan.md).
+
+- Migración `0027` y totales con precio cero = sin precio.
+- Repositorio con CRUD, cierre inmutable y registro crear/vincular.
+- Sección con selector modal, check optimista y origen.
+- Flag `shopping`, `RecordPicker`.
+
+Verif.: `ci`, 379 tests, `test:db`, lint, doctor 20/20 y `docs:audit`.
+Commits `5602701`, `49e40fd`.
+
+## Decisiones
+
+Reglas en [`../AGENTS.md`](../AGENTS.md) y en los `AGENTS.md` de área; dominio en
+[`architecture/domains.md`](architecture/domains.md). Este documento solo mantiene
+estado e historial.

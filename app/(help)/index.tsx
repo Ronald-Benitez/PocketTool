@@ -3,7 +3,9 @@ import { View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { HelpTopicView } from '@/src/components/help/HelpTopicView';
+import { isHelpTopicEnabled, useFeatures } from '@/src/features';
 import { HELP_CATEGORIES, HELP_TOPICS } from '@/src/help/registry';
+import { useWhatsNew } from '@/src/hooks/useWhatsNew';
 import type { HelpTopic } from '@/src/help/types';
 import { helpCategoryKey } from '@/src/lang/keys';
 import { useLanguage } from '@/src/lang/LanguageContext';
@@ -26,12 +28,15 @@ const normalize = (value: string) =>
 const Index = () => {
   const { t, language } = useLanguage();
   const { colors } = useTheme();
+  const enabled = useFeatures((state) => state.enabled);
   const [search, setSearch] = useState('');
   const [selectedTopic, setSelectedTopic] = useState<HelpTopic | null>(null);
+  const openWhatsNew = useWhatsNew((state) => state.openManual);
 
   const filteredTopics = useMemo(() => {
     const term = normalize(search);
     return HELP_TOPICS.filter((topic) => {
+      if (!isHelpTopicEnabled(topic.id, enabled)) return false;
       const text = [
         t(topic.titleKey),
         t(topic.summaryKey),
@@ -46,7 +51,7 @@ const Index = () => {
       ].join(' ');
       return normalize(text).includes(term);
     });
-  }, [search, language, t]);
+  }, [enabled, search, language, t]);
 
   if (selectedTopic) {
     return (
@@ -76,6 +81,35 @@ const Index = () => {
           autoCapitalize='none'
           autoCorrect={false}
         />
+
+        <Surface variant='outlined' padding='none'>
+          <ListItem
+            title={t('help.hub.whatsNewTitle')}
+            subtitle={t('help.hub.whatsNewSubtitle')}
+            leading={
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: colors.surfaceMuted,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <MaterialIcons name='new-releases' size={18} color={colors.primary} />
+              </View>
+            }
+            trailing={
+              <MaterialIcons
+                name='chevron-right'
+                size={20}
+                color={colors.textMuted}
+              />
+            }
+            onPress={openWhatsNew}
+          />
+        </Surface>
 
         {filteredTopics.length === 0 ? (
           <EmptyState

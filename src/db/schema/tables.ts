@@ -1,6 +1,6 @@
 import type { TableDefinition, TableSchema } from '../types';
 
-export const SCHEMA_VERSION = 20;
+export const SCHEMA_VERSION = 27;
 
 export type TableName =
   | 'Groups'
@@ -15,6 +15,7 @@ export type TableName =
   | 'FinancingPayments'
   | 'FinancingAdjustments'
   | 'People'
+  | 'PersonSettlements'
   | 'SharedExpenseParticipants'
   | 'SharedPaymentAllocations'
   | 'BudgetTemplates'
@@ -24,6 +25,9 @@ export type TableName =
   | 'Savings'
   | 'SavingsHistory'
   | 'SavingsSettings'
+  | 'GroupClosings'
+  | 'GroupClosingLines'
+  | 'ChartPreferences'
   | 'Vehicles'
   | 'VehicleFuelEntries'
   | 'VehicleMaintenance'
@@ -31,6 +35,8 @@ export type TableName =
   | 'VehicleReminders'
   | 'VehicleSettings'
   | 'VehicleExpenseLinks'
+  | 'ShoppingLists'
+  | 'ShoppingListItems'
   | 'Migrations';
 
 const softDelete = { name: 'deleted_at', type: 'INTEGER', kind: 'timestamp', defaultValue: null } as const;
@@ -49,11 +55,19 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
       { name: 'goal', type: 'INTEGER', kind: 'money', notNull: true },
       { name: 'year', type: 'INTEGER', notNull: true },
       { name: 'month', type: 'INTEGER', notNull: true },
+      { name: 'period_start', type: 'INTEGER', kind: 'timestamp', defaultValue: null },
+      { name: 'period_end', type: 'INTEGER', kind: 'timestamp', defaultValue: null },
+      { name: 'period_mode', type: 'TEXT', notNull: true, defaultValue: 'calendar_month' },
       ...timestamps,
       softDelete,
     ],
     indexes: [
       { name: 'idx_groups_active', columns: ['year', 'month'], where: 'deleted_at IS NULL' },
+      {
+        name: 'idx_groups_period',
+        columns: ['period_start', 'period_end'],
+        where: 'deleted_at IS NULL',
+      },
     ],
   },
   PaymentTypes: {
@@ -156,6 +170,32 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
       { name: 'idx_fixed_record_type', columns: ['record_type_id'], where: 'deleted_at IS NULL' },
     ],
   },
+  People: {
+    name: 'People',
+    sqlName: 'people',
+    entity: 'Person',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      { name: 'name', type: 'TEXT', notNull: true },
+      { name: 'notes', type: 'TEXT' },
+      {
+        name: 'is_active',
+        type: 'INTEGER',
+        kind: 'boolean',
+        notNull: true,
+        defaultValue: 1,
+      },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      {
+        name: 'idx_people_active',
+        columns: ['is_active'],
+        where: 'deleted_at IS NULL',
+      },
+    ],
+  },
   Records: {
     name: 'Records',
     sqlName: 'records',
@@ -202,11 +242,18 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
         type: 'INTEGER',
         references: { table: 'Savings', column: 'id', onDelete: 'SET NULL' },
       },
+      {
+        name: 'paid_by_person_id',
+        type: 'INTEGER',
+        references: { table: 'People', column: 'id', onDelete: 'SET NULL' },
+      },
+      { name: 'paid_scope', type: 'TEXT', notNull: true, defaultValue: 'full' },
       ...timestamps,
       softDelete,
     ],
     indexes: [
       { name: 'idx_records_group_date', columns: ['group_id', 'date'], where: 'deleted_at IS NULL' },
+      { name: 'idx_records_paid_by', columns: ['paid_by_person_id'], where: 'deleted_at IS NULL' },
       { name: 'idx_records_category', columns: ['category_id'], where: 'deleted_at IS NULL' },
       { name: 'idx_records_payment_method', columns: ['payment_method_id'], where: 'deleted_at IS NULL' },
       { name: 'idx_records_record_type', columns: ['record_type_id'], where: 'deleted_at IS NULL' },
@@ -359,28 +406,39 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
       { name: 'idx_financing_adjustments_financing_date', columns: ['financing_id', 'date'], where: 'deleted_at IS NULL' },
     ],
   },
-  People: {
-    name: 'People',
-    sqlName: 'people',
-    entity: 'Person',
+  PersonSettlements: {
+    name: 'PersonSettlements',
+    sqlName: 'person_settlements',
+    entity: 'PersonSettlement',
     columns: [
       { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
-      { name: 'name', type: 'TEXT', notNull: true },
-      { name: 'notes', type: 'TEXT' },
       {
-        name: 'is_active',
+        name: 'person_id',
         type: 'INTEGER',
-        kind: 'boolean',
+        references: { table: 'People', column: 'id', onDelete: 'CASCADE' },
         notNull: true,
-        defaultValue: 1,
       },
+      {
+        name: 'group_id',
+        type: 'INTEGER',
+        references: { table: 'Groups', column: 'id', onDelete: 'SET NULL' },
+      },
+      { name: 'date', type: 'INTEGER', kind: 'timestamp', notNull: true },
+      { name: 'amount_cents', type: 'INTEGER', kind: 'money', notNull: true },
+      { name: 'direction', type: 'TEXT', notNull: true },
+      { name: 'notes', type: 'TEXT' },
       ...timestamps,
       softDelete,
     ],
     indexes: [
       {
-        name: 'idx_people_active',
-        columns: ['is_active'],
+        name: 'idx_person_settlements_person_date',
+        columns: ['person_id', 'date'],
+        where: 'deleted_at IS NULL',
+      },
+      {
+        name: 'idx_person_settlements_group_date',
+        columns: ['group_id', 'date'],
         where: 'deleted_at IS NULL',
       },
     ],
@@ -400,6 +458,8 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
         notNull: true,
       },
       { name: 'share_percent', type: 'REAL', notNull: true },
+      { name: 'share_mode', type: 'TEXT', notNull: true, defaultValue: 'percent' },
+      { name: 'share_amount_cents', type: 'INTEGER', kind: 'money' },
       { name: 'notes', type: 'TEXT' },
       ...timestamps,
       softDelete,
@@ -732,6 +792,236 @@ export const APP_SCHEMA: Record<TableName, TableDefinition> = {
       { name: 'trophy_color', type: 'TEXT', defaultValue: '#C9A227' },
       ...timestamps,
       softDelete,
+    ],
+  },
+  GroupClosings: {
+    name: 'GroupClosings',
+    sqlName: 'group_closings',
+    entity: 'GroupClosing',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      {
+        name: 'group_id',
+        type: 'INTEGER',
+        references: { table: 'Groups', column: 'id', onDelete: 'CASCADE' },
+        notNull: true,
+      },
+      { name: 'close_name', type: 'TEXT', notNull: true },
+      { name: 'close_date', type: 'INTEGER', kind: 'timestamp', notNull: true },
+      { name: 'period_start', type: 'INTEGER', kind: 'timestamp', notNull: true },
+      { name: 'period_end', type: 'INTEGER', kind: 'timestamp', notNull: true },
+      { name: 'editable_until', type: 'INTEGER', kind: 'timestamp', notNull: true },
+      { name: 'status', type: 'TEXT', notNull: true, defaultValue: 'draft' },
+      { name: 'notes', type: 'TEXT' },
+      { name: 'total_available_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'total_reserve_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'total_obligations_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'result_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'total_resolution_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'remaining_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      {
+        name: 'idx_group_closings_group',
+        columns: ['group_id', 'period_end'],
+        where: 'deleted_at IS NULL',
+      },
+      {
+        name: 'idx_group_closings_final',
+        columns: ['group_id'],
+        unique: true,
+        where: "status = 'final' AND deleted_at IS NULL",
+      },
+    ],
+  },
+  GroupClosingLines: {
+    name: 'GroupClosingLines',
+    sqlName: 'group_closing_lines',
+    entity: 'GroupClosingLine',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      {
+        name: 'closing_id',
+        type: 'INTEGER',
+        references: { table: 'GroupClosings', column: 'id', onDelete: 'CASCADE' },
+        notNull: true,
+      },
+      { name: 'section', type: 'TEXT', notNull: true, defaultValue: 'available' },
+      { name: 'kind', type: 'TEXT', notNull: true, defaultValue: 'manual' },
+      { name: 'label', type: 'TEXT', notNull: true },
+      { name: 'operation', type: 'TEXT', notNull: true, defaultValue: 'add' },
+      { name: 'direction', type: 'TEXT' },
+      { name: 'amount_cents', type: 'INTEGER', kind: 'money', notNull: true, defaultValue: 0 },
+      { name: 'reference_cents', type: 'INTEGER', kind: 'money' },
+      { name: 'reason', type: 'TEXT' },
+      {
+        name: 'payment_method_id',
+        type: 'INTEGER',
+        references: { table: 'PaymentMethods', column: 'id', onDelete: 'SET NULL' },
+      },
+      {
+        name: 'saving_id',
+        type: 'INTEGER',
+        references: { table: 'Savings', column: 'id', onDelete: 'SET NULL' },
+      },
+      {
+        name: 'fixed_id',
+        type: 'INTEGER',
+        references: { table: 'Fixed', column: 'id', onDelete: 'SET NULL' },
+      },
+      {
+        name: 'financing_id',
+        type: 'INTEGER',
+        references: { table: 'Financings', column: 'id', onDelete: 'SET NULL' },
+      },
+      {
+        name: 'related_group_id',
+        type: 'INTEGER',
+        references: { table: 'Groups', column: 'id', onDelete: 'SET NULL' },
+      },
+      { name: 'notes', type: 'TEXT' },
+      { name: 'sort_order', type: 'INTEGER', notNull: true, defaultValue: 0 },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      {
+        name: 'idx_group_closing_lines_closing',
+        columns: ['closing_id', 'section', 'sort_order'],
+        where: 'deleted_at IS NULL',
+      },
+      {
+        name: 'idx_group_closing_lines_saving',
+        columns: ['saving_id'],
+        where: 'deleted_at IS NULL',
+      },
+      {
+        name: 'idx_group_closing_lines_payment_method',
+        columns: ['payment_method_id'],
+        where: 'deleted_at IS NULL',
+      },
+      {
+        name: 'idx_group_closing_lines_fixed',
+        columns: ['fixed_id'],
+        where: 'deleted_at IS NULL',
+      },
+      {
+        name: 'idx_group_closing_lines_financing',
+        columns: ['financing_id'],
+        where: 'deleted_at IS NULL',
+      },
+      {
+        name: 'idx_group_closing_lines_payment_unique',
+        columns: ['closing_id', 'payment_method_id'],
+        unique: true,
+        where:
+          "deleted_at IS NULL AND payment_method_id IS NOT NULL AND kind IN ('card', 'account')",
+      },
+      {
+        name: 'idx_group_closing_lines_saving_unique',
+        columns: ['closing_id', 'saving_id'],
+        unique: true,
+        where: 'deleted_at IS NULL AND saving_id IS NOT NULL',
+      },
+      {
+        name: 'idx_group_closing_lines_fixed_unique',
+        columns: ['closing_id', 'fixed_id'],
+        unique: true,
+        where: 'deleted_at IS NULL AND fixed_id IS NOT NULL',
+      },
+      {
+        name: 'idx_group_closing_lines_financing_unique',
+        columns: ['closing_id', 'financing_id'],
+        unique: true,
+        where: 'deleted_at IS NULL AND financing_id IS NOT NULL',
+      },
+    ],
+  },
+  ChartPreferences: {
+    name: 'ChartPreferences',
+    sqlName: 'chart_preferences',
+    entity: 'ChartPreference',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      { name: 'chart_key', type: 'TEXT', notNull: true },
+      { name: 'collapsed', type: 'INTEGER', kind: 'boolean', notNull: true, defaultValue: 0 },
+      { name: 'mode', type: 'TEXT', defaultValue: null },
+      { name: 'hidden_series', type: 'TEXT', defaultValue: null },
+      { name: 'data_limit', type: 'INTEGER', defaultValue: null },
+      { name: 'limit_from_end', type: 'INTEGER', kind: 'boolean', notNull: true, defaultValue: 1 },
+      { name: 'zoom', type: 'REAL', defaultValue: null },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      {
+        name: 'idx_chart_preferences_key',
+        columns: ['chart_key'],
+        unique: true,
+        where: 'deleted_at IS NULL',
+      },
+    ],
+  },
+  ShoppingLists: {
+    name: 'ShoppingLists',
+    sqlName: 'shopping_lists',
+    entity: 'ShoppingList',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      { name: 'list_name', type: 'TEXT', notNull: true },
+      { name: 'status', type: 'TEXT', notNull: true, defaultValue: 'open' },
+      { name: 'closed_at', type: 'INTEGER', kind: 'timestamp' },
+      { name: 'purchase_date', type: 'INTEGER', kind: 'timestamp' },
+      {
+        name: 'record_id',
+        type: 'INTEGER',
+        references: { table: 'Records', column: 'id', onDelete: 'SET NULL' },
+      },
+      { name: 'record_total_cents', type: 'INTEGER', kind: 'money' },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      {
+        name: 'idx_shopping_lists_status',
+        columns: ['status'],
+        where: 'deleted_at IS NULL',
+      },
+      {
+        name: 'idx_shopping_lists_record',
+        columns: ['record_id'],
+        unique: true,
+        where: 'deleted_at IS NULL AND record_id IS NOT NULL',
+      },
+    ],
+  },
+  ShoppingListItems: {
+    name: 'ShoppingListItems',
+    sqlName: 'shopping_list_items',
+    entity: 'ShoppingListItem',
+    columns: [
+      { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+      {
+        name: 'shopping_list_id',
+        type: 'INTEGER',
+        references: { table: 'ShoppingLists', column: 'id', onDelete: 'CASCADE' },
+        notNull: true,
+      },
+      { name: 'item_name', type: 'TEXT', notNull: true },
+      { name: 'price_cents', type: 'INTEGER', kind: 'money' },
+      { name: 'is_checked', type: 'INTEGER', kind: 'boolean', notNull: true, defaultValue: 0 },
+      { name: 'sort_order', type: 'INTEGER', notNull: true, defaultValue: 0 },
+      ...timestamps,
+      softDelete,
+    ],
+    indexes: [
+      {
+        name: 'idx_shopping_list_items_list',
+        columns: ['shopping_list_id', 'sort_order'],
+        where: 'deleted_at IS NULL',
+      },
     ],
   },
   Migrations: {

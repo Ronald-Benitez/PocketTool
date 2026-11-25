@@ -12,7 +12,8 @@ import { useTheme } from '../theme/ThemeProvider';
 import { controlHeight, radii, spacing } from '../theme/tokens';
 import { AppText } from '../primitives/AppText';
 import { Button } from '../actions/Button';
-import { BottomSheet } from '../overlays/Modal';
+import { Modal } from '../overlays/Modal';
+import type { InfoHintContent } from '../overlays/InfoHint';
 import { FormField } from './FormField';
 import { TextField } from './TextField';
 import type { SelectOption } from './SelectField';
@@ -22,6 +23,7 @@ export type MultiSelectFieldProps<T extends string | number = string> = {
   required?: boolean;
   hint?: string;
   error?: string;
+  tooltip?: InfoHintContent;
   placeholder?: string;
   title?: string;
   emptyMessage?: string;
@@ -43,6 +45,7 @@ export const MultiSelectField = <T extends string | number,>({
   required = false,
   hint,
   error,
+  tooltip,
   placeholder = 'Select options',
   title,
   emptyMessage = 'No options available',
@@ -88,6 +91,7 @@ export const MultiSelectField = <T extends string | number,>({
       required={required}
       hint={hint}
       error={error}
+      tooltip={tooltip}
       style={containerStyle}
     >
       <Pressable
@@ -123,7 +127,7 @@ export const MultiSelectField = <T extends string | number,>({
         <MaterialIcons name='expand-more' size={22} color={colors.textMuted} />
       </Pressable>
 
-      <BottomSheet
+      <Modal
         visible={visible}
         onClose={close}
         title={title ?? label ?? placeholder}
@@ -192,7 +196,7 @@ export const MultiSelectField = <T extends string | number,>({
             })}
           </View>
         )}
-      </BottomSheet>
+      </Modal>
     </FormField>
   );
 };

@@ -10,10 +10,11 @@ Reglas locales de la lógica pura. El procedimiento está en la skill
   `src/utils` y `FinanceValue`.
 - Las reglas compartidas de efecto, gasto y balance viven en
   `src/domain/summaries/`; no las dupliques en pantallas.
-- Cada área tiene su carpeta: `budgets`, `credits`, `savings`, `vehicle`,
-  `records`, `filters`, `shared`, `summaries`.
-- Los builders de gráficos devuelven datos, no componentes ni colores
-  hardcodeados; la UI decide tokens y leyenda.
+- Cada área tiene su carpeta: `budgets`, `closing`, `credits`, `savings`,
+  `vehicle`, `records`, `filters`, `shared`, `summaries`.
+- Los builders de gráficos devuelven `ChartSpec` de `src/domain/charts` con
+  centavos, timestamps y tonos semánticos; no devuelven componentes, colores ni
+  formato de moneda/fechas. La UI decide tokens y leyenda.
 - Los repartos compartidos deben reconciliar la suma; usa
   `src/domain/shared/split.ts`.
 - Los tests viven en `<área>/__tests__/` y cubren bordes: cero, negativos,

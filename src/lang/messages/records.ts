@@ -17,8 +17,54 @@ export const recordsEn = {
         "financingPayments": "Pending credit and loan payments",
         "all": "All",
         "records": "Records",
+        "pinGroup": "Pin group",
+        "unpinGroup": "Unpin group",
+        "periodSuggestion": "This date belongs to {group} ({period}). You can switch groups in the selector.",
         "error": {
             "emptyFields": "Please enter all fields and select the necessary options."
+        }
+    },
+    "recordSources": {
+        "title": "Source",
+        "open": "Open",
+        "kinds": {
+            "fixed": "Fixed transaction",
+            "saving": "Savings",
+            "financing": "Financing",
+            "fuel": "Fuel",
+            "maintenance": "Maintenance",
+            "shopping": "Shopping list",
+            "credit": "Credit payment"
+        },
+        "amount": "Amount",
+        "movement": "Movement",
+        "previousBalance": "Previous balance",
+        "newBalance": "New balance",
+        "note": "Note",
+        "principal": "Principal",
+        "interest": "Interest",
+        "insurance": "Insurance",
+        "fees": "Fees",
+        "odometer": "Odometer",
+        "volume": "Volume",
+        "fullTank": "Full tank",
+        "yes": "Yes",
+        "no": "No",
+        "serviceType": "Service",
+        "cost": "Cost",
+        "items": "Items",
+        "checked": "Checked",
+        "status": "Status",
+        "total": "Total",
+        "paymentMethod": "Payment method",
+        "moreItems": "+{count} more",
+        "movementKinds": {
+            "initial": "Initial balance",
+            "deposit": "Deposit",
+            "withdrawal": "Withdrawal",
+            "interest": "Interest",
+            "adjustment": "Adjustment",
+            "payment": "Paid with saving"
         }
     },
     "item": {
@@ -43,7 +89,9 @@ export const recordsEn = {
         "selectCategory": "Select a category",
         "selectPayment": "Select a payment method",
         "selectToPay": "Select the payment method to pay",
-        "dayHint": "Day of month (1-31)"
+        "dayHint": "Day of month (1-31)",
+        "fixedPendingDateHint":
+            "The proposed date is calculated from the fixed day and the configured mode. Adjust it if this payment belongs to another period."
     },
     "totals": {
         "incomeCredit": "Total Income (Credit)",
@@ -79,8 +127,54 @@ export const recordsEs: MessageShape<typeof recordsEn> = {
         "financingPayments": "Pagos de créditos y préstamos pendientes",
         "all": "Todos",
         "records": "Registros",
+        "pinGroup": "Fijar grupo",
+        "unpinGroup": "Quitar grupo fijado",
+        "periodSuggestion": "Esta fecha pertenece al grupo {group} ({period}). Puedes cambiar de grupo en el selector.",
         "error": {
             "emptyFields": "Por favor, ingresa todos los campos y selecciona las opciones necesarias."
+        }
+    },
+    "recordSources": {
+        "title": "Origen",
+        "open": "Abrir",
+        "kinds": {
+            "fixed": "Transacción fija",
+            "saving": "Ahorros",
+            "financing": "Financiamiento",
+            "fuel": "Combustible",
+            "maintenance": "Mantenimiento",
+            "shopping": "Lista de compras",
+            "credit": "Pago de crédito"
+        },
+        "amount": "Monto",
+        "movement": "Movimiento",
+        "previousBalance": "Saldo anterior",
+        "newBalance": "Saldo nuevo",
+        "note": "Nota",
+        "principal": "Capital",
+        "interest": "Interés",
+        "insurance": "Seguro",
+        "fees": "Comisiones",
+        "odometer": "Odómetro",
+        "volume": "Volumen",
+        "fullTank": "Tanque lleno",
+        "yes": "Sí",
+        "no": "No",
+        "serviceType": "Servicio",
+        "cost": "Costo",
+        "items": "Artículos",
+        "checked": "Marcados",
+        "status": "Estado",
+        "total": "Total",
+        "paymentMethod": "Método de pago",
+        "moreItems": "+{count} más",
+        "movementKinds": {
+            "initial": "Saldo inicial",
+            "deposit": "Aporte",
+            "withdrawal": "Retiro",
+            "interest": "Interés",
+            "adjustment": "Ajuste",
+            "payment": "Pagado con ahorro"
         }
     },
     "item": {
@@ -105,7 +199,9 @@ export const recordsEs: MessageShape<typeof recordsEn> = {
         "selectCategory": "Seleccione una categoria",
         "selectPayment": "Seleccione un método de pago",
         "selectToPay": "Seleccione el método de pago a pagar",
-        "dayHint": "Día del mes (1-31)"
+        "dayHint": "Día del mes (1-31)",
+        "fixedPendingDateHint":
+            "La fecha propuesta se calcula con el día del fijo y el modo configurado. Ajústala si este pago corresponde a otro periodo."
     },
     "totals": {
         "incomeCredit": "Total de Ingresos (Crédito)",

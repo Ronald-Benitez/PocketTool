@@ -42,3 +42,5 @@ export const formatMoneyWithSymbol = (cents: number | null | undefined): string 
 
 export const sumCents = (values: (number | null | undefined)[]): number =>
   values.reduce<number>((total, value) => total + (Number(value) || 0), 0);
+
+export * from './groupPeriod';

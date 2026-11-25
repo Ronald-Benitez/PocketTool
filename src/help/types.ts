@@ -7,10 +7,13 @@ export type HelpCategory = 'start' | 'records' | 'planning' | 'money' | 'tools';
 
 export type HelpTopicId =
   | 'gettingStarted'
+  | 'dashboard'
+  | 'whatsNew'
   | 'groups'
   | 'records'
   | 'fixeds'
   | 'summaries'
+  | 'charts'
   | 'budgets'
   | 'budgetTemplates'
   | 'vehicle'
@@ -20,10 +23,15 @@ export type HelpTopicId =
   | 'credits'
   | 'financings'
   | 'people'
+  | 'sharedPurchases'
+  | 'settlements'
   | 'amountModes'
   | 'savings'
+  | 'shopping'
+  | 'closing'
   | 'filters'
-  | 'theme';
+  | 'theme'
+  | 'experience';
 
 export type HelpTopicSection = {
   titleKey: TranslationKey;

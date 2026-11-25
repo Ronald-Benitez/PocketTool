@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { ORM, useORM } from '@/src/orm';
 import { withExclusiveTransaction } from '@/src/db/transaction';
+import { groupPeriodContains } from '@/src/domain/groups/period';
 import type {
   Category,
   Group,
@@ -837,11 +838,8 @@ export const useVehicleExpenseLinksRepository = () => {
   const groupsOrm = useORM('Groups');
 
   const listGroupsForDate = async (date: number): Promise<Group[]> => {
-    const value = new Date(date);
-    return (await groupsOrm
-      .where('year', value.getFullYear())
-      .where('month', value.getMonth() + 1)
-      .getAll()) as Group[];
+    const groups = (await groupsOrm.getAll()) as Group[];
+    return groups.filter((group) => groupPeriodContains(group, date));
   };
 
   const searchRecords = async ({

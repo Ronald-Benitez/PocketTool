@@ -27,8 +27,46 @@ detalle, usa `**Secciones:**` y busca el encabezado con
   (Fase 11), implementado, validado y archivado. Incluye migraciones, dominio,
   movimientos tipados, metas, intereses, integración con `Records` y detalle de
   movimientos de solo lectura.
+- [`shared-purchases-plan.md`](shared-purchases-plan.md): plan de compras
+  compartidas, estado de cuenta por persona, liquidaciones y doble balance
+  (Fase 12), implementado, validado y archivado.
+- [`pending-adjustments-plan.md`](pending-adjustments-plan.md): plan de
+  compartidos por monto y ajustes de Registros/Vehículo (Fase 13), implementado,
+  validado y archivado.
+- [`whats-new-plan.md`](whats-new-plan.md): plan de “Qué hay de nuevo”
+  acumulado (Fase 14), implementado, validado y archivado.
+- [`fase-15-pending-dates-plan.md`](fase-15-pending-dates-plan.md): plan de
+  fechas de pagos pendientes de tarjeta y fijos (Fase 15), implementado,
+  validado y archivado.
+- [`fase-16-group-closing-plan.md`](fase-16-group-closing-plan.md): plan del
+  cierre informativo de periodo configurable (Fase 16), implementado, validado
+  y archivado.
+- [`fase-17-group-periods-plan.md`](fase-17-group-periods-plan.md): plan de
+  grupos automáticos y periodos unificados (Fase 17), implementado, validado y
+  archivado.
+- [`fase-18-chart-engine-plan.md`](fase-18-chart-engine-plan.md): plan del motor
+  de gráficos nativo (Fase 18), implementado, validado y archivado.
+- [`fase-19-experience-plan.md`](fase-19-experience-plan.md): plan de niveles de
+  experiencia, flags, captura rápida y dependencias (Fase 19), implementado,
+  validado y archivado.
+- [`fase-20-budget-plan.md`](fase-20-budget-plan.md): plan de Presupuestos con
+  saldo esperado, obligaciones, ahorros, vehículo y orden manual (Fase 20),
+  implementado, validado y archivado.
+- [`fase-21-visual-dashboard-plan.md`](fase-21-visual-dashboard-plan.md): plan de
+  identidad visual, glass simulado, agrupadores, tooltips y dashboard
+  configurable de Inicio (Fase 21), implementado, validado y archivado.
+- [`fase-22-visual-coherence-plan.md`](fase-22-visual-coherence-plan.md): plan de
+  coherencia visual restante en catálogos, tablas, Presupuesto, Créditos,
+  Ahorros, Vehículo, Personas, Cierre, tooltips y validación (Fase 22),
+  implementado, validado y archivado.
+- [`fase-23-shopping-list-plan.md`](fase-23-shopping-list-plan.md): plan de
+  listas de compras globales, cierre inmutable, registro crear/vincular/omitir,
+  selector modal y origen de registros (Fase 23), implementado, validado y
+  archivado.
 - [`db-summary.md`](db-summary.md): resumen anterior de la base de datos,
   reemplazado por [`../database.md`](../database.md).
+- [`migration-history.md`](migration-history.md): tabla histórica de las
+  migraciones `0001`–`0027`; la fuente vigente es `src/db/migrations/`.
 
 Estos documentos son referencia histórica. La documentación vigente vive en
 `docs/` (fuera de `legacy/`).

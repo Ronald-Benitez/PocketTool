@@ -13,6 +13,7 @@ import {
 import { useTheme } from '../theme/ThemeProvider';
 import { controlHeight, radii, spacing } from '../theme/tokens';
 import { useModalScrollToInput } from '../overlays/ModalBodyContext';
+import type { InfoHintContent } from '../overlays/InfoHint';
 import { FormField } from './FormField';
 
 export type TextFieldSize = 'sm' | 'md' | 'lg';
@@ -22,6 +23,7 @@ export type TextFieldProps = TextInputProps & {
   required?: boolean;
   hint?: string;
   error?: string;
+  tooltip?: InfoHintContent;
   size?: TextFieldSize;
   disabled?: boolean;
   leftIcon?: React.ReactNode;
@@ -37,6 +39,7 @@ export const TextField = forwardRef<React.ComponentRef<typeof TextInput>, TextFi
       required = false,
       hint,
       error,
+      tooltip,
       size = 'md',
       disabled = false,
       leftIcon,
@@ -78,6 +81,7 @@ export const TextField = forwardRef<React.ComponentRef<typeof TextInput>, TextFi
         required={required}
         hint={hint}
         error={error}
+        tooltip={tooltip}
         style={containerStyle}
       >
         <View

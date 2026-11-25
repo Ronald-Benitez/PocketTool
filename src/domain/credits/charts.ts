@@ -1,89 +1,90 @@
+import type { ChartSeries, ChartSpec } from '@/src/domain/charts/types';
 import type {
   FinancingPaymentInput,
   FinancingSummary,
 } from './summary';
 
-const clean = (value: string, fallback: string) => {
-  const normalized = value
-    .replace(/["[\]{}();\r\n]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-  return normalized ? normalized.slice(0, 24) : fallback;
-};
-
 const buildLineChart = ({
   title,
   points,
   values,
-  yAxis,
-  series,
+  seriesLabels,
+  tones,
 }: {
   title: string;
   points: { date: number }[];
   values: number[][];
-  yAxis: string;
-  series: string[];
-}) => {
+  seriesLabels: string[];
+  tones: ChartSeries['tone'][];
+}): ChartSpec | null => {
   if (points.length < 2 || values.some((row) => row.length !== points.length)) {
     return null;
   }
-  const flat = values.flat();
-  const max = Math.max(...flat, 1);
-  const axisMax = Math.ceil(max * 1.15);
 
-  return [
-    'xychart-beta',
-    `  title "${clean(title, title)}"`,
-    `  x-axis [${points
-      .map((point) => `"${new Date(point.date).toLocaleDateString()}"`)
-      .join(', ')}]`,
-    `  y-axis "${clean(yAxis, yAxis)}" 0 --> ${axisMax}`,
-    ...series.map(
-      (_, index) =>
-        `  line [${values[index]
-          .map((value) => Number(value.toFixed(2)))
-          .join(', ')}]`
-    ),
-  ].join('\n');
+  return {
+    kind: 'line',
+    title,
+    xAxis: { type: 'time', format: 'date' },
+    yAxis: { format: 'money' },
+    series: values.map((row, index) => ({
+      key: `series-${index}`,
+      label: seriesLabels[index] ?? title,
+      tone: tones[index] ?? 'primary',
+      points: row.map((value, pointIndex) => ({
+        x: points[pointIndex].date,
+        y: Math.round(value),
+      })),
+    })),
+  };
 };
 
 export const buildBalanceChart = (
   summary: FinancingSummary,
   title: string
-) => {
+): ChartSpec | null => {
   const rows = summary.schedule.rows;
   return buildLineChart({
     title,
     points: rows.map((row) => ({ date: row.date })),
-    values: [rows.map((row) => row.balanceCents / 100)],
-    yAxis: '$',
-    series: [title],
+    values: [rows.map((row) => row.balanceCents)],
+    seriesLabels: [title],
+    tones: ['distance'],
   });
 };
 
 export const buildPaymentCompositionChart = (
   payments: FinancingPaymentInput[],
   summary: FinancingSummary,
-  title: string
-) => {
+  title: string,
+  labels: {
+    principal: string;
+    interest: string;
+    insurance: string;
+  } = {
+    principal: 'principal',
+    interest: 'interest',
+    insurance: 'insurance',
+  }
+): ChartSpec | null => {
   const actual = payments
     .filter((payment) => payment.date != null)
     .sort((a, b) => (a.date ?? 0) - (b.date ?? 0));
+  const seriesLabels = [labels.principal, labels.interest, labels.insurance];
 
   if (actual.length >= 2) {
     return buildLineChart({
       title,
       points: actual.map((payment) => ({ date: payment.date ?? 0 })),
       values: [
-        actual.map((payment) => (payment.principal_cents ?? 0) / 100),
-        actual.map((payment) => (payment.interest_cents ?? 0) / 100),
+        actual.map((payment) => payment.principal_cents ?? 0),
+        actual.map((payment) => payment.interest_cents ?? 0),
         actual.map(
           (payment) =>
-            ((payment.insurance_cents ?? 0) + (payment.fees_cents ?? 0)) / 100
+            (payment.insurance_cents ?? 0) + (payment.fees_cents ?? 0)
         ),
       ],
-      yAxis: '$',
-      series: ['principal', 'interest', 'insurance'],
+      seriesLabels,
+      tones: ['planned', 'actual', 'projected'],
     });
   }
 
@@ -92,11 +93,11 @@ export const buildPaymentCompositionChart = (
     title,
     points: rows.map((row) => ({ date: row.date })),
     values: [
-      rows.map((row) => row.principalCents / 100),
-      rows.map((row) => row.interestCents / 100),
+      rows.map((row) => row.principalCents),
+      rows.map((row) => row.interestCents),
       rows.map(() => 0),
     ],
-    yAxis: '$',
-    series: ['principal', 'interest', 'insurance'],
+    seriesLabels,
+    tones: ['planned', 'actual', 'projected'],
   });
 };

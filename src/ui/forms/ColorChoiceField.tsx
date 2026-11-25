@@ -5,6 +5,7 @@ import { resolveVehicleColor } from '@/src/domain/vehicle/colors';
 import { useTheme } from '../theme/ThemeProvider';
 import { AppText } from '../primitives/AppText';
 import { Row } from '../primitives/Stack';
+import type { InfoHintContent } from '../overlays/InfoHint';
 import ColorPicker from './ColorPicker';
 import { TextField } from './TextField';
 
@@ -26,6 +27,7 @@ const PALETTE = [
 type ColorChoiceFieldProps = {
   label: string;
   hint?: string;
+  tooltip?: InfoHintContent;
   placeholder?: string;
   value: string;
   onChange: (value: string) => void;
@@ -35,6 +37,7 @@ type ColorChoiceFieldProps = {
 export const ColorChoiceField = ({
   label,
   hint,
+  tooltip,
   placeholder,
   value,
   onChange,
@@ -51,6 +54,7 @@ export const ColorChoiceField = ({
         onChangeText={onChange}
         placeholder={placeholder}
         hint={hint}
+        tooltip={tooltip}
         autoCapitalize='none'
       />
       <Row gap='xs' wrap>

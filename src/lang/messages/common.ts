@@ -3,7 +3,13 @@ import type { MessageShape } from './types';
 export const commonEn = {
     "confirm": "Accept",
     "cancel": "Cancel",
+    "save": "Save",
     "close": "Close",
+    "moreInfo": "More information",
+    "required": "Required field",
+    "formErrorTitle": "Complete the highlighted fields",
+    "expandActions": "More actions",
+    "collapseActions": "Close actions",
     "confirmDelete": "Are you sure you want to delete this?",
     "delete": "Delete",
     "dbErrors": {
@@ -31,7 +37,8 @@ export const commonEn = {
         "recordType": "Add record type",
         "record": "Add record",
         "savings": "Add savings",
-        "budget": "Add budget"
+        "budget": "Add budget",
+        "fixed": "Add fixed transaction"
     },
     "year-error": "Invalid year",
     "toast": {
@@ -48,7 +55,13 @@ export const commonEn = {
 export const commonEs: MessageShape<typeof commonEn> = {
     "confirm": "Aceptar",
     "cancel": "Cancelar",
+    "save": "Guardar",
     "close": "Cerrar",
+    "moreInfo": "Más información",
+    "required": "Campo obligatorio",
+    "formErrorTitle": "Completa los campos marcados",
+    "expandActions": "Más acciones",
+    "collapseActions": "Cerrar acciones",
     "confirmDelete": "¿Estás seguro de que quieres eliminar esto?",
     "delete": "Eliminar",
     "dbErrors": {
@@ -76,7 +89,8 @@ export const commonEs: MessageShape<typeof commonEn> = {
         "recordType": "Agregar tipo de registro",
         "record": "Agregar registro",
         "savings": "Agregar ahorro",
-        "budget": "Agregar presupuesto"
+        "budget": "Agregar presupuesto",
+        "fixed": "Agregar transacción fija"
     },
     "year-error": "Año no válido",
     "toast": {

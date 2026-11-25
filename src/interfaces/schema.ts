@@ -18,11 +18,14 @@ import type {
   FinancingPayment,
   FixedRecord,
   Group,
+  GroupClosing,
+  GroupClosingLine,
   Migration,
   PaidCredit,
   PaymentMethod,
   PaymentType,
   Person,
+  PersonSettlement,
   RecordEntry,
   RecordType,
   Saving,
@@ -30,6 +33,8 @@ import type {
   SavingsSetting,
   SharedExpenseParticipant,
   SharedPaymentAllocation,
+  ShoppingList,
+  ShoppingListItem,
   SoftDeletable,
   TimestampMs,
   Vehicle,
@@ -48,17 +53,21 @@ export type {
   BudgetTemplateItem,
   Category,
   Cents,
+  ChartPreference,
   Entity,
   Financing,
   FinancingAdjustment,
   FinancingPayment,
   FixedRecord,
   Group,
+  GroupClosing,
+  GroupClosingLine,
   Migration,
   PaidCredit,
   PaymentMethod,
   PaymentType,
   Person,
+  PersonSettlement,
   RecordEntry,
   RecordType,
   Saving,
@@ -66,6 +75,8 @@ export type {
   SavingsSetting,
   SharedExpenseParticipant,
   SharedPaymentAllocation,
+  ShoppingList,
+  ShoppingListItem,
   SoftDeletable,
   TimestampMs,
   Vehicle,
@@ -135,6 +146,7 @@ export interface RecordWithRelations extends RecordEntry {
   Fixed?: FixedRecordWithRelations | null;
   PaidCredits?: PaidCreditWithRelations | null;
   Savings?: Saving | null;
+  People?: Person | null;
 }
 
 export interface BudgetTemplateItemWithRelations extends BudgetTemplateItem {
@@ -198,6 +210,11 @@ export interface VehicleExpenseLinkWithRelations extends VehicleExpenseLink {
  * Flattened shapes used by table/list screens. Repositories populate these
  * convenience fields from the nested relations returned by the ORM.
  */
+export interface GroupClosingView extends GroupClosing {
+  group_name?: string | null;
+  lines: GroupClosingLine[];
+}
+
 export interface RecordView extends RecordWithRelations {
   record_id?: number;
   group_name?: string | null;
@@ -212,6 +229,7 @@ export interface RecordView extends RecordWithRelations {
   paid_method_id?: number | null;
   paid_method_amount?: Cents | null;
   saving_name?: string | null;
+  paid_by_name?: string | null;
 }
 
 export interface FixedView extends FixedRecordWithRelations {

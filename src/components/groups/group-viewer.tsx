@@ -1,15 +1,14 @@
-import { View, Text, ViewStyle, TextStyle } from "react-native"
-import React, { SetStateAction, useEffect, useState, useTransition } from "react"
+import { View } from 'react-native'
+import React, { SetStateAction, useEffect, useState } from 'react'
 
-import { Group, RecordView } from "@/src/interfaces/schema"
-import { formatMoney } from "@/src/utils"
-import { useThemedStyles } from '@/src/styles/useThemedStyles'
+import { Group, RecordView } from '@/src/interfaces/schema'
 import { useTheme } from '@/src/ui/theme/ThemeProvider'
 import { SwipeAction } from '@/src/ui/actions/SwipeAction'
-import AddGroup from "./add-group"
-import { useRecords, useGroups } from "@/src/db"
-import { useLanguage } from "@/src/lang/LanguageContext"
-import { useToast } from "@/src/ui/feedback/ToastProvider"
+import { FinanceValue } from '@/src/ui/data-display/FinanceValue'
+import AddGroup from './add-group'
+import { useRecords, useGroups } from '@/src/db'
+import { useLanguage } from '@/src/lang/LanguageContext'
+import { useToast } from '@/src/ui/feedback/ToastProvider'
 
 interface GroupViewerProps {
     group: Group | null
@@ -18,19 +17,14 @@ interface GroupViewerProps {
 }
 
 const GroupViewer = ({ group, setGroup, recordsI }: GroupViewerProps) => {
-    const styles = useThemedStyles()
     const { colors } = useTheme()
     const { t } = useLanguage()
-    const [openUpdate, setOpenUpdate] = React.useState<boolean>(false)
+    const [openUpdate, setOpenUpdate] = useState(false)
     const [totalIncomes, setTotalIncomes] = useState(0)
     const [totalExpenses, setTotalExpenses] = useState(0)
     const groups = useGroups()
     const records = useRecords()
     const { showToast } = useToast()
-
-    const ec = colors.expense
-    const ic = colors.income
-    const gc = colors.goal
 
     useEffect(() => {
         const load = async () => {
@@ -42,41 +36,10 @@ const GroupViewer = ({ group, setGroup, recordsI }: GroupViewerProps) => {
         load()
     }, [recordsI, group])
 
-    if (!group) return
+    if (!group) return null
 
-    const color = (type: "i" | "e" | "g"): TextStyle => {
-        switch (type) {
-            case "i":
-                return {
-                    borderColor: ic,
-                    borderWidth: 2,
-                    borderTopWidth: 0,
-                    borderBottomWidth: 0,
-                }
-            case "e":
-                return {
-                    borderColor: ec,
-                    borderWidth: 2,
-                    borderTopWidth: 0,
-                    borderBottomWidth: 0,
-                }
-            case "g": {
-                return {
-                    borderBottomColor: gc,
-                    borderBottomWidth: 2,
-                }
-            }
-        }
-    }
-
-    const balanceColor = (): TextStyle => {
-        const balance = totalIncomes - totalExpenses
-
-        if (balance < 0) return color("e")
-        if (balance > 0) return color("i")
-        return color("g")
-
-    }
+    const balance = totalIncomes - totalExpenses
+    const balanceColor = balance < 0 ? colors.expense : balance > 0 ? colors.income : colors.goal
 
     const onDelete = async () => {
         if (!group.id) return
@@ -90,63 +53,69 @@ const GroupViewer = ({ group, setGroup, recordsI }: GroupViewerProps) => {
         setOpenUpdate(true)
     }
 
-    const Block = ({ type }: { type: "i" | "e" | "g" | "b" }) => {
-
-        const baseColors = type === "b" ? balanceColor() : color(type);
-        const names = {
-            "i": "incomes",
-            "e": "expenses",
-            "g": "goal",
-            "b": "balance"
-        }
-        //@ts-ignore
+    const Block = ({ type }: { type: 'i' | 'e' | 'g' | 'b' }) => {
         let value = 0
-        if (type === "i") value = totalIncomes
-        if (type === "e") value = totalExpenses
-        if (type === "b") value = totalIncomes - totalExpenses
-        if (type === "g") value = group.goal
+        if (type === 'i') value = totalIncomes
+        if (type === 'e') value = totalExpenses
+        if (type === 'b') value = balance
+        if (type === 'g') value = group.goal
+        const color = type === 'i' ? colors.income : type === 'e' ? colors.expense : balanceColor
 
         return (
-            <>
+            <View
+                style={{
+                    flex: 1,
+                    flexDirection: 'row',
+                    justifyContent: 'space-around',
+                    gap: 5,
+                    padding: 2,
+                    width: '100%',
+                }}
+            >
                 <View
-                    style={[{ flex: 1, flexDirection: "row", justifyContent: "space-around", gap: 5, padding: 2, width: "100%" }]}
+                    style={{
+                        borderColor: color,
+                        borderWidth: 2,
+                        borderTopWidth: 0,
+                        borderBottomWidth: 0,
+                        borderRadius: 8,
+                        minWidth: 200,
+                        padding: 5,
+                        alignItems: 'center',
+                    }}
                 >
-                    {/* <Text style={[styles.textCenter, { paddingLeft: 5, fontWeight: 600, fontSize: 16 }]}>
-                    {t(`group.${names[type]}`).substring(0,3)}
-                    </Text> */}
-                    <Text style={[styles.textCenter, styles.text, baseColors, { borderRadius: 8, minWidth: 200, padding: 5 }]}>
-                        $ {formatMoney(Math.abs(value))}
-                    </Text>
+                    <FinanceValue cents={Math.abs(value)} size='lg' />
                 </View>
-            </>
+            </View>
         )
     }
 
     return (
         <>
-            <View style={[{ marginHorizontal: 30 }]}>
-                <SwipeAction
-                    handleDelete={onDelete}
-                    handleUpdate={onUpdate}
-                >
-                    <View style={[{ width: "100%", gap: 10 }]}>
-                        <View style={[styles.row, { paddingHorizontal: 10, paddingBottom: 5, justifyContent: "center", gap: 10 }]}>
-                            <Block type="b" />
-                            {/* <Block type="g" /> */}
+            <View style={{ marginHorizontal: 30 }}>
+                <SwipeAction handleDelete={onDelete} handleUpdate={onUpdate}>
+                    <View style={{ width: '100%', gap: 10 }}>
+                        <View
+                            style={{
+                                flexDirection: 'row',
+                                paddingHorizontal: 10,
+                                paddingBottom: 5,
+                                justifyContent: 'center',
+                                gap: 10,
+                            }}
+                        >
+                            <Block type='b' />
                         </View>
-                        {/* <View style={[styles.row, { paddingHorizontal: 10, paddingTop: 5, justifyContent: "center", gap: 10 }]}>
-                            <Block type="i" />
-                            <Block type="e" />
-                        </View> */}
                     </View>
                 </SwipeAction>
             </View>
             <AddGroup
                 openUpdate={openUpdate}
+                mode='edit'
+                onClose={() => setOpenUpdate(false)}
             />
         </>
     )
-
 }
 
 export default GroupViewer

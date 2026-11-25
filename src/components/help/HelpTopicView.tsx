@@ -2,6 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
+import { isHelpTopicEnabled, useFeatures } from '@/src/features';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { getHelpTopic } from '@/src/help/registry';
 import type { HelpTopic } from '@/src/help/types';
@@ -28,6 +29,7 @@ export const HelpTopicView = ({
 }: HelpTopicViewProps) => {
   const { t } = useLanguage();
   const { colors } = useTheme();
+  const enabled = useFeatures((state) => state.enabled);
 
   const bodyText = [
     t(topic.sections.what.bodyKey),
@@ -40,7 +42,8 @@ export const HelpTopicView = ({
   const minutes = Math.max(1, Math.ceil(bodyText.split(/\s+/).length / 180));
   const relatedTopics = topic.related
     .map((id) => getHelpTopic(id))
-    .filter((item): item is HelpTopic => Boolean(item));
+    .filter((item): item is HelpTopic => Boolean(item))
+    .filter((item) => isHelpTopicEnabled(item.id, enabled));
 
   return (
     <Stack gap='lg'>

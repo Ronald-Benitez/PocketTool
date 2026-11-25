@@ -489,7 +489,10 @@ export const MaintenanceForm = ({
           />
           <SwitchField
             label={t('vehicle.maintenance.createReminder')}
-            description={t('vehicle.maintenance.createReminderHint')}
+            tooltip={{
+              title: t('vehicle.maintenance.createReminder'),
+              body: t('vehicle.maintenance.createReminderHint'),
+            }}
             value={createReminder}
             onChange={setCreateReminder}
           />

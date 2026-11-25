@@ -11,3 +11,14 @@ export {
   type LinkButtonTone,
 } from './LinkButton';
 export { SwipeAction, type SwipeActionProps } from './SwipeAction';
+export {
+  QuickAction,
+  type QuickActionLayout,
+  type QuickActionProps,
+  type QuickActionTone,
+} from './QuickAction';
+export {
+  FloatingActions,
+  type FloatingAction,
+  type FloatingActionsProps,
+} from './FloatingActions';

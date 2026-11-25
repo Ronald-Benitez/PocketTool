@@ -42,11 +42,9 @@ description: Cambia el esquema SQLite, migraciones, artefactos generados, ORM, r
 
 ## Reglas
 
-- Dinero: integer cents. Fechas: milisegundos Unix. Borrado: `deleted_at`.
-- `created_at`/`updated_at` se llenan con triggers.
-- Backups: dump SQL con metadatos versionados; import con validación, backup
-  previo y transacción.
-- No edites `src/db/schema/generated/` ni `docs/schema.md` a mano.
+Las invariantes (centavos, milisegundos, soft delete, triggers, backups y
+artefactos generados) viven en `src/db/AGENTS.md` y en `AGENTS.md`. No las
+dupliques aquí.
 
 ## Referencias
 

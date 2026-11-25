@@ -225,6 +225,40 @@ export const analyzeFuelEntries = (entries: FuelEntryLike[]): FuelEntryAnalysis[
 const isFullTank = (entry: FuelEntryLike) =>
   Boolean(entry.is_baseline ?? 0) || Boolean(entry.is_full_tank ?? 1);
 
+/**
+ * Total distance covered by a segment. Completed segments use the reconciled
+ * metrics; in-progress and no-baseline segments sum each entry's distance.
+ */
+export const segmentDistanceKm = (segment: FuelSegment): number => {
+  if (segment.metrics?.distanceKm != null) return segment.metrics.distanceKm;
+  return segment.entries.reduce(
+    (total, item) => total + (item.distanceKm ?? 0),
+    0
+  );
+};
+
+export type OdometerMode = 'odometer' | 'distance';
+
+export const resolveOdometerMode = ({
+  isBaseline,
+  isEditing,
+  hasManualOdometer,
+  storedMode,
+  fallback = 'distance',
+}: {
+  isBaseline: boolean;
+  isEditing: boolean;
+  hasManualOdometer: boolean;
+  storedMode?: string | null;
+  fallback?: OdometerMode;
+}): OdometerMode => {
+  if (isBaseline || hasManualOdometer) return 'odometer';
+  if (isEditing) return 'distance';
+  return storedMode === 'odometer' || storedMode === 'distance'
+    ? storedMode
+    : fallback;
+};
+
 export const groupFuelSegments = (entries: FuelEntryLike[]): FuelSegment[] => {
   const analyses = analyzeFuelEntries(entries);
   const segments: FuelSegment[] = [];

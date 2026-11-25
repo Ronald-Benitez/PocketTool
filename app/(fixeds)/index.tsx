@@ -1,15 +1,13 @@
-import { View } from 'react-native'
-import Table from '@/src/components/fixed/FixedsTable'
+import React from 'react'
 
-import { useThemedStyles } from '@/src/styles/useThemedStyles'
+import Table from '@/src/components/fixed/FixedsTable'
+import { Screen } from '@/src/ui/primitives/Screen'
 
 const Index = () => {
-    const styles = useThemedStyles()
-
     return (
-        <View style={styles.container}>
+        <Screen edges={['left', 'right']} padded={false}>
             <Table />
-        </View >
+        </Screen>
     )
 }
 

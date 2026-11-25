@@ -12,17 +12,137 @@ const updateMeta = {
   deleted_at: timestamp.nullable().optional(),
 };
 
-export const groupInputSchema = z
+const groupBaseSchema = z
   .object({
     group_name: z.string().min(1),
     goal: cents,
     year: z.number().int().min(1970).max(9999),
-    month: z.number().int(),
+    /** Zero-based month. */
+    month: z.number().int().min(0).max(11),
+    period_start: timestamp.nullable().optional(),
+    period_end: timestamp.nullable().optional(),
+    period_mode: z
+      .enum(['calendar_month', 'start_day', 'cutoff_day', 'custom_range'])
+      .default('calendar_month'),
     ...auditTimestamps,
   })
   .strict();
 
-export const groupUpdateSchema = groupInputSchema.partial().extend(updateMeta);
+const hasCompleteGroupPeriod = (value: {
+  period_start?: number | null;
+  period_end?: number | null;
+}) => {
+  const hasStart = value.period_start != null;
+  const hasEnd = value.period_end != null;
+  if (hasStart !== hasEnd) return false;
+  if (hasStart && hasEnd) return value.period_end! >= value.period_start!;
+  return true;
+};
+
+const hasValidGroupPeriodWhenPresent = (value: {
+  period_start?: number | null;
+  period_end?: number | null;
+}) => {
+  if (value.period_start == null || value.period_end == null) return true;
+  return value.period_end >= value.period_start;
+};
+
+export const groupInputSchema = groupBaseSchema.refine(hasCompleteGroupPeriod, {
+  message: 'GROUP_PERIOD_INVALID',
+  path: ['period_end'],
+});
+
+export const groupUpdateSchema = groupBaseSchema
+  .partial()
+  .extend(updateMeta)
+  .refine(hasValidGroupPeriodWhenPresent, {
+    message: 'GROUP_PERIOD_INVALID',
+    path: ['period_end'],
+  });
+
+export const chartPreferenceInputSchema = z
+  .object({
+    chart_key: z.string().min(1),
+    collapsed: z.boolean().optional().default(false),
+    mode: z.string().nullable().optional(),
+    hidden_series: z.array(z.string()).nullable().optional(),
+    data_limit: z.number().int().nonnegative().nullable().optional(),
+    limit_from_end: z.boolean().optional().default(true),
+    zoom: z.number().positive().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const closingStatus = z.enum(['draft', 'final']);
+export const closingSection = z.enum([
+  'available',
+  'reserve',
+  'obligation',
+  'resolution',
+]);
+export const closingKind = z.enum([
+  'cash',
+  'account',
+  'receivable',
+  'saving',
+  'card',
+  'fixed',
+  'financing',
+  'next_group',
+  'manual',
+  'adjustment',
+]);
+export const closingOperation = z.enum(['add', 'subtract']);
+export const closingDirection = z.enum(['from', 'to']);
+
+export const groupClosingInputSchema = z
+  .object({
+    group_id: z.number().int().positive(),
+    close_name: z.string().min(1).max(160),
+    close_date: timestamp,
+    period_start: timestamp,
+    period_end: timestamp,
+    editable_until: timestamp,
+    status: closingStatus.optional(),
+    notes: z.string().max(1000).nullable().optional(),
+    total_available_cents: cents.optional(),
+    total_reserve_cents: cents.optional(),
+    total_obligations_cents: cents.optional(),
+    result_cents: cents.optional(),
+    total_resolution_cents: cents.optional(),
+    remaining_cents: cents.optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const groupClosingUpdateSchema = groupClosingInputSchema
+  .partial()
+  .extend(updateMeta);
+
+export const groupClosingLineInputSchema = z
+  .object({
+    section: closingSection,
+    kind: closingKind,
+    label: z.string().min(1).max(160),
+    operation: closingOperation.optional(),
+    direction: closingDirection.nullable().optional(),
+    amount_cents: cents.nonnegative(),
+    reference_cents: cents.nonnegative().nullable().optional(),
+    reason: z.string().max(120).nullable().optional(),
+    payment_method_id: id,
+    saving_id: id,
+    fixed_id: id,
+    financing_id: id,
+    related_group_id: id,
+    notes: z.string().max(1000).nullable().optional(),
+    sort_order: z.number().int().min(0).optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const groupClosingLineUpdateSchema = groupClosingLineInputSchema
+  .partial()
+  .extend(updateMeta);
 
 export const recordInputSchema = z
   .object({
@@ -38,6 +158,8 @@ export const recordInputSchema = z
     fixed_id: id,
     paid_credit_id: id,
     saving_id: id,
+    paid_by_person_id: z.number().int().positive().nullable().optional(),
+    paid_scope: z.enum(['full', 'own']).optional(),
     ...auditTimestamps,
   })
   .strict();
@@ -64,6 +186,7 @@ const budgetSource = z.enum([
   'previous_month',
   'actuals',
   'group_average',
+  'savings',
 ]);
 const priority = z.number().int().min(1).max(3);
 
@@ -609,7 +732,9 @@ export const financingAdjustmentInputSchema = z
 export const financingAdjustmentUpdateSchema =
   financingAdjustmentInputSchema.partial().extend(updateMeta);
 
-const sharedOwnerType = z.enum(['fixed', 'financing', 'saving']);
+const sharedOwnerType = z.enum(['fixed', 'financing', 'saving', 'record']);
+const sharedShareMode = z.enum(['percent', 'amount']);
+const settlementDirection = z.enum(['i_paid_them', 'they_paid_me']);
 
 export const personInputSchema = z
   .object({
@@ -630,13 +755,27 @@ export const sharedParticipantInputSchema = z
     owner_id: z.number().int().positive(),
     person_id: z.number().int().positive(),
     share_percent: z.number().finite().min(0).max(100),
+    share_mode: sharedShareMode.optional(),
+    share_amount_cents: cents.nonnegative().nullable().optional(),
     notes: z.string().nullable().optional(),
     ...auditTimestamps,
   })
-  .strict();
+  .strict()
+  .superRefine((value, ctx) => {
+    if (
+      value.share_mode === 'amount' &&
+      (value.share_amount_cents == null || value.share_amount_cents <= 0)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['share_amount_cents'],
+        message: 'Required',
+      });
+    }
+  });
 
 export const sharedParticipantUpdateSchema =
-  sharedParticipantInputSchema.partial().extend(updateMeta);
+  sharedParticipantInputSchema.innerType().partial().extend(updateMeta);
 
 export const sharedAllocationInputSchema = z
   .object({
@@ -649,6 +788,77 @@ export const sharedAllocationInputSchema = z
     date: z.number().int().nonnegative(),
     amount_cents: z.number().int().nonnegative(),
     share_percent: z.number().finite().min(0).max(100),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const personSettlementInputSchema = z
+  .object({
+    person_id: z.number().int().positive(),
+    group_id: z.number().int().positive().nullable().optional(),
+    date: timestamp,
+    amount_cents: cents.positive(),
+    direction: settlementDirection,
+    notes: z.string().max(240).nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const personSettlementUpdateSchema = personSettlementInputSchema
+  .partial()
+  .extend(updateMeta);
+
+export const shoppingListStatus = z.enum(['open', 'closed']);
+
+export const shoppingListInputSchema = z
+  .object({
+    list_name: z.string().min(1).max(160),
+    status: shoppingListStatus.optional().default('open'),
+    closed_at: timestamp.nullable().optional(),
+    purchase_date: timestamp.nullable().optional(),
+    record_id: id,
+    record_total_cents: cents.nonnegative().nullable().optional(),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const shoppingListUpdateSchema = shoppingListInputSchema
+  .partial()
+  .extend(updateMeta);
+
+export const shoppingListItemInputSchema = z
+  .object({
+    shopping_list_id: z.number().int().positive(),
+    item_name: z.string().min(1).max(160),
+    price_cents: cents.nonnegative().nullable().optional(),
+    is_checked: z
+      .boolean()
+      .or(z.number().int().min(0).max(1))
+      .optional()
+      .default(false)
+      .transform((value) => (value ? 1 : 0)),
+    sort_order: z.number().int().min(0).optional().default(0),
+    ...auditTimestamps,
+  })
+  .strict();
+
+export const shoppingListItemUpdateSchema = shoppingListItemInputSchema
+  .partial()
+  .extend(updateMeta);
+
+export const shoppingPurchaseMode = z.enum(['create', 'link', 'none']);
+
+export const shoppingPurchaseInputSchema = z
+  .object({
+    mode: shoppingPurchaseMode,
+    amount_cents: cents.positive().optional(),
+    date: timestamp.optional(),
+    group_id: id,
+    record_type_id: id,
+    category_id: id,
+    payment_method_id: id,
+    record_id: id,
+    record_name: z.string().min(1).max(160).optional(),
     ...auditTimestamps,
   })
   .strict();

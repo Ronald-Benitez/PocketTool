@@ -1,7 +1,9 @@
 import {
+  applyEffectSign,
   calculateRecordBalance,
   getEffectMap,
   getSpendingTypeIds,
+  sumWithEffect,
 } from '../aggregate';
 
 describe('summary aggregation', () => {
@@ -24,6 +26,23 @@ describe('summary aggregation', () => {
     );
 
     expect(balance).toBe(750);
+  });
+
+  it('applies the record type effect to a group total', () => {
+    expect(applyEffectSign('+', 1000)).toBe(1000);
+    expect(applyEffectSign('-', 250)).toBe(-250);
+    expect(applyEffectSign('=', 100)).toBe(0);
+    expect(applyEffectSign(null, 100)).toBe(0);
+  });
+
+  it('subtracts expenses from income in a mixed group', () => {
+    expect(
+      sumWithEffect([
+        { effect: '+', amount: 1000 },
+        { effect: '-', amount: 250 },
+        { effect: '=', amount: 500 },
+      ])
+    ).toBe(750);
   });
 
   it('excludes payment and transfer types from spending ids', () => {

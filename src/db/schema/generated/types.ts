@@ -20,6 +20,9 @@ export interface Group extends Entity, SoftDeletable {
   goal: Cents;
   year: number;
   month: number;
+  period_start?: TimestampMs | null;
+  period_end?: TimestampMs | null;
+  period_mode: string;
   created_at?: TimestampMs | null;
   updated_at?: TimestampMs | null;
 }
@@ -74,6 +77,14 @@ export interface FixedRecord extends Entity, SoftDeletable {
   updated_at?: TimestampMs | null;
 }
 
+export interface Person extends Entity, SoftDeletable {
+  name: string;
+  notes?: string | null;
+  is_active: boolean | number;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
 export interface RecordEntry extends Entity, SoftDeletable {
   amount: Cents;
   own_amount_cents?: Cents | null;
@@ -87,6 +98,8 @@ export interface RecordEntry extends Entity, SoftDeletable {
   fixed_id?: number | null;
   paid_credit_id?: number | null;
   saving_id?: number | null;
+  paid_by_person_id?: number | null;
+  paid_scope: string;
   created_at?: TimestampMs | null;
   updated_at?: TimestampMs | null;
 }
@@ -162,10 +175,13 @@ export interface FinancingAdjustment extends Entity, SoftDeletable {
   updated_at?: TimestampMs | null;
 }
 
-export interface Person extends Entity, SoftDeletable {
-  name: string;
+export interface PersonSettlement extends Entity, SoftDeletable {
+  person_id: number;
+  group_id?: number | null;
+  date: TimestampMs;
+  amount_cents: Cents;
+  direction: string;
   notes?: string | null;
-  is_active: boolean | number;
   created_at?: TimestampMs | null;
   updated_at?: TimestampMs | null;
 }
@@ -175,6 +191,8 @@ export interface SharedExpenseParticipant extends Entity, SoftDeletable {
   owner_id: number;
   person_id: number;
   share_percent: number;
+  share_mode: string;
+  share_amount_cents?: Cents | null;
   notes?: string | null;
   created_at?: TimestampMs | null;
   updated_at?: TimestampMs | null;
@@ -290,6 +308,79 @@ export interface SavingsSetting extends Entity, SoftDeletable {
   payment_method_id?: number | null;
   category_id?: number | null;
   trophy_color?: string | null;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
+export interface GroupClosing extends Entity, SoftDeletable {
+  group_id: number;
+  close_name: string;
+  close_date: TimestampMs;
+  period_start: TimestampMs;
+  period_end: TimestampMs;
+  editable_until: TimestampMs;
+  status: string;
+  notes?: string | null;
+  total_available_cents: Cents;
+  total_reserve_cents: Cents;
+  total_obligations_cents: Cents;
+  result_cents: Cents;
+  total_resolution_cents: Cents;
+  remaining_cents: Cents;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
+export interface GroupClosingLine extends Entity, SoftDeletable {
+  closing_id: number;
+  section: string;
+  kind: string;
+  label: string;
+  operation: string;
+  direction?: string | null;
+  amount_cents: Cents;
+  reference_cents?: Cents | null;
+  reason?: string | null;
+  payment_method_id?: number | null;
+  saving_id?: number | null;
+  fixed_id?: number | null;
+  financing_id?: number | null;
+  related_group_id?: number | null;
+  notes?: string | null;
+  sort_order: number;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
+export interface ChartPreference extends Entity, SoftDeletable {
+  chart_key: string;
+  collapsed: boolean | number;
+  mode?: string | null;
+  hidden_series?: string | null;
+  data_limit?: number | null;
+  limit_from_end: boolean | number;
+  zoom?: number | null;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
+export interface ShoppingList extends Entity, SoftDeletable {
+  list_name: string;
+  status: string;
+  closed_at?: TimestampMs | null;
+  purchase_date?: TimestampMs | null;
+  record_id?: number | null;
+  record_total_cents?: Cents | null;
+  created_at?: TimestampMs | null;
+  updated_at?: TimestampMs | null;
+}
+
+export interface ShoppingListItem extends Entity, SoftDeletable {
+  shopping_list_id: number;
+  item_name: string;
+  price_cents?: Cents | null;
+  is_checked: boolean | number;
+  sort_order: number;
   created_at?: TimestampMs | null;
   updated_at?: TimestampMs | null;
 }

@@ -4,6 +4,8 @@ import { create } from "zustand";
 import { useConfigs } from "../hooks/useConfigs";
 import { useFinancingsRepository, useSharedParticipantsRepository } from "../db";
 import { summarizeFinancing } from "../domain/credits/summary";
+import { computeParticipantShares } from "../domain/shared/split";
+import { applyEffectSign } from "../domain/summaries/aggregate";
 import type {
     RecordType as RecordTypes,
     PaymentType as PaymentTypes,
@@ -18,6 +20,8 @@ type AmountBuckets = {
     own: number;
     shared: number;
     total: number;
+    paid: number;
+    cash: number;
 };
 
 interface totalPerRecordType extends RecordTypes, AmountBuckets {}
@@ -40,27 +44,42 @@ export interface Resumes {
     balanceByCategory: BucketResume<Categories>[];
 }
 
-const emptyBuckets = (): AmountBuckets => ({ own: 0, shared: 0, total: 0 });
+const emptyBuckets = (): AmountBuckets => ({
+    own: 0,
+    shared: 0,
+    total: 0,
+    paid: 0,
+    cash: 0,
+});
 
 const addBuckets = (
     target: AmountBuckets,
     own: number,
-    shared: number
+    shared: number,
+    paid = own + shared,
+    cash = 0
 ) => {
     target.own += own;
     target.shared += shared;
     target.total += own + shared;
+    target.paid += paid;
+    target.cash += cash;
 };
 
-const reduceBuckets = (
+const sumBuckets = (
+    items: totalPerRecordType[],
+    field: keyof AmountBuckets
+) => items.reduce((total, item) => total + item[field], 0);
+
+const signedBuckets = (
     items: totalPerRecordType[],
     field: keyof AmountBuckets
 ) =>
-    items.reduce((balance, item) => {
-        if (item.effect === "-") return balance - item[field];
-        if (item.effect === "+") return balance + item[field];
-        return balance;
-    }, 0);
+    items.reduce(
+        (total, item) =>
+            total + applyEffectSign(item.effect, item[field]),
+        0
+    );
 
 export const useFixedsResumesStore = () => {
     const { configs: { recordTypes } } = useConfigs();
@@ -109,12 +128,16 @@ export const useFixedsResumesStore = () => {
     const splitAmount = (ownerType: 'fixed' | 'financing', ownerId: number | undefined, amount: number) => {
         if (!ownerId) return { total: amount, own: amount, shared: 0 }
         const list = participantsByOwner.get(`${ownerType}:${ownerId}`) ?? []
-        const percent = Math.min(
-            100,
-            list.reduce((sum, participant) => sum + participant.share_percent, 0)
+        const split = computeParticipantShares(
+            amount,
+            list.map((participant) => ({
+                personId: participant.person_id,
+                shareMode: participant.share_mode as 'percent' | 'amount',
+                sharePercent: participant.share_percent,
+                shareAmountCents: participant.share_amount_cents ?? null,
+            }))
         )
-        const shared = Math.round((amount * percent) / 100)
-        return { total: amount, own: amount - shared, shared }
+        return { total: amount, own: split.ownCents, shared: split.sharedCents }
     }
 
     const calculateBalances = () => {
@@ -203,10 +226,14 @@ export const useFixedsResumesStore = () => {
                 paymentType.totalPerRecordType.forEach(r => {
                     if (r.id === recordTypeId) addBuckets(r, own, shared);
                 });
-                paymentType.own = reduceBuckets(paymentType.totalPerRecordType, 'own');
-                paymentType.shared = reduceBuckets(paymentType.totalPerRecordType, 'shared');
-                paymentType.total = reduceBuckets(paymentType.totalPerRecordType, 'total');
-                paymentType.balance = paymentType.own;
+                paymentType.own = sumBuckets(paymentType.totalPerRecordType, 'own');
+                paymentType.shared = sumBuckets(paymentType.totalPerRecordType, 'shared');
+                paymentType.total = sumBuckets(paymentType.totalPerRecordType, 'total');
+                paymentType.paid = sumBuckets(paymentType.totalPerRecordType, 'paid');
+                paymentType.balance = signedBuckets(
+                    paymentType.totalPerRecordType,
+                    'own'
+                );
             }
 
             const paymentMethod = paymentMethodResume.find(pm => pm.id === paymentMethodId);
@@ -214,10 +241,14 @@ export const useFixedsResumesStore = () => {
                 paymentMethod.totalPerRecordType.forEach(r => {
                     if (r.id === recordTypeId) addBuckets(r, own, shared);
                 });
-                paymentMethod.own = reduceBuckets(paymentMethod.totalPerRecordType, 'own');
-                paymentMethod.shared = reduceBuckets(paymentMethod.totalPerRecordType, 'shared');
-                paymentMethod.total = reduceBuckets(paymentMethod.totalPerRecordType, 'total');
-                paymentMethod.balance = paymentMethod.own;
+                paymentMethod.own = sumBuckets(paymentMethod.totalPerRecordType, 'own');
+                paymentMethod.shared = sumBuckets(paymentMethod.totalPerRecordType, 'shared');
+                paymentMethod.total = sumBuckets(paymentMethod.totalPerRecordType, 'total');
+                paymentMethod.paid = sumBuckets(paymentMethod.totalPerRecordType, 'paid');
+                paymentMethod.balance = signedBuckets(
+                    paymentMethod.totalPerRecordType,
+                    'own'
+                );
             }
 
             const category = categoryResume.find(cat => cat.id === categoryId);
@@ -225,14 +256,24 @@ export const useFixedsResumesStore = () => {
                 category.totalPerRecordType.forEach(r => {
                     if (r.id === recordTypeId) addBuckets(r, own, shared);
                 });
-                category.own = reduceBuckets(category.totalPerRecordType, 'own');
-                category.shared = reduceBuckets(category.totalPerRecordType, 'shared');
-                category.total = reduceBuckets(category.totalPerRecordType, 'total');
-                category.balance = category.own;
+                category.own = sumBuckets(category.totalPerRecordType, 'own');
+                category.shared = sumBuckets(category.totalPerRecordType, 'shared');
+                category.total = sumBuckets(category.totalPerRecordType, 'total');
+                category.paid = sumBuckets(category.totalPerRecordType, 'paid');
+                category.balance = signedBuckets(
+                    category.totalPerRecordType,
+                    'own'
+                );
             }
         };
 
-        Fixeds.map(fixed => {
+        Fixeds.forEach(fixed => {
+            if (
+                fixed.record_type_id == null ||
+                !recordTypes.includes(fixed.record_type_id)
+            ) {
+                return;
+            }
             const split = splitAmount('fixed', fixed.id, fixed.fixed_amount);
             addToResumes(
                 fixed.record_type_id,
@@ -245,6 +286,12 @@ export const useFixedsResumesStore = () => {
         })
 
         financingObligations.forEach(({ financing, summary }) => {
+            if (
+                financing.record_type_id == null ||
+                !recordTypes.includes(financing.record_type_id)
+            ) {
+                return;
+            }
             const split = splitAmount(
                 'financing',
                 financing.id,

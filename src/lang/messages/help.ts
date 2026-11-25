@@ -9,7 +9,9 @@ export const helpEn = {
         "readTime": "{minutes} min read",
         "related": "Related topics",
         "back": "Back to help",
-        "open": "Open topic"
+        "open": "Open topic",
+        "whatsNewTitle": "What's new",
+        "whatsNewSubtitle": "Review everything added in recent updates."
     },
     "categories": {
         "start": "Getting started",
@@ -49,34 +51,94 @@ export const helpEn = {
                 "body": "Records need a selected group. If you change groups, the lists and summaries change too."
             }
         },
-        "groups": {
-            "title": "Groups",
-            "summary": "Understand the monthly container that holds all your data.",
+        "dashboard": {
+            "title": "Home dashboard",
+            "summary": "See your group at a glance and jump to what matters.",
             "what": {
                 "title": "What it is",
-                "body": "A group represents one month and year. It stores the goal, the balance, and the data used by records, budgets, and summaries."
+                "body": "Home is a dashboard with blocks for balance, pending items, budget, savings, people, recent records, credits, vehicle and closing. Each block is a shortcut to its module."
             },
             "how": {
                 "title": "How it works",
-                "body": "The selected group drives the whole app. Switching groups changes the visible records and totals. The pin action remembers your favorite group."
+                "body": "Only blocks whose module is enabled are shown. The capture button opens a new record and can also offer fixed expenses, savings or groups. Order and visibility are saved on this device."
             },
             "steps": {
                 "title": "Step by step",
-                "step1": "Open the group selector.",
-                "step2": "Create a group with month, year, and goal.",
-                "step3": "Select it or pin it for quick access."
+                "step1": "Select the group you want to review.",
+                "step2": "Read a block or tap See all to open its module.",
+                "step3": "Use the capture button to add a record or a configured action."
             },
             "example": {
                 "title": "Example",
-                "body": "October 2026 is one group and November 2026 is another. Each has its own goal and balance."
+                "body": "Your dashboard shows a 2,500 balance, a card payment due in two days and 500 in savings. Tap the card row to open Credits or the savings block to open Savings."
             },
             "tips": {
                 "title": "Tips",
-                "body": "Use one group per month to keep summaries and budgets comparable."
+                "body": "Hide blocks you do not use and keep the ones you check every day. The savings block lets you choose which savings count toward its total. The layout is stored with your backup."
             },
             "warning": {
                 "title": "Common mistake",
-                "body": "Deleting a group also deletes its associated records. Review the confirmation before deleting."
+                "body": "If a module is disabled in Experience, its block is hidden even if it was visible before. Enable the module to use it again."
+            }
+        },
+        "whatsNew": {
+            "title": "What's new",
+            "summary": "See everything that changed after each update.",
+            "what": {
+                "title": "What it is",
+                "body": "A summary of the new features, improvements and fixes included in PocketTool updates."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "PocketTool compares the installed version with the last version you saw. If there are pending updates, it shows one summary with all of them when you open the app."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Update PocketTool from the store.",
+                "step2": "Open the app and read the accumulated summary.",
+                "step3": "Tap Got it to mark the version as seen."
+            },
+            "example": {
+                "title": "Example",
+                "body": "You had not opened version 4.0.5 and now update to 4.0.6. The summary shows the changes of both versions together."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "You can reopen the summary at any time from Help center, in the What's new section."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "Closing the summary marks the version as seen. If you want to read it again, open it from Help center."
+            }
+        },
+        "groups": {
+            "title": "Groups",
+            "summary": "Understand the period container that holds all your data.",
+            "what": {
+                "title": "What it is",
+                "body": "A group represents a period. It stores the goal, the balance, and the data used by records, budgets, and summaries. By default the period is a calendar month, but it can start on a specific day, such as the 18th."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "The selected group drives the whole app. Switching groups changes the visible records and totals. In Settings → Groups you can enable automatic creation: when the app opens it creates the group for the current period, but only if no group already covers today. Groups and closings share the same period. Pending fixed and card dates use the group period, not a fixed calendar month."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Open Settings → Groups and choose the period.",
+                "step2": "Turn on automatic creation or create a group from Records.",
+                "step3": "Select or pin the group you want to use."
+            },
+            "example": {
+                "title": "Example",
+                "body": "With start day 18, the October group runs from October 18 to November 17. November 18 starts the next group."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Use automatic creation so a new period never starts without a group."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "Deleting a group also deletes its associated records. Changing the period does not move existing records; review them after saving."
             }
         },
         "records": {
@@ -88,7 +150,7 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "Income adds to the balance, expense subtracts, and transfer moves money between payment methods. Amounts are stored as integer cents. A shared record keeps your own amount in the record and the shared portion separately, so personal balances only use what you really pay."
+                "body": "Income adds to the balance, expense subtracts, and transfer moves money between payment methods. Amounts are stored as integer cents. A shared record keeps your own amount in the record and the shared portion separately, so personal balances only use what you really pay. Pending card payments can use today's date, the card payment day inside the group month, or the next card payment day calculated from today; choose it in Settings. When you open an existing record, its source is shown with a preview (saving, fuel, maintenance, financing, shopping list or credit) and a shortcut to open that module."
             },
             "steps": {
                 "title": "Step by step",
@@ -118,7 +180,7 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "On the configured day, PocketTool reminds you to confirm it. Confirming creates the corresponding record for the selected group. Pending credit and loan payments also appear in Records; opening one loads the payment form with its amount, date and expense data. A fixed expense can be split among several people registered in the People section. When it is shared, the record stores your own amount and the shared portion separately, and each person's share appears in their payment history."
+                "body": "On the configured day, PocketTool reminds you to confirm it. Confirming creates the corresponding record for the selected group. The proposed date can follow the group month or the next occurrence of the fixed day from today; Settings also decides whether a fixed is considered paid by the selected group or by the period of the proposed date. Home uses the same settings and shows the reminder when the resolved date is today. Pending credit and loan payments also appear in Records; opening one loads the payment form with its amount, date and expense data. A fixed expense can be split among several people registered in the People section. When it is shared, the record stores your own amount and the shared portion separately, and each person's share appears in their payment history."
             },
             "steps": {
                 "title": "Step by step",
@@ -128,7 +190,7 @@ export const helpEn = {
             },
             "example": {
                 "title": "Example",
-                "body": "Rent of 3,000 on day 5. On October 5 it appears as a reminder; confirming it creates the October expense."
+                "body": "Rent of 3,000 on day 5. On October 5 it appears as a reminder; confirming it creates the October expense. If today is October 25 and the next occurrence mode is active, the proposed date is November 5."
             },
             "tips": {
                 "title": "Tips",
@@ -137,6 +199,36 @@ export const helpEn = {
             "warning": {
                 "title": "Common mistake",
                 "body": "A fixed transaction is a template. It only affects the balance after you confirm it as a record."
+            }
+        },
+        "closing": {
+            "title": "Period closing",
+            "summary": "Compare cards, available money and payments without changing real data.",
+            "what": {
+                "title": "What it is",
+                "body": "A closing is an informational calculation for a period. It compares the money you have, your card statements and your pending payments, then shows a shortfall or surplus. It never changes records, debts, savings or balances."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "You can autofill the balance, cards, fixed payments and financings, or add manual lines with add and subtract. When adding a line, attach a registered card, account, fixed payment or financing, or leave it manual; items already added are hidden to avoid duplicates. Choose which balance to use (consumption, total, cash, paid or payment methods) before autofilling. Cards store an expected amount and an editable statement amount, so discounts, cashback and returns can explain the difference. The period comes from the group and is shared with closings; you can adjust it per closing when allowed, with grace days. Closings are usually created when the period ends, but you can create one earlier. Expired closings become read-only. You can keep several drafts but only one final closing per group. Savings are not included automatically; add them as manual lines only if you use them in the calculation."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Select a group and create a closing, or open a draft.",
+                "step2": "Autofill data, adjust card statement amounts and add manual lines.",
+                "step3": "Cover a shortfall or assign a surplus, then save a draft or finalize."
+            },
+            "example": {
+                "title": "Example",
+                "body": "You have 3,500 available. Visa expects 4,000 but the statement says 3,800, plus a 1,000 fixed payment and an 800 financing payment. Obligations are 5,600 and the shortfall is 2,100. You cover 1,500 from other available money and leave 600 for the next period."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Use grace days if you close after the month ends. Duplicate a closing to reuse its structure next period."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "A closing is only a calculation. Finalizing it does not pay cards, move savings or create records. Once its deadline passes, neither drafts nor finals can be edited."
             }
         },
         "summaries": {
@@ -148,7 +240,7 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "The app groups records and calculates totals. Credit and debit movements are separated so you can see the difference between actual balance and credit usage. The main balance uses your own amount by default; the total and shared amounts are shown separately so shared expenses do not inflate your personal balance."
+                "body": "The app groups records and calculates totals. Use Consumption to see your share of every expense and Cash to see what you actually paid and received, including settlements. Credit and debit movements are separated so you can see the difference between consumption and credit usage. The amount selector changes the consumption view; cash is a single amount."
             },
             "steps": {
                 "title": "Step by step",
@@ -158,7 +250,7 @@ export const helpEn = {
             },
             "example": {
                 "title": "Example",
-                "body": "If income is 5,000 and expenses are 1,250, the balance is 3,750. The category summary shows where the expenses came from."
+                "body": "If income is 5,000 and expenses are 1,250, the consumption balance is 3,750. If a 1,000 purchase was paid by another person, your consumption still includes your 500 share, but your cash balance does not subtract it. The category summary shows where the expenses came from."
             },
             "tips": {
                 "title": "Tips",
@@ -169,34 +261,64 @@ export const helpEn = {
                 "body": "A credit balance is not the same as available cash. Check the credit summary before making decisions."
             }
         },
-        "budgets": {
-            "title": "Budgets",
-            "summary": "Plan the month, compare it with real records and detect deviations early.",
+        "charts": {
+            "title": "Charts",
+            "summary": "Read the native charts and keep them out of the way.",
             "what": {
                 "title": "What it is",
-                "body": "A budget is a monthly plan with category envelopes and fixed commitments. Each line stores a planned amount, but the actual amount always comes from the records of the same group."
+                "body": "A chart turns the selected period into lines, bars, pies or areas. It only reads data; it never changes records, balances or goals."
             },
             "how": {
                 "title": "How it works",
-                "body": "PocketTool compares planned and actual amounts by category and record type. It shows used percentage, variation, pending fixed transactions, unplanned spending and a projection at the current pace. The comparison chart shows planned vs. actual; health groups lines by status; distribution shows the planned share of each category; and projection compares planned vs. projected at the current pace. The legend identifies each color, and those colors can be edited in Settings → Colors. Projection is calculated per line: in the current month, a category uses actual spending ÷ elapsed days × days in the month; on the last day it equals the actual; in a future month it uses the planned amount; and in a past month it uses the actual. A fixed line uses its actual amount plus the pending fixed amount, not a daily rate. The result is an estimate, not a commitment."
+                "body": "Each chart has a visible legend, axes and a tap detail. You can hide series, limit points, zoom, or open the data table for exact values. Some charts let you switch between an indexed comparison and raw values. Charts can be collapsed and the choice is remembered. In Fuel, charts start collapsed so records stay close."
             },
             "steps": {
                 "title": "Step by step",
-                "step1": "Select the group and create a plan from scratch, from a template, from last month, from fixed transactions or from the average of selected groups.",
-                "step2": "Add category envelopes with amount, priority and notes. Open a line to view its records or edit it.",
-                "step3": "Review signals, switch between chart modes and adjust lines. If you want a different approach, delete the plan and create another."
+                "step1": "Open a section with charts.",
+                "step2": "Expand the chart you need and tap a point, bar or slice.",
+                "step3": "Use View data for exact values or collapse it again."
             },
             "example": {
                 "title": "Example",
-                "body": "Food envelope 2,000 and 1,250 spent shows 62.5% used and 750 remaining. If the selected groups averaged 1,800 in food, the group average creates a 1,800 envelope. Rent is a separate fixed line, so its confirmed record is not counted twice."
+                "body": "In Budget, the comparison chart shows planned vs actual by category. Tap a bar to see its value; open View data to read all numbers."
             },
             "tips": {
                 "title": "Tips",
-                "body": "Keep categories and record types consistent between records and budgets. Use the group average when spending is stable, and templates when you want a fixed structure."
+                "body": "Collapse charts you do not need; the app remembers it. Use the data table for exact amounts."
             },
             "warning": {
                 "title": "Common mistake",
-                "body": "Deleting a plan also deletes its lines. You can create another plan afterward. A fixed transaction is a commitment, not an expense: it only affects the actual amount after you confirm it and a record is created."
+                "body": "A projection is an estimate, not a commitment. Charts never modify your data."
+            }
+        },
+        "budgets": {
+            "title": "Budgets",
+            "summary": "Plan the group period, compare it with real records and project the expected end balance.",
+            "what": {
+                "title": "What it is",
+                "body": "A budget is a plan for the group period with income lines, expense lines and fixed commitments. Each line stores a planned amount, but the actual amount always comes from the records of the same group."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "The app compares planned and actual amounts by category and record type using the group period, not a fixed calendar month. It shows the current net, expected end balance for consumption and cash, remaining income and expenses, days left and a daily allowance. Consumption follows the selected amount mode. Cash adds pending fixed commitments, active financings, vehicle reminders that will fall due, own savings contributions and pending card payments, avoiding duplicates with plan lines and records. Expenses paid from a savings account do not count as monthly consumption. Drag the handle on a line to change its order. Savings linked to Records appear as suggestions to include in the plan. Projection is an estimate, not a commitment."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Select the group and create a plan from scratch, a template, the previous period, fixed transactions or the average of selected groups.",
+                "step2": "Add income and expense lines with amount, priority and notes. Open a line to view its records or edit it.",
+                "step3": "Review the expected consumption and cash balances, the obligations breakdown and the signals, then adjust lines before the period ends."
+            },
+            "example": {
+                "title": "Example",
+                "body": "A period plans 3,000 income and 2,000 expenses. With 1,200 income and 900 expenses recorded, the expected consumption balance is 1,300. If 300 of fixed expenses are still pending and a 200 financing payment is due, the cash projection subtracts them. A savings-paid purchase is shown as excluded from monthly consumption."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Add income lines when you want to project future income. Review the obligations breakdown to understand the cash number. The expected end balance is compared with the current balance, so you can see the projected gap. Use the group average when spending is stable and templates when you want a fixed structure."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "The modes Shared and Paid are not a consumption balance. The cash projection is the reference for available money. A fixed transaction is a commitment, not an expense: it only affects the actual amount after a record is created. Vehicle reminders with no cost history show zero until you add a line."
             }
         },
         "budgetTemplates": {
@@ -268,11 +390,11 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "Enter any two of volume, price per unit and total; the third is calculated. Consumption can be shown as mi/gal, km/gal, mi/L, km/L, L/100 km, gal/100 km, L/60 mi or gal/60 mi. Full-tank segments are the most accurate method; partial fills accumulate until the next full tank. Any fill recorded with distance instead of odometer is inferred from the previous reading, including full tanks, and mixed entries keep their creation order when they share the same date. The fuel screen shows performance, volume, price and total spend charts grouped by full-tank segment, plus a normalized comparison of volume, distance and total cost."
+                "body": "Enter any two of volume, price per unit and total; the third is calculated. Consumption can be shown as mi/gal, km/gal, mi/L, km/L, L/100 km, gal/100 km, L/60 mi or gal/60 mi. Full-tank segments are the most accurate method; partial fills accumulate until the next full tank. Any fill recorded with distance instead of odometer is inferred from the previous reading, including full tanks, and mixed entries keep their creation order when they share the same date. Each segment shows its total distance traveled. The fuel screen shows performance, volume, price and total spend charts grouped by full-tank segment, plus a normalized comparison of volume, distance and total cost."
             },
             "steps": {
                 "title": "Step by step",
-                "step1": "Choose the vehicle, date and units. The form remembers the last volume and odometer units saved for that vehicle. If it is the first entry, you can record only the odometer as a baseline.",
+                "step1": "Choose the vehicle, date and units. The form remembers the last volume and odometer units and the last odometer/distance mode for that vehicle. If it is the first entry, you can record only the odometer as a baseline.",
                 "step2": "Enter odometer or distance and two of volume, price and total. A partial fill may leave odometer/distance empty or at 0.",
                 "step3": "Mark full tank, choose whether to create or link an expense, and save."
             },
@@ -418,33 +540,93 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "When you assign a person to a fixed expense, financing or savings goal, you also set their share percentage. Each shared payment creates an allocation for every participant, and savings movements record who contributed or withdrew. The history shows the date, concept, percentage and amount of that person's share, including capital reductions, savings contributions and payments that reduce the installment."
+                "body": "When you assign a person to a fixed expense, financing, savings goal or a shared purchase, you also set their share percentage. Each shared payment creates an allocation or statement entry for every participant, and savings movements record who contributed or withdrew. The statement shows the total paid by you, the total paid by the person, the purchases and payments, and the net balance with its direction. Financing shares are informational and do not affect the new balance; savings stay separate."
             },
             "steps": {
                 "title": "Step by step",
                 "step1": "Open the People section and create the people you share expenses with.",
-                "step2": "Add them as participants in a fixed expense, financing or saving and set their percentages.",
+                "step2": "Add them as participants in a fixed expense, financing or saving and set their percentage or fixed amount (savings use percentage only).",
                 "step3": "Open a person's payment history to review their accumulated shared amount and savings contributions."
             },
             "example": {
                 "title": "Example",
-                "body": "A 1,000 rent is shared 50% with Ana. The record keeps 500 as your own amount and 500 as shared. Ana's history shows a 500 entry with the date and the rent concept. In a saving shared 50%, Ana's deposits appear in her history and count toward her share of the balance."
+                "body": "A 1,000 rent is shared 50% with Ana. If you paid the total, the record keeps 500 as your own amount and 500 as shared, and Ana's statement shows that she owes you 500. If Ana paid, your statement shows that you owe her 500. In a saving shared 50%, Ana's deposits appear separately and count toward her share of the balance."
             },
             "tips": {
                 "title": "Tips",
-                "body": "Keep the sum of participant percentages at 100% or less. Archive a person instead of deleting them when you want to keep their history."
+                "body": "Keep the assigned sum within the total. Percentages are calculated over the total and fixed amounts cannot exceed the remainder. Archive a person instead of deleting them when you want to keep their history."
             },
             "warning": {
                 "title": "Common mistake",
                 "body": "Deleting a person removes their shared links and payment history. If they are only temporarily inactive, archive them."
             }
         },
+        "sharedPurchases": {
+            "title": "Shared purchases",
+            "summary": "Share a purchase with people you already track and record who paid.",
+            "what": {
+                "title": "What it is",
+                "body": "A shared purchase is a single record whose total is split between your share and the shares of the people you select. It also records whether you or one of those people paid the total."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "Set the total purchase, add participants with a percentage or a fixed amount, and choose who paid. A new participant inherits the previous participant's share type. Both percentages and amounts are calculated over the total, and the app blocks the save if the assigned sum exceeds it. If you paid the total, each participant owes you their share. If another participant paid the total, your share becomes a debt with that person. The person statement shows the total paid by each side, the net balance and a movement history. Fixed expenses also ask whether you paid the total, only your share, or another person paid. Financing shares stay informational and savings stay separate."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Create or open an expense record and enter the total purchase.",
+                "step2": "Add the people with a percentage or a fixed amount, then choose who paid.",
+                "step3": "Open the person's statement to review the total paid by each side and the balance."
+            },
+            "example": {
+                "title": "Example",
+                "body": "A 1,000 purchase is shared 50% with Ana. If you paid, Ana owes you 500. If Ana paid, you owe her 500. The statement shows 1,000 paid by you or by Ana and the 500 balance."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Keep the assigned sum within the total. Percentages are calculated over the total and fixed amounts cannot exceed the remainder. Enter the total purchase, not only your share, so the statement knows what each side actually paid."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "Do not record the same purchase twice. If Ana paid, record it once, mark her as the payer and let the debt appear in the statement."
+            }
+        },
+        "settlements": {
+            "title": "Settlements",
+            "summary": "Register payments between you and a person and carry pending balances into a new group.",
+            "what": {
+                "title": "What it is",
+                "body": "A settlement is a payment that reduces the balance between you and a person. It can be partial and can be assigned to the previous group or to the new one."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "From a person's statement use Register payment, choose the direction, amount, date and group. Settlements affect the cash balance but not the consumption balance because the purchase was already recorded. When you create a group, PocketTool warns about pending balances and lets you settle them in the previous group, in the new group or carry them over."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Open a person's statement and tap Register payment.",
+                "step2": "Choose whether you paid or the person paid, enter the amount and select the group.",
+                "step3": "When you create a new group, decide whether to settle pending balances or carry them over."
+            },
+            "example": {
+                "title": "Example",
+                "body": "Ana owes you 500. You register that she paid you 200; her balance becomes 300. When the next group is created, PocketTool shows the pending 300 and lets you settle it or carry it over."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Settlements can be partial. Assign them to the group where the money moved so the cash balance stays accurate."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "Do not create a purchase record for a settlement; it would double count your consumption. Use Register payment."
+            }
+        },
         "amountModes": {
-            "title": "Your share, total and shared",
+            "title": "Your share, shared, total and gross paid",
             "summary": "Choose how summaries, budgets and credits display amounts.",
             "what": {
                 "title": "What it is",
-                "body": "The amount mode has three options: your share, total and shared. Your share is what you really pay, shared is the part covered by other people and total is the sum of both."
+                "body": "The amount mode has four options: your share, shared, total and gross paid. Your share is your part of every purchase. Shared is what other people owe you for purchases you paid, before settlements. Total is the full purchase regardless of who paid. Gross paid is income minus what you actually paid for purchases; settlements are not included."
             },
             "how": {
                 "title": "How it works",
@@ -453,20 +635,20 @@ export const helpEn = {
             "steps": {
                 "title": "Step by step",
                 "step1": "Open a summary, budget or credit screen.",
-                "step2": "Tap Your share, Total or Shared above the figures.",
+                "step2": "Tap Your share, Shared, Total or Gross paid above the figures.",
                 "step3": "Review the totals and buckets with the selected view."
             },
             "example": {
                 "title": "Example",
-                "body": "A 1,000 expense shared 50% shows 500 as your share, 500 as shared and 1,000 as total. On a budget, Your share compares 500 against the planned amount."
+                "body": "A 1,000 purchase shared 50% shows 500 as your share, 500 as shared and 1,000 as total. If you paid it, gross paid subtracts 1,000 from your income. If the other person paid it, gross paid does not subtract it, but total is still 1,000."
             },
             "tips": {
                 "title": "Tips",
-                "body": "Use Your share for your personal balance, Total to see the full commitment and Shared to review what others cover."
+                "body": "Use Shared to see what other people owe you, Total to see the full purchase and Gross paid to see your income minus purchases paid, before settlements."
             },
             "warning": {
                 "title": "Common mistake",
-                "body": "Shared is not money you paid. Do not use it as your personal expense when reviewing your balance."
+                "body": "Shared is not money you paid. Total is the full purchase (your share plus the shared amount), not your cash. Gross paid includes income and purchases paid but not settlements; cash balance adds settlements."
             }
         },
         "savings": {
@@ -482,7 +664,7 @@ export const helpEn = {
             },
             "steps": {
                 "title": "Step by step",
-                "step1": "Create a saving with its name, initial amount and optional goal, participants and contribution rule.",
+                "step1": "Create a saving with its name, initial amount (it can be 0) and optional goal, participants and contribution rule.",
                 "step2": "Register deposits, withdrawals, interest or adjustments. Choose a person when the movement belongs to a shared part.",
                 "step3": "Review the global, own and shared progress, the goal projection and the movement history. Archive it when you no longer need it active."
             },
@@ -497,6 +679,36 @@ export const helpEn = {
             "warning": {
                 "title": "Common mistake",
                 "body": "Interest is not a new deposit. Register it as interest so it is distributed correctly. Deleting a saving removes its movements and history; archive it instead when you want to keep the data."
+            }
+        },
+        "shopping": {
+            "title": "Shopping lists",
+            "summary": "Plan purchases, check items and record the purchase.",
+            "what": {
+                "title": "What it is",
+                "body": "A shopping list is a global to-do list with items that may have a price. A price of zero means the item has no price. Lists are not tied to a group; the group is chosen only when you create or link the purchase record. Checking an item marks progress and adds its price to the total."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "Open lists can be renamed and their items added, edited, checked, reordered or deleted. Use the list selector to switch lists without growing the page or losing the item view. The total only sums checked items that have a price; if a checked item has no price, the total is marked as partial. Closing a list makes it read-only. From a closed list you can create a record with the calculated or manual amount, link an existing compatible record, or skip registration. The record link is unique per list and cannot be created twice."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Create a list and add items with an optional price.",
+                "step2": "Check the items you plan to buy and review the calculated or partial total.",
+                "step3": "Close the list and choose create, link or skip to finish."
+            },
+            "example": {
+                "title": "Example",
+                "body": "A list with milk at 3.50, bread at 2.00 and a checked item without price shows 5.50 as a partial total. When you close it, you can create a 5.50 expense, type a different amount, link an existing expense on the same date, or close without a record."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Use the calculated total as a starting point and adjust the amount for discounts or extra items. Linking requires the same amount and day and excludes records already used by vehicle, financings, savings, credits or another shopping list."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "A closed list cannot be edited again. Check the items and prices before closing. Deleting a list keeps its record; deleting the record leaves the list closed and shows the link as missing."
             }
         },
         "filters": {
@@ -558,6 +770,36 @@ export const helpEn = {
                 "title": "Common mistake",
                 "body": "Very low contrast can make labels unreadable. Use Reset or the base palette if that happens."
             }
+        },
+        "experience": {
+            "title": "Experience levels",
+            "summary": "Choose how many sections and options you see, and hide modules without deleting data.",
+            "what": {
+                "title": "What it is",
+                "body": "The experience level controls which sections appear in the drawer and which advanced blocks are visible. It never changes calculations, records, or balances."
+            },
+            "how": {
+                "title": "How it works",
+                "body": "Essential shows the day-to-day basics. Balanced adds commitments, budget, and credits. Complete shows every module. You can also turn each module on or off, and the app adjusts dependencies automatically."
+            },
+            "steps": {
+                "title": "Step by step",
+                "step1": "Open Settings → Experience and choose Essential, Balanced, or Complete.",
+                "step2": "Expand the modules to turn individual sections or capture improvements on or off.",
+                "step3": "Use Restore complete experience to show everything again."
+            },
+            "example": {
+                "title": "Example",
+                "body": "A user who only logs income and expenses chooses Essential. Later they enable Credits and Budget without losing any data."
+            },
+            "tips": {
+                "title": "Tips",
+                "body": "Start simple. Enable a module when you need it; hidden modules keep their records."
+            },
+            "warning": {
+                "title": "Common mistake",
+                "body": "Hiding a module does not delete data. If you import a backup, the saved experience is applied automatically."
+            }
         }
     }
 } as const;
@@ -571,7 +813,9 @@ export const helpEs: MessageShape<typeof helpEn> = {
         "readTime": "{minutes} min de lectura",
         "related": "Temas relacionados",
         "back": "Volver a la ayuda",
-        "open": "Abrir tema"
+        "open": "Abrir tema",
+        "whatsNewTitle": "Qué hay de nuevo",
+        "whatsNewSubtitle": "Revisa todo lo agregado en las actualizaciones recientes."
     },
     "categories": {
         "start": "Primeros pasos",
@@ -611,34 +855,94 @@ export const helpEs: MessageShape<typeof helpEn> = {
                 "body": "Los registros necesitan un grupo seleccionado. Si cambias de grupo, también cambian las listas y los resúmenes."
             }
         },
-        "groups": {
-            "title": "Grupos",
-            "summary": "Entiende el contenedor mensual que guarda todos tus datos.",
+        "dashboard": {
+            "title": "Panel de Inicio",
+            "summary": "Consulta tu grupo de un vistazo y salta a lo importante.",
             "what": {
                 "title": "Qué es",
-                "body": "Un grupo representa un mes y un año. Guarda la meta, el balance y los datos que usan registros, presupuestos y resúmenes."
+                "body": "Inicio es un panel con bloques de saldo, pendientes, presupuesto, ahorros, personas, movimientos recientes, créditos, vehículo y cierre. Cada bloque es un acceso directo a su módulo."
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "El grupo seleccionado controla toda la app. Cambiar de grupo cambia los registros y totales visibles. La acción de fijar recuerda tu grupo favorito."
+                "body": "Solo se muestran los bloques cuyo módulo está activo. El botón de captura abre un registro nuevo y también puede ofrecer fijos, ahorros o grupos. El orden y la visibilidad se guardan en este dispositivo."
             },
             "steps": {
                 "title": "Paso a paso",
-                "step1": "Abre el selector de grupos.",
-                "step2": "Crea un grupo con mes, año y meta.",
-                "step3": "Selecciónalo o fíjalo para acceder rápido."
+                "step1": "Selecciona el grupo que quieres revisar.",
+                "step2": "Lee un bloque o toca Ver todo para abrir su módulo.",
+                "step3": "Usa el botón de captura para agregar un registro o una acción configurada."
             },
             "example": {
                 "title": "Ejemplo",
-                "body": "Octubre 2026 es un grupo y Noviembre 2026 es otro. Cada uno tiene su propia meta y balance."
+                "body": "Tu panel muestra un saldo de 2,500, un pago de tarjeta dentro de dos días y 500 en ahorros. Toca la fila de la tarjeta para abrir Créditos o el bloque de ahorros para abrir Ahorros."
             },
             "tips": {
                 "title": "Consejos",
-                "body": "Usa un grupo por mes para comparar resúmenes y presupuestos de forma consistente."
+                "body": "Oculta los bloques que no uses y conserva los que revisas a diario. El bloque de ahorros permite elegir qué ahorros cuentan para su total. El diseño se guarda con tu respaldo."
             },
             "warning": {
                 "title": "Error común",
-                "body": "Eliminar un grupo también elimina sus registros asociados. Revisa la confirmación antes de borrar."
+                "body": "Si un módulo está desactivado en Experiencia, su bloque se oculta aunque antes estuviera visible. Activa el módulo para volver a usarlo."
+            }
+        },
+        "whatsNew": {
+            "title": "Qué hay de nuevo",
+            "summary": "Consulta todo lo que cambió después de cada actualización.",
+            "what": {
+                "title": "Qué es",
+                "body": "Un resumen de las funciones nuevas, mejoras y correcciones incluidas en las actualizaciones de PocketTool."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "PocketTool compara la versión instalada con la última versión que viste. Si hay actualizaciones pendientes, muestra un solo resumen con todas al abrir la app."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Actualiza PocketTool desde la tienda.",
+                "step2": "Abre la app y lee el resumen acumulado.",
+                "step3": "Toca Entendido para marcar la versión como vista."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "No habías abierto la versión 4.0.5 y ahora actualizas a 4.0.6. El resumen muestra juntos los cambios de ambas versiones."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Puedes volver a abrir el resumen cuando quieras desde el Centro de ayuda, en la sección Qué hay de nuevo."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "Cerrar el resumen marca la versión como vista. Si quieres leerlo otra vez, ábrelo desde el Centro de ayuda."
+            }
+        },
+        "groups": {
+            "title": "Grupos",
+            "summary": "Entiende el contenedor de periodo que guarda todos tus datos.",
+            "what": {
+                "title": "Qué es",
+                "body": "Un grupo representa un periodo. Guarda la meta, el balance y los datos que usan registros, presupuestos y resúmenes. Por defecto el periodo es un mes calendario, pero puede empezar en un día específico, por ejemplo el 18."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "El grupo seleccionado controla toda la app. Cambiar de grupo cambia los registros y totales visibles. En Ajustes → Grupos puedes activar la creación automática: al abrir la app se crea el grupo del periodo actual, pero solo si ningún grupo cubre hoy. Los grupos y los cierres comparten el mismo periodo. Las fechas de fijos y tarjetas pendientes usan el periodo del grupo, no un mes calendario fijo."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Abre Ajustes → Grupos y elige el periodo.",
+                "step2": "Activa la creación automática o crea un grupo desde Registros.",
+                "step3": "Selecciona o fija el grupo que quieres usar."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "Con día de inicio 18, el grupo de octubre va del 18 de octubre al 17 de noviembre. El 18 de noviembre empieza el siguiente grupo."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Usa la creación automática para que un periodo nuevo nunca empiece sin grupo."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "Eliminar un grupo también elimina sus registros asociados. Cambiar el periodo no mueve los registros existentes; revísalos al guardar."
             }
         },
         "records": {
@@ -650,7 +954,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "El ingreso suma al balance, el gasto resta y la transferencia mueve dinero entre métodos de pago. Los montos se guardan en centavos enteros. Un registro compartido guarda tu monto propio y separa la parte compartida, para que los balances personales solo usen lo que realmente pagas."
+                "body": "El ingreso suma al balance, el gasto resta y la transferencia mueve dinero entre métodos de pago. Los montos se guardan en centavos enteros. Un registro compartido guarda tu monto propio y separa la parte compartida, para que los balances personales solo usen lo que realmente pagas. Los pagos pendientes de tarjeta pueden usar la fecha de hoy, el día de pago dentro del mes del grupo o el próximo día de pago calculado desde hoy; se elige en Configuraciones. Al abrir un registro existente se muestra su origen con una previsualización (ahorro, combustible, mantenimiento, financiamiento, lista de compras o crédito) y un acceso para abrir ese módulo."
             },
             "steps": {
                 "title": "Paso a paso",
@@ -680,7 +984,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "En el día configurado, PocketTool te recuerda confirmarla. Al confirmar se crea el registro correspondiente en el grupo seleccionado. Los pagos pendientes de créditos y préstamos también aparecen en Registros; al abrirlos se carga el formulario de pago con su monto, fecha y datos del gasto. Un gasto fijo puede dividirse entre varias personas registradas en la sección Personas. Cuando es compartido, el registro guarda tu monto propio y la parte compartida por separado, y la parte de cada persona aparece en su historial de pagos."
+                "body": "En el día configurado, PocketTool te recuerda confirmarla. Al confirmar se crea el registro correspondiente en el grupo seleccionado. La fecha propuesta puede seguir el mes del grupo o la próxima ocurrencia del día del fijo desde hoy; Configuraciones también decide si un fijo se considera pagado por el grupo seleccionado o por el periodo de la fecha propuesta. Inicio usa las mismas configuraciones y muestra el recordatorio cuando la fecha resuelta es hoy. Los pagos pendientes de créditos y préstamos también aparecen en Registros; al abrirlos se carga el formulario de pago con su monto, fecha y datos del gasto. Un gasto fijo puede dividirse entre varias personas registradas en la sección Personas. Cuando es compartido, el registro guarda tu monto propio y la parte compartida por separado, y la parte de cada persona aparece en su historial de pagos."
             },
             "steps": {
                 "title": "Paso a paso",
@@ -690,7 +994,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "example": {
                 "title": "Ejemplo",
-                "body": "Renta de 3,000 el día 5. El 5 de octubre aparece como recordatorio; al confirmar se crea el gasto de octubre."
+                "body": "Renta de 3,000 el día 5. El 5 de octubre aparece como recordatorio; al confirmar se crea el gasto de octubre. Si hoy es 25 de octubre y el modo de próxima ocurrencia está activo, la fecha propuesta es el 5 de noviembre."
             },
             "tips": {
                 "title": "Consejos",
@@ -699,6 +1003,36 @@ export const helpEs: MessageShape<typeof helpEn> = {
             "warning": {
                 "title": "Error común",
                 "body": "La transacción fija es una plantilla. Solo afecta el balance después de confirmarla como registro."
+            }
+        },
+        "closing": {
+            "title": "Cierre de periodo",
+            "summary": "Compara tarjetas, dinero disponible y pagos sin cambiar datos reales.",
+            "what": {
+                "title": "Qué es",
+                "body": "Un cierre es un cálculo informativo de un periodo. Compara el dinero que tienes, los estados de cuenta de tus tarjetas y tus pagos pendientes, y muestra un faltante o un sobrante. Nunca modifica registros, deudas, ahorros ni saldos."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "Puedes autocompletar el balance, tarjetas, pagos fijos y financiamientos, o agregar líneas manuales con suma y resta. Al agregar una línea, puedes vincular una tarjeta, cuenta, pago fijo o financiamiento registrado, o dejarla manual; los datos ya agregados se ocultan para evitar repetirlos. Elige qué balance usar (consumo, total, caja, pagado o métodos de pago) antes de autocompletar. Las tarjetas guardan un monto esperado y un monto real editable, para explicar diferencias por descuentos, cashback o devoluciones. El periodo viene del grupo y se comparte con los cierres; puedes ajustarlo por cierre si está permitido, con días de gracia. Lo normal es crear el cierre cuando el periodo termina, pero también puedes crearlo antes. Los cierres vencidos pasan a solo lectura. Puedes tener varios borradores, pero solo un cierre final por grupo. Los ahorros no se incluyen automáticamente; agrégalos como líneas manuales solo si los usas en el cálculo."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Selecciona un grupo y crea un cierre, o abre un borrador.",
+                "step2": "Autocompleta datos, ajusta los estados de cuenta y agrega líneas manuales.",
+                "step3": "Cubre el faltante o asigna el sobrante, y guarda un borrador o finaliza."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "Tienes 3,500 disponibles. Visa espera 4,000 pero el estado de cuenta dice 3,800, más un fijo de 1,000 y un financiamiento de 800. Las obligaciones son 5,600 y el faltante es 2,100. Cubres 1,500 con otro dinero disponible y dejas 600 para el próximo periodo."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Usa días de gracia si cierras después de que termina el mes. Duplica un cierre para reutilizar su estructura en el siguiente periodo."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "Un cierre es solo un cálculo. Finalizarlo no paga tarjetas, no mueve ahorros y no crea registros. Cuando pasa su fecha límite, ni los borradores ni los finales se pueden editar."
             }
         },
         "summaries": {
@@ -710,7 +1044,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "La app agrupa los registros y calcula totales. Los movimientos de crédito y débito se separan para ver la diferencia entre balance real y uso de crédito. El balance principal usa tu monto propio por defecto; el total y lo compartido se muestran por separado para que los gastos compartidos no inflen tu balance personal."
+                "body": "La app agrupa los registros y calcula totales. Usa Consumo para ver tu parte de cada gasto y Caja para ver lo que realmente pagaste y recibiste, incluidas las liquidaciones. Los movimientos de crédito y débito se separan para ver la diferencia entre consumo y uso de crédito. El selector de importe cambia la vista de consumo; caja es un solo monto."
             },
             "steps": {
                 "title": "Paso a paso",
@@ -720,7 +1054,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "example": {
                 "title": "Ejemplo",
-                "body": "Si los ingresos son 5,000 y los gastos 1,250, el balance es 3,750. El resumen por categoría muestra de dónde vienen los gastos."
+                "body": "Si los ingresos son 5,000 y los gastos 1,250, el balance de consumo es 3,750. Si otra persona pagó una compra de 1,000, tu consumo sigue incluyendo tu parte de 500, pero tu balance de caja no la resta. El resumen por categoría muestra de dónde vienen los gastos."
             },
             "tips": {
                 "title": "Consejos",
@@ -731,34 +1065,64 @@ export const helpEs: MessageShape<typeof helpEn> = {
                 "body": "El balance de crédito no es lo mismo que el efectivo disponible. Revisa el resumen de créditos antes de decidir."
             }
         },
-        "budgets": {
-            "title": "Presupuestos",
-            "summary": "Planifica el mes, compáralo con los registros reales y detecta desviaciones a tiempo.",
+        "charts": {
+            "title": "Gráficos",
+            "summary": "Lee los gráficos nativos y mantenlos fuera del camino.",
             "what": {
                 "title": "Qué es",
-                "body": "Un presupuesto es un plan mensual con sobres de categoría y compromisos fijos. Cada línea guarda un monto planificado, pero el real siempre sale de los registros del mismo grupo."
+                "body": "Un gráfico convierte el periodo seleccionado en líneas, barras, porciones o áreas. Solo lee datos; nunca cambia registros, saldos ni metas."
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "PocketTool compara lo planificado y lo real por categoría y tipo de registro. Muestra porcentaje usado, variación, fijos pendientes, gasto sin planificar y una proyección al ritmo actual. El gráfico de comparación muestra planificado vs. real; salud agrupa las líneas por estado; distribución muestra el peso planificado de cada categoría; y proyección compara lo planificado con la proyección al ritmo actual. La leyenda identifica cada color y esos colores se pueden editar en Ajustes → Colores. La proyección se calcula por línea: en el mes actual, una categoría usa gasto real ÷ días transcurridos × días del mes; el último día coincide con el real; en un mes futuro usa el monto planificado; y en un mes pasado usa el real. Una línea fija usa su monto real más el fijo pendiente, no una tasa diaria. El resultado es una estimación, no un compromiso."
+                "body": "Cada gráfico tiene leyenda visible, ejes y detalle al tocar. Puedes ocultar series, limitar puntos, hacer zoom o abrir la tabla de datos para ver valores exactos. Algunos gráficos permiten cambiar entre comparación indexada y datos reales. Los gráficos se pueden colapsar y la elección se recuerda. En Combustible empiezan colapsados para dejar los registros a la vista."
             },
             "steps": {
                 "title": "Paso a paso",
-                "step1": "Selecciona el grupo y crea un plan desde cero, desde una plantilla, desde el mes anterior, desde los fijos o desde la media de grupos seleccionados.",
-                "step2": "Agrega sobres de categoría con monto, prioridad y notas. Abre una línea para ver sus registros o editarla.",
-                "step3": "Revisa las señales, cambia entre los modos de gráfico y ajusta las líneas. Si quieres otro enfoque, elimina el plan y crea otro."
+                "step1": "Abre una sección con gráficos.",
+                "step2": "Expande el gráfico que necesites y toca un punto, barra o porción.",
+                "step3": "Usa Ver datos para valores exactos o vuelve a colapsarlo."
             },
             "example": {
                 "title": "Ejemplo",
-                "body": "Sobre de comida 2,000 y 1,250 gastados muestran 62.5% usado y 750 restantes. Si los grupos seleccionados promediaron 1,800 en comida, la media de grupos crea un sobre de 1,800. La renta es una línea fija separada, así que su registro confirmado no se cuenta dos veces."
+                "body": "En Presupuesto, el gráfico de comparación muestra planificado vs real por categoría. Toca una barra para ver su valor; abre Ver datos para leer todos los números."
             },
             "tips": {
                 "title": "Consejos",
-                "body": "Mantén las mismas categorías y tipos entre registros y presupuestos. Usa la media de grupos cuando el gasto sea estable y plantillas cuando quieras una estructura fija."
+                "body": "Colapsa los gráficos que no necesites; la app lo recuerda. Usa la tabla de datos para montos exactos."
             },
             "warning": {
                 "title": "Error común",
-                "body": "Eliminar un plan también elimina sus líneas. Después puedes crear otro plan. Una transacción fija es un compromiso, no un gasto: solo afecta el real después de confirmarla y crear un registro."
+                "body": "Una proyección es una estimación, no un compromiso. Los gráficos nunca modifican tus datos."
+            }
+        },
+        "budgets": {
+            "title": "Presupuestos",
+            "summary": "Planifica el periodo del grupo, compáralo con los registros reales y proyecta el saldo esperado al cierre.",
+            "what": {
+                "title": "Qué es",
+                "body": "Un presupuesto es un plan del periodo del grupo con líneas de ingreso, líneas de gasto y compromisos fijos. Cada línea guarda un monto planificado, pero el real siempre sale de los registros del mismo grupo."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "La app compara lo planificado y lo real por categoría y tipo de registro usando el periodo del grupo, no un mes calendario fijo. Muestra el neto actual, el saldo esperado de consumo y de caja, los ingresos y gastos restantes, los días que quedan y el disponible por día. El consumo sigue el modo de importe elegido. La caja suma fijos pendientes, financiamientos activos, recordatorios de vehículo que caerán en el periodo, aportes propios a ahorros y pagos pendientes de tarjeta, evitando duplicados con las líneas del plan y los registros. Los gastos pagados desde un ahorro no cuentan como consumo del mes. Arrastra el asa de una línea para cambiar su orden. Los ahorros vinculados a Registros aparecen como sugerencias para incluir en el plan. La proyección es una estimación, no un compromiso."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Selecciona el grupo y crea un plan desde cero, una plantilla, el periodo anterior, los fijos o la media de grupos seleccionados.",
+                "step2": "Agrega líneas de ingreso y gasto con monto, prioridad y notas. Abre una línea para ver sus registros o editarla.",
+                "step3": "Revisa el saldo esperado de consumo y caja, el desglose de obligaciones y las señales, y ajusta las líneas antes de que termine el periodo."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "Un periodo planifica 3,000 de ingreso y 2,000 de gasto. Con 1,200 de ingreso y 900 de gasto registrados, el saldo esperado de consumo es 1,300. Si quedan 300 de fijos pendientes y vence una cuota de financiamiento de 200, la proyección de caja los resta. Una compra pagada con ahorro se muestra excluida del consumo del mes."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Agrega líneas de ingreso cuando quieras proyectar ingresos futuros. Revisa el desglose de obligaciones para entender el número de caja. El saldo esperado al cierre se compara con el saldo actual para ver la diferencia proyectada. Usa la media de grupos cuando el gasto sea estable y plantillas cuando quieras una estructura fija."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "Los modos Compartido y Pagado no son un saldo de consumo. La proyección de caja es la referencia para el dinero disponible. Una transacción fija es un compromiso, no un gasto: solo afecta el real después de crear un registro. Los recordatorios de vehículo sin historial de costo muestran cero hasta que agregues una línea."
             }
         },
         "budgetTemplates": {
@@ -830,11 +1194,11 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "Ingresa dos de tres valores entre volumen, precio por unidad y total; el tercero se calcula. El consumo se puede mostrar como mi/gal, km/gal, mi/L, km/L, L/100 km, gal/100 km, L/60 mi o gal/60 mi. Los segmentos de tanque lleno son el método más preciso; las cargas parciales se acumulan hasta el siguiente tanque lleno. Cualquier carga registrada con distancia en lugar de odómetro se infiere desde la lectura anterior, incluidos los tanques llenos, y las entradas mixtas conservan su orden de creación cuando comparten la misma fecha. La pantalla de combustible muestra gráficos de rendimiento, volumen, precio y total gastado agrupados por segmento de tanque lleno, además de una comparativa normalizada de volumen, distancia y costo total."
+                "body": "Ingresa dos de tres valores entre volumen, precio por unidad y total; el tercero se calcula. El consumo se puede mostrar como mi/gal, km/gal, mi/L, km/L, L/100 km, gal/100 km, L/60 mi o gal/60 mi. Los segmentos de tanque lleno son el método más preciso; las cargas parciales se acumulan hasta el siguiente tanque lleno. Cualquier carga registrada con distancia en lugar de odómetro se infiere desde la lectura anterior, incluidos los tanques llenos, y las entradas mixtas conservan su orden de creación cuando comparten la misma fecha. Cada segmento muestra su distancia total recorrida. La pantalla de combustible muestra gráficos de rendimiento, volumen, precio y total gastado agrupados por segmento de tanque lleno, además de una comparativa normalizada de volumen, distancia y costo total."
             },
             "steps": {
                 "title": "Paso a paso",
-                "step1": "Elige el vehículo, la fecha y las unidades. El formulario recuerda las últimas unidades de volumen y odómetro guardadas para ese vehículo. Si es el primer registro, puedes anotar solo el odómetro como base.",
+                "step1": "Elige el vehículo, la fecha y las unidades. El formulario recuerda las últimas unidades de volumen y odómetro y el último modo odómetro/distancia para ese vehículo. Si es el primer registro, puedes anotar solo el odómetro como base.",
                 "step2": "Ingresa odómetro o distancia y dos de volumen, precio y total. Una carga parcial puede dejar el odómetro/distancia vacío o en 0.",
                 "step3": "Marca tanque lleno, elige crear o vincular un gasto y guarda."
             },
@@ -980,33 +1344,93 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "Cuando asignas una persona a un gasto fijo, financiamiento o meta de ahorro también defines su porcentaje. Cada pago compartido genera una asignación por participante y los movimientos del ahorro registran quién aportó o retiró. El historial muestra la fecha, el concepto, el porcentaje y el monto de la parte de esa persona, incluidos los abonos a capital, los aportes a ahorros y los pagos que reducen la cuota."
+                "body": "Cuando asignas una persona a un gasto fijo, financiamiento, meta de ahorro o compra compartida también defines su porcentaje. Cada pago compartido genera una asignación o un movimiento en su estado de cuenta, y los movimientos del ahorro registran quién aportó o retiró. El estado de cuenta muestra el total pagado por ti, el total pagado por la persona, las compras y los pagos, y el saldo neto con su dirección. Los financiamientos son informativos y no afectan el nuevo saldo; los ahorros se mantienen aparte."
             },
             "steps": {
                 "title": "Paso a paso",
                 "step1": "Abre la sección Personas y crea las personas con las que compartes gastos.",
-                "step2": "Agrégalas como participantes en un gasto fijo, financiamiento o ahorro y define sus porcentajes.",
+                "step2": "Agrégalas como participantes en un gasto fijo, financiamiento o ahorro y define su porcentaje o monto fijo (los ahorros usan solo porcentaje).",
                 "step3": "Abre el historial de pagos de una persona para revisar su monto compartido acumulado y sus aportes a ahorros."
             },
             "example": {
                 "title": "Ejemplo",
-                "body": "Una renta de 1,000 se comparte al 50% con Ana. El registro guarda 500 como tu parte y 500 como compartido. El historial de Ana muestra un movimiento de 500 con la fecha y el concepto de la renta. En un ahorro compartido al 50%, los aportes de Ana aparecen en su historial y cuentan para su parte del saldo."
+                "body": "Una renta de 1,000 se comparte al 50% con Ana. Si pagaste el total, el registro guarda 500 como tu parte y 500 como compartido, y el estado de cuenta de Ana muestra que te debe 500. Si pagó Ana, tu estado de cuenta muestra que le debes 500. En un ahorro compartido al 50%, los aportes de Ana aparecen aparte y cuentan para su parte del saldo."
             },
             "tips": {
                 "title": "Consejos",
-                "body": "Mantén la suma de porcentajes en 100% o menos. Archiva a una persona en lugar de eliminarla cuando quieras conservar su historial."
+                "body": "Mantén la suma asignada dentro del total. Los porcentajes se calculan sobre el total y los montos fijos no pueden superar el resto. Archiva a una persona en lugar de eliminarla cuando quieras conservar su historial."
             },
             "warning": {
                 "title": "Error común",
                 "body": "Eliminar a una persona quita sus vínculos compartidos y su historial de pagos. Si solo está inactiva temporalmente, archívala."
             }
         },
+        "sharedPurchases": {
+            "title": "Compras compartidas",
+            "summary": "Comparte una compra con personas que ya tienes registradas y guarda quién pagó.",
+            "what": {
+                "title": "Qué es",
+                "body": "Una compra compartida es un solo registro cuyo total se reparte entre tu parte y las partes de las personas que elijas. También guarda si pagaste tú o una de esas personas."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "Ingresa el total de la compra, agrega participantes con porcentaje o monto fijo y elige quién pagó. Un participante nuevo hereda el tipo de parte del anterior. Los porcentajes y los montos se calculan sobre el total y la app bloquea el guardado si la suma asignada lo supera. Si pagaste el total, cada participante te debe su parte. Si pagó otra persona el total, tu parte queda como deuda con ella. El estado de cuenta muestra el total pagado por cada lado, el saldo neto y el historial de movimientos. En los gastos fijos también se pregunta si pagaste el total, solo tu parte, o si pagó otra persona. Los financiamientos quedan como informativos y los ahorros se mantienen aparte."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Crea o abre un registro de gasto e ingresa el total de la compra.",
+                "step2": "Agrega las personas con porcentaje o monto fijo, y elige quién pagó.",
+                "step3": "Abre el estado de cuenta de la persona para revisar el total pagado por cada lado y el saldo."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "Una compra de 1,000 se comparte al 50% con Ana. Si pagaste tú, Ana te debe 500. Si pagó Ana, tú le debes 500. El estado de cuenta muestra 1,000 pagados por ti o por Ana y el saldo de 500."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Mantén la suma asignada dentro del total. Los porcentajes se calculan sobre el total y los montos fijos no pueden superar el resto. Ingresa el total de la compra, no solo tu parte, para que el estado de cuenta sepa cuánto pagó cada lado."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "No registres la misma compra dos veces. Si pagó Ana, regístrala una vez, márcala como pagada por ella y deja que la deuda aparezca en el estado de cuenta."
+            }
+        },
+        "settlements": {
+            "title": "Liquidaciones",
+            "summary": "Registra pagos entre tú y una persona y arrastra saldos pendientes al nuevo grupo.",
+            "what": {
+                "title": "Qué es",
+                "body": "Una liquidación es un pago que reduce el saldo entre tú y una persona. Puede ser parcial y se puede asignar al grupo anterior o al nuevo."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "Desde el estado de cuenta de una persona usa Registrar pago, elige la dirección, el monto, la fecha y el grupo. Las liquidaciones afectan el balance de caja pero no el de consumo, porque la compra ya está registrada. Al crear un grupo, PocketTool avisa de los saldos pendientes y permite liquidarlos en el grupo anterior, en el nuevo o darles seguimiento."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Abre el estado de cuenta de una persona y toca Registrar pago.",
+                "step2": "Elige si pagaste tú o si pagó la persona, ingresa el monto y selecciona el grupo.",
+                "step3": "Al crear un grupo nuevo, decide si liquidar los saldos pendientes o darles seguimiento."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "Ana te debe 500. Registras que te pagó 200; su saldo queda en 300. Al crear el siguiente grupo, PocketTool muestra los 300 pendientes y permite liquidarlos o darles seguimiento."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Las liquidaciones pueden ser parciales. Asígnalas al grupo donde se movió el dinero para que el balance de caja sea exacto."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "No crees un registro de compra para una liquidación; duplicaría tu consumo. Usa Registrar pago."
+            }
+        },
         "amountModes": {
-            "title": "Tu parte, total y compartido",
+            "title": "Tu parte, compartido, total y propio bruto",
             "summary": "Elige cómo muestran los importes los resúmenes, presupuestos y créditos.",
             "what": {
                 "title": "Qué es",
-                "body": "El modo de importe tiene tres opciones: tu parte, total y compartido. Tu parte es lo que realmente pagas, compartido es lo que cubren otras personas y total es la suma de ambos."
+                "body": "El modo de importe tiene cuatro opciones: tu parte, compartido, total y propio bruto. Tu parte es lo que te corresponde de cada compra. Compartido es lo que otras personas te deben por las compras que pagaste, antes de liquidar. Total es la compra completa sin importar quién pagó. Propio bruto es el ingreso menos lo que realmente pagaste por compras; las liquidaciones no se incluyen."
             },
             "how": {
                 "title": "Cómo funciona",
@@ -1015,20 +1439,20 @@ export const helpEs: MessageShape<typeof helpEn> = {
             "steps": {
                 "title": "Paso a paso",
                 "step1": "Abre una pantalla de resumen, presupuesto o créditos.",
-                "step2": "Toca Tu parte, Total o Compartido encima de las cifras.",
+                "step2": "Toca Tu parte, Compartido, Total o Propio bruto encima de las cifras.",
                 "step3": "Revisa los totales y los buckets con la vista seleccionada."
             },
             "example": {
                 "title": "Ejemplo",
-                "body": "Un gasto de 1,000 compartido al 50% muestra 500 como tu parte, 500 como compartido y 1,000 como total. En un presupuesto, Tu parte compara 500 contra el monto planificado."
+                "body": "Una compra de 1,000 compartida al 50% muestra 500 como tu parte, 500 como compartido y 1,000 como total. Si la pagaste tú, el propio bruto resta 1,000 de tus ingresos. Si la pagó la otra persona, el propio bruto no la resta, pero el total sigue siendo 1,000."
             },
             "tips": {
                 "title": "Consejos",
-                "body": "Usa Tu parte para tu balance personal, Total para ver el compromiso completo y Compartido para revisar lo que cubren otras personas."
+                "body": "Usa Compartido para ver lo que te deben, Total para ver la compra completa y Propio bruto para ver tus ingresos menos las compras pagadas, antes de liquidaciones."
             },
             "warning": {
                 "title": "Error común",
-                "body": "Compartido no es dinero que pagaste. No lo uses como tu gasto personal al revisar tu balance."
+                "body": "Compartido no es dinero que pagaste. Total es la compra completa (tu parte más la parte compartida), no tu caja. Propio bruto incluye ingresos y compras pagadas, pero no liquidaciones; el balance de caja sí incluye las liquidaciones."
             }
         },
         "savings": {
@@ -1044,7 +1468,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "steps": {
                 "title": "Paso a paso",
-                "step1": "Crea un ahorro con nombre, monto inicial y, si quieres, meta, participantes y regla de aporte.",
+                "step1": "Crea un ahorro con nombre, monto inicial (puede ser 0) y, si quieres, meta, participantes y regla de aporte.",
                 "step2": "Registra aportes, retiros, intereses o ajustes. Elige una persona cuando el movimiento corresponda a una parte compartida.",
                 "step3": "Revisa el progreso global, propio y compartido, la proyección de la meta y el historial. Archívalo cuando ya no necesites mantenerlo activo."
             },
@@ -1059,6 +1483,36 @@ export const helpEs: MessageShape<typeof helpEn> = {
             "warning": {
                 "title": "Error común",
                 "body": "El interés no es un aporte nuevo. Regístralo como interés para que se reparta correctamente. Eliminar un ahorro borra sus movimientos e historial; archívalo si quieres conservar los datos."
+            }
+        },
+        "shopping": {
+            "title": "Listas de compras",
+            "summary": "Planifica compras, marca artículos y registra la compra.",
+            "what": {
+                "title": "Qué es",
+                "body": "Una lista de compras es una lista global tipo to-do con artículos que pueden tener precio. Un precio de cero significa que el artículo no tiene precio. Las listas no pertenecen a un grupo; el grupo se elige solo al crear o vincular el registro de compra. Marcar un artículo indica progreso y suma su precio al total."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "Las listas abiertas se pueden renombrar y sus artículos se pueden agregar, editar, marcar, reordenar o eliminar. Usa el selector de listas para cambiar sin que la página crezca ni perder la vista de los artículos. El total suma solo los artículos marcados que tienen precio; si un artículo marcado no tiene precio, el total se muestra como parcial. Cerrar la lista la deja de solo lectura. Desde una lista cerrada puedes crear un registro con el monto calculado o manual, vincular un registro compatible existente u omitir el registro. El vínculo es único por lista y no se puede registrar dos veces."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Crea una lista y agrega artículos con precio opcional.",
+                "step2": "Marca los artículos que vas a comprar y revisa el total calculado o parcial.",
+                "step3": "Cierra la lista y elige crear, vincular u omitir para terminar."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "Una lista con leche a 3.50, pan a 2.00 y un artículo marcado sin precio muestra 5.50 como total parcial. Al cerrarla puedes crear un gasto de 5.50, escribir otro monto, vincular un gasto existente del mismo día o cerrar sin registro."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Usa el total calculado como punto de partida y ajusta el monto por descuentos o artículos extra. Vincular exige el mismo monto y día, y excluye registros ya usados por vehículo, financiamientos, ahorros, créditos u otra lista de compras."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "Una lista cerrada ya no se puede editar. Revisa artículos y precios antes de cerrar. Eliminar la lista conserva su registro; eliminar el registro deja la lista cerrada y muestra el vínculo como faltante."
             }
         },
         "filters": {
@@ -1119,6 +1573,36 @@ export const helpEs: MessageShape<typeof helpEn> = {
             "warning": {
                 "title": "Error común",
                 "body": "Un contraste muy bajo puede volver ilegibles las etiquetas. Usa Restablecer o la paleta base si ocurre."
+            }
+        },
+        "experience": {
+            "title": "Niveles de experiencia",
+            "summary": "Elige cuántas secciones y opciones ves, y oculta módulos sin borrar datos.",
+            "what": {
+                "title": "Qué es",
+                "body": "El nivel de experiencia controla qué secciones aparecen en el menú y qué bloques avanzados se muestran. Nunca cambia cálculos, registros ni saldos."
+            },
+            "how": {
+                "title": "Cómo funciona",
+                "body": "Esencial muestra lo básico del día a día. Equilibrado añade compromisos, presupuestos y créditos. Completo muestra todos los módulos. También puedes activar o desactivar cada módulo, y la app ajusta las dependencias automáticamente."
+            },
+            "steps": {
+                "title": "Paso a paso",
+                "step1": "Abre Ajustes → Experiencia y elige Esencial, Equilibrado o Completo.",
+                "step2": "Despliega los módulos para activar o desactivar secciones o mejoras de captura.",
+                "step3": "Usa Restaurar experiencia completa para volver a mostrar todo."
+            },
+            "example": {
+                "title": "Ejemplo",
+                "body": "Un usuario que solo registra ingresos y gastos elige Esencial. Más adelante activa Créditos y Presupuestos sin perder ningún dato."
+            },
+            "tips": {
+                "title": "Consejos",
+                "body": "Empieza simple. Activa un módulo cuando lo necesites; los módulos ocultos conservan sus registros."
+            },
+            "warning": {
+                "title": "Error común",
+                "body": "Ocultar un módulo no borra datos. Si importas un backup, la experiencia guardada se aplica automáticamente."
             }
         }
     }

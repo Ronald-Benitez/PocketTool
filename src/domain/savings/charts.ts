@@ -1,3 +1,4 @@
+import type { ChartSpec } from '@/src/domain/charts/types';
 import { computeSavingSnapshot } from './balances';
 import type {
   SavingChartPoint,
@@ -26,4 +27,46 @@ export const buildSavingChart = (
     });
   }
   return points;
+};
+
+export const buildSavingChartSpec = (
+  points: SavingChartPoint[],
+  labels: { total: string; own: string; shared: string }
+): ChartSpec | null => {
+  if (points.length === 0) return null;
+
+  return {
+    kind: 'line',
+    xAxis: { type: 'time', format: 'date' },
+    yAxis: { format: 'money' },
+    series: [
+      {
+        key: 'total',
+        label: labels.total,
+        tone: 'planned',
+        points: points.map((point) => ({
+          x: point.date,
+          y: point.totalCents,
+        })),
+      },
+      {
+        key: 'own',
+        label: labels.own,
+        tone: 'primary',
+        points: points.map((point) => ({
+          x: point.date,
+          y: point.ownCents,
+        })),
+      },
+      {
+        key: 'shared',
+        label: labels.shared,
+        tone: 'muted',
+        points: points.map((point) => ({
+          x: point.date,
+          y: point.sharedCents,
+        })),
+      },
+    ],
+  };
 };

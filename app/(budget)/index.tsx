@@ -4,25 +4,34 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import GroupSelector from '@/src/components/groups/group-selector';
+import { BudgetBalanceCard } from '@/src/components/budgets/BudgetBalanceCard';
+import { BudgetCashCard } from '@/src/components/budgets/BudgetCashCard';
+import { BudgetDraggableLines } from '@/src/components/budgets/BudgetDraggableLines';
 import { BudgetGroupAverageDialog } from '@/src/components/budgets/BudgetGroupAverageDialog';
 import { BudgetLineForm } from '@/src/components/budgets/BudgetLineForm';
+import { BudgetObligationsCard } from '@/src/components/budgets/BudgetObligationsCard';
+import { BudgetSavingsSuggestionsCard } from '@/src/components/budgets/BudgetSavingsSuggestionsCard';
 import { BudgetTemplateApplyDialog } from '@/src/components/budgets/BudgetTemplateApplyDialog';
-import { useBudgetPlan, useBudgetTemplates } from '@/src/hooks/useBudgetPlan';
+import { useBudgetTemplates } from '@/src/hooks/useBudgetPlan';
+import { useBudgetProjection } from '@/src/hooks/useBudgetProjection';
 import { SummaryModeToggle } from '@/src/components/summaries/SummaryModeToggle';
 import { useSummaryMode } from '@/src/hooks/useSummaryMode';
 import useRecordsStore from '@/src/stores/RecordsStore';
+import useResumesStore from '@/src/stores/ResumesStore';
 import type {
   BudgetApplyMode,
   BudgetInsight,
   BudgetLineComparison,
+  BudgetSavingsSuggestion,
 } from '@/src/domain/budgets/types';
 import { buildBudgetCharts } from '@/src/domain/budgets/charts';
 import { budgetLineStatusKey } from '@/src/lang/keys';
 import type { Group } from '@/src/interfaces/schema';
+import { FeatureGate, useFeature } from '@/src/features';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import { formatMoneyWithSymbol } from '@/src/utils';
 import { Button } from '@/src/ui/actions/Button';
-import { IconButton } from '@/src/ui/actions/IconButton';
+import { LinkButton } from '@/src/ui/actions/LinkButton';
 import { Badge, type BadgeTone } from '@/src/ui/data-display/Badge';
 import { FinanceValue } from '@/src/ui/data-display/FinanceValue';
 import { ListItem } from '@/src/ui/data-display/ListItem';
@@ -32,12 +41,13 @@ import { InlineMessage } from '@/src/ui/feedback/InlineMessage';
 import { LoadingState } from '@/src/ui/feedback/LoadingState';
 import { useToast } from '@/src/ui/feedback/ToastProvider';
 import { TextField } from '@/src/ui/forms/TextField';
-import { MermaidChart } from '@/src/ui/charts/MermaidChart';
+import { ChartCard, useChartPreferences } from '@/src/ui/charts';
 import { ConfirmDialog } from '@/src/ui/overlays/Dialog';
 import { Modal } from '@/src/ui/overlays/Modal';
 import { AppText } from '@/src/ui/primitives/AppText';
 import { Screen } from '@/src/ui/primitives/Screen';
 import { Row, Stack } from '@/src/ui/primitives/Stack';
+import { SectionCard } from '@/src/ui/data-display/SectionCard';
 import { Surface } from '@/src/ui/primitives/Surface';
 import { useTheme } from '@/src/ui/theme/ThemeProvider';
 
@@ -73,14 +83,47 @@ const Index = () => {
   const { showToast } = useToast();
   const router = useRouter();
   const { group } = useRecordsStore();
+  const { balance: currentConsumptionBalance } = useResumesStore();
   const { mode } = useSummaryMode();
-  const { plan, loading, refresh, repository } = useBudgetPlan(group?.id, mode);
+  const {
+    plan,
+    consumptionBalance,
+    cashBalance,
+    obligations,
+    savingsSuggestions,
+    loading,
+    refresh,
+    repository,
+  } = useBudgetProjection(group?.id, mode);
+  const showFixeds = useFeature('fixeds');
+  const visibleInsights = plan
+    ? showFixeds
+      ? plan.insights
+      : plan.insights.filter(
+          (insight) =>
+            insight.kind !== 'fixed_uncovered' && insight.kind !== 'fixed_pending'
+        )
+    : [];
   const { templates, refresh: refreshTemplates } = useBudgetTemplates();
   const [lineFormVisible, setLineFormVisible] = useState(false);
   const [selectedLine, setSelectedLine] = useState<BudgetLineComparison | null>(null);
-  const [chartMode, setChartMode] = useState<
-    'comparison' | 'health' | 'distribution' | 'projection'
-  >('comparison');
+  type BudgetChartMode =
+    | 'comparison'
+    | 'health'
+    | 'distribution'
+    | 'projection'
+    | 'balance';
+  const chartPreferences = useChartPreferences();
+  const storedChartMode = chartPreferences.get('budget.plan').mode;
+  const chartMode: BudgetChartMode =
+    storedChartMode === 'health' ||
+    storedChartMode === 'distribution' ||
+    storedChartMode === 'projection' ||
+    storedChartMode === 'balance'
+      ? storedChartMode
+      : 'comparison';
+  const setChartMode = (mode: BudgetChartMode) =>
+    chartPreferences.setMode('budget.plan', mode);
   const [applyVisible, setApplyVisible] = useState(false);
   const [averageVisible, setAverageVisible] = useState(false);
   const [groups, setGroups] = useState<Group[]>([]);
@@ -100,9 +143,13 @@ const Index = () => {
       distributionTitle: t('budget.chart.distribution'),
       comparisonTitle: t('budget.chart.comparison'),
       projectionTitle: t('budget.chart.projection'),
+      balanceTitle: t('budget.chart.balance'),
       planned: t('budget.chart.planned'),
       actual: t('budget.chart.actual'),
       projected: t('budget.lines.projected'),
+      plannedNet: t('budget.totals.plannedNet'),
+      actualNet: t('budget.totals.actualNet'),
+      expectedNet: t('budget.expectedBalance'),
       spent: t('budget.chart.spent'),
       remaining: t('budget.chart.remaining'),
       onTrack: t('budget.lineStatus.onTrack'),
@@ -113,80 +160,21 @@ const Index = () => {
     [t]
   );
 
-  const charts = useMemo(
-    () =>
-      plan
-        ? buildBudgetCharts(plan, chartLabels)
-        : { health: null, distribution: null, comparison: null, projection: null },
-    [plan, chartLabels]
-  );
-
-  const chartPalette = useMemo(() => {
-    if (chartMode === 'health') {
-      return [colors.success, colors.warning, colors.danger, colors.info];
+  const charts = useMemo(() => {
+    if (!plan) {
+      return {
+        health: null,
+        distribution: null,
+        comparison: null,
+        projection: null,
+        balance: null,
+      };
     }
-    if (chartMode === 'distribution') {
-      return [
-        colors.chartPlanned,
-        colors.chartActual,
-        colors.chartProjected,
-        colors.primary,
-        colors.secondary,
-        colors.info,
-        colors.warning,
-        colors.danger,
-      ];
-    }
-    if (chartMode === 'projection') {
-      return [colors.chartPlanned, colors.chartProjected];
-    }
-    return [colors.chartPlanned, colors.chartActual];
-  }, [
-    chartMode,
-    colors.chartActual,
-    colors.chartPlanned,
-    colors.chartProjected,
-    colors.danger,
-    colors.info,
-    colors.primary,
-    colors.secondary,
-    colors.success,
-    colors.warning,
-  ]);
-
-  const chartLegend = useMemo(() => {
-    if (chartMode === 'comparison') {
-      return [
-        { label: t('budget.chart.planned'), color: colors.chartPlanned },
-        { label: t('budget.chart.actual'), color: colors.chartActual },
-      ];
-    }
-    if (chartMode === 'projection') {
-      return [
-        { label: t('budget.chart.planned'), color: colors.chartPlanned },
-        { label: t('budget.lines.projected'), color: colors.chartProjected },
-      ];
-    }
-    if (chartMode === 'health') {
-      return [
-        { label: t('budget.lineStatus.onTrack'), color: colors.success },
-        { label: t('budget.lineStatus.warning'), color: colors.warning },
-        { label: t('budget.lineStatus.over'), color: colors.danger },
-        { label: t('budget.lineStatus.fixedPending'), color: colors.info },
-      ];
-    }
-    return [];
-  }, [
-    chartMode,
-    colors.chartActual,
-    colors.chartPlanned,
-    colors.chartProjected,
-    colors.danger,
-    colors.info,
-    colors.success,
-    colors.warning,
-    t,
-  ]);
+    return buildBudgetCharts(
+      consumptionBalance ? { ...plan, balance: consumptionBalance } : plan,
+      chartLabels
+    );
+  }, [chartLabels, consumptionBalance, plan]);
 
   useFocusEffect(
     useCallback(() => {
@@ -344,6 +332,16 @@ const Index = () => {
     }
   };
 
+  const removeLine = async (line: BudgetLineComparison) => {
+    if (!plan) return;
+    try {
+      await repository.deleteLine(line.lineId);
+      await refresh();
+    } catch {
+      showToast({ message: t('budget.toast.error'), type: 'error' });
+    }
+  };
+
   const syncFixed = async (line: BudgetLineComparison) => {
     if (!plan || !line.fixedId) return;
     const fixed = plan.fixedCommitments.find((item) => item.fixedId === line.fixedId);
@@ -362,6 +360,47 @@ const Index = () => {
       });
       await refresh();
       showToast({ message: t('budget.toast.fixedSynced'), type: 'success' });
+    } catch {
+      showToast({ message: t('budget.toast.error'), type: 'error' });
+    }
+  };
+
+  const includeSaving = async (suggestion: BudgetSavingsSuggestion) => {
+    if (!plan) return;
+    setBusy(true);
+    try {
+      await repository.saveLine({
+        budget_plan_id: plan.planId,
+        category_id: suggestion.categoryId,
+        record_type_id: suggestion.recordTypeId,
+        scope: 'category',
+        source: 'savings',
+        planned_amount: suggestion.amountCents,
+        priority: 2,
+        notes: t('budget.savingsSuggestionsTitle'),
+      });
+      await refresh();
+      showToast({ message: t('budget.toast.lineSaved'), type: 'success' });
+    } catch {
+      showToast({ message: t('budget.toast.error'), type: 'error' });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const reorderLines = async (from: number, to: number) => {
+    if (!plan || from === to) return;
+    const ordered = [...plan.lines];
+    const [moved] = ordered.splice(from, 1);
+    if (!moved) return;
+    ordered.splice(to, 0, moved);
+
+    try {
+      await repository.reorderLines(
+        plan.planId,
+        ordered.map((line) => line.lineId)
+      );
+      await refresh();
     } catch {
       showToast({ message: t('budget.toast.error'), type: 'error' });
     }
@@ -467,22 +506,21 @@ const Index = () => {
 
   return (
     <Screen scroll edges={['left', 'right']}>
-      <Stack gap='lg'>
+      <Stack gap='xl'>
         <Row justify='center'>
           <GroupSelector />
         </Row>
 
         {!plan ? (
-          <Surface variant='raised' padding='lg'>
+          <SectionCard title={t('budget.noPlanTitle')}>
             <Stack gap='md'>
-              <Stack gap='xs'>
-                <AppText variant='title'>{t('budget.noPlanTitle')}</AppText>
-                <AppText color='muted'>{t('budget.noPlanBody')}</AppText>
-              </Stack>
+              <AppText color='muted'>{t('budget.noPlanBody')}</AppText>
               <Stack gap='sm'>
                 <Button label={t('budget.createFromScratch')} onPress={() => start('blank')} loading={busy} />
                 <Button label={t('budget.fromPrevious')} variant='outline' onPress={() => start('previous')} />
-                <Button label={t('budget.fromFixeds')} variant='outline' onPress={() => start('fixeds')} />
+                {showFixeds ? (
+                  <Button label={t('budget.fromFixeds')} variant='outline' onPress={() => start('fixeds')} />
+                ) : null}
                 <Button label={t('budget.fromActuals')} variant='outline' onPress={() => start('actuals')} />
                 <Button
                   label={t('budget.fromAverage')}
@@ -496,31 +534,47 @@ const Index = () => {
                 />
               </Stack>
             </Stack>
-          </Surface>
+          </SectionCard>
         ) : (
           <>
-            <Row justify='space-between' align='flex-start'>
-              <Stack gap='xxs' style={{ flex: 1 }}>
-                <AppText variant='title'>{plan.planName}</AppText>
-                <AppText color='muted'>{t('budget.planSubtitle')}</AppText>
-                {plan.templateName ? (
-                  <Row gap='xs' wrap>
-                    <Badge label={plan.templateName} size='sm' />
-                  </Row>
-                ) : null}
-              </Stack>
-              <IconButton
-                label={t('budget.manageTemplates')}
-                variant='ghost'
-                icon={<MaterialIcons name='dashboard-customize' size={22} color={colors.primary} />}
-                onPress={() => router.push('/(budget)/templates')}
-              />
-            </Row>
+            <SectionCard
+              title={plan.planName}
+              subtitle={t('budget.planSubtitle')}
+              action={
+                <LinkButton
+                  label={t('budget.manageTemplates')}
+                  onPress={() => router.push('/(budget)/templates')}
+                />
+              }
+            >
+              {plan.templateName ? (
+                <Row gap='xs' wrap>
+                  <Badge label={plan.templateName} size='sm' />
+                </Row>
+              ) : null}
 
             <SummaryModeToggle />
+            {mode === 'shared' || mode === 'paid' ? (
+              <InlineMessage variant='info' message={t('budget.modeNote')} />
+            ) : null}
 
-            <Surface variant='raised' padding='lg'>
-              <Stack gap='md'>
+            <Stack gap='md'>
+                <Row justify='space-between' align='flex-start' gap='md'>
+                  <SummaryBlock
+                    label={t('budget.totals.plannedIncome')}
+                    cents={plan.totals.plannedIncomeCents}
+                    size='lg'
+                    accentColor={colors.income}
+                    style={{ flex: 1 }}
+                  />
+                  <SummaryBlock
+                    label={t('budget.totals.actualIncome')}
+                    cents={plan.totals.actualIncomeCents}
+                    size='lg'
+                    accentColor={colors.success}
+                    style={{ flex: 1 }}
+                  />
+                </Row>
                 <Row justify='space-between' align='flex-start' gap='md'>
                   <SummaryBlock
                     label={t('budget.totals.plannedExpense')}
@@ -539,19 +593,37 @@ const Index = () => {
                 </Row>
                 <Row justify='space-between' align='flex-start' gap='md'>
                   <SummaryBlock
+                    label={t('budget.totals.plannedNet')}
+                    cents={plan.totals.plannedNetCents}
+                    size='md'
+                    accentColor={colors.primary}
+                    style={{ flex: 1 }}
+                  />
+                  <SummaryBlock
+                    label={t('budget.totals.actualNet')}
+                    cents={plan.totals.actualNetCents}
+                    size='md'
+                    accentColor={colors.expense}
+                    style={{ flex: 1 }}
+                  />
+                </Row>
+                <Row justify='space-between' align='flex-start' gap='md'>
+                  <SummaryBlock
                     label={t('budget.totals.variance')}
                     cents={plan.totals.plannedExpenseCents - plan.totals.actualExpenseCents}
                     size='md'
                     accentColor={colors.goal}
                     style={{ flex: 1 }}
                   />
-                  <SummaryBlock
-                    label={t('budget.totals.pendingFixed')}
-                    cents={plan.totals.pendingFixedCents}
-                    size='md'
-                    accentColor={colors.info}
-                    style={{ flex: 1 }}
-                  />
+                  {showFixeds ? (
+                    <SummaryBlock
+                      label={t('budget.totals.pendingFixed')}
+                      cents={plan.totals.pendingFixedCents}
+                      size='md'
+                      accentColor={colors.info}
+                      style={{ flex: 1 }}
+                    />
+                  ) : null}
                 </Row>
                 <Stack gap='sm'>
                   <Button
@@ -594,12 +666,22 @@ const Index = () => {
                   />
                 </Stack>
               </Stack>
-            </Surface>
+            </SectionCard>
 
-            {plan.insights.length > 0 ? (
-              <Stack gap='sm'>
-                <AppText variant='subtitle'>{t('budget.insights.title')}</AppText>
-                {plan.insights.slice(0, 4).map((insight, index) => (
+            {consumptionBalance ? (
+              <BudgetBalanceCard
+                balance={plan.balance}
+                currentBalanceCents={currentConsumptionBalance}
+              />
+            ) : null}
+            {cashBalance ? (
+              <BudgetCashCard cash={cashBalance} obligations={obligations} />
+            ) : null}
+            <BudgetObligationsCard obligations={obligations} />
+
+            {visibleInsights.length > 0 ? (
+              <SectionCard title={t('budget.insights.title')}>
+                {visibleInsights.slice(0, 4).map((insight, index) => (
                   <InlineMessage
                     key={`${insight.kind}-${index}`}
                     variant={
@@ -610,9 +692,10 @@ const Index = () => {
                     message={insightText(insight)}
                   />
                 ))}
-              </Stack>
+              </SectionCard>
             ) : null}
 
+            <FeatureGate feature='charts'>
             <Stack gap='sm'>
               <AppText variant='subtitle'>{t('budget.chart.title')}</AppText>
               <Row gap='xs' wrap>
@@ -640,16 +723,22 @@ const Index = () => {
                   variant={chartMode === 'projection' ? 'primary' : 'outline'}
                   onPress={() => setChartMode('projection')}
                 />
+                <Button
+                  label={t('budget.chart.balance')}
+                  size='sm'
+                  variant={chartMode === 'balance' ? 'primary' : 'outline'}
+                  onPress={() => setChartMode('balance')}
+                />
               </Row>
-              <MermaidChart
-                definition={charts[chartMode] ?? charts.comparison ?? charts.health}
+              <ChartCard
+                chartKey='budget.plan'
+                title={t('budget.chart.title')}
+                spec={charts[chartMode] ?? charts.comparison ?? charts.health}
                 height={300}
-                accessibilityLabel={t('budget.chart.title')}
-                fallback={chartFallback}
-                palette={chartPalette}
-                legend={chartLegend}
+                empty={chartFallback}
               />
             </Stack>
+            </FeatureGate>
 
             <Stack gap='sm'>
               <Row justify='space-between' align='center'>
@@ -669,25 +758,29 @@ const Index = () => {
                   </Stack>
                 </Surface>
               ) : (
-                <Surface variant='outlined' padding='none'>
-                  {plan.lines.map((line, index) => {
+                <BudgetDraggableLines
+                  lines={plan.lines}
+                  onReorder={(from, to) => void reorderLines(from, to)}
+                  renderLine={(line, dragHandle, index) => {
                     const tone = statusTone(line.status);
                     return (
                       <ListItem
-                        key={line.lineId}
                         title={line.categoryName || t('budget.lines.noCategory')}
                         subtitle={`${line.typeName || t('budget.lines.noType')} · ${t(
                           budgetLineStatusKey(line.status)
                         )}`}
                         leading={
-                          <View
-                            style={{
-                              width: 4,
-                              height: 32,
-                              borderRadius: 2,
-                              backgroundColor: statusColor(line.status, colors),
-                            }}
-                          />
+                          <Row gap='xs' align='center'>
+                            <View
+                              style={{
+                                width: 4,
+                                height: 32,
+                                borderRadius: 2,
+                                backgroundColor: statusColor(line.status, colors),
+                              }}
+                            />
+                            {dragHandle}
+                          </Row>
                         }
                         trailing={
                           <Stack gap='xxs' align='flex-end'>
@@ -702,14 +795,20 @@ const Index = () => {
                               </AppText>
                             ) : null}
                             <Badge label={`${Math.round(line.usagePercent)}%`} tone={tone} size='sm' />
+                            <Button
+                              label={t('budget.actions.removeFromPlan')}
+                              size='sm'
+                              variant='ghost'
+                              onPress={() => void removeLine(line)}
+                            />
                           </Stack>
                         }
                         onPress={() => openEditLine(line)}
                         showDivider={index < plan.lines.length - 1}
                       />
                     );
-                  })}
-                </Surface>
+                  }}
+                />
               )}
             </Stack>
 
@@ -735,6 +834,7 @@ const Index = () => {
               )}
             </Stack>
 
+            {showFixeds ? (
             <Stack gap='sm'>
               <AppText variant='subtitle'>{t('budget.fixed.title')}</AppText>
               <AppText color='muted'>{t('budget.fixed.subtitle')}</AppText>
@@ -803,6 +903,13 @@ const Index = () => {
                 </Surface>
               )}
             </Stack>
+            ) : null}
+
+            <BudgetSavingsSuggestionsCard
+              suggestions={savingsSuggestions}
+              busy={busy}
+              onInclude={(suggestion) => void includeSaving(suggestion)}
+            />
           </>
         )}
       </Stack>

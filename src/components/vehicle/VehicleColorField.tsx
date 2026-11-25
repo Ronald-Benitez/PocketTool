@@ -17,7 +17,10 @@ export const VehicleColorField = ({
   return (
     <ColorChoiceField
       label={t('vehicle.vehicle.color')}
-      hint={t('vehicle.vehicle.colorHint')}
+      tooltip={{
+        title: t('vehicle.vehicle.color'),
+        body: t('vehicle.vehicle.colorHint'),
+      }}
       placeholder={t('vehicle.vehicle.colorPlaceholder')}
       value={value}
       onChange={onChange}

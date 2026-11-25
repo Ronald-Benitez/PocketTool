@@ -1,3 +1,4 @@
+import type { ChartPoint, ChartSpec, ChartTone } from '@/src/domain/charts/types';
 import type { BudgetPlanView } from './types';
 
 export type BudgetChartLabels = {
@@ -5,9 +6,13 @@ export type BudgetChartLabels = {
   distributionTitle: string;
   comparisonTitle: string;
   projectionTitle: string;
+  balanceTitle: string;
   planned: string;
   actual: string;
   projected: string;
+  plannedNet: string;
+  actualNet: string;
+  expectedNet: string;
   spent: string;
   remaining: string;
   onTrack: string;
@@ -16,125 +21,208 @@ export type BudgetChartLabels = {
   fixedPending: string;
 };
 
-const clean = (value: string, fallback: string) => {
-  const normalized = value
-    .replace(/["[\]{}();\r\n]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-  if (!normalized) return fallback;
-  return normalized.length > 16 ? `${normalized.slice(0, 13)}...` : normalized;
-};
-
-const moneyLabel = (cents: number) => Math.round(cents) / 100;
-
 const topExpenseLines = (view: BudgetPlanView) =>
   view.lines
     .filter((line) => line.effect === '-')
     .sort((a, b) => b.plannedCents - a.plannedCents);
 
+const lineLabel = (line: BudgetPlanView['lines'][number]) =>
+  line.categoryName || line.typeName || '—';
+
+const distributionTones: ChartTone[] = [
+  'planned',
+  'actual',
+  'projected',
+  'primary',
+  'secondary',
+  'info',
+  'warning',
+  'danger',
+];
+
 export const buildBudgetHealthPie = (
   view: BudgetPlanView,
   labels: BudgetChartLabels
-): string | null => {
+): ChartSpec | null => {
   const lines = view.lines.filter((line) => line.effect === '-');
   if (lines.length === 0) return null;
 
-  const counts = {
-    onTrack: lines.filter((line) => line.status === 'on_track').length,
-    warning: lines.filter((line) => line.status === 'warning').length,
-    over: lines.filter((line) => line.status === 'over').length,
-    fixedPending: lines.filter((line) => line.status === 'fixed_pending').length,
+  const allCounts: { label: string; value: number; tone: ChartTone }[] = [
+    {
+      label: labels.onTrack,
+      value: lines.filter((line) => line.status === 'on_track').length,
+      tone: 'success',
+    },
+    {
+      label: labels.warning,
+      value: lines.filter((line) => line.status === 'warning').length,
+      tone: 'warning',
+    },
+    {
+      label: labels.over,
+      value: lines.filter((line) => line.status === 'over').length,
+      tone: 'danger',
+    },
+    {
+      label: labels.fixedPending,
+      value: lines.filter((line) => line.status === 'fixed_pending').length,
+      tone: 'info',
+    },
+  ];
+  const counts = allCounts.filter((entry) => entry.value > 0);
+
+  if (counts.length === 0) return null;
+
+  return {
+    kind: 'pie',
+    title: labels.healthTitle,
+    series: [
+      {
+        key: 'health',
+        label: labels.healthTitle,
+        tone: 'primary',
+        points: counts.map<ChartPoint>((entry) => ({
+          x: entry.label,
+          y: entry.value,
+          tone: entry.tone,
+        })),
+      },
+    ],
+    yAxis: { format: 'number' },
+    showValues: true,
   };
-
-  const entries = [
-    [labels.onTrack, counts.onTrack],
-    [labels.warning, counts.warning],
-    [labels.over, counts.over],
-    [labels.fixedPending, counts.fixedPending],
-  ].filter(([, value]) => Number(value) > 0);
-
-  if (entries.length === 0) return null;
-
-  return [
-    'pie showData',
-    `  title ${clean(labels.healthTitle, labels.healthTitle)}`,
-    ...entries.map(([label, value]) => `  "${clean(String(label), '—')}" : ${value}`),
-  ].join('\n');
 };
 
 export const buildBudgetDistributionPie = (
   view: BudgetPlanView,
   labels: BudgetChartLabels
-): string | null => {
+): ChartSpec | null => {
   const lines = topExpenseLines(view);
   const total = lines.reduce((sum, line) => sum + line.plannedCents, 0);
   if (lines.length === 0 || total <= 0) return null;
 
-  return [
-    'pie showData',
-    `  title ${clean(labels.distributionTitle, labels.distributionTitle)}`,
-    ...lines.map(
-      (line) =>
-        `  "${clean(
-          line.categoryName || line.typeName,
-          '—'
-        )}" : ${moneyLabel(line.plannedCents)}`
-    ),
-  ].join('\n');
+  return {
+    kind: 'pie',
+    title: labels.distributionTitle,
+    series: [
+      {
+        key: 'distribution',
+        label: labels.distributionTitle,
+        tone: 'planned',
+        points: lines.map<ChartPoint>((line, index) => ({
+          x: lineLabel(line),
+          y: line.plannedCents,
+          tone: distributionTones[index % distributionTones.length],
+        })),
+      },
+    ],
+    yAxis: { format: 'money' },
+    showValues: true,
+  };
 };
 
 export const buildBudgetComparisonChart = (
   view: BudgetPlanView,
   labels: BudgetChartLabels
-): string | null => {
+): ChartSpec | null => {
   const lines = topExpenseLines(view);
   if (lines.length === 0) return null;
 
-  const planned = lines.map((line) => moneyLabel(line.plannedCents));
-  const actual = lines.map((line) => moneyLabel(line.actualCents));
-  const max = Math.max(...planned, ...actual, 1);
-  const axisMax = Math.ceil(max * 1.15);
-
-  return [
-    'xychart-beta',
-    `  title "${clean(labels.comparisonTitle, labels.comparisonTitle)}"`,
-    `  x-axis [${lines
-      .map((line) => `"${clean(line.categoryName || line.typeName, '—')}"`)
-      .join(', ')}]`,
-    `  y-axis "${clean(labels.planned, labels.planned)} / ${clean(
-      labels.actual,
-      labels.actual
-    )}" 0 --> ${axisMax}`,
-    `  bar [${planned.join(', ')}]`,
-    `  bar [${actual.join(', ')}]`,
-  ].join('\n');
+  return {
+    kind: 'grouped_bar',
+    title: labels.comparisonTitle,
+    xAxis: { type: 'category', format: 'text' },
+    yAxis: { format: 'money' },
+    series: [
+      {
+        key: 'planned',
+        label: labels.planned,
+        tone: 'planned',
+        points: lines.map((line) => ({
+          x: lineLabel(line),
+          y: line.plannedCents,
+        })),
+      },
+      {
+        key: 'actual',
+        label: labels.actual,
+        tone: 'actual',
+        points: lines.map((line) => ({
+          x: lineLabel(line),
+          y: line.actualCents,
+        })),
+      },
+    ],
+  };
 };
 
 export const buildBudgetProjectionChart = (
   view: BudgetPlanView,
   labels: BudgetChartLabels
-): string | null => {
-  const lines = topExpenseLines(view).filter((line) => line.projectedCents !== null);
+): ChartSpec | null => {
+  const lines = topExpenseLines(view).filter(
+    (line) => line.projectedCents !== null
+  );
   if (lines.length === 0) return null;
 
-  const planned = lines.map((line) => moneyLabel(line.plannedCents));
-  const projected = lines.map((line) => moneyLabel(line.projectedCents ?? 0));
-  const max = Math.max(...planned, ...projected, 1);
-  const axisMax = Math.ceil(max * 1.15);
+  return {
+    kind: 'grouped_bar',
+    title: labels.projectionTitle,
+    xAxis: { type: 'category', format: 'text' },
+    yAxis: { format: 'money' },
+    series: [
+      {
+        key: 'planned',
+        label: labels.planned,
+        tone: 'planned',
+        points: lines.map((line) => ({
+          x: lineLabel(line),
+          y: line.plannedCents,
+        })),
+      },
+      {
+        key: 'projected',
+        label: labels.projected,
+        tone: 'projected',
+        points: lines.map((line) => ({
+          x: lineLabel(line),
+          y: line.projectedCents ?? 0,
+        })),
+      },
+    ],
+  };
+};
 
-  return [
-    'xychart-beta',
-    `  title "${clean(labels.projectionTitle, labels.projectionTitle)}"`,
-    `  x-axis [${lines
-      .map((line) => `"${clean(line.categoryName || line.typeName, '—')}"`)
-      .join(', ')}]`,
-    `  y-axis "${clean(labels.planned, labels.planned)} / ${clean(
-      labels.projected,
-      labels.projected
-    )}" 0 --> ${axisMax}`,
-    `  bar [${planned.join(', ')}]`,
-    `  bar [${projected.join(', ')}]`,
-  ].join('\n');
+export const buildBudgetBalanceChart = (
+  view: BudgetPlanView,
+  labels: BudgetChartLabels
+): ChartSpec | null => {
+  if (
+    view.totals.plannedNetCents === 0 &&
+    view.totals.actualNetCents === 0 &&
+    view.balance.expectedNetCents === 0
+  ) {
+    return null;
+  }
+
+  return {
+    kind: 'grouped_bar',
+    title: labels.balanceTitle,
+    xAxis: { type: 'category', format: 'text' },
+    yAxis: { format: 'money' },
+    series: [
+      {
+        key: 'balance',
+        label: labels.balanceTitle,
+        tone: 'primary',
+        points: [
+          { x: labels.plannedNet, y: view.totals.plannedNetCents },
+          { x: labels.actualNet, y: view.totals.actualNetCents },
+          { x: labels.expectedNet, y: view.balance.expectedNetCents },
+        ],
+      },
+    ],
+  };
 };
 
 export const buildBudgetCharts = (view: BudgetPlanView, labels: BudgetChartLabels) => ({
@@ -142,4 +230,5 @@ export const buildBudgetCharts = (view: BudgetPlanView, labels: BudgetChartLabel
   distribution: buildBudgetDistributionPie(view, labels),
   comparison: buildBudgetComparisonChart(view, labels),
   projection: buildBudgetProjectionChart(view, labels),
+  balance: buildBudgetBalanceChart(view, labels),
 });

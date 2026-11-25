@@ -53,10 +53,22 @@ const seeds: HelpTopicSeed[] = [
     related: ['groups', 'records'],
   },
   {
+    id: 'dashboard',
+    icon: 'dashboard-customize',
+    category: 'start',
+    related: ['gettingStarted', 'records', 'summaries', 'experience'],
+  },
+  {
+    id: 'whatsNew',
+    icon: 'new-releases',
+    category: 'start',
+    related: ['gettingStarted', 'theme', 'filters'],
+  },
+  {
     id: 'groups',
     icon: 'folder',
     category: 'start',
-    related: ['gettingStarted', 'records'],
+    related: ['gettingStarted', 'records', 'closing', 'fixeds'],
   },
   {
     id: 'records',
@@ -75,6 +87,12 @@ const seeds: HelpTopicSeed[] = [
     icon: 'insights',
     category: 'records',
     related: ['records', 'budgets', 'amountModes'],
+  },
+  {
+    id: 'charts',
+    icon: 'bar-chart',
+    category: 'records',
+    related: ['summaries', 'budgets', 'savings', 'credits', 'vehicle'],
   },
   {
     id: 'budgets',
@@ -128,7 +146,19 @@ const seeds: HelpTopicSeed[] = [
     id: 'people',
     icon: 'people',
     category: 'records',
-    related: ['fixeds', 'financings', 'summaries'],
+    related: ['fixeds', 'financings', 'summaries', 'sharedPurchases'],
+  },
+  {
+    id: 'sharedPurchases',
+    icon: 'receipt-long',
+    category: 'records',
+    related: ['records', 'people', 'fixeds', 'amountModes'],
+  },
+  {
+    id: 'settlements',
+    icon: 'payments',
+    category: 'records',
+    related: ['people', 'sharedPurchases', 'groups', 'summaries'],
   },
   {
     id: 'amountModes',
@@ -140,7 +170,19 @@ const seeds: HelpTopicSeed[] = [
     id: 'savings',
     icon: 'savings',
     category: 'money',
-    related: ['summaries'],
+    related: ['summaries', 'closing'],
+  },
+  {
+    id: 'shopping',
+    icon: 'shopping-cart',
+    category: 'planning',
+    related: ['records', 'groups', 'summaries', 'budgets'],
+  },
+  {
+    id: 'closing',
+    icon: 'calculate',
+    category: 'planning',
+    related: ['groups', 'summaries', 'credits', 'savings', 'records'],
   },
   {
     id: 'filters',
@@ -153,6 +195,12 @@ const seeds: HelpTopicSeed[] = [
     icon: 'palette',
     category: 'tools',
     related: ['gettingStarted'],
+  },
+  {
+    id: 'experience',
+    icon: 'tune',
+    category: 'tools',
+    related: ['gettingStarted', 'records', 'theme'],
   },
 ];
 
