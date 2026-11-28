@@ -89,7 +89,8 @@ PocketTool.
 
 - App Expo mínima temporal, SDK 58 / RN 0.88, fuera del repositorio.
 - Dependencias: `expo-image-picker`, `expo-mlkit-ocr`, `expo-asset`.
-- Probar `extras/ejemplo-factura.jpeg` (495×1600) y una foto de alta resolución.
+- Probar una factura de ejemplo local (495×1600, fuera del repositorio) y una
+  foto de alta resolución.
 - Medir calidad, tiempo, ABIs del emulador x86_64 y tamaño agregado.
 - Entregable: texto OCR, ítems detectados, decisión go/no-go y recomendación
   entre `expo-mlkit-ocr` y un módulo Expo local solo Android.
@@ -147,7 +148,7 @@ PocketTool.
 - Ignorar totales, IVA, pago, autorización, QR y pie.
 - Convertir a centavos; nota si `suma ≠ total` o falta el total.
 - Devolver ítems con confianza y advertencias; nunca bloquear por el total.
-- Fixtures de texto, no la imagen. `extras/` sigue ignorado.
+- Fixtures de texto, no la imagen; las capturas locales no se versionan.
 
 ### Datos
 

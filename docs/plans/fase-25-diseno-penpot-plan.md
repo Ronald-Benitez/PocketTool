@@ -49,8 +49,7 @@ Presupuesto, sub-tabs de Vehículo y cualquier campo que requiera migración.
 - MCP local (`npx @penpot/mcp@stable`) o remoto; plugin abierto durante la sesión.
 - Node 22, JDK 17/21, Android Studio, SDK, KVM y `adb`.
 - 16 GB de RAM como mínimo; 32 GB dan margen para emulador + Penpot + navegador.
-- Capturas de referencia en
-  [`../../extras/referencias/seccion-registros`](../../extras/referencias/seccion-registros).
+- Capturas locales de la app, fuera del repositorio; no se versionan.
 
 ## Lecciones de la prueba anterior
 
@@ -73,7 +72,8 @@ Se conservan como restricciones, no como trabajo hecho:
 1. **Entorno:** Linux, Podman, Penpot, MCP, Android Studio, emulador y `adb`.
 2. **Tokens:** `npm run penpot:tokens` genera `dist/penpot/tokens.json` desde
    `src/ui` (sin tocar la app).
-3. **Referencias:** capturas reales de la app en `extras/referencias`.
+3. **Referencias:** capturas locales de la app, fuera del repositorio; se usan
+   solo para comparar y no se versionan.
 4. **Construcción por lotes:** `execute_code` con `storage` para reutilizar
    helpers; `penpotUtils` para estructura; `export_shape` para revisar.
 5. **Navegación:** una página bright y una dark; drawer, tabs y flows dentro de
