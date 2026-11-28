@@ -690,11 +690,11 @@ export const helpEn = {
             },
             "how": {
                 "title": "How it works",
-                "body": "Open lists can be renamed and their items added, edited, checked, reordered or deleted. Use the list selector to switch lists without growing the page or losing the item view. The total only sums checked items that have a price; if a checked item has no price, the total is marked as partial. Closing a list makes it read-only. From a closed list you can create a record with the calculated or manual amount, link an existing compatible record, or skip registration. The record link is unique per list and cannot be created twice."
+                "body": "Open lists can be renamed and their items added, edited, checked, reordered or deleted. Use the list selector to switch lists without growing the page or losing the item view. The total only sums checked items that have a price; if a checked item has no price, the total is marked as partial. Closing a list makes it read-only. From a closed list you can create a record with the calculated or manual amount, link an existing compatible record, or skip registration. The record link is unique per list and cannot be created twice. On Android you can scan a receipt: take a photo, review and correct the detected items, then create a closed list that opens the purchase form with the receipt total and date."
             },
             "steps": {
                 "title": "Step by step",
-                "step1": "Create a list and add items with an optional price.",
+                "step1": "Create a list and add items with an optional price, or scan a receipt on Android and review the detected items.",
                 "step2": "Check the items you plan to buy and review the calculated or partial total.",
                 "step3": "Close the list and choose create, link or skip to finish."
             },
@@ -704,7 +704,7 @@ export const helpEn = {
             },
             "tips": {
                 "title": "Tips",
-                "body": "Use the calculated total as a starting point and adjust the amount for discounts or extra items. Linking requires the same amount and day and excludes records already used by vehicle, financings, savings, credits or another shopping list."
+                "body": "Use the calculated total as a starting point and adjust the amount for discounts or extra items. Linking requires the same amount and day and excludes records already used by vehicle, financings, savings, credits or another shopping list. When scanning, the receipt total is used for the record; the app only warns if the item sum differs."
             },
             "warning": {
                 "title": "Common mistake",
@@ -1494,11 +1494,11 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "how": {
                 "title": "Cómo funciona",
-                "body": "Las listas abiertas se pueden renombrar y sus artículos se pueden agregar, editar, marcar, reordenar o eliminar. Usa el selector de listas para cambiar sin que la página crezca ni perder la vista de los artículos. El total suma solo los artículos marcados que tienen precio; si un artículo marcado no tiene precio, el total se muestra como parcial. Cerrar la lista la deja de solo lectura. Desde una lista cerrada puedes crear un registro con el monto calculado o manual, vincular un registro compatible existente u omitir el registro. El vínculo es único por lista y no se puede registrar dos veces."
+                "body": "Las listas abiertas se pueden renombrar y sus artículos se pueden agregar, editar, marcar, reordenar o eliminar. Usa el selector de listas para cambiar sin que la página crezca ni perder la vista de los artículos. El total suma solo los artículos marcados que tienen precio; si un artículo marcado no tiene precio, el total se muestra como parcial. Cerrar la lista la deja de solo lectura. Desde una lista cerrada puedes crear un registro con el monto calculado o manual, vincular un registro compatible existente u omitir el registro. El vínculo es único por lista y no se puede registrar dos veces. En Android puedes escanear una factura: toma una foto, revisa y corrige los artículos detectados, y crea una lista cerrada que abre el formulario de compra con el total y la fecha de la factura."
             },
             "steps": {
                 "title": "Paso a paso",
-                "step1": "Crea una lista y agrega artículos con precio opcional.",
+                "step1": "Crea una lista y agrega artículos con precio opcional, o escanea una factura en Android y revisa los artículos detectados.",
                 "step2": "Marca los artículos que vas a comprar y revisa el total calculado o parcial.",
                 "step3": "Cierra la lista y elige crear, vincular u omitir para terminar."
             },
@@ -1508,7 +1508,7 @@ export const helpEs: MessageShape<typeof helpEn> = {
             },
             "tips": {
                 "title": "Consejos",
-                "body": "Usa el total calculado como punto de partida y ajusta el monto por descuentos o artículos extra. Vincular exige el mismo monto y día, y excluye registros ya usados por vehículo, financiamientos, ahorros, créditos u otra lista de compras."
+                "body": "Usa el total calculado como punto de partida y ajusta el monto por descuentos o artículos extra. Vincular exige el mismo monto y día, y excluye registros ya usados por vehículo, financiamientos, ahorros, créditos u otra lista de compras. Al escanear, el total de la factura se usa para el registro; la app solo avisa si la suma de artículos no coincide."
             },
             "warning": {
                 "title": "Error común",

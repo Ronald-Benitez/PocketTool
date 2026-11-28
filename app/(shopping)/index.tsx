@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 
 import { useShoppingListsRepository } from '@/src/db';
 import { mapDatabaseError } from '@/src/db/errors';
 import { calculateShoppingTotal } from '@/src/domain/shopping/totals';
+import { formatQuantity } from '@/src/domain/shopping/units';
 import type {
   ShoppingListFilter,
   ShoppingListView,
@@ -14,6 +15,7 @@ import { ShoppingItemForm } from '@/src/components/shopping/ShoppingItemForm';
 import type { ShoppingItemDraft } from '@/src/components/shopping/ShoppingItemForm';
 import { ShoppingListForm } from '@/src/components/shopping/ShoppingListForm';
 import { ShoppingPurchaseForm } from '@/src/components/shopping/ShoppingPurchaseForm';
+import { ReceiptScanModal } from '@/src/components/shopping/ReceiptScanModal';
 import { useGroupRefresh } from '@/src/hooks/useGroupRefresh';
 import { useLanguage } from '@/src/lang/LanguageContext';
 import useRecordsStore from '@/src/stores/RecordsStore';
@@ -72,9 +74,19 @@ const Index = () => {
     id: number;
     item_name: string;
     price_cents: number | null;
+    quantity: number | null;
+    unit: string | null;
   } | null>(null);
 
   const [purchaseVisible, setPurchaseVisible] = useState(false);
+  const [purchaseList, setPurchaseList] = useState<ShoppingListView | null>(
+    null
+  );
+  const [purchaseInitial, setPurchaseInitial] = useState<{
+    amountCents: number | null;
+    date: number | null;
+  } | null>(null);
+  const [scanVisible, setScanVisible] = useState(false);
   const [closeVisible, setCloseVisible] = useState(false);
   const [deleteListVisible, setDeleteListVisible] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState<number | null>(null);
@@ -297,6 +309,8 @@ const Index = () => {
         type: 'success',
       });
       refresh();
+      setPurchaseList(null);
+      setPurchaseInitial(null);
       setPurchaseVisible(true);
     } catch (cause) {
       handleError(cause);
@@ -361,12 +375,42 @@ const Index = () => {
   };
 
   const purchaseSaved = () => {
+    setPurchaseList(null);
+    setPurchaseInitial(null);
     if (group?.id) {
       refreshGroupData(group.id).catch((cause) => {
         if (__DEV__) console.warn('[shopping] group refresh failed', cause);
       });
     }
     refresh();
+  };
+
+  const handleScanCreated = async (
+    listId: number,
+    amountCents: number | null,
+    date: number | null
+  ) => {
+    setScanVisible(false);
+    try {
+      const list = await repository.fetchList(listId);
+      if (!list) return;
+      setFilter('closed');
+      setLists((current) => [
+        list,
+        ...current.filter((item) => item.id !== listId),
+      ]);
+      setSelectedId(listId);
+      setPurchaseList(list);
+      setPurchaseInitial({ amountCents, date });
+      setPurchaseVisible(true);
+      showToast({
+        message: t('shopping.scan.created'),
+        type: 'success',
+      });
+      refresh();
+    } catch (cause) {
+      handleError(cause);
+    }
   };
 
   const openNewList = () => {
@@ -394,6 +438,8 @@ const Index = () => {
       id: item.id,
       item_name: item.item_name,
       price_cents: item.price_cents ?? null,
+      quantity: item.quantity ?? null,
+      unit: item.unit ?? null,
     });
     setItemFormError(null);
     setItemFormVisible(true);
@@ -413,11 +459,27 @@ const Index = () => {
             />
           }
           action={
-            <Button
-              label={t('shopping.actions.newList')}
-              size='sm'
-              onPress={openNewList}
-            />
+            <Row gap='xs' align='center'>
+              {Platform.OS === 'android' ? (
+                <IconButton
+                  icon={
+                    <MaterialCommunityIcons
+                      name='camera-outline'
+                      size={20}
+                      color={colors.primary}
+                    />
+                  }
+                  label={t('shopping.scan.title')}
+                  size='sm'
+                  onPress={() => setScanVisible(true)}
+                />
+              ) : null}
+              <Button
+                label={t('shopping.actions.newList')}
+                size='sm'
+                onPress={openNewList}
+              />
+            </Row>
           }
           tooltip={{
             title: t('shopping.title'),
@@ -625,14 +687,28 @@ const Index = () => {
                   {selected.items.map((item, index) => {
                     const itemId = item.id as number;
                     const checked = Boolean(item.is_checked);
+                    const priceText =
+                      item.price_cents == null
+                        ? t('shopping.item.noPrice')
+                        : formatMoneyWithSymbol(item.price_cents);
+                    const quantityText =
+                      item.quantity != null
+                        ? `${formatQuantity(item.quantity)} ${
+                            item.unit
+                              ? t(
+                                  `shopping.item.units.${item.unit}` as never
+                                )
+                              : ''
+                          }`.trim()
+                        : null;
                     return (
                       <ListItem
                         key={itemId}
                         title={item.item_name}
                         subtitle={
-                          item.price_cents == null
-                            ? t('shopping.item.noPrice')
-                            : formatMoneyWithSymbol(item.price_cents)
+                          quantityText
+                            ? `${priceText} · ${quantityText}`
+                            : priceText
                         }
                         leading={
                           <IconButton
@@ -758,7 +834,11 @@ const Index = () => {
               ) : (
                 <Button
                   label={t('shopping.actions.registerPurchase')}
-                  onPress={() => setPurchaseVisible(true)}
+                  onPress={() => {
+                    setPurchaseList(null);
+                    setPurchaseInitial(null);
+                    setPurchaseVisible(true);
+                  }}
                 />
               )}
             </Stack>
@@ -783,6 +863,8 @@ const Index = () => {
             ? {
                 item_name: editingItem.item_name,
                 price_cents: editingItem.price_cents,
+                quantity: editingItem.quantity,
+                unit: editingItem.unit,
               }
             : null
         }
@@ -798,9 +880,21 @@ const Index = () => {
 
       <ShoppingPurchaseForm
         visible={purchaseVisible}
-        list={selected}
-        onClose={() => setPurchaseVisible(false)}
+        list={purchaseList ?? selected}
+        initialAmountCents={purchaseInitial?.amountCents}
+        initialDate={purchaseInitial?.date}
+        onClose={() => {
+          setPurchaseVisible(false);
+          setPurchaseList(null);
+          setPurchaseInitial(null);
+        }}
         onSaved={purchaseSaved}
+      />
+
+      <ReceiptScanModal
+        visible={scanVisible}
+        onClose={() => setScanVisible(false)}
+        onCreated={handleScanCreated}
       />
 
       <ConfirmDialog

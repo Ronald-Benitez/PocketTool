@@ -33,6 +33,8 @@ import { Surface } from '@/src/ui/primitives/Surface';
 type Props = {
   visible: boolean;
   list: ShoppingListView | null;
+  initialAmountCents?: number | null;
+  initialDate?: number | null;
   onClose: () => void;
   onSaved: () => void;
 };
@@ -60,6 +62,8 @@ const shoppingErrorKey = (message: string) => {
 export const ShoppingPurchaseForm = ({
   visible,
   list,
+  initialAmountCents,
+  initialDate,
   onClose,
   onSaved,
 }: Props) => {
@@ -96,15 +100,16 @@ export const ShoppingPurchaseForm = ({
     if (!visible || !list) return;
     let active = true;
     setMode('create');
-    setAmount(list.totalCents);
-    setDate(Date.now());
+    setAmount(initialAmountCents ?? list.totalCents);
+    const startDate = initialDate ?? Date.now();
+    setDate(startDate);
     setLinkedRecord(null);
     setError(null);
     Promise.all([
       categoriesRepository.fetchCategories(),
       paymentsRepository.fetchPaymentMethods(),
       recordTypesRepository.fetchAll(),
-      repository.listGroupsForDate(Date.now()),
+      repository.listGroupsForDate(startDate),
     ]).then(([nextCategories, nextPayments, nextTypes, nextGroups]) => {
       if (!active) return;
       setCategories(nextCategories ?? []);
@@ -122,7 +127,7 @@ export const ShoppingPurchaseForm = ({
     return () => {
       active = false;
     };
-  }, [visible, list?.id]);
+  }, [visible, list?.id, initialAmountCents, initialDate]);
 
   useEffect(() => {
     if (!visible) return;

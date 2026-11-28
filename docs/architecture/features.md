@@ -7,7 +7,7 @@ necesita. Los flags son visibilidad, no datos: ocultar un módulo no borra nada 
 cambia cálculos. El mapa detallado de pantallas, componentes y hooks vive en
 [`dependencies.md`](dependencies.md).
 **Secciones:** Catálogo · Presets · Storage · Normalización · Navegación ·
-Pantallas · Captura · Agregar una feature · Pruebas.
+Pantallas · Escaneo de facturas · Captura · Agregar una feature · Pruebas.
 
 ## Catálogo
 
@@ -90,6 +90,22 @@ captura no cambian la etiqueta del preset.
 - Alta de registro: compartidos y origen en ahorros según flags; al editar un
   registro existente se conservan los vínculos aunque el módulo esté oculto.
 - Ayuda: el hub filtra temas por feature; los temas núcleo siempre se muestran.
+
+## Escaneo de facturas
+
+- Solo Android; en iOS la acción se oculta y queda como deuda técnica.
+- OCR en el dispositivo con `expo-mlkit-ocr`; la imagen no sale del teléfono.
+- Requiere un build de desarrollo/APK; en Expo Go el import perezoso muestra un
+  aviso y el resto de la app sigue funcionando.
+- La revisión permite corregir nombres, precios y cantidades. La lista se crea
+  cerrada, con los ítems marcados, y abre el formulario de compra con el total y
+  la fecha de la factura.
+- Reglas de build: cambios JS/TS de Compras usan Metro; solo los cambios de
+  dependencias nativas, `app.json`, plugins o Gradle requieren prebuild + build.
+  Las pruebas del parser y del repositorio no requieren build; el OCR manual se
+  prueba únicamente sobre un build.
+- `expo-build-properties` mantiene las reglas ProGuard de ML Kit; sin ellas R8
+  elimina los registradores y el OCR falla en release.
 
 ## Captura
 
