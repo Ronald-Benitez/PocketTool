@@ -7,7 +7,7 @@ a las decisiones canónicas. Las reglas no viven aquí.
 **Secciones:** Estado · Fase activa · Arquitectura actual · Fases 0–23 ·
 Decisiones.
 
-**Última actualización:** 2026-11-22
+**Última actualización:** 2026-11-25
 
 ## Estado
 
@@ -37,12 +37,15 @@ Decisiones.
 | Fase 21 — Identidad visual y dashboard de Inicio | ✅ Finalizada | 2026-11-21 |
 | Fase 22 — Coherencia visual restante | ✅ Finalizada | 2026-11-22 |
 | Fase 23 — Lista de compras | ✅ Finalizada | 2026-11-22 |
+| Fase 24 — Escaneo de facturas para lista de compras | 🚧 En proceso | — |
 
 ## Fase activa
 
-**No hay fase activa.**
+**Fase 24 — Escaneo de facturas para lista de compras** (🚧 en proceso)
 
-`/cerrar-fase` usa este encabezado para saber qué fase cerrar.
+Plan: [`plans/fase-24-escaneo-facturas-plan.md`](plans/fase-24-escaneo-facturas-plan.md).
+OCR Android-only, revisión editable, lista nueva cerrada y formulario de compra
+precargado; iOS oculto.
 
 ## Arquitectura actual (resumen)
 
@@ -232,33 +235,23 @@ Plan en [`legacy/fase-20-budget-plan.md`](legacy/fase-20-budget-plan.md).
 
 ## Fase 21 — Identidad visual y dashboard de Inicio (✅ 2026-11-21)
 
-Plan en
-[`legacy/fase-21-visual-dashboard-plan.md`](legacy/fase-21-visual-dashboard-plan.md).
-Contrato visual, glass simulado, `SectionCard`/`InfoHint`/`SortableList`,
-dashboard de 9 bloques con editor y FAB, y migración de Ajustes, Resúmenes,
-Registros y Compromisos. Verificación: typecheck, `test:db`, 375 tests, lint,
-doctor 20/20, `docs:audit` y export Android. QA visual validado por el usuario.
+Plan en [`legacy/fase-21-visual-dashboard-plan.md`](legacy/fase-21-visual-dashboard-plan.md).
+Contrato visual, glass, `SectionCard`/`InfoHint`/`SortableList`, dashboard de 9
+bloques con editor y FAB. Verif.: typecheck, `test:db`, 375 tests, lint,
+doctor 20/20, `docs:audit`, export Android; QA visual del usuario.
 
 ## Fase 22 — Coherencia visual restante (✅ 2026-11-22)
 
-Plan en
-[`legacy/fase-22-visual-coherence-plan.md`](legacy/fase-22-visual-coherence-plan.md).
-Catálogos, tablas, Presupuesto, Créditos, Ahorros, Vehículo, Personas, Cierre,
-tooltips y validación unificados. Verificación: `ci`, lint, doctor 20/20,
-`docs:audit` y export Android; QA validado por el usuario.
+Plan en [`legacy/fase-22-visual-coherence-plan.md`](legacy/fase-22-visual-coherence-plan.md).
+Catálogos, tablas y validación unificados. Verif.: `ci`, lint, doctor 20/20,
+`docs:audit`, export Android; QA del usuario.
 
 ## Fase 23 — Lista de compras (✅ 2026-11-22)
 
-Plan en
-[`legacy/fase-23-shopping-list-plan.md`](legacy/fase-23-shopping-list-plan.md).
-
-- Migración `0027` y totales con precio cero = sin precio.
-- Repositorio con CRUD, cierre inmutable y registro crear/vincular.
-- Sección con selector modal, check optimista y origen.
-- Flag `shopping`, `RecordPicker`.
-
-Verif.: `ci`, 379 tests, `test:db`, lint, doctor 20/20 y `docs:audit`.
-Commits `5602701`, `49e40fd`.
+Plan en [`legacy/fase-23-shopping-list-plan.md`](legacy/fase-23-shopping-list-plan.md).
+Migración `0027`, totales, CRUD, cierre inmutable, registro crear/vincular,
+flag `shopping` y `RecordPicker`. Verif.: `ci`, 379 tests, `test:db`, lint,
+doctor 20/20, `docs:audit`. Commits `5602701`, `49e40fd`.
 
 ## Decisiones
 
