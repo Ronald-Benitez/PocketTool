@@ -7,10 +7,10 @@ formulario de compra existente para registrar el `Record`.
 **Secciones:** Implementación · QA · Decisión · Flujo · Spike · Diseño técnico ·
 Datos · Registros · Builds · Criterios · Verificación · Riesgos · Deuda.
 
-**Estado:** 🚧 En proceso · **Inicio:** 2026-11-25
+**Estado:** ⏸️ En espera · **Inicio:** 2026-11-25
 **Fase:** 24 · **Plataforma:** Android (iOS oculto y diferido)
-**Avance:** MVP implementado y validado en emulador; pendiente QA con la factura
-real en un teléfono.
+**Avance:** MVP implementado y validado en emulador; en pausa hasta el QA con la
+factura real en un teléfono.
 
 ## Implementación
 
