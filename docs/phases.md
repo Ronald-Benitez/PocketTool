@@ -7,7 +7,7 @@ a las decisiones canónicas. Las reglas no viven aquí.
 **Secciones:** Estado · Fase activa · Arquitectura actual · Fases 0–23 ·
 Decisiones.
 
-**Última actualización:** 2026-11-25
+**Última actualización:** 2026-11-28
 
 ## Estado
 
@@ -37,15 +37,17 @@ Decisiones.
 | Fase 21 — Identidad visual y dashboard de Inicio | ✅ Finalizada | 2026-11-21 |
 | Fase 22 — Coherencia visual restante | ✅ Finalizada | 2026-11-22 |
 | Fase 23 — Lista de compras | ✅ Finalizada | 2026-11-22 |
-| Fase 24 — Escaneo de facturas para lista de compras | 🚧 En proceso | — |
+| Fase 24 — Escaneo de facturas para lista de compras | ⏸️ En espera | — |
+| Fase 25 — Diseño en Penpot desde cero | 📝 Planificado | — |
 
 ## Fase activa
 
-**Fase 24 — Escaneo de facturas para lista de compras** (🚧 en proceso)
+**Fase 25 — Diseño en Penpot desde cero** (📝 planificado)
 
-Plan: [`plans/fase-24-escaneo-facturas-plan.md`](plans/fase-24-escaneo-facturas-plan.md).
-OCR Android-only, revisión editable, lista nueva cerrada y formulario de compra
-precargado; iOS oculto.
+Plan: [`plans/fase-25-diseno-penpot-plan.md`](plans/fase-25-diseno-penpot-plan.md).
+Linux + Podman, Penpot limpio y Android Studio. Sin diseño creado todavía; se
+elimina el glass y se conservan funciones, botones y colores. La Fase 24 sigue
+en espera.
 
 ## Arquitectura actual (resumen)
 
@@ -168,14 +170,8 @@ Plan completo en [`legacy/shared-purchases-plan.md`](legacy/shared-purchases-pla
 
 Plan completo en [`legacy/pending-adjustments-plan.md`](legacy/pending-adjustments-plan.md).
 
-- Migración `0023`: reparto por porcentaje o monto en compartidos; ahorros
-  sigue solo con porcentaje.
-- Refresco global tras combustible, mantenimiento y ahorros; ahorros con monto
-  inicial 0.
-- Pickers centrados con altura máxima y scroll.
-- Fecha configurable de pagos pendientes de tarjeta y distancia por segmento en
-  gasolina, con memoria de “Use odometer” por vehículo.
-- Limpieza de datos en memoria al borrar el último grupo. Commit: `0265179`.
+Migración `0023` (reparto por porcentaje/monto), refresco global, pickers con
+scroll, fecha de pendientes y odómetro por vehículo. Commit `0265179`.
 
 ## Fase 14 — “Qué hay de nuevo” acumulado (✅ 2026-11-17)
 

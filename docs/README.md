@@ -26,7 +26,9 @@ vive en una sola capa. El procedimiento y los límites están en la skill
   módulos, pantallas, componentes, hooks y dominios dependen de cada feature.
 - [`plans/futuro-borrador.md`](plans/futuro-borrador.md): pendientes futuros.
 - [`plans/fase-24-escaneo-facturas-plan.md`](plans/fase-24-escaneo-facturas-plan.md):
-  escaneo de facturas para Compras (fase activa).
+  escaneo de facturas para Compras (en espera).
+- [`plans/fase-25-diseno-penpot-plan.md`](plans/fase-25-diseno-penpot-plan.md):
+  diseño en Penpot desde cero en Linux (planificado).
 
 ### Notas de versión
 

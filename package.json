@@ -15,6 +15,7 @@
     "typecheck": "tsc --noEmit",
     "doctor": "npx expo-doctor",
     "docs:audit": "node ./scripts/docs-audit.js",
+    "penpot:tokens": "node ./scripts/penpot-tokens.js",
     "ci": "npm run typecheck && npm run test:db && npm test && npm run docs:audit",
     "lint": "expo lint",
     "apk": "eas build -p android --profile preview",
