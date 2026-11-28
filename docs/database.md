@@ -69,7 +69,7 @@ El inventario completo de tablas, columnas, índices y relaciones está en
 | `GroupClosingLines` | Líneas de disponible, obligación o resolución; índices únicos evitan repetir la misma tarjeta/cuenta, fijo o financiamiento. |
 | `VehicleExpenseLinks` | Vínculo uno a uno con `Records` para combustible y mantenimiento. |
 | `ShoppingLists` | Lista global de compras; `status` la vuelve de solo lectura y `record_id` (único) guarda la compra vinculada. |
-| `ShoppingListItems` | Artículos con precio opcional, check persistente y orden; pertenecen a una `ShoppingList`. |
+| `ShoppingListItems` | Artículos con precio, cantidad y unidad opcionales, check persistente y orden; pertenecen a una `ShoppingList`. |
 | `ChartPreferences` | Preferencias por gráfico: colapsado, modo, series ocultas, límite, orden y zoom. |
 | `Migrations` | Historial de migraciones aplicadas. |
 

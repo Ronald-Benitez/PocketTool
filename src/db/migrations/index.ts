@@ -27,6 +27,7 @@ import groupClosings from './0024_group_closings';
 import groupPeriods from './0025_group_periods';
 import chartPreferences from './0026_chart_preferences';
 import shoppingLists from './0027_shopping_lists';
+import shoppingItemQuantities from './0028_shopping_item_quantities';
 
 export interface Migration {
   version: number;
@@ -66,4 +67,5 @@ export const migrations: Migration[] = [
   groupPeriods,
   chartPreferences,
   shoppingLists,
+  shoppingItemQuantities,
 ];

@@ -29,6 +29,21 @@ export type ShoppingPurchaseMode = 'create' | 'link' | 'none';
 
 export type ShoppingListItemView = ShoppingListItem;
 
+export type ShoppingListDraftItem = {
+  item_name: string;
+  price_cents?: number | null;
+  quantity?: number | null;
+  unit?: string | null;
+  is_checked?: boolean;
+};
+
+export type ShoppingListWithItemsInput = {
+  list_name: string;
+  items: ShoppingListDraftItem[];
+  status?: 'open' | 'closed';
+  purchase_date?: number | null;
+};
+
 export type ShoppingListView = ShoppingList & {
   items: ShoppingListItemView[];
   itemCount: number;
@@ -256,6 +271,8 @@ export const useShoppingListsRepository = () => {
     shopping_list_id: number;
     item_name: string;
     price_cents?: number | null;
+    quantity?: number | null;
+    unit?: string | null;
   }): Promise<number> => {
     try {
       return await withExclusiveTransaction(db, async (txn) => {
@@ -273,6 +290,11 @@ export const useShoppingListsRepository = () => {
             input.price_cents != null && input.price_cents > 0
               ? input.price_cents
               : null,
+          quantity:
+            input.quantity != null && input.quantity > 0
+              ? input.quantity
+              : null,
+          unit: input.unit?.trim() || null,
           is_checked: false,
           sort_order: (last?.sort_order ?? -1) + 1,
         });
@@ -283,9 +305,62 @@ export const useShoppingListsRepository = () => {
     }
   };
 
+  const createListWithItems = async (
+    input: ShoppingListWithItemsInput
+  ): Promise<number> => {
+    try {
+      return await withExclusiveTransaction(db, async (txn) => {
+        if (input.items.length === 0) throw shoppingError('LIST_EMPTY');
+
+        const lists = new ORM(txn, 'ShoppingLists');
+        const items = new ORM(txn, 'ShoppingListItems');
+        const closed = input.status === 'closed';
+        const listPayload = shoppingListInputSchema.parse({
+          list_name: input.list_name.trim(),
+          status: closed ? 'closed' : 'open',
+          closed_at: closed ? Date.now() : null,
+          purchase_date: input.purchase_date ?? null,
+        });
+        const listId = await lists.insert(
+          listPayload as Insertable<ShoppingList>
+        );
+
+        for (let index = 0; index < input.items.length; index += 1) {
+          const item = input.items[index];
+          if (!item) continue;
+          const payload = shoppingListItemInputSchema.parse({
+            shopping_list_id: listId,
+            item_name: item.item_name.trim(),
+            price_cents:
+              item.price_cents != null && item.price_cents > 0
+                ? item.price_cents
+                : null,
+            quantity:
+              item.quantity != null && item.quantity > 0
+                ? item.quantity
+                : null,
+            unit: item.unit?.trim() || null,
+            is_checked: item.is_checked ?? false,
+            sort_order: index,
+          });
+          await items.insert(payload as Insertable<ShoppingListItem>);
+        }
+
+        return listId;
+      });
+    } catch (error) {
+      throw rethrowShoppingError(error, 'Could not create the shopping list');
+    }
+  };
+
   const updateItem = async (
     id: number,
-    input: { item_name?: string; price_cents?: number | null }
+    input: {
+      item_name?: string;
+      price_cents?: number | null;
+      quantity?: number | null;
+      unit?: string | null;
+    }
   ): Promise<void> => {
     try {
       await withExclusiveTransaction(db, async (txn) => {
@@ -304,6 +379,16 @@ export const useShoppingListsRepository = () => {
               : input.price_cents != null && input.price_cents > 0
                 ? input.price_cents
                 : null,
+          quantity:
+            input.quantity === undefined
+              ? undefined
+              : input.quantity != null && input.quantity > 0
+                ? input.quantity
+                : null,
+          unit:
+            input.unit === undefined
+              ? undefined
+              : input.unit?.trim() || null,
         });
         await items.update(id, payload);
       });
@@ -654,6 +739,7 @@ export const useShoppingListsRepository = () => {
     fetchLists,
     fetchList,
     createList,
+    createListWithItems,
     renameList,
     deleteList,
     addItem,

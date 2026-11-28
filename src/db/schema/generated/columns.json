@@ -2034,6 +2034,8 @@
     "shopping_list_id": "shopping_list_id",
     "item_name": "item_name",
     "price_cents": "price_cents",
+    "quantity": "quantity",
+    "unit": "unit",
     "is_checked": "is_checked",
     "sort_order": "sort_order",
     "created_at": "created_at",

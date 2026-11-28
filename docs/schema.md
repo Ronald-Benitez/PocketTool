@@ -3,7 +3,7 @@
 > Documento generado por `scripts/generate-db-artifacts.js`. No editar a mano.
 > Fuente de verdad: `src/db/schema/tables.ts`.
 
-Versión de esquema: **27**
+Versión de esquema: **28**
 
 ## Convenciones
 
@@ -46,15 +46,15 @@ completo.
 | `GroupClosingLines` | `group_closing_lines` | `GroupClosingLine` | 20 | 9 | 676 |
 | `ChartPreferences` | `chart_preferences` | `ChartPreference` | 11 | 1 | 718 |
 | `ShoppingLists` | `shopping_lists` | `ShoppingList` | 10 | 2 | 741 |
-| `ShoppingListItems` | `shopping_list_items` | `ShoppingListItem` | 9 | 1 | 766 |
-| `Migrations` | `migrations` | `Migration` | 3 | 0 | 789 |
-| `Vehicles` | `vehicles` | `Vehicle` | 19 | 1 | 799 |
-| `VehicleFuelEntries` | `vehicle_fuel_entries` | `VehicleFuelEntry` | 19 | 2 | 830 |
-| `VehicleMaintenance` | `vehicle_maintenance` | `VehicleMaintenanceEntry` | 13 | 2 | 864 |
-| `VehicleMaintenanceItems` | `vehicle_maintenance_items` | `VehicleMaintenanceItem` | 10 | 1 | 892 |
-| `VehicleReminders` | `vehicle_reminders` | `VehicleReminder` | 17 | 1 | 916 |
-| `VehicleSettings` | `vehicle_settings` | `VehicleSetting` | 7 | 0 | 947 |
-| `VehicleExpenseLinks` | `vehicle_expense_links` | `VehicleExpenseLink` | 6 | 3 | 965 |
+| `ShoppingListItems` | `shopping_list_items` | `ShoppingListItem` | 11 | 1 | 766 |
+| `Migrations` | `migrations` | `Migration` | 3 | 0 | 791 |
+| `Vehicles` | `vehicles` | `Vehicle` | 19 | 1 | 801 |
+| `VehicleFuelEntries` | `vehicle_fuel_entries` | `VehicleFuelEntry` | 19 | 2 | 832 |
+| `VehicleMaintenance` | `vehicle_maintenance` | `VehicleMaintenanceEntry` | 13 | 2 | 866 |
+| `VehicleMaintenanceItems` | `vehicle_maintenance_items` | `VehicleMaintenanceItem` | 10 | 1 | 894 |
+| `VehicleReminders` | `vehicle_reminders` | `VehicleReminder` | 17 | 1 | 918 |
+| `VehicleSettings` | `vehicle_settings` | `VehicleSetting` | 7 | 0 | 949 |
+| `VehicleExpenseLinks` | `vehicle_expense_links` | `VehicleExpenseLink` | 6 | 3 | 967 |
 
 ## Groups (`groups`)
 
@@ -773,6 +773,8 @@ Entidad TypeScript: `ShoppingListItem`
 | `shopping_list_id` | `INTEGER` | `number` | NOT NULL, FK → ShoppingLists.id ON DELETE CASCADE |
 | `item_name` | `TEXT` | `string` | NOT NULL |
 | `price_cents` | `INTEGER` | `Cents` | kind=money |
+| `quantity` | `REAL` | `number` |  |
+| `unit` | `TEXT` | `string` |  |
 | `is_checked` | `INTEGER` | `boolean | number` | NOT NULL, kind=boolean, default=0 |
 | `sort_order` | `INTEGER` | `number` | NOT NULL, default=0 |
 | `created_at` | `INTEGER` | `TimestampMs` | kind=timestamp, default=null |

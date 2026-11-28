@@ -831,6 +831,8 @@ export const shoppingListItemInputSchema = z
     shopping_list_id: z.number().int().positive(),
     item_name: z.string().min(1).max(160),
     price_cents: cents.nonnegative().nullable().optional(),
+    quantity: z.number().positive().nullable().optional(),
+    unit: z.string().trim().min(1).max(16).nullable().optional(),
     is_checked: z
       .boolean()
       .or(z.number().int().min(0).max(1))

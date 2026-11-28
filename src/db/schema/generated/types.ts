@@ -379,6 +379,8 @@ export interface ShoppingListItem extends Entity, SoftDeletable {
   shopping_list_id: number;
   item_name: string;
   price_cents?: Cents | null;
+  quantity?: number | null;
+  unit?: string | null;
   is_checked: boolean | number;
   sort_order: number;
   created_at?: TimestampMs | null;
