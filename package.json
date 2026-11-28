@@ -17,7 +17,8 @@
     "docs:audit": "node ./scripts/docs-audit.js",
     "ci": "npm run typecheck && npm run test:db && npm test && npm run docs:audit",
     "lint": "expo lint",
-    "apk": "eas build -p android --profile preview"
+    "apk": "eas build -p android --profile preview",
+    "apk-local": "node ./scripts/build-apk-local.js"
   },
   "jest": {
     "preset": "jest-expo"
@@ -36,8 +37,10 @@
     "expo-document-picker": "~58.0.5",
     "expo-file-system": "~58.0.12",
     "expo-font": "~58.0.10",
+    "expo-image-picker": "~58.0.10",
     "expo-linear-gradient": "~58.0.4",
     "expo-linking": "~58.0.17",
+    "expo-mlkit-ocr": "^0.2.7",
     "expo-router": "~58.0.32",
     "expo-sharing": "~58.0.23",
     "expo-splash-screen": "~58.0.14",

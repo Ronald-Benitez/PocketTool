@@ -39,3 +39,16 @@ npx expo start
 
 En la salida podrás elegir correr en emulador Android, simulador iOS, una build de desarrollo o en Expo Go.
 
+## Compilar APK
+
+```bash
+npm run apk        # APK en EAS (perfil preview)
+npm run apk-local  # APK compilado en local con el Android SDK / Android Studio
+```
+
+`apk-local` genera o sincroniza `android/` con `expo prebuild`, compila con el Gradle wrapper y deja el APK en `dist/apk-local/`. Requiere JDK 17+ y Android SDK; si usas Android Studio, el script detecta su JBR y el SDK por defecto.
+
+Opciones: `--clean` (regenera `android/`), `--debug`, `--no-prebuild`, `--ignore-long-paths`, `--version-code <n>` y `--abi arm64-v8a` (varias ABIs separadas por comas).
+
+En Windows, la arquitectura nueva de React Native necesita los *long paths* activados: CMake/Ninja fallan por el límite de 260 caracteres (`ninja: error: mkdir(...)`). Por eso el script se detiene al inicio si `LongPathsEnabled` está desactivado; usa `--ignore-long-paths` para intentarlo igualmente. Solución: habilita `LongPathsEnabled` (PowerShell como administrador), reinicia e instala CMake 3.31.6 o superior desde Android Studio; el script detecta el CMake moderno y lo usa automáticamente. Ver [la guía de Expo](https://docs.expo.dev/troubleshooting/windows-long-paths).
+

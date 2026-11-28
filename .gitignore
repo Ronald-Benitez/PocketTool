@@ -1,6 +1,9 @@
 node_modules/
 .expo/
 dist/
+extras/
+# Proyecto nativo generado por `expo prebuild` (npm run apk-local).
+/android/
 npm-debug.*
 *.jks
 *.p8
