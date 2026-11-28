@@ -1,5 +1,6 @@
 node_modules/
 .expo/
+.idea/
 dist/
 extras/
 # Proyecto nativo generado por `expo prebuild` (npm run apk-local).
